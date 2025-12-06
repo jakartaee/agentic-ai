@@ -42,27 +42,30 @@ public class FraudDetectionAgent {
     @Inject private LargeLanguageModel model;
     @Inject private EntityManager entityManager;
 
-    // Initiates the agent workflow. For this initial release, the workflow can only be triggered by CDI events.
-    // In the future, there could be many other types of triggers such as Jakarta Messaging or direct invocation
-    // from a programmatic life cycle API.
+    // Initiates the agent workflow. For this initial release, the workflow can only be triggered by
+    // CDI events.
+    // In the future, there could be many other types of triggers such as Jakarta Messaging or
+    // direct invocation from a programmatic life cycle API.
     @Trigger
-    // Return type can be void or a domain object stored in the workflow and accessible in the context.
+    // Return type can be void or a domain object stored in the workflow and accessible in
+    // the context.
     // Parameters are automatically added to the workflow context.
     private void processTransaction(@Valid BankTransaction transaction) {
-        // Simple check to see if this is a type of transaction that makes sense to check for fraud detection.
-        // Could add a bit more data, likely looked up from a database, and return an enhanced version of
-        // the transaction or return another domain object entirely. 
+        // Simple check to see if this is a type of transaction that makes sense to check for
+        // fraud detection.
+        // Could add a bit more data, likely looked up from a database, and return an enhanced
+        // version of the transaction or return another domain object entirely. 
     }
 
-    // Can return boolean or a built-in result Record type. In this initial release, workflows will
-    // automatically end with a negative result.
+    // Can return boolean or a built-in result Record type. In this initial release, workflows
+    // will automatically end with a negative result.
     // In subsequent releases, more robust decision flows should be possible, either with
     // annotations/EL and/or the programmatic workflow API.
     @Decision
     private Result checkFraud (BankTransaction transaction) {
         /*
-         * One of the value propositions of the LLM facade is automatic type conversion in Java, both
-         * for parameters and return types.
+         * One of the value propositions of the LLM facade is automatic type conversion in Java,
+         * both for parameters and return types.
          *
          * If nothing is specified, it's all strings.
          * Probably only JSON and string are supported initially for conversion.
@@ -75,11 +78,11 @@ public class FraudDetectionAgent {
         Fraud details = null;
 
         if (fraud) {
-            details = getFraudDetails(output); // Does some simple custom text parsing, possibly
-                                               // involving database queries.
+            details = getFraudDetails(output); // Does some simple custom text parsing,
+                                               // possibly involving database queries.
         }
  
-        return new Result (fraud, details); 
+        return new Result (fraud, details);
     }
 
     // Only one action here, but there could be multiple actions and/or decisions in sequence.
