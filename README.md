@@ -16,13 +16,17 @@ This project aims to create an Agentic AI API for Jakarta EE. The project aims t
 * The project makes a reasonable effort to keep the API potentially usable in runtimes such as Quarkus, Micronaut, and Spring Boot, though Jakarta EE compatible runtimes are the clear primary target.
 
 ## Version 1.0
-The initial version is intentionally minimal. The release seeks to build early momentum, including broadening awareness, participation, and adoption. Subsequently, we aim to iterate quickly based on evolving industry knowledge on Agentic AI as well as user feedback.
+The initial version is very intentionally minimal. The release seeks to build early momentum, including broadening awareness, participation, and adoption. Subsequently, we aim to iterate quickly based on evolving industry knowledge on Agentic AI as well as user feedback.
 
 The initial release focuses on key programming models, patterns, life cycles, as well as a lightweight LLM facade. Subsequent releases will likely focus more on a programmatic life cycle management, a workflow API and advanced features.
 
-## Target Platform
-* Jakarta EE 10 or higher
-* Java SE 17 or higher
+Specifically 1.0 focuses on:
+* @Agent annotation to define an agent and it's basic life-cycle/scope
+* @Trigger annotation to process CDI events and start the agent workflow
+* @Decision annotation to define simple decision points for an agent
+* @Action annotation to define a set of initially simple sequential steps an agent takes
+* @Outcome annotation to denote the end of an agent workflow
+* A very simple LLM facade 
 
 ## API Concepts
 The following annotated example demonstrates the key concepts this initial minimal release will aim to build consensus and momentum around.
@@ -123,6 +127,10 @@ public class FraudDetectionAgent {
     }
 }
 ```
+
+## Target Platform
+* Jakarta EE 10 or higher
+* Java SE 17 or higher
 
 ## Standalone Specification
 The project will not initially seek inclusion into the Jakarta EE platform or any profile. Rather, the project will seek to provide a usable standalone API under the Jakarta EE umbrella that vendors may choose to adopt. In the future, it may make sense to define a Jakarta EE profile for AI in general to which this project could be added. Such a profile could conceivably also include separate specifications to attempt to standardize other important AI concepts, such as LLMs and model augmentation/context servers.
