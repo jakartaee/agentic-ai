@@ -132,7 +132,11 @@ The project aims for the broadest industry consensus possible by engaging as man
 
 ## Frequently Asked Questions
 ### Why do I need this?
-You don't necessarily. Whether you want to use this API is entirely up to you. It is certainly possible to write script-like agent code that invokes LLMs and other AI capabilties to achieve autonomous or semi-autonomous business functionality. The problem is that for any reasonably complex agent, you'll probably end up with spaghetti code that's hard to maintain, especially for someone that isn't the original developer of the code. APIs like this one will provide your code long-term, predictable, and maintenable structure that fits the general patterns for AI agents. It may also help you think through your agent implementation, especially as a Jakarta EE developer. The power of this API shines when you need to write agents that need to adapt their behaviour at runtime. You can do that using this API by keeping the fundamental building blocks of your domain logic simple and changing the workflow of those building blocks dynamically - possibly in response to LLM interactions.
+You don't necessarily. Whether you want to use this API is entirely up to you.
+
+It is certainly possible to write script-like agent code that invokes LLMs and other AI capabilties to achieve autonomous or semi-autonomous business functionality. The problem is that for any reasonably complex agent, you'll probably end up with spaghetti code that's hard to maintain, especially for someone that isn't the original developer of the code. APIs like this one will provide your code long-term, predictable, and maintenable structure that fits the general patterns for AI agents. It may also help you think through your agent implementation, especially as a Jakarta EE developer.
+
+The power of this API shines when you need to write agents that need to adapt their behaviour at runtime. You can do that using this API by keeping the fundamental building blocks of your domain logic simple and changing the workflow of those building blocks dynamically - possibly in response to LLM interactions.
 
 ### Why here?
 The project aims to do for AI agent developers what Jakarta REST did for REST service developers, for example. Therefore, making it an official Jakarta specification makes perfect sense. The goal is also to ensure that agents implemented using the API work well with other Jakarta EE technologies and runtimes, such as CDI, etc.
