@@ -127,6 +127,6 @@ The project will not initially seek inclusion into the Jakarta EE platform or an
 ## Community
 The project aims for the broadest industry consensus possible by engaging as many relevant subject matter experts and API consumers as possible, from within the Java/Jakarta EE ecosystem as well as externally.
 
-## FAQ
+## Frequently Asked Questions
 ### Why here?
 The project aims to do for AI agent developers what Jakarta REST did for REST service developers, for example. Therefore, making it an official Jakarta specification makes perfect sense. The goal is also to ensure that agents implemented using the API work well with other Jakarta EE technologies and runtimes, such as CDI, etc.
