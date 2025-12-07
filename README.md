@@ -21,12 +21,12 @@ The initial version is very intentionally minimal. The release seeks to build ea
 The initial release focuses on key programming models, patterns, life cycles, as well as a lightweight LLM facade. Subsequent releases will likely focus more on a programmatic life cycle management, a workflow API and advanced features.
 
 Specifically 1.0 focuses on:
-* @Agent annotation to define an agent and it's basic life-cycle/scope
-* @Trigger annotation to process CDI events and start the agent workflow
-* @Decision annotation to define simple decision points for an agent
-* @Action annotation to define a set of initially simple sequential steps an agent takes
-* @Outcome annotation to denote the end of an agent workflow
-* A very simple LLM facade 
+* <b>@Agent</b> annotation to define an agent and it's basic life-cycle/scope
+* <b>@Trigger</b> annotation to process CDI events and start the agent workflow
+* <b>@Decision</b> annotation to define simple decision points for an agent
+* <b>@Action</b> annotation to define a set of initially simple sequential steps an agent takes
+* <b>@Outcome</b> annotation to denote the end of an agent workflow
+* A very simple <b>LLM facade</b> 
 
 ## API Concepts
 The following annotated example demonstrates the key concepts this initial minimal release will aim to build consensus and momentum around.
