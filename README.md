@@ -138,6 +138,8 @@ The project will not initially seek inclusion into the Jakarta EE platform or an
 ## Community
 The project aims for the broadest industry consensus possible by engaging as many relevant subject matter experts and API consumers as possible, from within the Java/Jakarta EE ecosystem as well as externally.
 
+Our mailing list is [agentic-ai-dev@eclipse.org](https://accounts.eclipse.org/mailing-list/agentic-ai-dev). You are also welcome to join the agentic-ai channel on the [Jakarta EE Slack](https://eclipsefoundationhq.slack.com/join/shared_invite/zt-crh7mheq-3on2tophEuvQTUGidEAWlg?u=eaf9e1f06f194eadc66788a85&id=98ae69e304&join=Join#/shared-invite/email).
+
 ## Frequently Asked Questions
 ### Why do I need this?
 You don't necessarily. Whether you want to use this API is entirely up to you.
