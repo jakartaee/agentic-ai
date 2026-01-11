@@ -1,10 +1,5 @@
 # Maven and Java
-/target/
-api/target/
-spec/target/
-tck/target/
-examples/target/
-examples/fraud-detection/target/
+**/target/
 *.class
 *.jar
 *.war
