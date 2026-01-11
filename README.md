@@ -2,47 +2,14 @@
 
 Jakarta Agentic AI provides vendor-neutral APIs and specifications for building, deploying, and running AI agents on Jakarta EE runtimes.
 
-## Modules
-- [api/](api/): Jakarta Agentic AI API (Java source code)
-- [spec/](spec/): Specification documents (AsciiDoc sources)
-- [tck/](tck/): Technology Compatibility Kit for compatibility testing
-- [examples/](examples/): Example applications and usage patterns
-
-## Building
-
-To build all modules:
-
-```
-mvn clean install
-```
-
-You can also build individual modules by running Maven in their respective directories.
-
-## License
-
-This project is licensed under the Eclipse Foundation Specification License (EFSL).
-See [EFSL](https://www.eclipse.org/legal/efsl.php) for details.
-
-## Contributing
-
-See [CONTRIBUTING.adoc](CONTRIBUTING.adoc) for guidelines on contributing to Jakarta Agentic AI.
-
-## Documentation
-
-Specification documentation is located in the `spec` module and can be built using Maven. Generated docs will be found in `spec/target/generated-docs/`.
-
-## Community & Contact
-
-- Project website: https://jakarta.ee
-- Specification repository: https://github.com/jakartaee/agentic-ai
-- For questions or feedback, see the [CONTRIBUTING.adoc](CONTRIBUTING.adoc) or open an issue in this repository.
-
 # Background
+
 Artificial Intelligence (AI) agents are one of the most prominent developments in enterprise and cloud native computing in decades. They promise to fundamentally accelerate innovation, automation, and productivity by leveraging AI in virtually every industry – IT, finance, banking, retail, manufacturing, health care, and so many others. Agents operate by leveraging Neural Networks, Machine Learning (ML), Natural Language Processing (NLP), Large Language Models (LLMs), and many other AI technologies to aim to perform specific tasks autonomously with little or no human intervention. They detect events, gather data, generate self-correcting plans, execute actions, process results, and evolve subsequent decisions. Examples include self-driving cars, security monitors, Site Reliability Engineering (SRE) agents, stock monitors, code/application generators, health monitors, customer service agents, manufacturing robots, and many others.
 
 This project aims to create an Agentic AI API for Jakarta EE. We will try to do for developing AI agents what Servlet did for HTTP processing, Jakarta REST did for RESTful web services, or perhaps most appropriately, Jakarta Batch did for batch processing.
 
 ## Scope
+
 * Defines common usage patterns and life cycles for AI agents running on Jakarta EE runtimes.
 * Provides a very minimal facade to access more foundational AI capabilities, such as LLMs, without attempting to standardize LLMs. Instead, the API provides easy, pluggable, and configurable access to existing LLM APIs such as LangChain4j and Spring AI. This is similar to how Jakarta Persistence provides access to underlying non-standard APIs by unwrapping.
 * The API will include a mechanism to define agent workflows. This will be done using a fluent Java API (as opposed to XML). The agent workflow will likely be dynamic at runtime rather than strictly defined and static at deployment time. A pluggability mechanism may be provided for YAML and XML.
@@ -52,6 +19,7 @@ This project aims to create an Agentic AI API for Jakarta EE. We will try to do 
 * The project makes a reasonable effort to keep the API potentially usable in runtimes such as Quarkus, Micronaut, and Spring Boot, though Jakarta EE compatible runtimes are the clear primary target.
 
 ## Version 1.0
+
 The initial version is very intentionally minimal. The release seeks to build early momentum, including broadening awareness, participation, and adoption. Subsequently, we aim to iterate quickly based on evolving industry knowledge on Agentic AI as well as user feedback.
 
 The initial release focuses on key programming models, patterns, life cycles, as well as a lightweight LLM facade. Subsequent releases will likely focus more on a programmatic life cycle management, a workflow API and advanced features.
@@ -65,6 +33,7 @@ Specifically 1.0 focuses on:
 * A very simple <b>LLM facade</b> 
 
 ## API Concepts
+
 The following annotated example demonstrates the key concepts this initial minimal release will aim to build consensus and momentum around.
 
 ```java
@@ -165,10 +134,12 @@ public class FraudDetectionAgent {
 ```
 
 ## Target Platform
+
 * Java SE 17 or higher
 * Jakarta EE 10 or higher
 
 ## Standalone Specification
+
 The project will not initially seek inclusion into the Jakarta EE platform or any profile. Rather, the project will seek to provide a usable standalone API under the Jakarta EE umbrella that vendors may choose to adopt. In the future, it may make sense to define a Jakarta EE profile for AI in general to which this project could be added. Such a profile could conceivably also include separate specifications to attempt to standardize other important AI concepts, such as LLMs and model augmentation/context servers.
 
 ## Community
@@ -178,6 +149,7 @@ The project aims for the broadest industry consensus possible by engaging as man
 Our mailing list is [agentic-ai-dev@eclipse.org](https://accounts.eclipse.org/mailing-list/agentic-ai-dev). You are also welcome to join the agentic-ai channel on the [Jakarta EE Development Slack](https://eclipsefoundationhq.slack.com/join/shared_invite/zt-crh7mheq-3on2tophEuvQTUGidEAWlg?u=eaf9e1f06f194eadc66788a85&id=98ae69e304&join=Join#/shared-invite/email).
 
 ## Directories
+
 - [api/](api/): Jakarta Agentic AI API (source code)
 - [spec/](spec/): Specification (sources in AsciiDoc)
 - [tck/](tck/): Technology Compatibility Kit
@@ -185,13 +157,17 @@ Our mailing list is [agentic-ai-dev@eclipse.org](https://accounts.eclipse.org/ma
 
 ## Building
 
-You can build all modules together:
+You can build all the modules together:
 
 ```
 mvn clean install
 ```
 
 You can also build individual parts via Maven in their respective directories.
+
+## Contributing
+
+See [CONTRIBUTING.adoc](CONTRIBUTING.adoc) for guidelines on contributing to Jakarta Agentic AI.
 
 ## Frequently Asked Questions
 
