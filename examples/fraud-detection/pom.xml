@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>jakarta.ai</groupId>
+        <artifactId>jakarta-agentic-ai-examples</artifactId>
+        <version>1.0.0-SNAPSHOT</version>
+    </parent>
+    <artifactId>fraud-detection</artifactId>
+    <packaging>jar</packaging>
+    <name>Fraud Detection Example</name>
+    <description>Example agent for bank fraud detection using Jakarta Agentic AI.</description>
+    <licenses>
+        <license>
+            <name>Eclipse Foundation Specification License (EFSL)</name>
+            <url>https://www.eclipse.org/legal/efsl.php</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+    <properties>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
+    </properties>
+    <build>
+        <sourceDirectory>src/main/java</sourceDirectory>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+            </resource>
+        </resources>
+    </build>
+</project>

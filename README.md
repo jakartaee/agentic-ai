@@ -1,18 +1,20 @@
-# Jakarta Agentic Artificial Intelligence
+# Jakarta Agentic AI
 
-The Jakarta Agentic AI project provides a set of vendor-neutral APIs that make it easy, consistent, and reliable to build, deploy, and run AI agents on Jakarta EE runtimes.
+Jakarta Agentic AI provides vendor-neutral APIs and specifications for building, deploying, and running AI agents on Jakarta EE runtimes.
 
 ## Modules
-- **api/**: Jakarta Agentic AI API (Java source code)
-- **spec/**: Specification documents (AsciiDoc sources)
-- **tck/**: Technology Compatibility Kit for compatibility testing
-- **examples/**: Example applications and usage patterns
+- [api/](api/): Jakarta Agentic AI API (Java source code)
+- [spec/](spec/): Specification documents (AsciiDoc sources)
+- [tck/](tck/): Technology Compatibility Kit for compatibility testing
+- [examples/](examples/): Example applications and usage patterns
 
 ## Building
 
 To build all modules:
 
-    mvn clean install
+```
+mvn clean install
+```
 
 You can also build individual modules by running Maven in their respective directories.
 
@@ -170,11 +172,29 @@ public class FraudDetectionAgent {
 The project will not initially seek inclusion into the Jakarta EE platform or any profile. Rather, the project will seek to provide a usable standalone API under the Jakarta EE umbrella that vendors may choose to adopt. In the future, it may make sense to define a Jakarta EE profile for AI in general to which this project could be added. Such a profile could conceivably also include separate specifications to attempt to standardize other important AI concepts, such as LLMs and model augmentation/context servers.
 
 ## Community
+
 The project aims for the broadest industry consensus possible by engaging as many relevant subject matter experts and API consumers as possible, from within the Java/Jakarta EE ecosystem as well as externally.
 
 Our mailing list is [agentic-ai-dev@eclipse.org](https://accounts.eclipse.org/mailing-list/agentic-ai-dev). You are also welcome to join the agentic-ai channel on the [Jakarta EE Development Slack](https://eclipsefoundationhq.slack.com/join/shared_invite/zt-crh7mheq-3on2tophEuvQTUGidEAWlg?u=eaf9e1f06f194eadc66788a85&id=98ae69e304&join=Join#/shared-invite/email).
 
+## Directories
+- [api/](api/): Jakarta Agentic AI API (source code)
+- [spec/](spec/): Specification (sources in AsciiDoc)
+- [tck/](tck/): Technology Compatibility Kit
+- [examples/](examples/): Example applications and usage patterns
+
+## Building
+
+You can build all modules together:
+
+```
+mvn clean install
+```
+
+You can also build individual parts via Maven in their respective directories.
+
 ## Frequently Asked Questions
+
 ### Why do I need this?
 You don't necessarily. Whether you want to use this API is entirely up to you.
 
