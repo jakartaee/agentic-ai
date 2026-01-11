@@ -11,7 +11,7 @@ import java.lang.annotation.Target;
  * A decision method evaluates workflow state and determines the next step or outcome.
  * The return value controls workflow branching or completion.
  * <p>
- * You can return a boolean or the standard {@link Result} record to indicate
+ * It is recommended to return a boolean or the standard {@link Result} record to indicate
  * success/failure and provide additional details for workflow handling.
  */
 @Retention(RetentionPolicy.RUNTIME)

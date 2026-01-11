@@ -8,7 +8,6 @@ package jakarta.ai.agent;
  * <p>
  * Implementations will delegate to external LLM APIs or services.
  */
-
 public interface LargeLanguageModel {
 
     /**
@@ -20,6 +19,18 @@ public interface LargeLanguageModel {
      * @return The model's response as a String.
      */
     String query(String prompt);
+
+    /**
+     * Sends a prompt to the model and returns a response of the specified type.
+     * <p>
+     * The result is converted to the requested type if supported by the implementation.
+     *
+     * @param prompt The prompt or query.
+     * @param resultType The expected result type.
+     * @param <T> The type of the result.
+     * @return The model's response converted to the specified type.
+     */
+    <T> T query(String prompt, Class<T> resultType);
 
     /**
      * Sends a prompt and a variable number of input objects to the model, returning a String response.
@@ -45,16 +56,4 @@ public interface LargeLanguageModel {
      * @return The model's response converted to the specified type.
      */
     <T> T query(String prompt, Class<T> resultType, Object... inputs);
-
-    /**
-     * Sends a prompt to the model and returns a response of the specified type.
-     * <p>
-     * The result is converted to the requested type if supported by the implementation.
-     *
-     * @param prompt The prompt or query.
-     * @param resultType The expected result type.
-     * @param <T> The type of the result.
-     * @return The model's response converted to the specified type.
-     */
-    <T> T query(String prompt, Class<T> resultType);    
 }

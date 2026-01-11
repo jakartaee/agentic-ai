@@ -1,0 +1,117 @@
+= Jakarta Agentic AI Specification
+:doctype: book
+:license: EFSL
+:toc: left
+:toclevels: 3
+:sectnums:
+:source-highlighter: coderay
+:icons: font
+:version: 1.0
+:author: Jakarta Agentic AI Project
+:email: info@jakarta.ee
+
+== Introduction
+
+Jakarta Agentic AI provides vendor-neutral APIs for building, deploying, and running AI agents on Jakarta EE runtimes. The specification aims to standardize agent life cycles, workflows, and integration with foundational AI technologies such as LLMs, while remaining extensible and minimal for the initial release.
+
+== Scope
+
+* Defines common usage patterns and life cycles for AI agents on Jakarta EE runtimes.
+* Provides a minimal facade for foundational AI capabilities (e.g., LLMs), with pluggable access to existing APIs.
+* Mechanism to define agent workflows using a fluent Java API.
+* Integrates with other Jakarta EE APIs (Validation, REST, JSON Binding, Persistence, Data, Transactions, NoSQL, Concurrency, Security, Messaging).
+* Utilizes Jakarta Config and allows implementations to use MicroProfile Config.
+* May provide OpenTelemetry integration.
+* Designed for Jakarta EE runtimes, but usable in Quarkus, Micronaut, Spring Boot.
+
+== Key Concepts
+
+=== Agent
+An agent is a CDI bean that encapsulates autonomous, goal-driven behavior. Agents are defined using the `@Agent` annotation, which may include an optional name and description.
+
+=== Workflow
+Agent workflows are defined using annotated methods. The workflow is dynamic at runtime and can be triggered by CDI events or other mechanisms.
+
+=== Annotations
+- `@Agent`: Declares a class as an agent.
+- `@Trigger`: Marks a method as a workflow trigger.
+- `@Decision`: Marks a method as a decision point; returns boolean or `Result`.
+- `@Action`: Marks a method as an action step.
+- `@Outcome`: Marks a method as the workflow outcome.
+
+=== Large Language Model (LLM) Facade
+The `LargeLanguageModel` interface provides a minimal, type-converting facade for LLM operations. It supports querying with prompts and input objects, returning results as strings or domain types.
+
+=== Result
+The `Result` record standardizes decision outcomes, with a success flag and details object.
+
+== Example
+
+[source,java]
+----
+@Agent(name="FraudDetection", description="Detects bank fraud transactions.")
+public class FraudDetectionAgent {
+    @Inject private LargeLanguageModel model;
+    @Inject private EntityManager entityManager;
+
+    @Trigger
+    private void processTransaction(@Valid BankTransaction transaction) {
+        // Workflow trigger logic
+    }
+
+    @Decision
+    private Result checkFraud(BankTransaction transaction) {
+        String output = model.query("Is this a fraudulent transaction?", transaction);
+        boolean fraud = isFraud(output);
+        Fraud details = fraud ? getFraudDetails(output) : null;
+        return new Result(fraud, details);
+    }
+
+    @Action
+    private void handleFraud(Fraud fraud, BankTransaction transaction) {
+        if (fraud.isSerious()) alertBankSecurity(fraud);
+        Customer customer = getCustomer(transaction);
+        alertCustomer(fraud, transaction, customer);
+    }
+
+    @Outcome
+    private void processTransaction(BankTransaction transaction) {
+        // Mark transaction suspect
+    }
+}
+----
+
+== API Overview
+
+=== Agent Annotation
+[source,java]
+----
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.TYPE)
+public @interface Agent {
+    String name() default "";
+    String description() default "";
+}
+----
+
+=== LargeLanguageModel Interface
+[source,java]
+----
+public interface LargeLanguageModel {
+    String query(String prompt);
+    <T> T query(String prompt, Class<T> resultType);
+    String query(String prompt, Object... inputs);
+    <T> T query(String prompt, Class<T> resultType, Object... inputs);
+}
+----
+
+=== Result Record
+[source,java]
+----
+public record Result(boolean success, Object details) {}
+----
+
+== License
+
+This specification is licensed under the Eclipse Foundation Specification License (EFSL).
+See https://www.eclipse.org/legal/efsl.php for details.
