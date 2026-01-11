@@ -1,7 +1,41 @@
 # Jakarta Agentic Artificial Intelligence
+
 The Jakarta Agentic AI project provides a set of vendor-neutral APIs that make it easy, consistent, and reliable to build, deploy, and run AI agents on Jakarta EE runtimes.
 
-## Background
+## Modules
+- **api/**: Jakarta Agentic AI API (Java source code)
+- **spec/**: Specification documents (AsciiDoc sources)
+- **tck/**: Technology Compatibility Kit for compatibility testing
+- **examples/**: Example applications and usage patterns
+
+## Building
+
+To build all modules:
+
+    mvn clean install
+
+You can also build individual modules by running Maven in their respective directories.
+
+## License
+
+This project is licensed under the Eclipse Foundation Specification License (EFSL).
+See [EFSL](https://www.eclipse.org/legal/efsl.php) for details.
+
+## Contributing
+
+See [CONTRIBUTING.adoc](CONTRIBUTING.adoc) for guidelines on contributing to Jakarta Agentic AI.
+
+## Documentation
+
+Specification documentation is located in the `spec` module and can be built using Maven. Generated docs will be found in `spec/target/generated-docs/`.
+
+## Community & Contact
+
+- Project website: https://jakarta.ee
+- Specification repository: https://github.com/jakartaee/agentic-ai
+- For questions or feedback, see the [CONTRIBUTING.adoc](CONTRIBUTING.adoc) or open an issue in this repository.
+
+# Background
 Artificial Intelligence (AI) agents are one of the most prominent developments in enterprise and cloud native computing in decades. They promise to fundamentally accelerate innovation, automation, and productivity by leveraging AI in virtually every industry – IT, finance, banking, retail, manufacturing, health care, and so many others. Agents operate by leveraging Neural Networks, Machine Learning (ML), Natural Language Processing (NLP), Large Language Models (LLMs), and many other AI technologies to aim to perform specific tasks autonomously with little or no human intervention. They detect events, gather data, generate self-correcting plans, execute actions, process results, and evolve subsequent decisions. Examples include self-driving cars, security monitors, Site Reliability Engineering (SRE) agents, stock monitors, code/application generators, health monitors, customer service agents, manufacturing robots, and many others.
 
 This project aims to create an Agentic AI API for Jakarta EE. We will try to do for developing AI agents what Servlet did for HTTP processing, Jakarta REST did for RESTful web services, or perhaps most appropriately, Jakarta Batch did for batch processing.
