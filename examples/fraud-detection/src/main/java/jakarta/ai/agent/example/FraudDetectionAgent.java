@@ -24,7 +24,7 @@ public class FraudDetectionAgent {
     private EntityManager entityManager;
 
     @Trigger
-    private void processTransaction(@Valid BankTransaction transaction) {
+    private void handleTransaction(@Valid BankTransaction transaction) {
         // Workflow trigger logic
     }
 
@@ -46,7 +46,7 @@ public class FraudDetectionAgent {
     }
 
     @Outcome
-    private void processTransaction(BankTransaction transaction) {
+    private void markTransaction(BankTransaction transaction) {
         // Mark transaction suspect, probably in the database.
     }
 

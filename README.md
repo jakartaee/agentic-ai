@@ -59,7 +59,7 @@ public class FraudDetectionAgent {
     // Return type can be void or a domain object stored in the workflow and accessible in
     // the context.
     // Parameters are automatically added to the workflow context.
-    private void processTransaction(@Valid BankTransaction transaction) {
+    private void handleTransaction(@Valid BankTransaction transaction) {
         // Simple check to see if this is a type of transaction that makes sense to check for
         // fraud detection.
         // Could add a bit more data, likely looked up from a database, and return an enhanced
@@ -127,7 +127,7 @@ public class FraudDetectionAgent {
     // This is probably also where it best makes sense to dynamically alter a workflow using
     // a programmatic API.
     @Outcome
-    private void processTransaction(BankTransaction transaction) {
+    private void markTransaction(BankTransaction transaction) {
         // Mark a transaction suspect, probably in the database.
     }
 }
@@ -167,7 +167,7 @@ You can also build individual parts via Maven in their respective directories.
 
 ## Contributing
 
-See [CONTRIBUTING.adoc](CONTRIBUTING.adoc) for guidelines on contributing to Jakarta Agentic AI.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on contributing to Jakarta Agentic AI.
 
 ## Frequently Asked Questions
 
