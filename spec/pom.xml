@@ -19,6 +19,45 @@
     <build>
         <plugins>
             <!-- Add your build plugins here -->
+            <plugin>
+                <groupId>org.asciidoctor</groupId>
+                <artifactId>asciidoctor-maven-plugin</artifactId>
+                <version>2.3.0</version>
+                <executions>
+                    <execution>
+                        <id>generate-html-doc</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>process-asciidoc</goal>
+                        </goals>
+                        <configuration>
+                            <backend>html</backend>
+                            <sourceDirectory>${project.basedir}/src/main/asciidoc</sourceDirectory>
+                            <outputDirectory>${project.build.directory}/generated-docs/html</outputDirectory>
+                            <attributes>
+                                <toc>left</toc>
+                                <sectnums>true</sectnums>
+                            </attributes>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>generate-pdf-doc</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>process-asciidoc</goal>
+                        </goals>
+                        <configuration>
+                            <backend>pdf</backend>
+                            <sourceDirectory>${project.basedir}/src/main/asciidoc</sourceDirectory>
+                            <outputDirectory>${project.build.directory}/generated-docs/pdf</outputDirectory>
+                            <attributes>
+                                <toc>left</toc>
+                                <sectnums>true</sectnums>
+                            </attributes>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
 </project>

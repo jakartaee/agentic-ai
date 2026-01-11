@@ -4,7 +4,7 @@ Thank you for your interest in contributing to Jakarta Agentic AI!
 
 ## How to Contribute
 
-- Fork the repository and create your branch.
+- Fork the repository.
 - Make your changes and submit a pull request.
 - Ensure your code follows Jakarta EE conventions and passes all tests.
 - For specification changes, update the AsciiDoc files in the `spec` module.
