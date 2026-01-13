@@ -56,4 +56,17 @@ public interface LargeLanguageModel {
      * @return The model's response converted to the specified type.
      */
     <T> T query(String prompt, Class<T> resultType, Object... inputs);
+
+    /**
+     * Unwraps the underlying LLM implementation.
+     * <p>
+     * This allows access to vendor-specific APIs or advanced features not exposed by the 
+     * facade.
+     *
+     * @param implClass The class of the underlying implementation to unwrap to.
+     * @param <T> The type of the underlying implementation.
+     * @return The underlying implementation instance, or throws exceptiom if not available.
+     * @throws IllegalArgumentException if the implementation cannot be unwrapped to the requested type.
+     */
+    <T> T unwrap(Class<T> implClass);
 }

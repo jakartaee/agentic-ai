@@ -1,4 +1,4 @@
-package jakarta.ai.agent.example;
+package jakarta.ai.agent.example.frauddetection;
 
 import jakarta.ai.agent.Agent;
 import jakarta.ai.agent.Trigger;
@@ -50,7 +50,6 @@ public class FraudDetectionAgent {
         // Mark transaction suspect, probably in the database.
     }
 
-    // --- Helper methods and placeholder types ---
     private boolean isFraud(String output) {
         // Simple custom text parsing logic
         return output != null && output.contains("fraud");
@@ -73,11 +72,4 @@ public class FraudDetectionAgent {
     private void alertCustomer(Fraud fraud, BankTransaction transaction, Customer customer) {
         // Notify customer
     }
-
-    // Placeholder domain types
-    public static class BankTransaction {}
-    public static class Fraud {
-        public boolean isSerious() { return true; }
-    }
-    public static class Customer {}
 }
