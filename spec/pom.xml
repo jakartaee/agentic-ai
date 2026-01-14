@@ -7,9 +7,19 @@
     <artifactId>jakarta-agentic-ai-spec</artifactId>
     <version>1.0.0-SNAPSHOT</version>
 
+    <parent>
+        <groupId>jakarta.ai</groupId>
+        <artifactId>jakarta-agentic-ai-parent</artifactId>
+        <version>1.0.0-SNAPSHOT</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+
+
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
+        <maven.build.timestamp.format>MMMM dd, yyyy</maven.build.timestamp.format>
+        <revisiondate>${maven.build.timestamp}</revisiondate>
     </properties>
 
     <build>
@@ -17,41 +27,77 @@
             <plugin>
                 <groupId>org.asciidoctor</groupId>
                 <artifactId>asciidoctor-maven-plugin</artifactId>
-                <version>2.3.0</version>
+                <version>3.2.0</version>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.asciidoctor</groupId>
+                        <artifactId>asciidoctorj-pdf</artifactId>
+                        <version>2.3.23</version>
+                    </dependency>
+                </dependencies>
                 <executions>
                     <execution>
-                        <id>generate-html-doc</id>
-                        <phase>package</phase>
+                        <id>output-html</id>
+                        <phase>generate-resources</phase>
                         <goals>
                             <goal>process-asciidoc</goal>
                         </goals>
                         <configuration>
-                            <backend>html</backend>
-                            <sourceDirectory>${project.basedir}/src/main/asciidoc</sourceDirectory>
-                            <outputDirectory>${project.build.directory}/generated-docs/html</outputDirectory>
+                            <sourceHighlighter>highlightjs</sourceHighlighter>
+                            <backend>html5</backend>
                             <attributes>
-                                <toc>left</toc>
-                                <sectnums>true</sectnums>
+                                <toc/>
+                                <linkcss>false</linkcss>
+                                <project-version>${project.version}</project-version>
+                                <revnumber>${spec.version}</revnumber>
+                                <revremark>${spec.status}</revremark>
+                                <revdate>${revisiondate}</revdate>
                             </attributes>
+                            <outputFile>${project.build.directory}/generated-docs/index.html</outputFile>
                         </configuration>
                     </execution>
                     <execution>
-                        <id>generate-pdf-doc</id>
-                        <phase>package</phase>
+                        <id>output-pdf</id>
+                        <phase>generate-resources</phase>
                         <goals>
                             <goal>process-asciidoc</goal>
                         </goals>
                         <configuration>
                             <backend>pdf</backend>
-                            <sourceDirectory>${project.basedir}/src/main/asciidoc</sourceDirectory>
-                            <outputDirectory>${project.build.directory}/generated-docs/pdf</outputDirectory>
+                            <doctype>book</doctype>
+                            <templateEngine>slim</templateEngine>
                             <attributes>
-                                <toc>left</toc>
-                                <sectnums>true</sectnums>
+                                <pagenums/>
+                                <project-version>${project.version}</project-version>
+                                <numbered>true</numbered>
+                                <docinfo>true</docinfo>
+                                <experimental>false</experimental>
+                                <toc>true</toc>
+                                <revnumber>${spec.version}</revnumber>
+                                <revremark>${spec.status}</revremark>
+                                <revdate>${revisiondate}</revdate>
+                            </attributes>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>output-docbook</id>
+                        <phase>generate-resources</phase>
+                        <goals>
+                            <goal>process-asciidoc</goal>
+                        </goals>
+                        <configuration>
+                            <backend>docbook</backend>
+                            <doctype>article</doctype>
+                            <attributes>
+                                <imagesdir>images</imagesdir>
                             </attributes>
                         </configuration>
                     </execution>
                 </executions>
+                <configuration>
+                    <sourceDirectory>src/main/asciidoc</sourceDirectory>
+                    <sourceDocumentName>spec.asciidoc</sourceDocumentName>
+                </configuration>
             </plugin>
         </plugins>
     </build>

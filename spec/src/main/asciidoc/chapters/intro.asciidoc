@@ -1,0 +1,166 @@
+[[introduction]]
+Introduction
+------------
+
+Jakarta Agentic AI provides vendor-neutral APIs for building, deploying, and running AI
+agents on Jakarta EE runtimes. The specification aims to standardize agent life cycles,
+workflows, and integration with foundational AI technologies such as LLMs,
+while remaining extensible and minimal for the initial release.
+
+=== Scope
+
+* Defines common usage patterns and life cycles for AI agents on Jakarta EE runtimes.
+* Provides a minimal facade for foundational AI capabilities (e.g., LLMs), with
+pluggable access to existing APIs.
+* Mechanism to define agent workflows using a fluent Java API.
+* Integrates with other Jakarta EE APIs (Validation, REST, JSON Binding, Persistence, Data,
+Transactions, NoSQL, Concurrency, Security, Messaging).
+* Utilizes Jakarta Config and allows implementations to use MicroProfile Config.
+* May provide OpenTelemetry integration.
+* Designed for Jakarta EE runtimes, but potentially usable in Quarkus, Micronaut,
+Spring Boot.
+
+=== Key Concepts
+
+==== Agent
+An agent is a CDI bean that encapsulates autonomous, goal-driven behavior. Agents are
+defined using the `@Agent` annotation, which may include an optional name and description.
+
+==== Workflow
+Agent workflows are defined using annotated methods. The workflow is dynamic at runtime
+and can be triggered by CDI events or other mechanisms.
+
+==== Annotations
+- `@Agent`: Declares a class as an agent.
+- `@Trigger`: Marks a method as a workflow trigger.
+- `@Decision`: Marks a method as a decision point; returns boolean or `Result`.
+- `@Action`: Marks a method as an action step.
+- `@Outcome`: Marks a method as the workflow outcome.
+
+==== Large Language Model (LLM) Facade
+The `LargeLanguageModel` interface provides a minimal, type-converting facade for LLM
+operations. It supports querying with prompts and input objects, returning results as
+strings or domain types. Implementations may also support unwrapping to access the underlying LLM implementation for advanced or vendor-specific features.
+
+==== Result
+The `Result` record standardizes decision outcomes, with a success flag and details object.
+
+=== Example
+
+[source,java]
+----
+@Agent(name="FraudDetection", description="Detects bank fraud transactions.")
+public class FraudDetectionAgent {
+    @Inject private LargeLanguageModel model;
+    @Inject private EntityManager entityManager;
+
+    @Trigger
+    private void processTransaction(@Valid BankTransaction transaction) {
+        // Workflow trigger logic
+    }
+
+    @Decision
+    private Result checkFraud(BankTransaction transaction) {
+        String output = model.query("Is this a fraudulent transaction?", transaction);
+        boolean fraud = isFraud(output);
+        Fraud details = fraud ? getFraudDetails(output) : null;
+        return new Result(fraud, details);
+    }
+
+    @Action
+    private void handleFraud(Fraud fraud, BankTransaction transaction) {
+        if (fraud.isSerious()) alertBankSecurity(fraud);
+        Customer customer = getCustomer(transaction);
+        alertCustomer(fraud, transaction, customer);
+    }
+
+    @Outcome
+    private void processTransaction(BankTransaction transaction) {
+        // Mark transaction suspect
+    }
+}
+----
+
+=== API Overview
+
+==== Agent Annotation
+[source,java]
+----
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.TYPE)
+public @interface Agent {
+    String name() default "";
+    String description() default "";
+}
+----
+
+==== LargeLanguageModel Interface
+[source,java]
+----
+public interface LargeLanguageModel {
+    /**
+     * Sends a prompt to the model and returns a String response.
+     * <p>
+     * This is the simplest form of LLM interaction, suitable for plain text prompts and responses.
+     *
+     * @param prompt The input prompt or question.
+     * @return The model's response as a String.
+     */
+    String query(String prompt);
+
+    /**
+     * Sends a prompt to the model and returns a response of the specified type.
+     * <p>
+     * The result is converted to the requested type if supported by the implementation.
+     *
+     * @param prompt The prompt or query.
+     * @param resultType The expected result type.
+     * @param <T> The type of the result.
+     * @return The model's response converted to the specified type.
+     */
+    <T> T query(String prompt, Class<T> resultType);
+
+    /**
+     * Sends a prompt and a variable number of input objects to the model, returning a String response.
+     * <p>
+     * The input objects may be domain objects, JSON, or other serializable types. Implementations
+     * should handle conversion as needed.
+     *
+     * @param prompt The prompt or query.
+     * @param inputs The input objects (e.g., domain objects, JSON, etc.).
+     * @return The model's response as a String.
+     */
+    String query(String prompt, Object... inputs);
+
+    /**
+     * Sends a prompt and a variable number of input objects to the model, returning a response of the specified type.
+     * <p>
+     * The result is converted to the requested type if supported by the implementation.
+     *
+     * @param prompt The prompt or query.
+     * @param resultType The expected result type.
+     * @param inputs The input objects.
+     * @param <T> The type of the result.
+     * @return The model's response converted to the specified type.
+     */
+    <T> T query(String prompt, Class<T> resultType, Object... inputs);
+
+    /**
+     * Unwraps the underlying LLM implementation.
+     * <p>
+     * This allows access to vendor-specific APIs or advanced features not exposed by the facade.
+     *
+     * @param implClass The class of the underlying implementation to unwrap to.
+     * @param <T> The type of the underlying implementation.
+     * @return The underlying implementation instance, or throws if not available.
+     * @throws IllegalArgumentException if the implementation cannot be unwrapped to the requested type.
+     */
+    <T> T unwrap(Class<T> implClass);
+}
+----
+
+==== Result Record
+[source,java]
+----
+public record Result(boolean success, Object details) {}
+----
