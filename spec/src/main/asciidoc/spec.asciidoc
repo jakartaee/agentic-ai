@@ -1,0 +1,35 @@
+
+// Copyright (c) 2026 Contributors to the Eclipse Foundation
+//
+
+= Jakarta Agentic AI Specification
+:authors: Jakarta Agentic AI Project Team, https://projects.eclipse.org/projects/ee4j.agentic-ai
+:email: https://accounts.eclipse.org/mailing-list/agentic-ai-dev
+:version-label!:
+:doctype: book
+:license: Eclipse Foundation Specification License
+:source-highlighter: coderay
+:toc: left
+:toclevels: 3
+:sectnumlevels: 4
+:sectanchors:
+:experimental:
+:reproducible:
+:icons: font
+:listing-caption: Listing
+:sectnums:
+:autofit-option:
+ifdef::backend-pdf[]
+:pagenums:
+:numbered:
+:title-logo-image: image:images/jakarta_ee_logo_schooner_color_stacked_default.png[pdfwidth=4.25in,align=right]
+:compat-mode:
+endif::[]
+
+// == License
+:sectnums!:
+include::license-efsl.adoc[]
+
+:sectnums:
+include::jakarta-agentic-ai.adoc[]
+

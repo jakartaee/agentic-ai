@@ -1,0 +1,6 @@
+:numbered!:
+["bibliography",sectnum="0"]
+
+[[bibliography]]
+
+== Bibliography
