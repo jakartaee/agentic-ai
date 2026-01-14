@@ -7,66 +7,42 @@ package jakarta.ai.agent;
  * with support for type conversion of parameters and results.
  * <p>
  * Implementations will delegate to external LLM APIs or services.
+ *
+ * @param <T> The type parameter for the model implementation
  */
-public interface LargeLanguageModel {
+public interface LargeLanguageModel<T> {
 
     /**
-     * Sends a prompt to the model and returns a String response.
+     * Gets the default model instance for this LLM provider.
      * <p>
-     * This is the simplest form of LLM interaction, suitable for plain text prompts and responses.
+     * This method returns a configured instance of the LLM that can be used
+     * for standard operations without additional configuration.
      *
-     * @param prompt The input prompt or question.
-     * @return The model's response as a String.
+     * @return The default model instance
      */
-    String query(String prompt);
+    LargeLanguageModel<T> getDefaultModel();
 
     /**
-     * Sends a prompt to the model and returns a response of the specified type.
+     * Invokes the large language model with a prompt and an input object.
      * <p>
-     * The result is converted to the requested type if supported by the implementation.
+     * The input object may be a domain object, JSON, or other serializable type.
+     * Implementations should handle conversion as needed. The response format
+     * depends on the implementation and model configuration.
      *
-     * @param prompt The prompt or query.
-     * @param resultType The expected result type.
-     * @param <T> The type of the result.
-     * @return The model's response converted to the specified type.
+     * @param prompt The input prompt or question
+     * @param object The input object to be processed along with the prompt
+     * @return The model's response, typically as a String or structured object
      */
-    <T> T query(String prompt, Class<T> resultType);
+    Object invokeLargeLanguageModel(String prompt, Object object);
 
     /**
-     * Sends a prompt and a variable number of input objects to the model, returning a String response.
+     * Gets the underlying LLM implementation.
      * <p>
-     * The input objects may be domain objects, JSON, or other serializable types. Implementations
-     * should handle conversion as needed.
+     * This allows access to vendor-specific APIs or advanced features not exposed
+     * by the facade. The returned type depends on the specific LLM provider
+     * implementation being used.
      *
-     * @param prompt The prompt or query.
-     * @param inputs The input objects (e.g., domain objects, JSON, etc.).
-     * @return The model's response as a String.
+     * @return The underlying LLM implementation instance
      */
-    String query(String prompt, Object... inputs);
-
-    /**
-     * Sends a prompt and a variable number of input objects to the model, returning a response of the specified type.
-     * <p>
-     * The result is converted to the requested type if supported by the implementation.
-     *
-     * @param prompt The prompt or query.
-     * @param resultType The expected result type.
-     * @param inputs The input objects.
-     * @param <T> The type of the result.
-     * @return The model's response converted to the specified type.
-     */
-    <T> T query(String prompt, Class<T> resultType, Object... inputs);
-
-    /**
-     * Unwraps the underlying LLM implementation.
-     * <p>
-     * This allows access to vendor-specific APIs or advanced features not exposed by the 
-     * facade.
-     *
-     * @param implClass The class of the underlying implementation to unwrap to.
-     * @param <T> The type of the underlying implementation.
-     * @return The underlying implementation instance, or throws exceptiom if not available.
-     * @throws IllegalArgumentException if the implementation cannot be unwrapped to the requested type.
-     */
-    <T> T unwrap(Class<T> implClass);
+    Object getUnderlyingLlm();
 }

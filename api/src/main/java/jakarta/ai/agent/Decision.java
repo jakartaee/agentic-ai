@@ -6,14 +6,82 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Marks a method as a decision point in the agent workflow.
- * <p>
- * A decision method evaluates workflow state and determines the next step or outcome.
- * The return value controls workflow branching or completion.
- * <p>
- * It is recommended to return a boolean or the standard {@link Result} record to indicate
- * success/failure and provide additional details for workflow handling.
+ * Marks a method as a decision point in an agent workflow.
+ *
+ * Decision methods are invoked after the @Trigger phase and determine whether
+ * the workflow should proceed to the @Action phase. They typically use a
+ * {@link LargeLanguageModel} to analyze the trigger event and make intelligent
+ * decisions.
+ *
+ * <h2>Return Types</h2>
+ * Decision methods support multiple return patterns:
+ * <ul>
+ *   <li><strong>Boolean</strong>: {@code true} means proceed to actions,
+ *       {@code false} means stop the workflow</li>
+ *   <li><strong>{@link Result}</strong>: A {@code Result} record with success flag
+ *       and optional details to control workflow and pass data to subsequent phases</li>
+ *   <li><strong>Object</strong>: A non-null object means proceed (and the object
+ *       is available for injection into subsequent phases), {@code null} means
+ *       stop the workflow</li>
+ * </ul>
+ *
+ * <h2>Examples</h2>
+ *
+ * <pre>{@code
+ * // Boolean return
+ * @Decision
+ * public boolean shouldGenerateDocs(PullRequest pr) {
+ *     return llm.invokeLargeLanguageModel(
+ *         "Does this PR require documentation updates? " + pr.getDiff(), null
+ *     ).toString().contains("yes");
+ * }
+ *
+ * // Result return - provides structured outcome
+ * @Decision
+ * public Result checkFraud(BankTransaction transaction) {
+ *     String output = llm.invokeLargeLanguageModel(
+ *         "Is this a fraudulent transaction?", transaction
+ *     ).toString();
+ *     boolean fraud = isFraud(output);
+ *     Fraud details = fraud ? getFraudDetails(output) : null;
+ *     return new Result(fraud, details);
+ * }
+ *
+ * // Object return - provides data for next phases
+ * @Decision
+ * public DocumentationPlan planDocumentation(PullRequest pr) {
+ *     String analysis = llm.invokeLargeLanguageModel(
+ *         "Analyze what documentation is needed for: " + pr.getDiff(), null
+ *     ).toString();
+ *
+ *     if (analysis.contains("no documentation needed")) {
+ *         return null;  // Stop workflow
+ *     }
+ *
+ *     return new DocumentationPlan(analysis);  // Proceed with this plan
+ * }
+ *
+ * // Later phases can receive the decision result
+ * @Action
+ * public void generateDocs(DocumentationPlan plan) {
+ *     // Use the plan from the decision phase
+ *     createDocumentation(plan.getFiles(), plan.getContent());
+ * }
+ * }</pre>
+ *
+ * <h2>Parameter Injection</h2>
+ * Decision methods can receive parameters that will be automatically resolved:
+ * <ul>
+ *   <li>{@link WorkflowContext} - The current workflow context</li>
+ *   <li>Trigger event object - The event that started the workflow</li>
+ *   <li>{@link LargeLanguageModel} - Injected LLM instance (via CDI)</li>
+ * </ul>
+ *
+ * @see Trigger
+ * @see Action
+ * @see Outcome
  */
-@Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
-public @interface Decision {}
+@Retention(RetentionPolicy.RUNTIME)
+public @interface Decision {
+}
