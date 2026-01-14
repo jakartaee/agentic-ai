@@ -157,7 +157,7 @@ Our mailing list is [agentic-ai-dev@eclipse.org](https://accounts.eclipse.org/ma
 
 ## Building
 
-You can build all the modules together:
+You can build all the modules at once:
 
 ```
 mvn clean install
