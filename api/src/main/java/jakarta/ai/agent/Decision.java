@@ -31,17 +31,16 @@ import java.lang.annotation.Target;
  * // Boolean return
  * @Decision
  * public boolean shouldGenerateDocs(PullRequest pr) {
- *     return llm.invokeLargeLanguageModel(
- *         "Does this PR require documentation updates? " + pr.getDiff(), null
- *     ).toString().contains("yes");
+ *     String response = llm.query(
+ *         "Does this PR require documentation updates? " + pr.getDiff(), pr);
+ *     return response.contains("yes");
  * }
  *
  * // Result return - provides structured outcome
  * @Decision
  * public Result checkFraud(BankTransaction transaction) {
- *     String output = llm.invokeLargeLanguageModel(
- *         "Is this a fraudulent transaction?", transaction
- *     ).toString();
+ *     String output = llm.query(
+ *         "Is this a fraudulent transaction?", transaction);
  *     boolean fraud = isFraud(output);
  *     Fraud details = fraud ? getFraudDetails(output) : null;
  *     return new Result(fraud, details);
@@ -50,9 +49,8 @@ import java.lang.annotation.Target;
  * // Object return - provides data for next phases
  * @Decision
  * public DocumentationPlan planDocumentation(PullRequest pr) {
- *     String analysis = llm.invokeLargeLanguageModel(
- *         "Analyze what documentation is needed for: " + pr.getDiff(), null
- *     ).toString();
+ *     String analysis = llm.query(
+ *         "Analyze what documentation is needed for: " + pr.getDiff(), pr);
  *
  *     if (analysis.contains("no documentation needed")) {
  *         return null;  // Stop workflow

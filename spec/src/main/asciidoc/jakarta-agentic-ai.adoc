@@ -12,10 +12,100 @@
 
 == Introduction
 
-Jakarta Agentic AI provides vendor-neutral APIs for building, deploying, and running AI 
-agents on Jakarta EE runtimes. The specification aims to standardize agent life cycles, 
-workflows, and integration with foundational AI technologies such as LLMs, 
+Jakarta Agentic AI provides vendor-neutral APIs for building, deploying, and running AI
+agents on Jakarta EE runtimes. The specification aims to standardize agent life cycles,
+workflows, and integration with foundational AI technologies such as LLMs,
 while remaining extensible and minimal for the initial release.
+
+Jakarta Agentic AI provides a standardized, portable API that integrates with existing
+Jakarta EE technologies, allowing AI agent capabilities to be added to enterprise applications.
+
+=== Motivation
+
+Modern enterprise applications increasingly require automation capabilities that:
+
+- Monitor systems and respond to events autonomously
+- Make context-aware decisions using AI/ML models
+- Execute workflows based on LLM-generated insights
+- Integrate with existing enterprise infrastructure
+
+While AI and LLM technologies have matured rapidly, there is no standard way to build AI
+agents in Jakarta EE applications. Developers must rely on vendor-specific frameworks or
+integrate multiple disparate technologies, leading to:
+
+- Lack of portability between Jakarta EE implementations
+- Inconsistent programming models
+- Difficulty integrating with CDI and other Jakarta EE technologies
+- Complex boilerplate code for agent orchestration
+
+Jakarta Agentic AI addresses these challenges by providing a standard API that feels natural
+to Jakarta EE developers, similar to how Jakarta Servlet, REST, and Batch standardized their
+respective domains.
+
+=== Goals
+
+The primary goals of Jakarta Agentic AI are:
+
+**Annotation-driven agent development**:: Define agent workflows using familiar Jakarta EE
+annotations, making it simple to mark methods as triggers, decisions, actions, and outcomes.
+
+**CDI integration**:: Agents are CDI beans with full support for dependency injection,
+interceptors, and scoping. Agents can use standard CDI scopes (`@RequestScoped`,
+`@ApplicationScoped`, etc.) or the custom `@WorkflowScoped` for agent-specific lifecycle management.
+
+**LLM abstraction**:: Provide a lightweight facade for accessing Large Language Models without
+standardizing the LLM APIs themselves. This allows vendors to plug in different LLM backends
+while giving applications a consistent interface.
+
+**Workflow orchestration**:: Enable declarative workflows where the runtime manages execution
+flow between agent lifecycle phases (trigger → decision → action → outcome).
+
+**Vendor neutrality**:: Allow implementations across Jakarta EE compatible products and
+potentially other CDI-based runtimes.
+
+**Jakarta EE alignment**:: Follow Jakarta EE patterns and conventions, ensuring consistency
+with specifications like Jakarta Persistence, Jakarta REST, and Jakarta Batch.
+
+=== Non-goals
+
+The following are explicitly outside the scope of this specification:
+
+**Standardizing LLM APIs**:: Jakarta Agentic AI provides a facade interface for accessing LLMs
+but does not standardize the underlying LLM APIs. LLM provider APIs vary significantly and
+evolve rapidly, making standardization impractical for this initial release.
+
+**Machine learning frameworks**:: This specification focuses on agent orchestration and
+lifecycle management, not ML framework standardization.
+
+**Specific LLM models**:: The specification is model-agnostic. Model selection and
+configuration are runtime and deployment concerns.
+
+**Agent communication protocols**:: Multi-agent communication and coordination patterns
+are deferred to future releases.
+
+**Training and fine-tuning**:: Model training, fine-tuning, and ML model lifecycle management
+are outside the scope of agent orchestration.
+
+=== Terminology
+
+**Agent**:: An autonomous component that detects events, makes decisions, executes actions,
+and produces outcomes.
+
+**Trigger**:: An event or condition that initiates an agent workflow.
+
+**Decision**:: A determination point where the agent decides whether and how to proceed,
+typically using an LLM.
+
+**Action**:: An operation performed by the agent in response to a decision.
+
+**Outcome**:: The final result produced by the agent workflow.
+
+**Workflow**:: The complete execution sequence from trigger through decision, action, and outcome.
+
+**Workflow Context**:: A context object that maintains state throughout a workflow execution.
+
+**LLM Facade**:: The `LargeLanguageModel` interface that provides access to Large Language
+Model capabilities.
 
 == Scope
 
@@ -30,66 +120,1235 @@ while remaining extensible and minimal for the initial release.
 * Designed for Jakarta EE runtimes, but potentially usable in Quarkus, Micronaut, 
   Spring Boot.
 
+== Architecture
+
+This chapter provides an architectural overview of Jakarta Agentic AI, describing how agents
+are structured, how they integrate with Jakarta EE, and the key design patterns.
+
+=== Agent Architecture
+
+An agent in Jakarta Agentic AI is a CDI bean that orchestrates a workflow consisting of
+distinct lifecycle phases:
+
+1. **Trigger Phase**: Detects an event or condition that initiates the workflow
+2. **Decision Phase**: Analyzes the trigger event and determines how to proceed
+3. **Action Phase**: Executes operations based on the decision
+4. **Outcome Phase**: Produces the final result of the workflow
+
+Additionally, agents may define:
+
+- **Exception Handling**: Methods to handle errors that occur during workflow execution
+
+==== Agent as CDI Bean
+
+Every agent is a CDI bean annotated with `@Agent`. This design provides:
+
+- **Dependency Injection**: Agents can inject other CDI beans, Jakarta EE resources, and services
+- **Interceptors**: Standard CDI interceptors can be applied to agent methods
+- **Scoping**: Agents support standard CDI scopes plus a custom `@WorkflowScoped` scope
+- **Events**: Agents can produce and observe CDI events
+- **Lifecycle Management**: CDI manages agent instantiation and destruction
+
+[source,java]
+----
+@Agent
+@ApplicationScoped
+public class MonitoringAgent {
+
+    @Inject
+    private LargeLanguageModel llm;
+
+    @Inject
+    private EventLogger logger;
+
+    @Trigger
+    public void onSystemAlert(Alert alert) {
+        // Triggered by external event
+    }
+
+    @Decision
+    public boolean shouldEscalate(Alert alert) {
+        // Use LLM to decide if escalation is needed
+        String analysis = llm.query("Should this alert be escalated?", alert);
+        return analysis.toLowerCase().contains("yes");
+    }
+
+    @Action
+    public void escalateAlert(Alert alert) {
+        // Execute escalation action
+        logger.logEscalation(alert);
+    }
+}
+----
+
+=== Workflow Model
+
+The workflow model in Jakarta Agentic AI is declarative and dynamic. Rather than explicitly
+programming control flow, developers annotate methods to mark their role in the workflow,
+and the runtime orchestrates execution.
+
+==== Workflow Execution Flow
+
+The typical execution flow is:
+
+1. **Event Occurs**: An external event triggers the workflow
+2. **Trigger Invoked**: The `@Trigger` method is called with the event
+3. **Decision Invoked**: The `@Decision` method evaluates whether to proceed
+4. **Conditional Execution**:
+   - If decision returns `true` or non-null object: proceed to action phase
+   - If decision returns `false` or `null`: terminate workflow
+5. **Action Invoked**: The `@Action` method executes the agent's operation
+6. **Outcome Invoked**: The `@Outcome` method produces the final result
+
+At any point, if an exception occurs, the `@HandleException` method is invoked if defined.
+
+=== Integration with Jakarta EE
+
+Jakarta Agentic AI is designed to integrate seamlessly with the Jakarta EE ecosystem:
+
+==== CDI Integration
+
+Agents are CDI beans and thus integrate with:
+
+- **CDI Events**: Agents can observe CDI events as triggers
+- **Interceptors**: Security, transactions, and custom interceptors apply to agent methods
+- **Decorators**: Agent behavior can be enhanced with decorators
+- **Producers**: Agent dependencies can come from CDI producers
+- **Qualifiers**: Agents can use qualifiers to select specific implementations
+
+==== Scope Integration
+
+Agents support all standard CDI scopes:
+
+- `@RequestScoped`: For agents that operate within a single request
+- `@ConversationScoped`: For agents that maintain state across multiple interactions
+- `@SessionScoped`: For user-specific agents
+- `@ApplicationScoped`: For long-running monitoring agents
+- `@WorkflowScoped`: Custom scope for agent workflow lifecycle (default)
+
+If no scope is specified, `@WorkflowScoped` is assumed.
+
+==== Jakarta EE Service Integration
+
+Agents can leverage Jakarta EE services:
+
+- **Jakarta Persistence**: Access databases via JPA
+- **Jakarta REST**: Agents can be triggered by REST endpoints
+- **Jakarta Messaging**: Agents can consume JMS messages
+- **Jakarta Concurrency**: Parallel action execution
+- **Jakarta Security**: Authentication and authorization
+- **Jakarta Transactions**: Transactional agent operations
+
+=== LLM Facade Pattern
+
+A key architectural decision in Jakarta Agentic AI is the use of a facade pattern for LLM
+access. The `LargeLanguageModel` interface provides a simple, consistent API while allowing
+vendors to integrate any LLM backend.
+
+==== Facade Benefits
+
+**Abstraction**: Applications depend on the facade, not specific LLM implementations
+
+**Vendor Flexibility**: Implementations can integrate any LLM provider or implementation
+
+**Unwrapping**: The `unwrap()` method allows accessing vendor-specific APIs when needed,
+following Jakarta Persistence's `EntityManager.unwrap()` pattern
+
+**Evolution**: LLM technologies evolve rapidly; the facade insulates applications from these changes
+
+=== Design Patterns
+
+Jakarta Agentic AI employs several design patterns familiar to Jakarta EE developers:
+
+==== Annotation-Driven Development
+
+Like Jakarta REST, Servlet, and Batch, Jakarta Agentic AI uses annotations to declaratively
+define behavior. This reduces boilerplate and makes code more readable.
+
+==== Convention over Configuration
+
+Sensible defaults minimize configuration:
+
+- Default scope is `@WorkflowScoped`
+- Workflow execution order follows trigger → decision → action → outcome
+- Parameter injection resolves based on type
+
+==== Template Method Pattern
+
+The workflow lifecycle defines the template (trigger → decision → action → outcome) while
+agent implementations provide the concrete behavior for each step.
+
+=== Threading and Concurrency
+
+Jakarta Agentic AI workflow phases execute sequentially:
+
+- **Sequential Phases**: Trigger, decision, action, and outcome phases MUST execute in order
+- **Thread Safety**: Agents using `@RequestScoped` or `@WorkflowScoped` typically execute within a single thread
+- **Application Scope**: `@ApplicationScoped` agents MUST be thread-safe as they may handle multiple workflow invocations
+
+=== Error Handling
+
+Error handling in Jakarta Agentic AI follows Jakarta EE conventions:
+
+- Uncaught exceptions propagate to the container
+- `@HandleException` methods provide agent-specific error handling
+- Standard exception types (`IllegalArgumentException`, `IllegalStateException`) have defined semantics
+- Implementations should provide clear exception messages and cause chains
+
+== Agent Lifecycle
+
+This chapter defines the agent lifecycle annotations and their semantics. Each annotation
+marks a method as participating in a specific phase of the agent workflow.
+
+=== @Agent Annotation
+
+The `@Agent` annotation marks a class as an AI agent. Agent classes must be CDI beans and
+follow CDI bean definition rules.
+
+==== Syntax
+
+[source,java]
+----
+@Target(ElementType.TYPE)
+@Retention(RetentionPolicy.RUNTIME)
+public @interface Agent {
+    String name() default "";
+    String description() default "";
+}
+----
+
+==== Semantics
+
+- **Required**: Every agent class must be annotated with `@Agent`
+- **CDI Bean**: The annotated class becomes a CDI managed bean
+- **Scope**: May be combined with CDI scope annotations. If no scope is specified, `@WorkflowScoped` is the default
+- **Discovery**: Implementations must discover all `@Agent` annotated classes during deployment
+
+==== Scope Combinations
+
+Agents can use any CDI scope annotation in combination with `@Agent`:
+
+[source,java]
+----
+// Request-scoped agent (for single-request workflows)
+@Agent
+@RequestScoped
+public class SingleRequestAgent {
+}
+
+// Application-scoped agent (for long-running monitoring)
+@Agent
+@ApplicationScoped
+public class MonitoringAgent {
+}
+
+// Workflow-scoped agent (default, for workflow-lifetime)
+@Agent
+@WorkflowScoped
+public class WorkflowAgent {
+}
+
+// If no scope specified, @WorkflowScoped is assumed
+@Agent
+public class DefaultScopedAgent {
+}
+----
+
+=== @Trigger Annotation
+
+The `@Trigger` annotation marks a method as a workflow trigger. Trigger methods define the
+entry point for agent workflows.
+
+==== Syntax
+
+[source,java]
+----
+@Target(ElementType.METHOD)
+@Retention(RetentionPolicy.RUNTIME)
+public @interface Trigger {
+}
+----
+
+==== Semantics
+
+- **Workflow Initiation**: Marks the method that starts a workflow
+- **Event Reception**: Receives the triggering event as a parameter
+- **Context Creation**: A new `WorkflowContext` is created when the trigger is invoked
+- **Scope Activation**: For `@WorkflowScoped` beans, the scope is activated
+
+==== Trigger Invocation
+
+Triggers can be invoked by:
+
+- **External Events**: System events, monitoring alerts, scheduled tasks
+- **REST Endpoints**: HTTP requests to Jakarta REST resources
+- **Messaging**: Jakarta Messaging (JMS) message reception
+- **CDI Events**: Observing CDI events
+- **Manual Invocation**: Direct method calls from application code
+
+[source,java]
+----
+// CDI Event trigger
+@Agent
+public class EventDrivenAgent {
+
+    @Trigger
+    public void onCustomEvent(@Observes CustomEvent event) {
+        // Triggered by CDI event
+    }
+}
+
+// REST endpoint trigger
+@Agent
+@Path("/api/agents")
+public class RestAgent {
+
+    @POST
+    @Path("/process")
+    @Trigger
+    public void processRequest(RequestData data) {
+        // Triggered by HTTP POST
+    }
+}
+----
+
+=== @Decision Annotation
+
+The `@Decision` annotation marks a method that makes a decision about whether and how the
+workflow should proceed. Decision methods typically use LLM analysis to determine the workflow path.
+
+==== Syntax
+
+[source,java]
+----
+@Target(ElementType.METHOD)
+@Retention(RetentionPolicy.RUNTIME)
+public @interface Decision {
+}
+----
+
+==== Semantics
+
+- **Conditional Execution**: Determines if the workflow proceeds to action phase
+- **LLM Integration**: Typically invokes `LargeLanguageModel` for analysis
+- **Return Value Semantics**: The return value controls workflow progression
+
+==== Return Value Semantics
+
+Decision methods support two return patterns:
+
+**Boolean Pattern**:
+- `true`: Proceed to action phase
+- `false`: Terminate workflow (outcome phase skipped)
+
+**Object Pattern**:
+- Non-null object: Proceed to action phase; object available for injection
+- `null`: Terminate workflow
+
+[source,java]
+----
+@Agent
+public class DecisionExamples {
+
+    @Inject
+    private LargeLanguageModel llm;
+
+    // Boolean return pattern
+    @Decision
+    public boolean shouldProcess(Event event) {
+        String analysis = llm.query("Should this event be processed?", event);
+        return analysis.toLowerCase().contains("yes");
+    }
+
+    // Object return pattern
+    @Decision
+    public AnalysisResult analyzeEvent(Event event) {
+        String analysis = llm.query("Analyze this event", event);
+
+        if (requiresAction(analysis)) {
+            return new AnalysisResult(analysis);
+        }
+
+        return null; // Stop workflow
+    }
+}
+----
+
+=== @Action Annotation
+
+The `@Action` annotation marks a method that performs an action as part of the agent workflow.
+Actions execute the agent's primary work based on decisions made earlier in the workflow.
+
+==== Syntax
+
+[source,java]
+----
+@Target(ElementType.METHOD)
+@Retention(RetentionPolicy.RUNTIME)
+public @interface Action {
+}
+----
+
+==== Semantics
+
+- **Execution Phase**: Performs the agent's primary work
+- **Decision Dependent**: Only invoked if decision phase returns true/non-null
+- **Side Effects**: Actions typically have side effects (API calls, database updates, etc.)
+- **Return Value**: Return values are stored in workflow context for outcome phase
+
+==== Multiple Actions
+
+An agent MAY define multiple `@Action` methods. When multiple action methods are present:
+
+- The execution order is implementation-defined
+- Implementations MUST complete all actions before proceeding to the outcome phase
+- Applications SHOULD NOT rely on a specific execution order between actions
+
+==== Transactional Actions
+
+Actions may be transactional using Jakarta Transactions:
+
+[source,java]
+----
+@Agent
+public class TransactionalAgent {
+
+    @Action
+    @Transactional
+    public void updateRecords(UpdatePlan plan) {
+        // This action runs in a transaction
+        database.updateRecords(plan.getRecords());
+    }
+}
+----
+
+=== @Outcome Annotation
+
+The `@Outcome` annotation marks a method that produces the final result of the workflow.
+Outcome methods are invoked after actions complete successfully.
+
+==== Syntax
+
+[source,java]
+----
+@Target(ElementType.METHOD)
+@Retention(RetentionPolicy.RUNTIME)
+public @interface Outcome {
+}
+----
+
+==== Semantics
+
+- **Finalization**: Produces the final workflow result
+- **Action Dependent**: Invoked after action phase completes
+- **Workflow Completion**: Marks the end of successful workflow execution
+- **Scope Cleanup**: For `@WorkflowScoped` beans, scope may be deactivated after outcome
+
+=== @HandleException Annotation
+
+The `@HandleException` annotation marks a method that handles exceptions occurring during
+workflow execution. Exception handlers provide agent-specific error recovery.
+
+==== Syntax
+
+[source,java]
+----
+@Target(ElementType.METHOD)
+@Retention(RetentionPolicy.RUNTIME)
+public @interface HandleException {
+}
+----
+
+==== Semantics
+
+- **Error Recovery**: Provides agent-specific exception handling
+- **Any Phase**: Invoked when exceptions occur in any workflow phase
+- **Optional**: Agents are not required to define exception handlers
+- **Fallback**: If no handler is defined, exceptions propagate to the container
+
+==== Exception Handler Matching
+
+When an exception occurs:
+
+1. The runtime searches for `@HandleException` methods
+2. Methods accepting the thrown exception type (or supertype) are candidates
+3. The most specific matching handler is invoked
+4. If no handler matches, the exception propagates to the container
+
+[source,java]
+----
+@Agent
+public class ExceptionHandlingExamples {
+
+    // Simple exception handler
+    @HandleException
+    public void handleError(Exception e) {
+        logger.error("Workflow failed", e);
+    }
+
+    // Handler with context access
+    @HandleException
+    public void handleError(Exception e, WorkflowContext context) {
+        Object triggerEvent = context.getTriggerEvent();
+        logger.error("Failed processing " + triggerEvent, e);
+    }
+
+    // Specific exception types
+    @HandleException
+    public void handleIOException(IOException e, WorkflowContext context) {
+        logger.error("I/O error", e);
+        retryOperation(context);
+    }
+}
+----
+
+=== Lifecycle Execution Order
+
+The workflow execution order is:
+
+1. **Trigger phase**: Trigger method is invoked
+2. **Decision phase**: Decision method(s) are invoked
+3. **Conditional execution**:
+   - If decision returns true/non-null:
+     a. **Action phase**: Action method(s) are invoked
+     b. **Outcome phase**: Outcome method is invoked
+   - If decision returns false/null:
+     - Workflow terminates (action and outcome phases are skipped)
+4. **Exception handling**: If an exception occurs at any point:
+   - HandleException method is invoked (if defined)
+   - Otherwise, exception propagates to the container
+
+== Workflow Orchestration
+
+This chapter describes how workflows are orchestrated in Jakarta Agentic AI, including
+parameter injection, context management, and execution flow control.
+
+=== Workflow Context
+
+The `WorkflowContext` class represents the execution context for an agent workflow. It stores
+intermediate results and state as the workflow progresses through its phases.
+
+==== WorkflowContext Class
+
+[source,java]
+----
+package jakarta.agentic.ai;
+
+public class WorkflowContext {
+
+    /**
+     * Store a named attribute in the workflow context.
+     *
+     * @param name the attribute name
+     * @param value the attribute value
+     */
+    public void setAttribute(String name, Object value);
+
+    /**
+     * Retrieve a named attribute from the workflow context.
+     *
+     * @param name the attribute name
+     * @return the attribute value, or null if not found
+     */
+    public Object getAttribute(String name);
+
+    /**
+     * Get the triggering event that started this workflow.
+     *
+     * @return the trigger event object
+     */
+    public Object getTriggerEvent();
+}
+----
+
+==== Context Lifecycle
+
+A `WorkflowContext` instance:
+
+- Is created when a trigger method is invoked
+- Persists throughout the workflow execution
+- Stores the trigger event automatically
+- Stores return values from each phase
+- Is discarded when the workflow completes or fails
+
+==== Using WorkflowContext
+
+Methods in any phase can accept a `WorkflowContext` parameter to access shared workflow state:
+
+[source,java]
+----
+@Agent
+public class ContextAwareAgent {
+
+    @Trigger
+    public void onEvent(Event event, WorkflowContext context) {
+        // Store event metadata
+        context.setAttribute("eventTime", System.currentTimeMillis());
+        context.setAttribute("eventType", event.getType());
+    }
+
+    @Decision
+    public boolean shouldProcess(Event event, WorkflowContext context) {
+        long eventTime = (long) context.getAttribute("eventTime");
+        long age = System.currentTimeMillis() - eventTime;
+
+        // Only process recent events
+        return age < 60000; // 60 seconds
+    }
+
+    @Action
+    public void processEvent(Event event, WorkflowContext context) {
+        String eventType = (String) context.getAttribute("eventType");
+        handleEventType(event, eventType);
+    }
+}
+----
+
+=== Parameter Injection
+
+Jakarta Agentic AI provides automatic parameter injection for workflow methods. Parameters
+are resolved based on their type and the current workflow state.
+
+==== Injection Resolution Rules
+
+When a workflow method is invoked, the runtime resolves parameters in the following order:
+
+1. **Trigger Event**: If the parameter type matches the trigger event type
+2. **Previous Phase Results**: If the parameter type matches a stored result
+3. **WorkflowContext**: If the parameter type is `WorkflowContext`
+4. **LargeLanguageModel**: If the parameter type is `LargeLanguageModel`
+5. **CDI Injection**: If the parameter is a CDI bean
+
+=== Error Handling and Recovery
+
+==== Exception Handler Invocation
+
+When an exception occurs in any workflow phase, the runtime searches for a matching
+`@HandleException` method:
+
+[source,java]
+----
+@Agent
+public class ResilientAgent {
+
+    @Trigger
+    public void onEvent(Event event) {
+        if (event == null) {
+            throw new IllegalArgumentException("Event cannot be null");
+        }
+    }
+
+    @Decision
+    public boolean analyze(Event event) {
+        // May throw IOException
+        return analyzeEvent(event);
+    }
+
+    // Handles specific exception type
+    @HandleException
+    public void handleIOException(IOException e, WorkflowContext context) {
+        logger.warn("I/O error, will retry", e);
+        scheduleRetry(context);
+    }
+
+    // Handles any unhandled exception
+    @HandleException
+    public void handleGenericException(Exception e, WorkflowContext context) {
+        logger.error("Unexpected error", e);
+        Object trigger = context.getTriggerEvent();
+        logFailure(trigger, e);
+    }
+}
+----
+
+==== Workflow Termination
+
+Workflows terminate in the following scenarios:
+
+1. **Normal Completion**: Outcome phase completes successfully
+2. **Decision Stops**: Decision phase returns `false` or `null`
+3. **Unhandled Exception**: Exception occurs and no handler is defined
+4. **Handler Exception**: Exception handler itself throws an exception
+
 == Key Concepts
 
 === Agent
-An agent is a CDI bean that encapsulates autonomous, goal-driven behavior. Agents are 
+An agent is a CDI bean that encapsulates autonomous, goal-driven behavior. Agents are
 defined using the `@Agent` annotation, which may include an optional name and description.
 
 === Workflow
-Agent workflows are defined using annotated methods. The workflow is dynamic at runtime 
+Agent workflows are defined using annotated methods. The workflow is dynamic at runtime
 and can be triggered by CDI events or other mechanisms.
 
-=== Annotations
-- `@Agent`: Declares a class as an agent.
-- `@Trigger`: Marks a method as a workflow trigger.
-- `@Decision`: Marks a method as a decision point; returns boolean or `Result`.
-- `@Action`: Marks a method as an action step.
-- `@Outcome`: Marks a method as the workflow outcome.
+=== Annotations Summary
+- `@Agent`: Declares a class as an agent
+- `@Trigger`: Marks a method as a workflow trigger
+- `@Decision`: Marks a method as a decision point; returns boolean or object
+- `@Action`: Marks a method as an action step
+- `@Outcome`: Marks a method as the workflow outcome
+- `@HandleException`: Marks a method as an exception handler
 
 === Large Language Model (LLM) Facade
-The `LargeLanguageModel` interface provides a minimal, type-converting facade for LLM 
-operations. It supports querying with prompts and input objects, returning results as 
-strings or domain types. Implementations may also support unwrapping to access the underlying LLM implementation for advanced or vendor-specific features.
+The `LargeLanguageModel` interface provides a minimal, type-converting facade for LLM
+operations. It supports querying with prompts and input objects, returning results as
+strings or domain types. Implementations may also support unwrapping to access the underlying
+LLM implementation for advanced or vendor-specific features.
 
 === Result
 The `Result` record standardizes decision outcomes, with a success flag and details object.
 
-== Example
+== CDI Integration
+
+This section describes how Jakarta Agentic AI integrates with Jakarta Contexts and Dependency
+Injection (CDI), including agent scoping, dependency injection, and lifecycle management.
+
+=== Agents as CDI Beans
+
+Every agent is a CDI managed bean. This design provides:
+
+- **Dependency Injection**: Agents can inject other beans
+- **Interceptors**: Cross-cutting concerns via CDI interceptors
+- **Events**: CDI event production and observation
+- **Lifecycle Callbacks**: Standard CDI lifecycle methods
+- **Scoping**: Flexible scope management
+
+==== CDI Bean Requirements
+
+An agent class:
+
+- MUST be annotated with `@Agent`
+- MUST satisfy CDI managed bean requirements
+- MUST have a constructor with no parameters or a constructor annotated with `@Inject`
+- MUST NOT be an inner class (unless static)
+- MUST NOT be abstract
+- MAY be a concrete class or implement interfaces
+
+=== @WorkflowScoped
+
+`@WorkflowScoped` is a custom CDI scope that ties the agent's lifecycle to the workflow execution.
+
+==== Scope Definition
+
+[source,java]
+----
+package jakarta.agentic.ai;
+
+import jakarta.enterprise.context.NormalScope;
+import java.lang.annotation.*;
+
+@Target({TYPE, METHOD, FIELD})
+@Retention(RUNTIME)
+@Documented
+@NormalScope
+@Inherited
+public @interface WorkflowScoped {
+}
+----
+
+==== Scope Semantics
+
+When an agent is `@WorkflowScoped`:
+
+- A new instance is created for each workflow execution
+- The instance is active from trigger invocation through outcome completion
+- The instance is destroyed after the workflow completes or fails
+- Each concurrent workflow execution has its own instance
+
+=== CDI Interceptors
+
+Agents support CDI interceptors for cross-cutting concerns:
+
+==== Transaction Management
+
+[source,java]
+----
+@Agent
+public class TransactionalAgent {
+
+    @Action
+    @Transactional
+    public void updateDatabase(Data data) {
+        // Method runs in a transaction
+        entityManager.persist(data);
+    }
+}
+----
+
+==== Security
+
+[source,java]
+----
+@Agent
+@RolesAllowed("admin")
+public class SecureAgent {
+
+    @Action
+    @RolesAllowed({"admin", "operator"})
+    public void performAction(Task task) {
+        // Only admin or operator can execute
+    }
+}
+----
+
+=== CDI Events
+
+Agents can produce and observe CDI events:
+
+==== Producing Events
+
+[source,java]
+----
+@Agent
+public class EventProducer {
+
+    @Inject
+    private Event<WorkflowCompleted> completionEvent;
+
+    @Outcome
+    public void publishCompletion(Result result) {
+        WorkflowCompleted event = new WorkflowCompleted(result);
+        completionEvent.fire(event);
+    }
+}
+----
+
+==== Observing Events
+
+[source,java]
+----
+@Agent
+@ApplicationScoped
+public class EventObserver {
+
+    @Trigger
+    public void onCustomEvent(@Observes CustomEvent event) {
+        // Triggered by CDI event
+        processEvent(event);
+    }
+}
+----
+
+=== Lifecycle Callbacks
+
+Agents can use CDI lifecycle callbacks:
+
+[source,java]
+----
+@Agent
+@WorkflowScoped
+public class LifecycleAwareAgent {
+
+    @Inject
+    private ResourcePool resources;
+
+    @PostConstruct
+    public void initialize() {
+        // Called after dependency injection
+        logger.info("Agent initialized");
+        resources.allocate();
+    }
+
+    @PreDestroy
+    public void cleanup() {
+        // Called before agent destruction
+        logger.info("Agent destroying");
+        resources.release();
+    }
+}
+----
+
+== LLM Integration Best Practices
+
+This section provides guidance on effectively using the `LargeLanguageModel` interface.
+
+=== Prompt Engineering
+
+Agents should use clear, specific prompts:
+
+[source,java]
+----
+@Decision
+public boolean goodPrompt(Issue issue) {
+    // Good: Clear, specific, with expected response format
+    String prompt = String.format(
+        """
+        Analyze this issue and respond with YES or NO:
+        Title: %s
+        Description: %s
+
+        Should this issue be escalated to senior engineers?
+        Respond with only: YES or NO
+        """,
+        issue.getTitle(),
+        issue.getDescription()
+    );
+
+    String response = llm.query(prompt, issue);
+    return response.trim().equalsIgnoreCase("YES");
+}
+----
+
+=== Error Handling
+
+Always handle potential LLM failures:
+
+[source,java]
+----
+@Decision
+public boolean robustEvaluation(Task task) {
+    try {
+        String response = llm.query("Evaluate: " + task.getDescription(), task);
+        return parseResponse(response);
+
+    } catch (Exception e) {
+        logger.warn("LLM evaluation failed, using fallback", e);
+
+        // Fallback to rule-based decision
+        return task.getPriority() == Priority.HIGH;
+    }
+}
+----
+
+=== Response Parsing
+
+Parse LLM responses defensively:
+
+[source,java]
+----
+@Decision
+public Priority parsePriority(Issue issue) {
+    String response = llm.query(
+        "Assess priority (CRITICAL, HIGH, MEDIUM, LOW): " + issue.getDescription(),
+        issue
+    );
+
+    // Defensive parsing
+    String normalized = response.trim().toUpperCase();
+
+    for (Priority p : Priority.values()) {
+        if (normalized.contains(p.name())) {
+            return p;
+        }
+    }
+
+    // Default if parsing fails
+    logger.warn("Could not parse priority from: " + response);
+    return Priority.MEDIUM;
+}
+----
+
+=== Accessing Vendor-Specific APIs
+
+The `unwrap()` method allows access to vendor-specific implementations, following the same
+pattern as Jakarta Persistence's `EntityManager.unwrap()`:
+
+[source,java]
+----
+@Agent
+public class VendorSpecificFeatures {
+
+    @Inject
+    private LargeLanguageModel llm;
+
+    @Decision
+    public AdvancedResult useVendorFeatures(Data data) {
+        // Use portable API when possible
+        String basicResult = llm.query("Basic analysis", data);
+
+        // Access vendor-specific features when needed
+        try {
+            SomeLlmApi vendorApi = llm.unwrap(SomeLlmApi.class);
+            return vendorApi.advancedAnalysis(data);
+        } catch (IllegalArgumentException e) {
+            // Fallback for other implementations
+            return parseBasicResult(basicResult);
+        }
+    }
+}
+----
+
+== Examples
+
+This chapter provides complete examples demonstrating common agent patterns and use cases.
+
+=== Simple Fraud Detection Agent
+
+A basic agent that detects fraudulent transactions:
 
 [source,java]
 ----
 @Agent(name="FraudDetection", description="Detects bank fraud transactions.")
 public class FraudDetectionAgent {
-    @Inject private LargeLanguageModel model;
-    @Inject private EntityManager entityManager;
+
+    @Inject
+    private LargeLanguageModel model;
+
+    @Inject
+    private EntityManager entityManager;
+
+    @Inject
+    private AlertService alertService;
 
     @Trigger
-    private void processTransaction(@Valid BankTransaction transaction) {
-        // Workflow trigger logic
+    public void processTransaction(@Valid BankTransaction transaction) {
+        logger.info("Processing transaction: " + transaction.getId());
     }
 
     @Decision
-    private Result checkFraud(BankTransaction transaction) {
-        String output = model.query("Is this a fraudulent transaction?", transaction);
+    public Result checkFraud(BankTransaction transaction) {
+        String prompt = String.format(
+            """
+            Analyze this transaction for fraud:
+            Amount: $%.2f
+            Merchant: %s
+            Location: %s
+
+            Respond with JSON: {"isFraud": true/false, "confidence": 0.0-1.0, "reason": "..."}
+            """,
+            transaction.getAmount(),
+            transaction.getMerchant(),
+            transaction.getLocation()
+        );
+
+        String output = model.query(prompt, transaction);
         boolean fraud = isFraud(output);
         Fraud details = fraud ? getFraudDetails(output) : null;
         return new Result(fraud, details);
     }
 
     @Action
-    private void handleFraud(Fraud fraud, BankTransaction transaction) {
-        if (fraud.isSerious()) alertBankSecurity(fraud);
+    public void handleFraud(Fraud fraud, BankTransaction transaction) {
+        if (fraud.isSerious()) {
+            alertService.alertBankSecurity(fraud);
+        }
         Customer customer = getCustomer(transaction);
-        alertCustomer(fraud, transaction, customer);
+        alertService.alertCustomer(fraud, transaction, customer);
     }
 
     @Outcome
-    private void processTransaction(BankTransaction transaction) {
-        // Mark transaction suspect
+    public void finalizeTransaction(BankTransaction transaction, Fraud fraud) {
+        transaction.setStatus(TransactionStatus.SUSPECT);
+        entityManager.merge(transaction);
+        logger.info("Transaction marked as suspect: " + transaction.getId());
+    }
+
+    @HandleException
+    public void handleError(Exception e, BankTransaction transaction) {
+        logger.error("Fraud detection failed for transaction: " + transaction.getId(), e);
+        // Flag for manual review when detection fails
+        transaction.setStatus(TransactionStatus.NEEDS_REVIEW);
+        entityManager.merge(transaction);
     }
 }
 ----
+
+=== Documentation Generation Agent
+
+An agent that monitors pull requests and generates documentation:
+
+[source,java]
+----
+@Agent
+@ApplicationScoped
+public class DocumentationAgent {
+
+    @Inject
+    private LargeLanguageModel llm;
+
+    @Inject
+    private GitService gitService;
+
+    @Trigger
+    public void onPullRequest(PullRequestEvent prEvent) {
+        logger.info("Processing PR #" + prEvent.getNumber());
+    }
+
+    @Decision
+    public DocumentationPlan shouldGenerateDocs(PullRequestEvent prEvent) {
+        PullRequest pr = prEvent.getPullRequest();
+
+        String prompt = String.format(
+            """
+            Analyze this pull request and determine if documentation is needed.
+
+            Title: %s
+            Description: %s
+            Changed Files: %s
+
+            Respond with JSON:
+            {"needsDocumentation": true/false, "suggestedFiles": ["file1.md"]}
+            """,
+            pr.getTitle(),
+            pr.getDescription(),
+            String.join(", ", pr.getChangedFiles())
+        );
+
+        String response = llm.query(prompt, pr);
+        DocumentationPlan plan = parseResponse(response);
+
+        if (!plan.needsDocumentation()) {
+            logger.info("No documentation needed for PR #" + pr.getNumber());
+            return null; // Stop workflow
+        }
+
+        return plan;
+    }
+
+    @Action
+    public DocumentationFiles generateDocumentation(
+        PullRequestEvent prEvent,
+        DocumentationPlan plan
+    ) {
+        PullRequest pr = prEvent.getPullRequest();
+        DocumentationFiles files = new DocumentationFiles();
+
+        for (String filename : plan.getSuggestedFiles()) {
+            String content = llm.query(
+                "Generate documentation for: " + filename,
+                pr.getDiff()
+            );
+            files.addFile(filename, content);
+        }
+
+        return files;
+    }
+
+    @Outcome
+    public void createDocumentationPR(
+        PullRequestEvent originalPr,
+        DocumentationFiles files
+    ) {
+        String branchName = "docs/pr-" + originalPr.getNumber();
+        gitService.createBranch(branchName);
+        gitService.commitFiles(branchName, files);
+
+        PullRequest docPr = gitService.createPullRequest(
+            branchName,
+            "main",
+            "Documentation for PR #" + originalPr.getNumber()
+        );
+
+        logger.info("Created documentation PR #" + docPr.getNumber());
+    }
+
+    @HandleException
+    public void handleError(Exception e, PullRequestEvent prEvent) {
+        logger.error("Failed to generate documentation for PR #" +
+            prEvent.getNumber(), e);
+
+        gitService.addComment(
+            prEvent.getNumber(),
+            "Failed to generate documentation automatically. Error: " + e.getMessage()
+        );
+    }
+}
+----
+
+=== Customer Support Agent
+
+A conversational agent that handles customer support inquiries:
+
+[source,java]
+----
+@Agent
+@ConversationScoped
+public class CustomerSupportAgent {
+
+    @Inject
+    private LargeLanguageModel llm;
+
+    @Inject
+    private KnowledgeBaseService knowledgeBase;
+
+    @Inject
+    private TicketService ticketService;
+
+    private List<Message> conversationHistory = new ArrayList<>();
+    private Customer customer;
+
+    @Trigger
+    public void onCustomerMessage(CustomerMessage message) {
+        conversationHistory.add(message);
+
+        if (customer == null) {
+            customer = customerService.getCustomer(message.getCustomerId());
+        }
+    }
+
+    @Decision
+    public SupportResponse generateResponse(CustomerMessage message) {
+        String context = conversationHistory.stream()
+            .map(m -> m.getSender() + ": " + m.getText())
+            .collect(Collectors.joining("\n"));
+
+        List<KnowledgeArticle> articles = knowledgeBase.search(message.getText(), 5);
+
+        String prompt = String.format(
+            """
+            You are a helpful customer support agent.
+
+            Customer: %s
+            Conversation History:
+            %s
+
+            Relevant Knowledge Base Articles:
+            %s
+
+            Customer's Latest Message: %s
+
+            Provide a helpful response. Respond with JSON:
+            {"response": "...", "canResolve": true/false, "needsEscalation": true/false}
+            """,
+            customer.getName(),
+            context,
+            articles.stream().map(a -> a.getSummary()).collect(Collectors.joining("\n")),
+            message.getText()
+        );
+
+        String llmResponse = llm.query(prompt, message);
+        return parseResponse(llmResponse);
+    }
+
+    @Action
+    public void sendResponse(SupportResponse response) {
+        messagingService.sendToCustomer(customer.getId(), response.getResponse());
+    }
+
+    @Outcome
+    public void finalizeInteraction(SupportResponse response) {
+        if (response.needsEscalation()) {
+            ticketService.escalate(customer.getId(), "Agent unable to resolve");
+            messagingService.sendToCustomer(
+                customer.getId(),
+                "I've escalated your issue to a specialist."
+            );
+        }
+    }
+
+    @HandleException
+    public void handleError(Exception e, CustomerMessage message) {
+        logger.error("Support agent error", e);
+        messagingService.sendToCustomer(
+            customer.getId(),
+            "I apologize, a human agent will assist you shortly."
+        );
+        ticketService.escalate(customer.getId(), "Agent system error");
+    }
+}
+----
+
+=== Key Patterns Demonstrated
+
+These examples demonstrate:
+
+1. **Different Scopes**: `@WorkflowScoped`, `@ApplicationScoped`, `@ConversationScoped`
+2. **LLM Integration**: Using `LargeLanguageModel` for intelligent decisions
+3. **Conditional Workflows**: Decisions that stop or continue workflows
+4. **Multiple Actions**: Parallel action execution
+5. **Error Handling**: Graceful degradation and fallback strategies
+6. **CDI Integration**: Dependency injection, transactions
+7. **Context Management**: Maintaining state across workflow phases
+8. **Real-world Use Cases**: Fraud detection, documentation generation, customer support
 
 == API Overview
 
@@ -107,11 +1366,16 @@ public @interface Agent {
 === LargeLanguageModel Interface
 [source,java]
 ----
+/**
+ * Minimal facade for Large Language Model (LLM) operations.
+ * <p>
+ * Intended to be injected via CDI into agents. Provides a unified interface for querying LLMs
+ * with support for type conversion of parameters and results.
+ */
 public interface LargeLanguageModel {
+
     /**
      * Sends a prompt to the model and returns a String response.
-     * <p>
-     * This is the simplest form of LLM interaction, suitable for plain text prompts and responses.
      *
      * @param prompt The input prompt or question.
      * @return The model's response as a String.
@@ -120,8 +1384,6 @@ public interface LargeLanguageModel {
 
     /**
      * Sends a prompt to the model and returns a response of the specified type.
-     * <p>
-     * The result is converted to the requested type if supported by the implementation.
      *
      * @param prompt The prompt or query.
      * @param resultType The expected result type.
@@ -131,10 +1393,7 @@ public interface LargeLanguageModel {
     <T> T query(String prompt, Class<T> resultType);
 
     /**
-     * Sends a prompt and a variable number of input objects to the model, returning a String response.
-     * <p>
-     * The input objects may be domain objects, JSON, or other serializable types. Implementations
-     * should handle conversion as needed.
+     * Sends a prompt and input objects to the model, returning a String response.
      *
      * @param prompt The prompt or query.
      * @param inputs The input objects (e.g., domain objects, JSON, etc.).
@@ -143,9 +1402,7 @@ public interface LargeLanguageModel {
     String query(String prompt, Object... inputs);
 
     /**
-     * Sends a prompt and a variable number of input objects to the model, returning a response of the specified type.
-     * <p>
-     * The result is converted to the requested type if supported by the implementation.
+     * Sends a prompt and input objects to the model, returning a typed response.
      *
      * @param prompt The prompt or query.
      * @param resultType The expected result type.
@@ -157,13 +1414,11 @@ public interface LargeLanguageModel {
 
     /**
      * Unwraps the underlying LLM implementation.
-     * <p>
-     * This allows access to vendor-specific APIs or advanced features not exposed by the facade.
      *
      * @param implClass The class of the underlying implementation to unwrap to.
      * @param <T> The type of the underlying implementation.
-     * @return The underlying implementation instance, or throws if not available.
-     * @throws IllegalArgumentException if the implementation cannot be unwrapped to the requested type.
+     * @return The underlying implementation instance.
+     * @throws IllegalArgumentException if the implementation cannot be unwrapped.
      */
     <T> T unwrap(Class<T> implClass);
 }

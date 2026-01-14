@@ -34,7 +34,7 @@ import java.io.Serializable;
 public class DocsAgent implements Serializable {
 
     @Inject
-    LargeLanguageModel<?> languageModel;
+    LargeLanguageModel languageModel;
 
 
     /**
@@ -71,8 +71,7 @@ public class DocsAgent implements Serializable {
             pullRequest.getDiff()
         );
 
-        Object response = languageModel.invokeLargeLanguageModel(prompt, pullRequest);
-        String llmResponse = response != null ? response.toString() : "";
+        String llmResponse = languageModel.query(prompt, pullRequest);
 
         // Parse LLM response
         if (llmResponse.toUpperCase().contains("YES")) {
@@ -124,8 +123,7 @@ public class DocsAgent implements Serializable {
             analysis.getPriority()
         );
 
-        Object response = languageModel.invokeLargeLanguageModel(prompt, pullRequest);
-        String docContent = response != null ? response.toString() : "";
+        String docContent = languageModel.query(prompt, pullRequest);
 
         // Create documentation pull request
         DocumentationPullRequest docPR = new DocumentationPullRequest();

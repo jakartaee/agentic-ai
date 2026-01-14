@@ -1,0 +1,111 @@
+// Copyright (c) 2025 Contributors to the Eclipse Foundation
+//
+// This program and the accompanying materials are made available under the
+// terms of the Eclipse Public License v. 2.0 which is available at
+// http://www.eclipse.org/legal/epl-2.0.
+//
+// This Source Code may also be made available under the following Secondary
+// Licenses when the conditions for such availability set forth in the Eclipse
+// Public License v. 2.0 are satisfied: GNU General Public License, version 2
+// with the GNU Classpath Exception which is available at
+// https://www.gnu.org/software/classpath/license.html.
+//
+// SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
+
+== Introduction
+
+The Jakarta Agentic AI specification defines a vendor-neutral, annotation-based API for developing autonomous AI agents in Jakarta EE applications. This specification enables developers to create agents that can detect events, make decisions using Large Language Models (LLMs), execute actions, and process outcomes.
+
+Jakarta Agentic AI provides a standardized, portable API that integrates with existing Jakarta EE technologies, allowing AI agent capabilities to be added to enterprise applications.
+
+=== Motivation
+
+Modern enterprise applications increasingly require automation capabilities that:
+
+- Monitor systems and respond to events autonomously
+- Make context-aware decisions using AI/ML models
+- Execute workflows based on LLM-generated insights
+- Integrate with existing enterprise infrastructure
+
+While AI and LLM technologies have matured rapidly, there is no standard way to build AI agents in Jakarta EE applications. Developers must rely on vendor-specific frameworks or integrate multiple disparate technologies, leading to:
+
+- Lack of portability between Jakarta EE implementations
+- Inconsistent programming models
+- Difficulty integrating with CDI and other Jakarta EE technologies
+- Complex boilerplate code for agent orchestration
+
+Jakarta Agentic AI addresses these challenges by providing a standard API that feels natural to Jakarta EE developers, similar to how Jakarta Servlet, REST, and Batch standardized their respective domains.
+
+=== Goals
+
+The primary goals of Jakarta Agentic AI are:
+
+**Annotation-driven agent development**:: Define agent workflows using familiar Jakarta EE annotations, making it simple to mark methods as triggers, decisions, actions, and outcomes.
+
+**CDI integration**:: Agents are CDI beans with full support for dependency injection, interceptors, and scoping. Agents can use standard CDI scopes (`@RequestScoped`, `@ApplicationScoped`, etc.) or the custom `@WorkflowScoped` for agent-specific lifecycle management.
+
+**LLM abstraction**:: Provide a lightweight facade for accessing Large Language Models without standardizing the LLM APIs themselves. This allows vendors to plug in different LLM backends while giving applications a consistent interface.
+
+**Workflow orchestration**:: Enable declarative workflows where the runtime manages execution flow between agent lifecycle phases (trigger → decision → action → outcome).
+
+**Vendor neutrality**:: Allow implementations across Jakarta EE compatible products and potentially other CDI-based runtimes.
+
+**Jakarta EE alignment**:: Follow Jakarta EE patterns and conventions, ensuring consistency with specifications like Jakarta Persistence, Jakarta REST, and Jakarta Batch.
+
+=== Non-goals
+
+The following are explicitly outside the scope of this specification:
+
+**Standardizing LLM APIs**:: Jakarta Agentic AI provides a facade interface for accessing LLMs but does not standardize the underlying LLM APIs. LLM provider APIs vary significantly and evolve rapidly, making standardization impractical and potentially constraining for this initial release.
+
+**Machine learning frameworks**:: This specification focuses on agent orchestration and lifecycle management, not ML framework standardization. Integration with ML frameworks is implementation-specific.
+
+**Specific LLM models**:: The specification is model-agnostic. Model selection and configuration are runtime and deployment concerns.
+
+**Agent communication protocols**:: Multi-agent communication and coordination patterns are deferred to future releases.
+
+**Training and fine-tuning**:: Model training, fine-tuning, and ML model lifecycle management are outside the scope of agent orchestration.
+
+=== How to read this specification
+
+This specification is organized as follows:
+
+**Chapter 2: Architecture**:: Provides an overview of the agent architecture, workflow model, and how Jakarta Agentic AI integrates with CDI and Jakarta EE.
+
+**Chapter 3: Agent Lifecycle**:: Defines the agent lifecycle annotations (`@Agent`, `@Trigger`, `@Decision`, `@Action`, `@Outcome`, `@HandleException`) and their semantics.
+
+**Chapter 4: Workflow Orchestration**:: Describes how workflows are defined, executed, and managed, including parameter injection and context management.
+
+**Chapter 5: LLM Integration**:: Specifies the `LargeLanguageModel` interface and how applications interact with LLM backends.
+
+**Chapter 6: CDI Integration**:: Details the CDI integration, including the `@WorkflowScoped` scope, dependency injection, and lifecycle management.
+
+**Chapter 7: Examples**:: Provides complete examples demonstrating common agent patterns.
+
+=== Conventions
+
+Throughout this specification:
+
+- The term *agent* refers to a CDI bean annotated with `@Agent`.
+- The term *workflow* refers to the sequence of execution through trigger, decision, action, and outcome phases.
+- The term *LLM* refers to Large Language Models accessed through the `LargeLanguageModel` interface.
+- Code examples use the `jakarta.ai.agent` package namespace.
+- Method signatures shown are simplified; refer to the API documentation for complete signatures.
+
+=== Terminology
+
+**Agent**:: An autonomous component that detects events, makes decisions, executes actions, and produces outcomes.
+
+**Trigger**:: An event or condition that initiates an agent workflow.
+
+**Decision**:: A determination point where the agent decides whether and how to proceed, typically using an LLM.
+
+**Action**:: An operation performed by the agent in response to a decision.
+
+**Outcome**:: The final result produced by the agent workflow.
+
+**Workflow**:: The complete execution sequence from trigger through decision, action, and outcome.
+
+**Workflow Context**:: A context object that maintains state throughout a workflow execution.
+
+**LLM Facade**:: The `LargeLanguageModel` interface that provides access to Large Language Model capabilities.

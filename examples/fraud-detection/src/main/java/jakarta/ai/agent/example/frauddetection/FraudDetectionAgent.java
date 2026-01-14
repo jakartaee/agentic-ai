@@ -19,7 +19,7 @@ import jakarta.validation.Valid;
 @Agent(name = "FraudDetection", description = "Detects bank fraud transactions.")
 public class FraudDetectionAgent {
     @Inject
-    private LargeLanguageModel<?> model;
+    private LargeLanguageModel model;
     @Inject
     private EntityManager entityManager;
 
@@ -30,9 +30,8 @@ public class FraudDetectionAgent {
 
     @Decision
     private Result checkFraud(BankTransaction transaction) {
-        Object response = model.invokeLargeLanguageModel(
+        String output = model.query(
             "Is this a fraudulent transaction? If so, how serious is it?", transaction);
-        String output = response != null ? response.toString() : "";
         boolean fraud = isFraud(output);
         Fraud details = fraud ? getFraudDetails(output) : null;
         return new Result(fraud, details);
