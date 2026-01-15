@@ -1,16 +1,6 @@
-= Jakarta Agentic AI Specification
-:doctype: book
-:license: EFSL
-:toc: left
-:toclevels: 3
-:sectnums:
-:source-highlighter: coderay
-:icons: font
-:version: 1.0
-:author: Jakarta Agentic AI Project
-:email: info@jakarta.ee
+:mvc-api-source-dir: ../../../../../api/src/main/java/
 
-== Introduction
+include::chapters/intro.asciidoc[]
 
 Jakarta Agentic AI provides vendor-neutral APIs for building, deploying, and running AI
 agents on Jakarta EE runtimes. The specification aims to standardize agent life cycles,
@@ -1434,3 +1424,7 @@ public record Result(boolean success, Object details) {}
 
 This specification is licensed under the Eclipse Foundation Specification License (EFSL).
 See https://www.eclipse.org/legal/efsl.php for details.
+
+include::chapters/revision.asciidoc[]
+
+include::chapters/refs.asciidoc[]
