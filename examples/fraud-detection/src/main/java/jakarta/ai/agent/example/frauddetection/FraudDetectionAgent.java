@@ -30,7 +30,8 @@ public class FraudDetectionAgent {
 
     @Decision
     private Result checkFraud(BankTransaction transaction) {
-        String output = model.query("Is this a fraudulent transaction? If so, how serious is it?", transaction);
+        String output = model.query(
+            "Is this a fraudulent transaction? If so, how serious is it?", transaction);
         boolean fraud = isFraud(output);
         Fraud details = fraud ? getFraudDetails(output) : null;
         return new Result(fraud, details);

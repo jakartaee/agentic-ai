@@ -6,11 +6,28 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Marks a method as an action step in the agent workflow.
- * <p>
- * An action method performs a single step or operation in the agent's workflow.
- * Actions are typically executed sequentially as defined by the workflow.
+ * Marks a method as an action in an agent workflow.
+ *
+ * <p>Actions perform operations as part of the agent's workflow execution.
+ * They typically execute after decision methods determine the workflow should proceed.
+ *
+ * <h2>Example Usage</h2>
+ * <pre>{@code
+ * @Agent
+ * public class FraudDetectionAgent {
+ *
+ *     @Action
+ *     public void handleFraud(Fraud fraud, BankTransaction transaction) {
+ *         if (fraud.isSerious()) {
+ *             alertBankSecurity(fraud);
+ *         }
+ *         Customer customer = getCustomer(transaction);
+ *         alertCustomer(fraud, transaction, customer);
+ *     }
+ * }
+ * }</pre>
  */
-@Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
-public @interface Action {}
+@Retention(RetentionPolicy.RUNTIME)
+public @interface Action {
+}

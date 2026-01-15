@@ -14,6 +14,7 @@
     <description>Example applications for Jakarta Agentic AI.</description>
     <modules>
         <module>fraud-detection</module>
+        <module>docs-agent</module>
     </modules>
     <licenses>
         <license>

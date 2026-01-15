@@ -11,23 +11,30 @@ import java.lang.annotation.Target;
  * An agent is a CDI bean that encapsulates autonomous, goal-driven behavior.
  * The agent's lifecycle, workflow, and actions are defined using additional annotations.
  * <p>
- * A name and description can be provided for documentation, discovery, or configuration.
+ * Allow addition of other scopes via additional pre-existing CDI annotations e.g.
+ * <pre>{@code
+ * @Agent
+ * @RequestScoped
+ * public class MyAgent { ... }
+ * }</pre>
+ * <p>
+ * If not specified, assume new {@link WorkflowScoped}.
  */
-@Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
+@Retention(RetentionPolicy.RUNTIME)
 public @interface Agent {
 
-	/**
-	 * The agent's name.
-	 * <p>
-	 * If not specified, the agent's class name in camelCase will be used as a default.
-	 */
-	String name() default "";
+    /**
+     * The agent's name.
+     * <p>
+     * If not specified, the agent's class name in camelCase will be used as a default.
+     */
+    String name() default "";
 
-	/**
-	 * The agent's description.
-	 * <p>
-	 * Used for documentation and discovery purposes.
-	 */
-	String description() default "";
+    /**
+     * The agent's description.
+     * <p>
+     * Used for documentation and discovery purposes.
+     */
+    String description() default "";
 }
