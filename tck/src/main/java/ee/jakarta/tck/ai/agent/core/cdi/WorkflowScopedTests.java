@@ -16,6 +16,7 @@ import ee.jakarta.tck.ai.agent.framework.junit.anno.Assertion;
 
 import jakarta.ai.agent.WorkflowScoped;
 import jakarta.enterprise.context.NormalScope;
+import jakarta.enterprise.util.AnnotationLiteral;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -25,13 +26,15 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.util.Arrays;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * TCK tests for the {@link WorkflowScoped} CDI scope annotation.
  *
- * <p>These tests verify that the @WorkflowScoped annotation conforms to the
- * Jakarta Agentic AI 1.0 specification requirements for custom CDI scopes.
+ * <p>These tests verify that the @WorkflowScoped annotation conforms to the Jakarta Agentic AI
+ * 1.0 specification requirements for custom CDI scopes.
  */
 public class WorkflowScopedTests {
 
@@ -46,8 +49,7 @@ public class WorkflowScopedTests {
                strategy = "Verify @WorkflowScoped annotation has RUNTIME retention policy")
     public void testWorkflowScopedAnnotationRetention() {
         Retention retention = WorkflowScoped.class.getAnnotation(Retention.class);
-        assertNotNull(retention,
-                "@WorkflowScoped must have @Retention annotation");
+        assertNotNull(retention, "@WorkflowScoped must have @Retention annotation");
         assertEquals(RetentionPolicy.RUNTIME, retention.value(),
                 "@WorkflowScoped must have RUNTIME retention policy");
     }
@@ -56,8 +58,7 @@ public class WorkflowScopedTests {
                strategy = "Verify @WorkflowScoped annotation targets TYPE, METHOD, and FIELD elements")
     public void testWorkflowScopedAnnotationTarget() {
         Target target = WorkflowScoped.class.getAnnotation(Target.class);
-        assertNotNull(target,
-                "@WorkflowScoped must have @Target annotation");
+        assertNotNull(target, "@WorkflowScoped must have @Target annotation");
 
         ElementType[] targets = target.value();
         assertTrue(Arrays.asList(targets).contains(ElementType.TYPE),
@@ -72,24 +73,21 @@ public class WorkflowScopedTests {
                strategy = "Verify @WorkflowScoped is annotated with @NormalScope")
     public void testWorkflowScopedIsNormalScope() {
         NormalScope normalScope = WorkflowScoped.class.getAnnotation(NormalScope.class);
-        assertNotNull(normalScope,
-                "@WorkflowScoped must be annotated with @NormalScope");
+        assertNotNull(normalScope, "@WorkflowScoped must be annotated with @NormalScope");
     }
 
     @Assertion(id = "AGENTICAI-WORKFLOWSCOPED-005",
                strategy = "Verify @WorkflowScoped is annotated with @Documented")
     public void testWorkflowScopedIsDocumented() {
         Documented documented = WorkflowScoped.class.getAnnotation(Documented.class);
-        assertNotNull(documented,
-                "@WorkflowScoped must be annotated with @Documented");
+        assertNotNull(documented, "@WorkflowScoped must be annotated with @Documented");
     }
 
     @Assertion(id = "AGENTICAI-WORKFLOWSCOPED-006",
                strategy = "Verify @WorkflowScoped is annotated with @Inherited")
     public void testWorkflowScopedIsInherited() {
         Inherited inherited = WorkflowScoped.class.getAnnotation(Inherited.class);
-        assertNotNull(inherited,
-                "@WorkflowScoped must be annotated with @Inherited");
+        assertNotNull(inherited, "@WorkflowScoped must be annotated with @Inherited");
     }
 
     @Assertion(id = "AGENTICAI-WORKFLOWSCOPED-007",
@@ -109,10 +107,10 @@ public class WorkflowScopedTests {
     }
 
     @Assertion(id = "AGENTICAI-WORKFLOWSCOPED-009",
-               strategy = "Verify @WorkflowScoped.Literal implements WorkflowScoped")
-    public void testWorkflowScopedLiteralImplementsAnnotation() {
-        assertTrue(WorkflowScoped.class.isAssignableFrom(WorkflowScoped.Literal.class),
-                "WorkflowScoped.Literal must implement WorkflowScoped");
+               strategy = "Verify @WorkflowScoped.Literal extends AnnotationLiteral<WorkflowScoped>")
+    public void testWorkflowScopedLiteralIsAnnotationLiteral() {
+        assertTrue(AnnotationLiteral.class.isAssignableFrom(WorkflowScoped.Literal.class),
+                "WorkflowScoped.Literal must extend AnnotationLiteral<WorkflowScoped>");
     }
 
     @Assertion(id = "AGENTICAI-WORKFLOWSCOPED-010",
