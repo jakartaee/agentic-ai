@@ -33,6 +33,7 @@ public class FraudDetectionAgent {
     @Inject
     private LargeLanguageModel model;
     @Inject
+    @SuppressWarnings("unused")
     private EntityManager entityManager;
 
     @Trigger
