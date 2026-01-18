@@ -1,5 +1,8 @@
 # Community Code of Conduct
 
+**Version 2.0  
+January 1, 2023**
+
 ## Our Pledge
 
 In the interest of fostering an open and welcoming environment, we as community members, contributors, Committers[^1], and Project Leads (collectively "Contributors") pledge to make participation in our projects and our community a harassment-free and inclusive experience for everyone.
@@ -48,9 +51,7 @@ This Code applies within all Project, Working Group, and Interest Group spaces a
 
 Instances of abusive, harassing, or otherwise unacceptable behavior may be reported by contacting the Conduct Committee via conduct@eclipse-foundation.org. All complaints will be reviewed and investigated and will result in a response that is deemed necessary and appropriate to the circumstances. Without the explicit consent of the reporter, the Conduct Committee is obligated to maintain confidentiality with regard to the reporter of an incident. The Conduct Committee is further obligated to ensure that the respondent is provided with sufficient information about the complaint to reply. If such details cannot be provided while maintaining confidentiality, the Conduct Committee will take the respondent‘s inability to provide a defense into account in its deliberations and decisions. Further details of enforcement guidelines may be posted separately.
 
-Staff, Committers and Project Leads have the right to report, remove, edit, or reject comments, commits, code, wiki edits, issues, and other contributions that are not aligned to this Code, or to block temporarily or permanently any Contributor for other behaviors that they deem inappropriate, threatening, offensive, or harmful.
-
-Any such actions will be reported to the Conduct Committee for transparency and record keeping.
+Staff, Committers and Project Leads have the right to report, remove, edit, or reject comments, commits, code, wiki edits, issues, and other contributions that are not aligned to this Code, or to block temporarily or permanently any Contributor for other behaviors that they deem inappropriate, threatening, offensive, or harmful. Any such actions will be reported to the Conduct Committee for transparency and record keeping.
 
 Any Staff (including officers and directors of the Eclipse Foundation), Committers, Project Leads, or Conduct Committee members who are the subject of a complaint to the Conduct Committee will be recused from the process of resolving any such complaint.
 
@@ -67,7 +68,6 @@ Reports should be directed to <conduct@eclipse-foundation.org>. It is the Conduc
 The Eclipse Foundation takes all reports of potential Code violations seriously and is committed to confidentiality and a full investigation of all allegations. The identity of the reporter will be omitted from the details of the report supplied to the accused. Contributors who are being investigated for a potential Code violation will have an opportunity to be heard prior to any final determination. Those found to have violated the Code can seek reconsideration of the violation and disciplinary action decisions. Every effort will be made to have all matters disposed of within 60 days of the receipt of the complaint.
 
 ## Actions
-
 Contributors who do not follow this Code in good faith may face temporary or permanent repercussions as determined by the Conduct Committee.
 
 This Code does not address all conduct. It works in conjunction with our [Communication Channel Guidelines](https://www.eclipse.org/org/documents/communication-channel-guidelines/), [Social Media Guidelines](https://www.eclipse.org/org/documents/social_media_guidelines.php), [Bylaws](https://www.eclipse.org/org/documents/eclipse-foundation-be-bylaws-en.pdf), and [Internal Rules](https://www.eclipse.org/org/documents/ef-be-internal-rules.pdf) which set out additional protections for, and obligations of, all contributors. The Foundation has additional policies that provide further guidance on other matters.
@@ -91,6 +91,3 @@ The Eclipse Foundation Board of Directors may amend this Code from time to time 
 This Code was inspired by the [Contributor Covenant](https://www.contributor-covenant.org/), version 1.4, available [here](https://www.contributor-covenant.org/version/1/4/code-of-conduct/).
 
 [^1]: Capitalized terms used herein without definition shall have the meanings assigned to them in the Bylaws.
-
-**Version 2.0  
-January 1, 2023**
