@@ -19,16 +19,28 @@ import java.lang.annotation.Target;
 
 /**
  * Marks a method as a decision point in an agent workflow.
- *
- * Decision methods are invoked after the @Trigger phase and determine whether
- * the workflow should proceed to the @Action phase. They typically use a
- * {@link LargeLanguageModel} to analyze the trigger event and make intelligent
- * decisions.
- *
- * <h2>Return Types</h2>
+ * <p>
+ * Decision methods are invoked after the @Trigger phase and determine how
+ * the workflow should proceed. They typically use a
+ * {@link LargeLanguageModel} to analyze the workflow state and make
+ * intelligent decisions.
+ * <p>
+ * <b>Parameters</b><br>
+ * Decision methods can have the following types of parameters that will be
+ * automatically resolved:
+ * <ul>
+ *   <li>Workflow state domain objects - Any objects used by prior phases in the 
+ *       workflow, particularly the triggering event object</li>
+ *   <li>{@link WorkflowContext} - The current workflow context</li>
+ *   <li>{@link LargeLanguageModel} - LLM instance</li>
+ *   <li>Any other CDI injectable dependencies available to the agent
+ *       - typically in the application scope or managed by the container</li>
+ * </ul>
+ * <p>
+ * <b>Return types</b><br>
  * Decision methods support multiple return patterns:
  * <ul>
- *   <li><strong>Boolean</strong>: {@code true} means proceed to actions,
+ *   <li><strong>Boolean</strong>: {@code true} means proceed with the workflow,
  *       {@code false} means stop the workflow</li>
  *   <li><strong>{@link Result}</strong>: A {@code Result} record with success flag
  *       and optional details to control workflow and pass data to subsequent phases</li>
@@ -36,9 +48,8 @@ import java.lang.annotation.Target;
  *       is available for injection into subsequent phases), {@code null} means
  *       stop the workflow</li>
  * </ul>
- *
- * <h2>Examples</h2>
- *
+ * <p>
+ * <b>Examples</b><br>
  * <pre>{@code
  * // Boolean return
  * @Decision
@@ -78,14 +89,6 @@ import java.lang.annotation.Target;
  *     createDocumentation(plan.getFiles(), plan.getContent());
  * }
  * }</pre>
- *
- * <h2>Parameter Injection</h2>
- * Decision methods can receive parameters that will be automatically resolved:
- * <ul>
- *   <li>{@link WorkflowContext} - The current workflow context</li>
- *   <li>Trigger event object - The event that started the workflow</li>
- *   <li>{@link LargeLanguageModel} - Injected LLM instance (via CDI)</li>
- * </ul>
  *
  * @see Trigger
  * @see Action

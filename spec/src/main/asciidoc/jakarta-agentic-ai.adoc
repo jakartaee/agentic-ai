@@ -408,14 +408,20 @@ public @interface Decision {
 
 ==== Return Value Semantics
 
-Decision methods support two return patterns:
+Decision methods support three return patterns:
 
 **Boolean Pattern**:
-- `true`: Proceed to action phase
-- `false`: Terminate workflow (outcome phase skipped)
+- `true`: Proceed with workflow
+- `false`: Terminate workflow
+
+**Result Pattern**:
+- `Result` record with success flag and optional details
+- Success `true`: Proceed with workflow
+- Success `false`: Terminate workflow
+- Details: Available for injection from the workflow context
 
 **Object Pattern**:
-- Non-null object: Proceed to action phase; object available for injection
+- Non-null object: Proceed with workflow; object available for injection
 - `null`: Terminate workflow
 
 [source,java]
@@ -431,6 +437,15 @@ public class DecisionExamples {
     public boolean shouldProcess(Event event) {
         String analysis = llm.query("Should this event be processed?", event);
         return analysis.toLowerCase().contains("yes");
+    }
+
+    // Result return pattern
+    @Decision
+    public Result evaluateEvent(Event event) {
+        String analysis = llm.query("Analyze this event", event);
+        boolean shouldProceed = requiresAction(analysis);
+        AnalysisDetails details = shouldProceed ? parseDetails(analysis) : null;
+        return new Result(shouldProceed, details);
     }
 
     // Object return pattern

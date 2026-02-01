@@ -15,6 +15,7 @@ package ee.jakarta.tck.ai.agent.core.lifecycle;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Assertion;
 import jakarta.ai.agent.Agent;
 import jakarta.ai.agent.Decision;
+import jakarta.ai.agent.Result;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -105,5 +106,24 @@ public class DecisionAnnotationTests {
         Decision annotation = method.getAnnotation(Decision.class);
         assertNotNull(annotation,
                 "@Decision annotation must be retrievable from annotated method returning Object");
+    }
+
+    @Assertion(id = "AGENTICAI-DECISION-007",
+               strategy = "Verify @Decision can be applied to a method returning Result")
+    public void testDecisionCanBeAppliedToResultMethod() throws NoSuchMethodException {
+        @Agent
+        class TestAgent {
+            @Decision
+            public Result evaluateAndDecide(Object data) {
+                return new Result(true, null);
+            }
+        }
+
+        Method method = TestAgent.class.getMethod("evaluateAndDecide", Object.class);
+        Decision annotation = method.getAnnotation(Decision.class);
+        assertNotNull(annotation,
+                "@Decision annotation must be retrievable from annotated method returning Result");
+        assertEquals(Result.class, method.getReturnType(),
+                "@Decision method can return Result");
     }
 }
