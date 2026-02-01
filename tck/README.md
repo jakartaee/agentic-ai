@@ -8,8 +8,7 @@ This TCK verifies that implementations of Jakarta Agentic AI conform to the spec
 
 - **Agent Annotations**: `@Agent`, `@Trigger`, `@Decision`, `@Action`, `@Outcome`, `@HandleException`
 - **CDI Integration**: `@WorkflowScoped` custom scope
-- **Core Interfaces**: `LargeLanguageModel` interface
-- **Core Classes**: `WorkflowContext` class
+- **Core Interfaces**: `LargeLanguageModel` interface, `WorkflowContext` interface
 - **API Signature**: Verification of the complete API surface
 
 ## Test Structure
@@ -85,7 +84,7 @@ public void testAgentAnnotationExists() {
   - `unwrap(Class<T> implClass)`
 
 ### WorkflowContext Tests
-- Verify class exists with required methods
+- Verify interfaces exist with required methods
 - Test attribute storage and retrieval
 - Test trigger event handling
 

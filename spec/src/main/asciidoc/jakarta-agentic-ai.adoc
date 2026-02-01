@@ -612,16 +612,18 @@ parameter injection, context management, and execution flow control.
 
 === Workflow Context
 
-The `WorkflowContext` class represents the execution context for an agent workflow. It stores
+The `WorkflowContext` interface represents the execution context for an agent workflow. It stores
 intermediate results and state as the workflow progresses through its phases.
 
-==== WorkflowContext Class
+==== WorkflowContext Interface
 
 [source,java]
 ----
-package jakarta.agentic.ai;
+package jakarta.ai.agent;
 
-public class WorkflowContext {
+import java.util.Set;
+
+public interface WorkflowContext {
 
     /**
      * Store a named attribute in the workflow context.
@@ -629,7 +631,7 @@ public class WorkflowContext {
      * @param name the attribute name
      * @param value the attribute value
      */
-    public void setAttribute(String name, Object value);
+    void setAttribute(String name, Object value);
 
     /**
      * Retrieve a named attribute from the workflow context.
@@ -637,14 +639,28 @@ public class WorkflowContext {
      * @param name the attribute name
      * @return the attribute value, or null if not found
      */
-    public Object getAttribute(String name);
+    Object getAttribute(String name);
+
+    /**
+     * Remove a named attribute from the workflow context.
+     *
+     * @param name the attribute name
+     */
+    void removeAttribute(String name);
+
+    /**
+     * Get all attribute names in the workflow context.
+     *
+     * @return a set of attribute names
+     */
+    Set<String> getAttributeNames();
 
     /**
      * Get the triggering event that started this workflow.
      *
      * @return the trigger event object
      */
-    public Object getTriggerEvent();
+    Object getTriggerEvent();
 }
 ----
 
@@ -1233,12 +1249,12 @@ public class DocumentationAgent {
 
 === Customer Support Agent
 
-A conversational agent that handles customer support inquiries:
+A support agent that handles customer inquiries:
 
 [source,java]
 ----
 @Agent
-@ConversationScoped
+@ApplicationScoped
 public class CustomerSupportAgent {
 
     @Inject
@@ -1328,7 +1344,7 @@ public class CustomerSupportAgent {
 
 These examples demonstrate:
 
-1. **Different Scopes**: `@WorkflowScoped`, `@ApplicationScoped`, `@ConversationScoped`
+1. **Different Scopes**: `@WorkflowScoped`, `@ApplicationScoped`
 2. **LLM Integration**: Using `LargeLanguageModel` for intelligent decisions
 3. **Conditional Workflows**: Decisions that stop or continue workflows
 4. **Multiple Actions**: Parallel action execution

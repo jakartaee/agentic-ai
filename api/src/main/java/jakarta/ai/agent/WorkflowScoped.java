@@ -43,6 +43,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
  *     // Agent is workflow-scoped
  * }
  *
+ * @Agent
  * @WorkflowScoped
  * public class AnalysisCache {
  *     // Cache exists for the duration of the workflow
@@ -65,7 +66,5 @@ public @interface WorkflowScoped {
         public static final Literal INSTANCE = new Literal();
 
         private static final long serialVersionUID = 1L;
-
     }
-
 }

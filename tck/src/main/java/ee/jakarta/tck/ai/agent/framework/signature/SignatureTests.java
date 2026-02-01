@@ -62,15 +62,34 @@ public class SignatureTests {
                 "LargeLanguageModel must be an interface");
         assertEquals(PACKAGE_NAME, LargeLanguageModel.class.getPackageName(),
                 "LargeLanguageModel must be in " + PACKAGE_NAME);
+        assertTrue(WorkflowContext.class.isInterface(),
+                "WorkflowContext must be an interface");
+        assertEquals(PACKAGE_NAME, WorkflowContext.class.getPackageName(),
+                "WorkflowContext must be in " + PACKAGE_NAME);
     }
 
     @Assertion(id = "AGENTICAI-SIG-003",
-               strategy = "Verify all required classes exist in the API")
-    public void testRequiredClassesExist() {
-        assertFalse(WorkflowContext.class.isInterface(),
-                "WorkflowContext must be a class");
-        assertEquals(PACKAGE_NAME, WorkflowContext.class.getPackageName(),
-                "WorkflowContext must be in " + PACKAGE_NAME);
+               strategy = "Verify WorkflowContext interface has all required methods")
+    public void testWorkflowContextSignature() {
+        Set<String> requiredMethods = new HashSet<>(Arrays.asList(
+                "setAttribute",
+                "getAttribute",
+                "removeAttribute",
+                "getAttributeNames",
+                "getTriggerEvent"
+        ));
+
+        Set<String> actualMethods = new HashSet<>();
+        for (Method method : WorkflowContext.class.getDeclaredMethods()) {
+            if (Modifier.isPublic(method.getModifiers())) {
+                actualMethods.add(method.getName());
+            }
+        }
+
+        for (String required : requiredMethods) {
+            assertTrue(actualMethods.contains(required),
+                    "WorkflowContext must have public method: " + required);
+        }
     }
 
     @Assertion(id = "AGENTICAI-SIG-004",
@@ -93,28 +112,6 @@ public class SignatureTests {
     }
 
     @Assertion(id = "AGENTICAI-SIG-005",
-               strategy = "Verify WorkflowContext class has all required methods")
-    public void testWorkflowContextSignature() {
-        Set<String> requiredMethods = new HashSet<>(Arrays.asList(
-                "setAttribute",
-                "getAttribute",
-                "getTriggerEvent"
-        ));
-
-        Set<String> actualMethods = new HashSet<>();
-        for (Method method : WorkflowContext.class.getDeclaredMethods()) {
-            if (Modifier.isPublic(method.getModifiers())) {
-                actualMethods.add(method.getName());
-            }
-        }
-
-        for (String required : requiredMethods) {
-            assertTrue(actualMethods.contains(required),
-                    "WorkflowContext must have public method: " + required);
-        }
-    }
-
-    @Assertion(id = "AGENTICAI-SIG-006",
                strategy = "Verify lifecycle annotations target METHOD elements")
     public void testLifecycleAnnotationsTargetMethod() {
         Class<?>[] lifecycleAnnotations = {
@@ -137,7 +134,7 @@ public class SignatureTests {
         }
     }
 
-    @Assertion(id = "AGENTICAI-SIG-007",
+    @Assertion(id = "AGENTICAI-SIG-006",
                strategy = "Verify @Agent annotation targets TYPE elements")
     public void testAgentAnnotationTargetsType() {
         java.lang.annotation.Target target = Agent.class.getAnnotation(java.lang.annotation.Target.class);
@@ -150,7 +147,7 @@ public class SignatureTests {
                 "@Agent must target TYPE elements");
     }
 
-    @Assertion(id = "AGENTICAI-SIG-008",
+    @Assertion(id = "AGENTICAI-SIG-007",
                strategy = "Verify all annotations have RUNTIME retention")
     public void testAllAnnotationsHaveRuntimeRetention() {
         Class<?>[] allAnnotations = {

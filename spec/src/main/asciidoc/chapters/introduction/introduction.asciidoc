@@ -42,7 +42,7 @@ The primary goals of Jakarta Agentic AI are:
 
 **Annotation-driven agent development**:: Define agent workflows using familiar Jakarta EE annotations, making it simple to mark methods as triggers, decisions, actions, and outcomes.
 
-**CDI integration**:: Agents are CDI beans with full support for dependency injection, interceptors, and scoping. Agents can use standard CDI scopes (`@RequestScoped`, `@ApplicationScoped`, etc.) or the custom `@WorkflowScoped` for agent-specific lifecycle management.
+**CDI integration**:: Agents are CDI beans with full support for dependency injection, interceptors, and scoping. Agents can use `@WorkflowScoped` (default) or `@ApplicationScoped` scope annotations.
 
 **LLM abstraction**:: Provide a lightweight facade for accessing Large Language Models without standardizing the LLM APIs themselves. This allows vendors to plug in different LLM backends while giving applications a consistent interface.
 
