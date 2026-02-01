@@ -1,4 +1,4 @@
-:mvc-api-source-dir: ../../../../../api/src/main/java/
+:agentic-ai-api-source-dir: ../../../../../api/src/main/java/
 
 include::chapters/intro.asciidoc[]
 
@@ -481,8 +481,60 @@ public @interface Action {
 
 - **Execution Phase**: Performs the agent's primary work
 - **Decision Dependent**: Only invoked if decision phase returns true/non-null
-- **Side Effects**: Actions typically have side effects (API calls, database updates, etc.)
-- **Return Value**: Return values are stored in workflow context for outcome phase
+- **Parameter Injection**: Receives workflow state, decision results, WorkflowContext, LargeLanguageModel
+- **Return Value Control**: Return type determines data flow to subsequent workflow
+
+==== Return Value Semantics
+
+Action methods support two return patterns:
+
+**Void Pattern**:
+- Method returns `void`
+- Action performs side effects only (e.g., sending alerts, updating databases)
+- No data is passed to the workflow
+
+**Domain Object Pattern**:
+- Method returns a non-void domain object
+- Returned object can be automatically injected into the subsequent life cycle methods
+- Use this pattern to pass action results forward in the workflow
+
+[source,java]
+----
+@Agent
+public class ActionExamples {
+
+    @Inject
+    private LargeLanguageModel llm;
+
+    // Void return - performs side effects only
+    @Action
+    public void handleFraud(Fraud fraud, BankTransaction transaction) {
+        if (fraud.isSerious()) {
+            alertBankSecurity(fraud);
+        }
+        Customer customer = getCustomer(transaction);
+        alertCustomer(fraud, transaction, customer);
+    }
+
+    // Domain object return - passes result to outcome phase
+    @Action
+    public FraudReport processFraudCase(Fraud fraud, BankTransaction transaction) {
+        FraudReport report = new FraudReport();
+        report.setFraudType(fraud.getType());
+        report.setTransaction(transaction);
+        report.setTimestamp(System.currentTimeMillis());
+        persistReport(report);
+        return report;
+    }
+
+    // Later phases receive the action result
+    @Outcome
+    public void recordOutcome(FraudReport report, WorkflowContext context) {
+        context.setAttribute("report", report);
+        auditLog("Fraud case processed: " + report.getId());
+    }
+}
+----
 
 ==== Multiple Actions
 

@@ -106,4 +106,23 @@ public class ActionAnnotationTests {
         assertNotNull(second.getAnnotation(Action.class),
                 "Second @Action must be present");
     }
+
+    @Assertion(id = "AGENTICAI-ACTION-007",
+               strategy = "Verify @Action can be applied to a method returning a domain object")
+    public void testActionCanBeAppliedToObjectReturnMethod() throws NoSuchMethodException {
+        @Agent
+        class TestAgent {
+            @Action
+            public Object performAndReturnResult(Object data) {
+                return new Object();
+            }
+        }
+
+        Method method = TestAgent.class.getMethod("performAndReturnResult", Object.class);
+        Action annotation = method.getAnnotation(Action.class);
+        assertNotNull(annotation,
+                "@Action annotation must be retrievable from method returning Object");
+        assertEquals(Object.class, method.getReturnType(),
+                "@Action method can return Object (domain objects)");
+    }
 }
