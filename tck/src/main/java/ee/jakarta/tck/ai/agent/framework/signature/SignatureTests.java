@@ -169,4 +169,144 @@ public class SignatureTests {
                     annotation.getSimpleName() + " must have RUNTIME retention");
         }
     }
+
+    @Assertion(id = "AGENTICAI-SIG-008",
+               strategy = "Verify Result record exists in the API with correct structure")
+    public void testResultRecordSignature() {
+        // Verify Result class exists
+        assertNotNull(Result.class, "Result class must exist in jakarta.ai.agent package");
+        assertEquals(PACKAGE_NAME, Result.class.getPackageName(),
+                "Result must be in " + PACKAGE_NAME);
+
+        // Verify Result is a record
+        assertTrue(Result.class.isRecord(),
+                "Result must be a record type");
+
+        // Verify record components
+        var components = Result.class.getRecordComponents();
+        assertNotNull(components, "Result record must have components");
+        assertEquals(2, components.length, "Result record must have exactly 2 components");
+
+        // Verify success component (boolean)
+        assertTrue(Arrays.stream(components).anyMatch(c ->
+                c.getName().equals("success") && c.getType().equals(boolean.class)),
+                "Result must have 'success' component of type boolean");
+
+        // Verify details component (Object)
+        assertTrue(Arrays.stream(components).anyMatch(c ->
+                c.getName().equals("details") && c.getType().equals(Object.class)),
+                "Result must have 'details' component of type Object");
+    }
+
+    @Assertion(id = "AGENTICAI-SIG-009",
+               strategy = "Verify WorkflowScoped.Literal inner class exists")
+    public void testWorkflowScopedLiteralInnerClass() {
+        // Find the Literal inner class
+        Class<?>[] innerClasses = WorkflowScoped.class.getDeclaredClasses();
+        assertTrue(innerClasses.length > 0,
+                "WorkflowScoped must have inner classes");
+
+        boolean hasLiteral = Arrays.stream(innerClasses)
+                .anyMatch(c -> c.getSimpleName().equals("Literal"));
+        assertTrue(hasLiteral,
+                "WorkflowScoped must have a Literal inner class");
+
+        try {
+            Class<?> literalClass = Class.forName("jakarta.ai.agent.WorkflowScoped$Literal");
+            assertNotNull(literalClass,
+                    "WorkflowScoped.Literal must be accessible");
+        } catch (ClassNotFoundException e) {
+            fail("WorkflowScoped.Literal class not found: " + e.getMessage());
+        }
+    }
+
+    @Assertion(id = "AGENTICAI-SIG-010",
+               strategy = "Verify LargeLanguageModel query methods have correct signatures")
+    public void testLargeLanguageModelQueryMethodSignatures() {
+        // Find query methods
+        Method[] queryMethods = Arrays.stream(LargeLanguageModel.class.getDeclaredMethods())
+                .filter(m -> m.getName().equals("query"))
+                .toArray(Method[]::new);
+
+        assertTrue(queryMethods.length >= 2,
+                "LargeLanguageModel must have at least 2 query method overloads");
+
+        // Verify query(String, Class<T>) exists
+        boolean hasQueryStringClass = Arrays.stream(queryMethods)
+                .anyMatch(m -> m.getParameterCount() == 2 &&
+                        m.getParameterTypes()[0].equals(String.class) &&
+                        m.getParameterTypes()[1].getName().contains("Class"));
+        assertTrue(hasQueryStringClass,
+                "LargeLanguageModel must have query(String, Class<T>) method");
+
+        // Verify query(String, Object[]) exists
+        boolean hasQueryStringObjects = Arrays.stream(queryMethods)
+                .anyMatch(m -> m.getParameterCount() >= 2 &&
+                        m.getParameterTypes()[0].equals(String.class));
+        assertTrue(hasQueryStringObjects,
+                "LargeLanguageModel must have query methods with String as first parameter");
+    }
+
+    @Assertion(id = "AGENTICAI-SIG-011",
+               strategy = "Verify WorkflowContext methods have correct return types")
+    public void testWorkflowContextMethodReturnTypes() {
+        try {
+            // setAttribute should return void
+            Method setAttr = WorkflowContext.class.getMethod("setAttribute", String.class, Object.class);
+            assertEquals(void.class, setAttr.getReturnType(),
+                    "setAttribute must return void");
+
+            // getAttribute should return Object
+            Method getAttr = WorkflowContext.class.getMethod("getAttribute", String.class);
+            assertEquals(Object.class, getAttr.getReturnType(),
+                    "getAttribute must return Object");
+
+            // removeAttribute should return void
+            Method removeAttr = WorkflowContext.class.getMethod("removeAttribute", String.class);
+            assertEquals(void.class, removeAttr.getReturnType(),
+                    "removeAttribute must return void");
+
+            // getTriggerEvent should return Object
+            Method getTrigger = WorkflowContext.class.getMethod("getTriggerEvent");
+            assertEquals(Object.class, getTrigger.getReturnType(),
+                    "getTriggerEvent must return Object");
+
+        } catch (NoSuchMethodException e) {
+            fail("Required WorkflowContext method not found: " + e.getMessage());
+        }
+    }
+
+    @Assertion(id = "AGENTICAI-SIG-012",
+               strategy = "Verify @WorkflowScoped annotation has required meta-annotations")
+    public void testWorkflowScopedMetaAnnotations() {
+        // Check for @NormalScope
+        jakarta.enterprise.context.NormalScope normalScope =
+                WorkflowScoped.class.getAnnotation(jakarta.enterprise.context.NormalScope.class);
+        assertNotNull(normalScope,
+                "@WorkflowScoped must be annotated with @NormalScope");
+
+        // Check for @Target
+        java.lang.annotation.Target target =
+                WorkflowScoped.class.getAnnotation(java.lang.annotation.Target.class);
+        assertNotNull(target,
+                "@WorkflowScoped must have @Target annotation");
+
+        // Check for @Retention
+        java.lang.annotation.Retention retention =
+                WorkflowScoped.class.getAnnotation(java.lang.annotation.Retention.class);
+        assertNotNull(retention,
+                "@WorkflowScoped must have @Retention annotation");
+
+        // Check for @Documented
+        java.lang.annotation.Documented documented =
+                WorkflowScoped.class.getAnnotation(java.lang.annotation.Documented.class);
+        assertNotNull(documented,
+                "@WorkflowScoped must be annotated with @Documented");
+
+        // Check for @Inherited
+        java.lang.annotation.Inherited inherited =
+                WorkflowScoped.class.getAnnotation(java.lang.annotation.Inherited.class);
+        assertNotNull(inherited,
+                "@WorkflowScoped must be annotated with @Inherited");
+    }
 }
