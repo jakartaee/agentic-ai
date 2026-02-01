@@ -365,13 +365,12 @@ public @interface Trigger {
 
 ==== Trigger Invocation
 
-Triggers can be invoked by:
+Currently, triggers can only be invoked by CDI events. The runtime automatically 
+observes CDI events for the trigger method parameter type. The event is added 
+to the workflow context.
 
-- **External Events**: System events, monitoring alerts, scheduled tasks
-- **REST Endpoints**: HTTP requests to Jakarta REST resources
-- **Messaging**: Jakarta Messaging (JMS) message reception
-- **CDI Events**: Observing CDI events
-- **Manual Invocation**: Direct method calls from application code
+In the future, other trigger types may be supported such as Jakarta Messaging 
+messages, manual invocations from a life-cycle API, or REST POST requests.
 
 [source,java]
 ----
@@ -380,21 +379,8 @@ Triggers can be invoked by:
 public class EventDrivenAgent {
 
     @Trigger
-    public void onCustomEvent(@Observes CustomEvent event) {
-        // Triggered by CDI event
-    }
-}
-
-// REST endpoint trigger
-@Agent
-@Path("/api/agents")
-public class RestAgent {
-
-    @POST
-    @Path("/process")
-    @Trigger
-    public void processRequest(RequestData data) {
-        // Triggered by HTTP POST
+    public void onCustomEvent(CustomEvent event) {
+        // Triggered by CDI event - runtime automatically observes CustomEvent
     }
 }
 ----

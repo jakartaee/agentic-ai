@@ -20,9 +20,10 @@ import java.lang.annotation.Target;
 /**
  * Marks a method as an external trigger that initiates an agent workflow.
  * <p>
- * A trigger method initiates the agent's workflow, typically in response to a CDI event
- * or other external stimulus. The method may accept parameters that are added to the
- * workflow context.
+ * Currently a trigger can only be a CDI event. The event is automatically
+ * added to the workflow context. In the future, other trigger types may 
+ * be supported such as Jakarta Messaging messages, manual invocations
+ * from a life-cycle API, or REST POST requests.
  *
  * <h2>Example Usage</h2>
  * <pre>{@code
