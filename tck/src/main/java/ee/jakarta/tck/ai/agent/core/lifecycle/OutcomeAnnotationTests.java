@@ -73,13 +73,13 @@ public class OutcomeAnnotationTests {
     }
 
     @Assertion(id = "AGENTICAI-OUTCOME-005",
-               strategy = "Verify @Outcome can be applied to a method in an @Agent class")
+               strategy = "Verify @Outcome can be applied to a void method in an @Agent class")
     public void testOutcomeCanBeAppliedToMethod() throws NoSuchMethodException {
         @Agent
         class TestAgent {
             @Outcome
-            public Object produceResult() {
-                return new Object();
+            public void produceResult() {
+                // Outcome finalization logic
             }
         }
 
@@ -87,5 +87,23 @@ public class OutcomeAnnotationTests {
         Outcome annotation = method.getAnnotation(Outcome.class);
         assertNotNull(annotation,
                 "@Outcome annotation must be retrievable from annotated method");
+        assertEquals(void.class, method.getReturnType(),
+                "@Outcome method must return void");
+    }
+
+    @Assertion(id = "AGENTICAI-OUTCOME-006",
+               strategy = "Verify @Outcome method must return void")
+    public void testOutcomeMustReturnVoid() throws NoSuchMethodException {
+        @Agent
+        class TestAgent {
+            @Outcome
+            public void completeWorkflow() {
+                // Void return for finalization
+            }
+        }
+
+        Method method = TestAgent.class.getMethod("completeWorkflow");
+        assertEquals(void.class, method.getReturnType(),
+                "@Outcome method must declare void return type");
     }
 }

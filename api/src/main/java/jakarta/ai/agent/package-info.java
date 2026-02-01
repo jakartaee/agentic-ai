@@ -63,9 +63,15 @@
  *       </ul>
  *   </li>
  *   <li><strong>Action Phase</strong> - {@link jakarta.ai.agent.Action @Action} methods
- *       execute the primary work based on decisions made in the decision phase.</li>
- *   <li><strong>Outcome Phase</strong> - {@link jakarta.ai.agent.Outcome @Outcome} methods
- *       handle the final results and state persistence.</li>
+ *       execute the primary work based on decisions made in the decision phase.
+ *       Actions support two return patterns:
+ *       <ul>
+ *         <li>Void - Performs side effects only (e.g., alerts, database updates)</li>
+ *         <li>Domain Object - Returns an object available for injection in the subsequent workflow methods</li>
+ *       </ul>
+ *   </li>
+ *   <li><strong>Outcome Phase</strong> - A single {@link jakarta.ai.agent.Outcome @Outcome} method
+ *       handles finalization, state persistence, and downstream notifications. Must return void.</li>
  *   <li><strong>Exception Handling</strong> - {@link jakarta.ai.agent.HandleException @HandleException}
  *       methods handle exceptions throughout the workflow lifecycle.</li>
  * </ol>
@@ -84,26 +90,25 @@
  *     private LargeLanguageModel llm;
  *
  *     @Trigger
- *     public void onEvent(MyEvent event, WorkflowContext context) {
- *         context.setAttribute("event", event);
+ *     public void onEvent(MyEvent event) {
+ *         // Triggered by CDI event
  *     }
  *
  *     @Decision
- *     public boolean shouldProceed(WorkflowContext context) {
- *         MyEvent event = (MyEvent) context.getAttribute("event");
+ *     public boolean shouldProceed(MyEvent event) {
  *         String analysis = llm.query("Should we process this event?", event);
  *         return analysis.contains("yes");
  *     }
  *
  *     @Action
- *     public void executeAction(WorkflowContext context) {
- *         MyEvent event = (MyEvent) context.getAttribute("event");
- *         // Perform the action
+ *     public void executeAction(MyEvent event, WorkflowContext context) {
+ *         // Perform the action with side effects
+ *         notifySystem(event);
  *     }
  *
  *     @Outcome
  *     public void recordOutcome(WorkflowContext context) {
- *         // Record the final state
+ *         // Finalize and persist results
  *     }
  * }
  * }</pre>
@@ -136,9 +141,22 @@
  * the workflow lifecycle:
  *
  * <ul>
- *   <li>Attribute storage and retrieval</li>
- *   <li>Workflow-scoped lifecycle management</li>
- *   <li>Event context preservation</li>
+ *   <li>Attribute storage and retrieval - Store workflow state as phases progress</li>
+ *   <li>Automatic trigger event preservation - Accessible via {@code getTriggerEvent()}</li>
+ *   <li>Workflow-scoped lifecycle - Destroyed when workflow completes</li>
+ * </ul>
+ *
+ * <h2>Parameter Injection</h2>
+ *
+ * <p>Workflow methods automatically receive parameters based on type resolution:
+ *
+ * <ul>
+ *   <li>Trigger event objects - From the workflow trigger</li>
+ *   <li>Decision results - Objects returned from {@link jakarta.ai.agent.Decision @Decision} methods</li>
+ *   <li>Action results - Objects returned from {@link jakarta.ai.agent.Action @Action} methods</li>
+ *   <li>{@link jakarta.ai.agent.WorkflowContext} - Current workflow context</li>
+ *   <li>{@link jakarta.ai.agent.LargeLanguageModel} - Injected LLM facade</li>
+ *   <li>Any CDI injectable dependencies - Standard Jakarta EE beans and resources</li>
  * </ul>
  *
  * @see jakarta.ai.agent.Agent

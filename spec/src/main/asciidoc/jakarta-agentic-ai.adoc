@@ -577,12 +577,29 @@ public @interface Outcome {
 }
 ----
 
+==== Single Outcome Constraint
+
+Currently, there MUST be only one `@Outcome` method per agent class. This constraint may be relaxed in future versions to support more complex dynamic workflows.
+
+==== Parameter Injection
+
+Outcome methods can receive the following types of parameters:
+
+* Workflow state domain objects - Any objects from previous workflow phases (trigger events, decision results, action results)
+* `WorkflowContext` - For state management and accessing stored attributes
+* `LargeLanguageModel` - For analysis, summarization, or content generation based on workflow results
+* CDI injectable dependencies - Any beans available to the agent
+
+==== Return Type
+
+Outcome methods MUST return `void`. The outcome phase is designed for finalization and side effects rather than producing data for further processing. In future versions, return types may be supported for downstream system integration.
+
 ==== Semantics
 
-- **Finalization**: Produces the final workflow result
-- **Action Dependent**: Invoked after action phase completes
+- **Finalization**: Produces the final workflow result and handles completion logic
 - **Workflow Completion**: Marks the end of successful workflow execution
-- **Scope Cleanup**: For `@WorkflowScoped` beans, scope may be deactivated after outcome
+- **Context Destruction**: The workflow context is destroyed by the container after outcome completion
+- **Single Instance**: Currently, exactly one outcome method per agent
 
 === @HandleException Annotation
 
