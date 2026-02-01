@@ -1,4 +1,3 @@
-
 /*****************************************************************************
  * Copyright (c) 2026 Contributors to the Eclipse Foundation
  *
@@ -22,16 +21,16 @@ import java.lang.annotation.Target;
  * Declares a class as an AI agent.
  * <p>
  * An agent is a CDI bean that encapsulates autonomous, goal-driven behavior.
- * The agent's lifecycle, workflow, and actions are defined using additional annotations.
+ * The agent's lifecycle, workflow, and actions are fully defined using 
+ * additional annotations.
  * <p>
- * Allow addition of other scopes via additional pre-existing CDI annotations e.g.
- * <pre>{@code
- * @Agent
- * @RequestScoped
- * public class MyAgent { ... }
- * }</pre>
- * <p>
- * If not specified, assume new {@link WorkflowScoped}.
+ * If no other scope annotation is present on the class, the agent will be 
+ * assumed to be {@link WorkflowScoped}. The workflow scope can be explicitly 
+ * declared as well. An agent can also be @ApplicationScoped. A workflow 
+ * context will still be created for each workflow execution even when the 
+ * agent is @ApplicationScoped, beginning with a trigger and in most cases 
+ * ending with an outcome.
+ * </p>
  */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
