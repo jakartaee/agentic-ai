@@ -27,7 +27,9 @@
         <maven.compiler.target>17</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <spec.version>1.0</spec.version>
-        <spec.nonFinal>true</spec.nonFinal> <!-- set to false for release -->
-        <spec.status>Draft</spec.status> <!-- Final Release | Draft -->
+        <!-- set to false for release -->
+        <spec.nonFinal>true</spec.nonFinal>
+        <!-- Draft | Final Release -->
+        <spec.status>Draft</spec.status>
     </properties>
 </project>
