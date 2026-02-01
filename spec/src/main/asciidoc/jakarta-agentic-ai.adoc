@@ -40,8 +40,8 @@ The primary goals of Jakarta Agentic AI are:
 annotations, making it simple to mark methods as triggers, decisions, actions, and outcomes.
 
 **CDI integration**:: Agents are CDI beans with full support for dependency injection,
-interceptors, and scoping. Agents can use standard CDI scopes (`@RequestScoped`,
-`@ApplicationScoped`, etc.) or the custom `@WorkflowScoped` for agent-specific lifecycle management.
+interceptors, and scoping. Agents can use `@WorkflowScoped` (default) or `@ApplicationScoped`
+scope annotations.
 
 **LLM abstraction**:: Provide a lightweight facade for accessing Large Language Models without
 standardizing the LLM APIs themselves. This allows vendors to plug in different LLM backends
@@ -208,15 +208,10 @@ Agents are CDI beans and thus integrate with:
 
 ==== Scope Integration
 
-Agents support all standard CDI scopes:
+Agents support two scopes:
 
-- `@RequestScoped`: For agents that operate within a single request
-- `@ConversationScoped`: For agents that maintain state across multiple interactions
-- `@SessionScoped`: For user-specific agents
-- `@ApplicationScoped`: For long-running monitoring agents
-- `@WorkflowScoped`: Custom scope for agent workflow lifecycle (default)
-
-If no scope is specified, `@WorkflowScoped` is assumed.
+- `@ApplicationScoped`: For long-running agents that maintain state across multiple workflow executions
+- `@WorkflowScoped`: For agents with per-workflow lifecycle (default)
 
 ==== Jakarta EE Service Integration
 
@@ -273,7 +268,7 @@ agent implementations provide the concrete behavior for each step.
 Jakarta Agentic AI workflow phases execute sequentially:
 
 - **Sequential Phases**: Trigger, decision, action, and outcome phases MUST execute in order
-- **Thread Safety**: Agents using `@RequestScoped` or `@WorkflowScoped` typically execute within a single thread
+- **Thread Safety**: Agents using `@WorkflowScoped` typically execute within a single thread per workflow execution. `@ApplicationScoped` agents MUST take thread-safety into account as they may handle multiple concurrent workflow invocations.
 - **Application Scope**: `@ApplicationScoped` agents MUST be thread-safe as they may handle multiple workflow invocations
 
 === Error Handling
@@ -316,23 +311,17 @@ public @interface Agent {
 
 ==== Scope Combinations
 
-Agents can use any CDI scope annotation in combination with `@Agent`:
+Agents can use one of two scope annotations in combination with `@Agent`:
 
 [source,java]
 ----
-// Request-scoped agent (for single-request workflows)
-@Agent
-@RequestScoped
-public class SingleRequestAgent {
-}
-
-// Application-scoped agent (for long-running monitoring)
+// Application-scoped agent (for longer-lived agents across multiple executions)
 @Agent
 @ApplicationScoped
 public class MonitoringAgent {
 }
 
-// Workflow-scoped agent (default, for workflow-lifetime)
+// Workflow-scoped agent (default, for per-workflow lifecycle)
 @Agent
 @WorkflowScoped
 public class WorkflowAgent {
@@ -343,6 +332,14 @@ public class WorkflowAgent {
 public class DefaultScopedAgent {
 }
 ----
+
+==== Workflow Context Lifecycle
+
+Regardless of the scope annotation used, a workflow context is created for each workflow execution.
+For `@WorkflowScoped` agents, the workflow context's lifecycle is tied to the workflow execution.
+For `@ApplicationScoped` or other scoped agents, the agent instance may be reused across multiple
+workflow executions, but a new workflow context is still created and maintained for each workflow
+invocation, beginning with a trigger and typically ending with an outcome.
 
 === @Trigger Annotation
 

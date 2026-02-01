@@ -24,10 +24,11 @@ import java.lang.annotation.Target;
  * The agent's lifecycle, workflow, and actions are fully defined using 
  * additional annotations.
  * <p>
- * If no other scope annotation is present on the class, the agent will be 
- * assumed to be {@link WorkflowScoped}. The workflow scope can be explicitly 
- * declared as well. An agent can also be @ApplicationScoped. A workflow 
- * context will still be created for each workflow execution even when the 
+ * Agents support two scope annotations: {@link WorkflowScoped} and @ApplicationScoped.
+ * If no scope annotation is present on the class, the agent will be 
+ * assumed to be {@link WorkflowScoped}. 
+ * <p>
+ * A workflow context will still be created for each workflow execution even when the 
  * agent is @ApplicationScoped, beginning with a trigger and in most cases 
  * ending with an outcome.
  * </p>
