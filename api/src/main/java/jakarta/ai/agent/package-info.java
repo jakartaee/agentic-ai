@@ -45,6 +45,7 @@
  * <h3>Data Models</h3>
  * <ul>
  *   <li>{@link jakarta.ai.agent.Result} - Standardized decision outcome record</li>
+ *   <li>{@link jakarta.ai.agent.LLMException} - Runtime exception for LLM operation failures</li>
  * </ul>
  *
  * <h2>Workflow Execution Model</h2>
@@ -142,6 +143,16 @@
  *   <li>String and domain object returns</li>
  *   <li>Unwrapping for vendor-specific features</li>
  * </ul>
+ *
+ * <p>LLM operations may throw:
+ * <ul>
+ *   <li>{@link java.lang.IllegalArgumentException} - For null or invalid parameters, or unsupported type conversions</li>
+ *   <li>{@link jakarta.ai.agent.LLMException} - Runtime exception for LLM service failures (communication errors, 
+ *       rate limiting, timeouts, invalid responses)</li>
+ * </ul>
+ *
+ * <p>These exceptions can be handled with try-catch blocks or {@link jakarta.ai.agent.HandleException @HandleException}
+ * methods for workflow-level error handling.
  *
  * <h2>Workflow Context Management</h2>
  *

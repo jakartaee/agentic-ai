@@ -953,6 +953,22 @@ operations. It supports querying with prompts and input objects, returning resul
 strings or domain types. Implementations may also support unwrapping to access the underlying
 LLM implementation for advanced or vendor-specific features.
 
+All `LargeLanguageModel` query methods may throw:
+
+- `IllegalArgumentException` - For null or invalid parameters, or unsupported type conversions
+- `LLMException` - Runtime exception for LLM service errors (communication failures, invalid responses, rate limiting, timeouts)
+
+=== LLMException
+`LLMException` is a runtime exception thrown when LLM operations fail. As a runtime exception,
+it does not require explicit handling but can be caught by `@HandleException` methods in agent
+workflows. Common failure scenarios include:
+
+- Communication failures with the LLM service
+- Invalid or unparseable responses from the LLM
+- Rate limiting or quota exceeded errors
+- Model unavailability or timeout
+- Type conversion failures when processing LLM responses
+
 === Result
 The `Result` record standardizes decision outcomes, with a success flag and details object.
 
@@ -1149,7 +1165,11 @@ public boolean goodPrompt(Issue issue) {
 
 === Error Handling
 
-Always handle potential LLM failures:
+You should handle potential LLM failures. The `LargeLanguageModel` interface may 
+throw `LLMException` (a runtime exception) for service errors, or 
+`IllegalArgumentException` for invalid parameters.
+
+Use try-catch blocks for inline error handling:
 
 [source,java]
 ----
@@ -1159,12 +1179,31 @@ public boolean robustEvaluation(Task task) {
         String response = llm.query("Evaluate: " + task.getDescription(), task);
         return parseResponse(response);
 
-    } catch (Exception e) {
-        logger.warn("LLM evaluation failed, using fallback", e);
-
+    } catch (LLMException e) {
+        logger.warn("LLM service error, using fallback", e);
         // Fallback to rule-based decision
         return task.getPriority() == Priority.HIGH;
+
+    } catch (IllegalArgumentException e) {
+        logger.error("Invalid parameter to LLM", e);
+        return false;
     }
+}
+----
+
+Or use `@HandleException` methods for workflow-level error handling:
+
+[source,java]
+----
+@HandleException
+public void handleLLMError(LLMException e, Task task, WorkflowContext context) {
+    logger.error("LLM failed for task: " + task.getId(), e);
+    
+    // Mark task for manual review
+    task.setStatus(TaskStatus.NEEDS_MANUAL_REVIEW);
+    entityManager.merge(task);
+    
+    // Workflow continues after this method returns
 }
 ----
 

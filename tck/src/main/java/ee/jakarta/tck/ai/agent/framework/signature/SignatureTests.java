@@ -199,6 +199,40 @@ public class SignatureTests {
     }
 
     @Assertion(id = "AGENTICAI-SIG-009",
+               strategy = "Verify LLMException exists and extends RuntimeException")
+    public void testLLMExceptionSignature() {
+        try {
+            Class<?> llmExceptionClass = Class.forName("jakarta.ai.agent.LLMException");
+            assertNotNull(llmExceptionClass, "LLMException class must exist in jakarta.ai.agent package");
+            assertEquals(PACKAGE_NAME, llmExceptionClass.getPackageName(),
+                    "LLMException must be in " + PACKAGE_NAME);
+
+            // Verify it extends RuntimeException
+            assertTrue(RuntimeException.class.isAssignableFrom(llmExceptionClass),
+                    "LLMException must extend RuntimeException");
+
+            // Verify constructors exist
+            boolean hasDefaultConstructor = Arrays.stream(llmExceptionClass.getDeclaredConstructors())
+                    .anyMatch(c -> c.getParameterCount() == 0);
+            assertTrue(hasDefaultConstructor, "LLMException must have a no-arg constructor");
+
+            boolean hasStringConstructor = Arrays.stream(llmExceptionClass.getDeclaredConstructors())
+                    .anyMatch(c -> c.getParameterCount() == 1 && c.getParameterTypes()[0].equals(String.class));
+            assertTrue(hasStringConstructor, "LLMException must have a constructor with String parameter");
+
+            boolean hasStringThrowableConstructor = Arrays.stream(llmExceptionClass.getDeclaredConstructors())
+                    .anyMatch(c -> c.getParameterCount() == 2 &&
+                            c.getParameterTypes()[0].equals(String.class) &&
+                            c.getParameterTypes()[1].equals(Throwable.class));
+            assertTrue(hasStringThrowableConstructor,
+                    "LLMException must have a constructor with String and Throwable parameters");
+
+        } catch (ClassNotFoundException e) {
+            fail("LLMException class not found: " + e.getMessage());
+        }
+    }
+
+    @Assertion(id = "AGENTICAI-SIG-010",
                strategy = "Verify WorkflowScoped.Literal inner class exists")
     public void testWorkflowScopedLiteralInnerClass() {
         // Find the Literal inner class
@@ -220,7 +254,7 @@ public class SignatureTests {
         }
     }
 
-    @Assertion(id = "AGENTICAI-SIG-010",
+    @Assertion(id = "AGENTICAI-SIG-011",
                strategy = "Verify LargeLanguageModel query methods have correct signatures")
     public void testLargeLanguageModelQueryMethodSignatures() {
         // Find query methods
@@ -247,7 +281,7 @@ public class SignatureTests {
                 "LargeLanguageModel must have query methods with String as first parameter");
     }
 
-    @Assertion(id = "AGENTICAI-SIG-011",
+    @Assertion(id = "AGENTICAI-SIG-012",
                strategy = "Verify WorkflowContext methods have correct return types")
     public void testWorkflowContextMethodReturnTypes() {
         try {

@@ -66,8 +66,8 @@ public class FraudDetectionAgent {
         // version of the transaction or return another domain object entirely. 
     }
 
-    // Can return boolean or a built-in result Record type. In this initial release, workflows
-    // will automatically end with a negative result.
+    // Can return boolean, a built-in Result record type, or any domain object.
+    // In this initial release, workflows will automatically end with a negative result.
     // In subsequent releases, more robust decision flows should be possible, either with
     // annotations/EL and/or the programmatic workflow API.
     @Decision
