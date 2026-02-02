@@ -52,8 +52,15 @@
  * <p>An agent workflow follows a structured lifecycle:
  *
  * <ol>
- *   <li><strong>Trigger Phase</strong> - {@link jakarta.ai.agent.Trigger @Trigger} methods are
- *       invoked when CDI events matching their parameters are fired. This initiates the workflow.</li>
+ *   <li><strong>Trigger Phase</strong> - A single {@link jakarta.ai.agent.Trigger @Trigger} method
+ *       is invoked when a CDI event matching its parameters is fired. This initiates the workflow.
+ *       The triggering event is stored in {@link jakarta.ai.agent.WorkflowContext} for later phases.
+ *       Triggers support two return patterns:
+ *       <ul>
+ *         <li>Void - Performs initialization with side effects only</li>
+ *         <li>Domain Object - Returns an object available for injection in subsequent phases</li>
+ *       </ul>
+ *   </li>
  *   <li><strong>Decision Phase</strong> - {@link jakarta.ai.agent.Decision @Decision} methods
  *       analyze the workflow state and determine whether to proceed. They support three return patterns:
  *       <ul>
@@ -73,7 +80,8 @@
  *   <li><strong>Outcome Phase</strong> - A single {@link jakarta.ai.agent.Outcome @Outcome} method
  *       handles finalization, state persistence, and downstream notifications. Must return void.</li>
  *   <li><strong>Exception Handling</strong> - {@link jakarta.ai.agent.HandleException @HandleException}
- *       methods handle exceptions throughout the workflow lifecycle.</li>
+ *       methods handle exceptions throughout the workflow lifecycle. Handler returns normally to 
+ *       continue workflow (after recovery), or re-throws exception to stop workflow.</li>
  * </ol>
  *
  * <h2>Usage Example</h2>

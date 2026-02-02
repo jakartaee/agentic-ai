@@ -72,7 +72,7 @@ public class HandleExceptionAnnotationTests {
     }
 
     @Assertion(id = "AGENTICAI-HANDLEEXCEPTION-005",
-               strategy = "Verify @HandleException can be applied to a method that handles exceptions")
+               strategy = "Verify @HandleException can be applied to a void method that handles exceptions")
     public void testHandleExceptionCanBeAppliedToMethod() throws NoSuchMethodException {
         @Agent
         class TestAgent {
@@ -84,5 +84,23 @@ public class HandleExceptionAnnotationTests {
         HandleException annotation = method.getAnnotation(HandleException.class);
         assertNotNull(annotation,
                 "@HandleException annotation must be retrievable from annotated method");
+        assertEquals(void.class, method.getReturnType(),
+                "@HandleException method must return void");
+    }
+
+    @Assertion(id = "AGENTICAI-HANDLEEXCEPTION-006",
+               strategy = "Verify @HandleException method must return void")
+    public void testHandleExceptionMustReturnVoid() throws NoSuchMethodException {
+        @Agent
+        class TestAgent {
+            @HandleException
+            public void handleError(Exception ex) {
+                // Void return for exception handling
+            }
+        }
+
+        Method method = TestAgent.class.getMethod("handleError", Exception.class);
+        assertEquals(void.class, method.getReturnType(),
+                "@HandleException method must declare void return type");
     }
 }

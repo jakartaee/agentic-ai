@@ -85,4 +85,36 @@ public class TriggerAnnotationTests {
         assertNotNull(annotation,
                 "@Trigger annotation must be retrievable from annotated method");
     }
+
+    @Assertion(id = "AGENTICAI-TRIGGER-006",
+               strategy = "Verify @Trigger can be applied to method returning void")
+    public void testTriggerCanReturnVoid() throws NoSuchMethodException {
+        @Agent
+        class TestAgent {
+            @Trigger
+            public void initializeWorkflow(Object event) {
+                // Void return for initialization
+            }
+        }
+
+        Method method = TestAgent.class.getMethod("initializeWorkflow", Object.class);
+        assertEquals(void.class, method.getReturnType(),
+                "@Trigger method can return void");
+    }
+
+    @Assertion(id = "AGENTICAI-TRIGGER-007",
+               strategy = "Verify @Trigger can be applied to method returning domain object")
+    public void testTriggerCanReturnDomainObject() throws NoSuchMethodException {
+        @Agent
+        class TestAgent {
+            @Trigger
+            public Object analyzeTrigger(Object event) {
+                return new Object();
+            }
+        }
+
+        Method method = TestAgent.class.getMethod("analyzeTrigger", Object.class);
+        assertEquals(Object.class, method.getReturnType(),
+                "@Trigger method can return domain object");
+    }
 }

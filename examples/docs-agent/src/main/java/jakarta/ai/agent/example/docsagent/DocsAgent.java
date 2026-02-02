@@ -1,4 +1,3 @@
-
 /*****************************************************************************
  * Copyright (c) 2026 Contributors to the Eclipse Foundation
  *
@@ -187,14 +186,20 @@ public class DocsAgent implements Serializable {
 
     /**
      * EXCEPTION HANDLER: Handles errors during the documentation workflow.
+     * 
+     * Returns normally to continue workflow (after logging/recovery).
+     * Re-throws exception to stop workflow.
      */
     @HandleException
     private void handleDocumentationPullRequestException(Throwable error, PullRequest pullRequest) {
         System.err.println("❌ Error during documentation workflow for PR: " + pullRequest.getId());
         System.err.println("   Error: " + error.getMessage());
 
+        // Log error for monitoring
         // Send notification to team
         // Create issue for manual review
-        // Log error for monitoring
+        
+        // Returns normally - workflow continues after logging
+        // To stop workflow, re-throw: throw new RuntimeException(error);
     }
 }

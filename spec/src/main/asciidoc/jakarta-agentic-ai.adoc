@@ -344,7 +344,7 @@ invocation, beginning with a trigger and typically ending with an outcome.
 === @Trigger Annotation
 
 The `@Trigger` annotation marks a method as a workflow trigger. Trigger methods define the
-entry point for agent workflows.
+entry point for agent workflows and are invoked when triggering events occur.
 
 ==== Syntax
 
@@ -356,12 +356,40 @@ public @interface Trigger {
 }
 ----
 
+==== Single Trigger Constraint
+
+Currently, there MUST be only one `@Trigger` method per agent class. This constraint
+will be relaxed in future versions to support multiple entry points.
+
+==== Parameter Injection
+
+Trigger methods can receive the following types of parameters:
+
+* The triggering event (CDI event) - Automatically detected and matched by the runtime
+* `WorkflowContext` - The current workflow context for initialization
+* `LargeLanguageModel` - LLM instance for trigger analysis
+* CDI injectable dependencies - Any beans available to the agent
+
+==== Return Type Semantics
+
+Trigger methods support two return patterns:
+
+**Void Pattern**:
+- Method returns `void`
+- Trigger performs initialization with side effects only
+- No data is passed to subsequent phases
+
+**Domain Object Pattern**:
+- Method returns a non-void domain object
+- Returned object is automatically injected into subsequent workflow methods
+- Use this pattern to pass trigger analysis or transformation forward
+
 ==== Semantics
 
 - **Workflow Initiation**: Marks the method that starts a workflow
 - **Event Reception**: Receives the triggering event as a parameter
 - **Context Creation**: A new `WorkflowContext` is created when the trigger is invoked
-- **Scope Activation**: For `@WorkflowScoped` beans, the scope is activated
+- **Event Storage**: The triggering event is automatically stored in WorkflowContext
 
 ==== Trigger Invocation
 
@@ -374,13 +402,38 @@ messages, manual invocations from a life-cycle API, or REST POST requests.
 
 [source,java]
 ----
-// CDI Event trigger
+// Void return - initialization only
 @Agent
 public class EventDrivenAgent {
 
     @Trigger
     public void onCustomEvent(CustomEvent event) {
-        // Triggered by CDI event - runtime automatically observes CustomEvent
+        logger.info("Workflow triggered for event: " + event.getId());
+    }
+}
+
+// Domain object return - passes analysis forward
+@Agent
+public class AnalyzingAgent {
+
+    @Trigger
+    public EventAnalysis analyzeEvent(CustomEvent event, LargeLanguageModel llm) {
+        String analysis = llm.query("Classify this event", event);
+        EventAnalysis result = new EventAnalysis();
+        result.setEvent(event);
+        result.setClassification(analysis);
+        return result;
+    }
+}
+
+// Void return with context initialization
+@Agent
+public class ContextInitializingAgent {
+
+    @Trigger
+    public void initializeWorkflow(CustomEvent event, WorkflowContext context) {
+        context.setAttribute("eventTime", System.currentTimeMillis());
+        context.setAttribute("eventSource", event.getSource());
     }
 }
 ----
@@ -616,44 +669,77 @@ public @interface HandleException {
 }
 ----
 
+==== Workflow Control
+
+Exception handlers control workflow continuation through their completion behavior:
+
+* **To continue workflow:** Handler completes successfully (returns normally)
+* **To stop workflow:** Handler re-throws the exception or throws a new exception
+
+==== Parameter Injection
+
+Exception handler methods can receive the following types of parameters:
+
+* Exception parameter (required) - The thrown exception or its supertype
+* Workflow state domain objects - Any objects from previous workflow phases (trigger event, decision results, action results)
+* `WorkflowContext` - Current workflow context for state management
+* `LargeLanguageModel` - For error analysis or diagnostics
+* CDI injectable dependencies - Any beans available to the agent
+
+==== Return Type
+
+Exception handler methods MUST return `void`. Handlers are designed for error recovery,
+logging, and cleanup rather than producing workflow data.
+
 ==== Semantics
 
 - **Error Recovery**: Provides agent-specific exception handling
-- **Any Phase**: Invoked when exceptions occur in any workflow phase
-- **Optional**: Agents are not required to define exception handlers
+- **Any Phase**: Invoked when exceptions occur in any workflow phase (trigger, decision, action, outcome)
+- **Exception Matching**: Most specific exception type match is selected (follows Java exception hierarchy)
+- **Workflow Continues**: If handler returns normally (successful recovery)
+- **Workflow Stops**: If handler throws an exception (re-throw or new exception)
 - **Fallback**: If no handler is defined, exceptions propagate to the container
+- **No Recursion**: Handler exceptions propagate to container (no recursive handling)
 
-==== Exception Handler Matching
-
-When an exception occurs:
-
-1. The runtime searches for `@HandleException` methods
-2. Methods accepting the thrown exception type (or supertype) are candidates
-3. The most specific matching handler is invoked
-4. If no handler matches, the exception propagates to the container
+==== Exception Handler Examples
 
 [source,java]
 ----
 @Agent
 public class ExceptionHandlingExamples {
 
-    // Simple exception handler
+    // Recoverable error - returns normally, workflow continues
     @HandleException
-    public void handleError(Exception e) {
-        logger.error("Workflow failed", e);
+    public void handleRecoverable(IOException ex, BankTransaction transaction) {
+        logger.warn("I/O error, retrying: " + transaction.getId(), ex);
+        retryQueue.add(transaction);
+        // Returns normally - workflow continues
     }
 
-    // Handler with context access
+    // Fatal error - re-throws, workflow stops
     @HandleException
-    public void handleError(Exception e, WorkflowContext context) {
-        Object triggerEvent = context.getTriggerEvent();
-        logger.error("Failed processing " + triggerEvent, e);
+    public void handleFatal(SecurityException ex, WorkflowContext context) {
+        logger.error("Security violation", ex);
+        auditService.logSecurityBreach(context.getTriggerEvent());
+        throw ex; // Re-throw - workflow stops
     }
 
-    // Specific exception types
+    // Conditional recovery
     @HandleException
-    public void handleIOException(IOException e, WorkflowContext context) {
-        logger.error("I/O error", e);
+    public void handleWithFallback(Exception ex, WorkflowContext context) {
+        if (isRecoverable(ex)) {
+            performRecovery(context);
+            // Returns normally - workflow continues
+        } else {
+            throw new WorkflowFailureException("Unrecoverable", ex);
+            // Workflow stops
+        }
+    }
+
+    // Multiple handlers for different exception types
+    @HandleException
+    public void handleIOException(IOException ex, WorkflowContext context) {
+        logger.error("I/O error", ex);
         retryOperation(context);
     }
 }
