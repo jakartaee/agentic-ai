@@ -60,7 +60,7 @@
         <!-- Jakarta Agentic AI API -->
         <dependency>
             <groupId>jakarta.ai</groupId>
-            <artifactId>jakarta-agentic-ai-api</artifactId>
+            <artifactId>jakarta.agentic-ai-api</artifactId>
             <version>${project.version}</version>
             <scope>provided</scope>
         </dependency>
