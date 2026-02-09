@@ -12,12 +12,13 @@
  *****************************************************************************/
 
 /**
- * Jakarta Agentic AI - Core API for building autonomous agents.
+ * Jakarta Agentic AI - API for building autonomous agents.
  *
- * <p>This package provides the fundamental APIs for developing agents that can perceive,
- * reason, decide, and act autonomously within a Jakarta EE environment. Agents are
- * CDI-managed beans that encapsulate goal-driven behavior using a structured workflow
- * model with well-defined lifecycle phases.
+ * <p>This package provides the fundamental APIs for developing agents that
+ * can perceive, reason, decide, and act autonomously within a Jakarta EE 
+ * environment. Agents are CDI-managed beans that encapsulate goal-driven 
+ * behavior using a structured workflow model with well-defined lifecycle 
+ * phases.
  *
  * <h2>Core Components</h2>
  *
@@ -33,7 +34,6 @@
  *
  * <h3>Core Interfaces</h3>
  * <ul>
- *   <li>{@link jakarta.ai.agent.WorkflowContext} - Manages workflow state and context</li>
  *   <li>{@link jakarta.ai.agent.LargeLanguageModel} - Facade for LLM operations</li>
  * </ul>
  *
@@ -53,36 +53,47 @@
  * <p>An agent workflow follows a structured lifecycle:
  *
  * <ol>
- *   <li><strong>Trigger Phase</strong> - A single {@link jakarta.ai.agent.Trigger @Trigger} method
- *       is invoked when a CDI event matching its parameters is fired. This initiates the workflow.
- *       The triggering event is stored in {@link jakarta.ai.agent.WorkflowContext} for later phases.
+ *   <li><strong>Trigger Phase</strong> - A single 
+ *       {@link jakarta.ai.agent.Trigger @Trigger} method is invoked when
+ *       a CDI event matching its parameters is fired. This initiates the 
+ *       workflow.
  *       Triggers support two return patterns:
  *       <ul>
- *         <li>Void - Performs initialization with side effects only</li>
- *         <li>Domain Object - Returns an object available for injection in subsequent phases</li>
+ *         <li>void - Performs initialization with side effects only</li>
+ *         <li>Domain Object - Returns an object available for injection in 
+ *             subsequent phases</li>
  *       </ul>
  *   </li>
- *   <li><strong>Decision Phase</strong> - {@link jakarta.ai.agent.Decision @Decision} methods
- *       analyze the workflow state and determine whether to proceed. They support three return patterns:
+ *   <li><strong>Decision Phase</strong> - 
+ *       {@link jakarta.ai.agent.Decision @Decision} methods
+ *       analyze the workflow state and determine whether to proceed. 
+ *       They support three return patterns:
  *       <ul>
  *         <li>Boolean - {@code true} to proceed, {@code false} to terminate</li>
- *         <li>{@link jakarta.ai.agent.Result} - Success flag with optional details</li>
- *         <li>Object - Non-null to proceed (object available for injection), null to terminate</li>
+ *         <li>{@link jakarta.ai.agent.Result} - Success flag with optional 
+ *             details</li>
+ *         <li>Object - Non-null to proceed (object available for injection), 
+ *             null to terminate</li>
  *       </ul>
  *   </li>
- *   <li><strong>Action Phase</strong> - {@link jakarta.ai.agent.Action @Action} methods
- *       execute the primary work based on decisions made in the decision phase.
+ *   <li><strong>Action Phase</strong> - 
+ *       {@link jakarta.ai.agent.Action @Action} methods execute the primary 
+ *       work based on decisions made in the decision phase.
  *       Actions support two return patterns:
  *       <ul>
- *         <li>Void - Performs side effects only (e.g., alerts, database updates)</li>
- *         <li>Domain Object - Returns an object available for injection in the subsequent workflow methods</li>
+ *         <li>void - Performs side effects only (e.g., alerts, database updates)</li>
+ *         <li>Domain Object - Returns an object available for injection 
+ *             in the subsequent workflow methods</li>
  *       </ul>
  *   </li>
- *   <li><strong>Outcome Phase</strong> - A single {@link jakarta.ai.agent.Outcome @Outcome} method
- *       handles finalization, state persistence, and downstream notifications. Must return void.</li>
- *   <li><strong>Exception Handling</strong> - {@link jakarta.ai.agent.HandleException @HandleException}
- *       methods handle exceptions throughout the workflow lifecycle. Handler returns normally to 
- *       continue workflow (after recovery), or re-throws exception to stop workflow.</li>
+ *   <li><strong>Outcome Phase</strong> - A single 
+ *       {@link jakarta.ai.agent.Outcome @Outcome} method handles finalization, 
+ *       state persistence, and downstream notifications. Must return void.</li>
+ *   <li><strong>Exception Handling</strong> - 
+ *       {@link jakarta.ai.agent.HandleException @HandleException}
+ *       methods handle exceptions throughout the workflow lifecycle. Handler 
+ *       returns normally to continue workflow (after recovery), or re-throws 
+ *       exception to stop workflow.</li>
  * </ol>
  *
  * <h2>Usage Example</h2>
@@ -110,13 +121,13 @@
  *     }
  *
  *     @Action
- *     public void executeAction(MyEvent event, WorkflowContext context) {
+ *     public void executeAction(MyEvent event) {
  *         // Perform the action with side effects
  *         notifySystem(event);
  *     }
  *
  *     @Outcome
- *     public void recordOutcome(WorkflowContext context) {
+ *     public void recordOutcome(MyEvent event) {
  *         // Finalize and persist results
  *     }
  * }
@@ -128,42 +139,36 @@
  *
  * <ul>
  *   <li>Dependency injection of other CDI beans</li>
- *   <li>Custom {@link jakarta.ai.agent.WorkflowScoped @WorkflowScoped} scope for workflow-level lifecycle</li>
- *   <li>CDI event observation and production</li>
+ *   <li>Custom {@link jakarta.ai.agent.WorkflowScoped @WorkflowScoped} 
+ *       scope for workflow-level lifecycle</li>
+ *   <li>CDI event observation</li>
  *   <li>Interceptor support for cross-cutting concerns</li>
  * </ul>
  *
  * <h2>Large Language Model Integration</h2>
  *
- * <p>The {@link jakarta.ai.agent.LargeLanguageModel} interface provides a minimal,
- * type-converting facade for LLM operations. Implementations can support:
+ * <p>The {@link jakarta.ai.agent.LargeLanguageModel} interface provides 
+ * a minimal, type-converting facade for LLM operations. Implementations 
+ * can support:
  *
  * <ul>
- *   <li>Text prompts with optional input objects</li>
+ *   <li>Text prompts with input objects</li>
  *   <li>String and domain object returns</li>
  *   <li>Unwrapping for vendor-specific features</li>
  * </ul>
  *
  * <p>LLM operations may throw:
  * <ul>
- *   <li>{@link java.lang.IllegalArgumentException} - For null or invalid parameters, or unsupported type conversions</li>
- *   <li>{@link jakarta.ai.agent.LLMException} - Runtime exception for LLM service failures (communication errors, 
+ *   <li>{@link java.lang.IllegalArgumentException} - For null or 
+ *       invalid parameters, or unsupported type conversions</li>
+ *   <li>{@link jakarta.ai.agent.LLMException} - Runtime exception 
+ *       for LLM service failures (communication errors, 
  *       rate limiting, timeouts, invalid responses)</li>
  * </ul>
  *
- * <p>These exceptions can be handled with try-catch blocks or {@link jakarta.ai.agent.HandleException @HandleException}
+ * <p>These exceptions can be handled with try-catch blocks or 
+ * {@link jakarta.ai.agent.HandleException @HandleException}
  * methods for workflow-level error handling.
- *
- * <h2>Workflow Context Management</h2>
- *
- * <p>The {@link jakarta.ai.agent.WorkflowContext} interface manages state throughout
- * the workflow lifecycle:
- *
- * <ul>
- *   <li>Attribute storage and retrieval - Store workflow state as phases progress</li>
- *   <li>Automatic trigger event preservation - Accessible via {@code getTriggerEvent()}</li>
- *   <li>Workflow-scoped lifecycle - Destroyed when workflow completes</li>
- * </ul>
  *
  * <h2>Parameter Injection</h2>
  *
@@ -171,9 +176,10 @@
  *
  * <ul>
  *   <li>Trigger event objects - From the workflow trigger</li>
- *   <li>Decision results - Objects returned from {@link jakarta.ai.agent.Decision @Decision} methods</li>
- *   <li>Action results - Objects returned from {@link jakarta.ai.agent.Action @Action} methods</li>
- *   <li>{@link jakarta.ai.agent.WorkflowContext} - Current workflow context</li>
+ *   <li>Decision results - Objects returned from
+ *       {@link jakarta.ai.agent.Decision @Decision} methods</li>
+ *   <li>Action results - Objects returned from
+ *       {@link jakarta.ai.agent.Action @Action} methods</li>
  *   <li>{@link jakarta.ai.agent.LargeLanguageModel} - Injected LLM facade</li>
  *   <li>Any CDI injectable dependencies - Standard Jakarta EE beans and resources</li>
  * </ul>
@@ -183,7 +189,6 @@
  * @see jakarta.ai.agent.Decision
  * @see jakarta.ai.agent.Action
  * @see jakarta.ai.agent.Outcome
- * @see jakarta.ai.agent.WorkflowContext
  * @see jakarta.ai.agent.LargeLanguageModel
  * @see jakarta.ai.agent.WorkflowScoped
  */
