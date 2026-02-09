@@ -1,7 +1,3 @@
-
-// Copyright (c) 2026 Contributors to the Eclipse Foundation
-//
-
 = Jakarta Agentic AI Specification
 :authors: Jakarta Agentic AI Project Team, https://projects.eclipse.org/projects/ee4j.agentic-ai
 :email: https://accounts.eclipse.org/mailing-list/agentic-ai-dev
