@@ -21,32 +21,37 @@ import java.lang.annotation.Target;
  * Marks a method as an action in an agent workflow.
  * <p>
  * Actions perform operations as part of the agent's workflow execution.
- * They execute after decision methods determine the workflow should proceed,
- * and receive the results from decision phases. Actions typically perform the
- * primary work of the agent, such as persisting data, calling external services,
- * or updating system state.
+ * They usually execute after decision methods determine the workflow should 
+ * proceed, and receive the results from decision phases. Actions typically 
+ * perform the primary work of the agent, such as persisting data, calling 
+ * external services, or updating system state.
  * <p>
  * <b>Parameters</b><br>
  * Action methods can have the following types of parameters that will be
  * automatically resolved:
  * <ul>
- *   <li>Workflow state domain objects - Any objects from previous workflow phases,
- *       particularly decision results or trigger event objects</li>
- *   <li>Decision results - Objects returned from {@link Decision @Decision} methods
- *       (when using the Object or {@link Result} return patterns)</li>
- *   <li>{@link WorkflowContext} - The current workflow context for state management</li>
- *   <li>{@link LargeLanguageModel} - LLM instance for analysis or content generation</li>
+ *   <li>Workflow state domain objects - Any objects from previous 
+ *       workflow phases, particularly decision results or trigger event 
+ *       objects</li>
+ *   <li>Decision results - Objects returned from 
+ *       {@link Decision @Decision} methods (when using the Object or 
+ *       {@link Result} return patterns)</li>
+ *   <li>{@link LargeLanguageModel} - LLM instance for analysis or 
+ *       content generation</li>
  *   <li>Any other CDI injectable dependencies available to the agent
- *       - typically in the application scope or managed by the container</li>
+ *       - typically in the application scope or managed by the 
+ *       container</li>
  * </ul>
  * <p>
  * <b>Return types</b><br>
  * Action methods support two return patterns:
  * <ul>
- *   <li><strong>void</strong> - The action performs work with side effects (e.g., sending alerts,
- *       updating databases). No data is passed to subsequent phases.</li>
- *   <li><strong>Domain objects</strong> - The action returns an object (non-void) that will be
- *       automatically injected into subsequent life-cycle methods. Use this pattern
+ *   <li><strong>void</strong> - The action performs work with side 
+ *       effects (e.g., sending alerts, updating databases). No data is 
+ *       passed to subsequent phases.</li>
+ *   <li><strong>Domain objects</strong> - The action returns an 
+ *       object (non-void) that will be automatically injected into 
+ *       subsequent life-cycle methods. Use this pattern
  *       to pass action results forward in the workflow.</li>
  * </ul>
  *
@@ -84,15 +89,13 @@ import java.lang.annotation.Target;
  *
  * // Later phases receive the action result
  * @Outcome
- * public void recordOutcome(FraudReport report, WorkflowContext context) {
- *     context.setAttribute("report", report);
+ * public void recordOutcome(FraudReport report) {
  *     auditLog("Fraud case processed: " + report.getId());
  * }
  * }</pre>
  *
  * @see Decision
  * @see Outcome
- * @see WorkflowContext
  * @see LargeLanguageModel
  */
 @Target(ElementType.METHOD)
