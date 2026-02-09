@@ -24,13 +24,13 @@ import java.lang.annotation.Target;
  * The agent's lifecycle, workflow, and actions are fully defined using 
  * additional annotations.
  * <p>
- * Agents support two scope annotations: {@link WorkflowScoped} and @ApplicationScoped.
- * If no scope annotation is present on the class, the agent will be 
- * assumed to be {@link WorkflowScoped}. 
+ * Agents support two scope annotations: {@link WorkflowScoped} and 
+ * @ApplicationScoped. If no scope annotation is present on the class, the 
+ * agent will be assumed to be {@link WorkflowScoped}.
  * <p>
- * A workflow context will still be created for each workflow execution even when the 
- * agent is @ApplicationScoped, beginning with a trigger and in most cases 
- * ending with an outcome.
+ * A workflow context will still be created for each workflow execution even 
+ * when the agent is @ApplicationScoped, beginning with a trigger and in most 
+ * cases ending with an outcome.
  * </p>
  */
 @Target(ElementType.TYPE)
@@ -40,7 +40,8 @@ public @interface Agent {
     /**
      * The agent's name.
      * <p>
-     * If not specified, the agent's class name in camelCase will be used as a default.
+     * If not specified, the agent's class name in camelCase will be used as a 
+     * default.
      */
     String name() default "";
 
