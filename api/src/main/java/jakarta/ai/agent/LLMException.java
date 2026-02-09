@@ -51,17 +51,19 @@ public class LLMException extends RuntimeException {
      * Constructs a new LLM exception with the specified detail message and cause.
      *
      * @param message The detail message.
-     * @param cause The cause (which is saved for later retrieval by the {@link #getCause()} method).
+     * @param cause The cause (which is saved for later retrieval by 
+     *              the {@link #getCause()} method).
      */
     public LLMException(String message, Throwable cause) {
         super(message, cause);
     }
 
     /**
-     * Constructs a new LLM exception with the specified cause and a detail message 
-     * of (cause==null ? null : cause.toString()).
+     * Constructs a new LLM exception with the specified cause and a detail 
+     * message of (cause==null ? null : cause.toString()).
      *
-     * @param cause The cause (which is saved for later retrieval by the {@link #getCause()} method).
+     * @param cause The cause (which is saved for later retrieval by 
+     *              the {@link #getCause()} method).
      */
     public LLMException(Throwable cause) {
         super(cause);
