@@ -105,7 +105,7 @@ Model capabilities.
 * Mechanism to define agent workflows using a fluent Java API.
 * Integrates with other Jakarta EE APIs (Validation, REST, JSON Binding, Persistence, Data, 
   Transactions, NoSQL, Concurrency, Security, Messaging).
-* Utilizes Jakarta Config and allows implementations to use MicroProfile Config.
+* May utilize Jakarta Config and allows implementations to use MicroProfile Config.
 * May provide OpenTelemetry integration.
 * Designed for Jakarta EE runtimes, but potentially usable in Quarkus, Micronaut, 
   Spring Boot.
@@ -135,8 +135,8 @@ Every agent is a CDI bean annotated with `@Agent`. This design provides:
 
 - **Dependency Injection**: Agents can inject other CDI beans, Jakarta EE resources, and services
 - **Interceptors**: Standard CDI interceptors can be applied to agent methods
-- **Scoping**: Agents support standard CDI scopes plus a custom `@WorkflowScoped` scope
-- **Events**: Agents can produce and observe CDI events
+- **Scoping**: Agents can be `@WorkflowScoped` or `@ApplicationScoped` 
+- **Events**: Agents observe CDI events
 - **Lifecycle Management**: CDI manages agent instantiation and destruction
 
 [source,java]
@@ -202,7 +202,6 @@ Agents are CDI beans and thus integrate with:
 
 - **CDI Events**: Agents can observe CDI events as triggers
 - **Interceptors**: Security, transactions, and custom interceptors apply to agent methods
-- **Decorators**: Agent behavior can be enhanced with decorators
 - **Producers**: Agent dependencies can come from CDI producers
 - **Qualifiers**: Agents can use qualifiers to select specific implementations
 
@@ -218,10 +217,6 @@ Agents support two scopes:
 Agents can leverage Jakarta EE services:
 
 - **Jakarta Persistence**: Access databases via JPA
-- **Jakarta REST**: Agents can be triggered by REST endpoints
-- **Jakarta Messaging**: Agents can consume JMS messages
-- **Jakarta Concurrency**: Parallel action execution
-- **Jakarta Security**: Authentication and authorization
 - **Jakarta Transactions**: Transactional agent operations
 
 === LLM Facade Pattern
@@ -267,9 +262,9 @@ agent implementations provide the concrete behavior for each step.
 
 Jakarta Agentic AI workflow phases execute sequentially:
 
-- **Sequential Phases**: Trigger, decision, action, and outcome phases MUST execute in order
+- **Sequential Phases**: Trigger, decision, action, and outcome phases execute in order
 - **Thread Safety**: Agents using `@WorkflowScoped` typically execute within a single thread per workflow execution. `@ApplicationScoped` agents MUST take thread-safety into account as they may handle multiple concurrent workflow invocations.
-- **Application Scope**: `@ApplicationScoped` agents MUST be thread-safe as they may handle multiple workflow invocations
+- **Application Scope**: `@ApplicationScoped` agents should take thread-safe into account as they may handle multiple workflow invocations
 
 === Error Handling
 
@@ -306,7 +301,7 @@ public @interface Agent {
 
 - **Required**: Every agent class must be annotated with `@Agent`
 - **CDI Bean**: The annotated class becomes a CDI managed bean
-- **Scope**: May be combined with CDI scope annotations. If no scope is specified, `@WorkflowScoped` is the default
+- **Scope**: If no scope is specified, `@WorkflowScoped` is the default
 - **Discovery**: Implementations must discover all `@Agent` annotated classes during deployment
 
 ==== Scope Combinations
@@ -366,7 +361,6 @@ will be relaxed in future versions to support multiple entry points.
 Trigger methods can receive the following types of parameters:
 
 * The triggering event (CDI event) - Automatically detected and matched by the runtime
-* `WorkflowContext` - The current workflow context for initialization
 * `LargeLanguageModel` - LLM instance for trigger analysis
 * CDI injectable dependencies - Any beans available to the agent
 
@@ -388,8 +382,6 @@ Trigger methods support two return patterns:
 
 - **Workflow Initiation**: Marks the method that starts a workflow
 - **Event Reception**: Receives the triggering event as a parameter
-- **Context Creation**: A new `WorkflowContext` is created when the trigger is invoked
-- **Event Storage**: The triggering event is automatically stored in WorkflowContext
 
 ==== Trigger Invocation
 
@@ -423,17 +415,6 @@ public class AnalyzingAgent {
         result.setEvent(event);
         result.setClassification(analysis);
         return result;
-    }
-}
-
-// Void return with context initialization
-@Agent
-public class ContextInitializingAgent {
-
-    @Trigger
-    public void initializeWorkflow(CustomEvent event, WorkflowContext context) {
-        context.setAttribute("eventTime", System.currentTimeMillis());
-        context.setAttribute("eventSource", event.getSource());
     }
 }
 ----
