@@ -330,16 +330,18 @@ public class DefaultScopedAgent {
 
 ==== Workflow Context Lifecycle
 
-Regardless of the scope annotation used, a workflow context is created for each workflow execution.
-For `@WorkflowScoped` agents, the workflow context's lifecycle is tied to the workflow execution.
-For `@ApplicationScoped` or other scoped agents, the agent instance may be reused across multiple
-workflow executions, but a new workflow context is still created and maintained for each workflow
-invocation, beginning with a trigger and typically ending with an outcome.
+Regardless of the scope annotation used, a workflow context is created for each workflow 
+execution. For `@WorkflowScoped` agents, the workflow context's lifecycle is tied to 
+the workflow execution. For `@ApplicationScoped` agents, the agent instance may be 
+reused across multiple workflow executions, but a new workflow context is still 
+created and maintained for each workflow invocation, beginning with a trigger and 
+typically ending with an outcome.
 
 === @Trigger Annotation
 
-The `@Trigger` annotation marks a method as a workflow trigger. Trigger methods define the
-entry point for agent workflows and are invoked when triggering events occur.
+The `@Trigger` annotation marks a method as a workflow trigger. Trigger methods 
+define the entry point for agent workflows and are invoked when triggering 
+events occur.
 
 ==== Syntax
 
@@ -421,8 +423,9 @@ public class AnalyzingAgent {
 
 === @Decision Annotation
 
-The `@Decision` annotation marks a method that makes a decision about whether and how the
-workflow should proceed. Decision methods typically use LLM analysis to determine the workflow path.
+The `@Decision` annotation marks a method that makes a decision about whether 
+and how the workflow should proceed. Decision methods typically use LLM analysis to 
+determine the workflow path.
 
 ==== Syntax
 
@@ -436,7 +439,7 @@ public @interface Decision {
 
 ==== Semantics
 
-- **Conditional Execution**: Determines if the workflow proceeds to action phase
+- **Conditional Execution**: Determines if the workflow proceeds
 - **LLM Integration**: Typically invokes `LargeLanguageModel` for analysis
 - **Return Value Semantics**: The return value controls workflow progression
 
@@ -964,7 +967,7 @@ Every agent is a CDI managed bean. This design provides:
 
 - **Dependency Injection**: Agents can inject other beans
 - **Interceptors**: Cross-cutting concerns via CDI interceptors
-- **Events**: CDI event production and observation
+- **Events**: CDI event observation
 - **Lifecycle Callbacks**: Standard CDI lifecycle methods
 - **Scoping**: Flexible scope management
 
@@ -1026,22 +1029,6 @@ public class TransactionalAgent {
     public void updateDatabase(Data data) {
         // Method runs in a transaction
         entityManager.persist(data);
-    }
-}
-----
-
-==== Security
-
-[source,java]
-----
-@Agent
-@RolesAllowed("admin")
-public class SecureAgent {
-
-    @Action
-    @RolesAllowed({"admin", "operator"})
-    public void performAction(Task task) {
-        // Only admin or operator can execute
     }
 }
 ----
