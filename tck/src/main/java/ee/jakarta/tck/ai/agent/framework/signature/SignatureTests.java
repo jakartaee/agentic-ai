@@ -62,37 +62,11 @@ public class SignatureTests {
                 "LargeLanguageModel must be an interface");
         assertEquals(PACKAGE_NAME, LargeLanguageModel.class.getPackageName(),
                 "LargeLanguageModel must be in " + PACKAGE_NAME);
-        assertTrue(WorkflowContext.class.isInterface(),
-                "WorkflowContext must be an interface");
-        assertEquals(PACKAGE_NAME, WorkflowContext.class.getPackageName(),
-                "WorkflowContext must be in " + PACKAGE_NAME);
     }
+
+
 
     @Assertion(id = "AGENTICAI-SIG-003",
-               strategy = "Verify WorkflowContext interface has all required methods")
-    public void testWorkflowContextSignature() {
-        Set<String> requiredMethods = new HashSet<>(Arrays.asList(
-                "setAttribute",
-                "getAttribute",
-                "removeAttribute",
-                "getAttributeNames",
-                "getTriggerEvent"
-        ));
-
-        Set<String> actualMethods = new HashSet<>();
-        for (Method method : WorkflowContext.class.getDeclaredMethods()) {
-            if (Modifier.isPublic(method.getModifiers())) {
-                actualMethods.add(method.getName());
-            }
-        }
-
-        for (String required : requiredMethods) {
-            assertTrue(actualMethods.contains(required),
-                    "WorkflowContext must have public method: " + required);
-        }
-    }
-
-    @Assertion(id = "AGENTICAI-SIG-004",
                strategy = "Verify LargeLanguageModel interface has all required methods")
     public void testLargeLanguageModelSignature() {
         Set<String> requiredMethods = new HashSet<>(Arrays.asList(
@@ -111,7 +85,7 @@ public class SignatureTests {
         }
     }
 
-    @Assertion(id = "AGENTICAI-SIG-005",
+    @Assertion(id = "AGENTICAI-SIG-004",
                strategy = "Verify lifecycle annotations target METHOD elements")
     public void testLifecycleAnnotationsTargetMethod() {
         Class<?>[] lifecycleAnnotations = {
@@ -134,7 +108,7 @@ public class SignatureTests {
         }
     }
 
-    @Assertion(id = "AGENTICAI-SIG-006",
+    @Assertion(id = "AGENTICAI-SIG-005",
                strategy = "Verify @Agent annotation targets TYPE elements")
     public void testAgentAnnotationTargetsType() {
         java.lang.annotation.Target target = Agent.class.getAnnotation(java.lang.annotation.Target.class);
@@ -147,7 +121,7 @@ public class SignatureTests {
                 "@Agent must target TYPE elements");
     }
 
-    @Assertion(id = "AGENTICAI-SIG-007",
+    @Assertion(id = "AGENTICAI-SIG-006",
                strategy = "Verify all annotations have RUNTIME retention")
     public void testAllAnnotationsHaveRuntimeRetention() {
         Class<?>[] allAnnotations = {
@@ -170,7 +144,7 @@ public class SignatureTests {
         }
     }
 
-    @Assertion(id = "AGENTICAI-SIG-008",
+    @Assertion(id = "AGENTICAI-SIG-007",
                strategy = "Verify Result record exists in the API with correct structure")
     public void testResultRecordSignature() {
         // Verify Result class exists
@@ -198,7 +172,7 @@ public class SignatureTests {
                 "Result must have 'details' component of type Object");
     }
 
-    @Assertion(id = "AGENTICAI-SIG-009",
+    @Assertion(id = "AGENTICAI-SIG-008",
                strategy = "Verify LLMException exists and extends RuntimeException")
     public void testLLMExceptionSignature() {
         try {
@@ -232,7 +206,7 @@ public class SignatureTests {
         }
     }
 
-    @Assertion(id = "AGENTICAI-SIG-010",
+    @Assertion(id = "AGENTICAI-SIG-009",
                strategy = "Verify WorkflowScoped.Literal inner class exists")
     public void testWorkflowScopedLiteralInnerClass() {
         // Find the Literal inner class
@@ -254,7 +228,7 @@ public class SignatureTests {
         }
     }
 
-    @Assertion(id = "AGENTICAI-SIG-011",
+    @Assertion(id = "AGENTICAI-SIG-010",
                strategy = "Verify LargeLanguageModel query methods have correct signatures")
     public void testLargeLanguageModelQueryMethodSignatures() {
         // Find query methods
@@ -281,36 +255,9 @@ public class SignatureTests {
                 "LargeLanguageModel must have query methods with String as first parameter");
     }
 
-    @Assertion(id = "AGENTICAI-SIG-012",
-               strategy = "Verify WorkflowContext methods have correct return types")
-    public void testWorkflowContextMethodReturnTypes() {
-        try {
-            // setAttribute should return void
-            Method setAttr = WorkflowContext.class.getMethod("setAttribute", String.class, Object.class);
-            assertEquals(void.class, setAttr.getReturnType(),
-                    "setAttribute must return void");
 
-            // getAttribute should return Object
-            Method getAttr = WorkflowContext.class.getMethod("getAttribute", String.class);
-            assertEquals(Object.class, getAttr.getReturnType(),
-                    "getAttribute must return Object");
 
-            // removeAttribute should return void
-            Method removeAttr = WorkflowContext.class.getMethod("removeAttribute", String.class);
-            assertEquals(void.class, removeAttr.getReturnType(),
-                    "removeAttribute must return void");
-
-            // getTriggerEvent should return Object
-            Method getTrigger = WorkflowContext.class.getMethod("getTriggerEvent");
-            assertEquals(Object.class, getTrigger.getReturnType(),
-                    "getTriggerEvent must return Object");
-
-        } catch (NoSuchMethodException e) {
-            fail("Required WorkflowContext method not found: " + e.getMessage());
-        }
-    }
-
-    @Assertion(id = "AGENTICAI-SIG-012",
+    @Assertion(id = "AGENTICAI-SIG-011",
                strategy = "Verify @WorkflowScoped annotation has required meta-annotations")
     public void testWorkflowScopedMetaAnnotations() {
         // Check for @NormalScope
