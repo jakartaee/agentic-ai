@@ -1,0 +1,143 @@
+== CDI Integration
+
+This section describes how Jakarta Agentic AI integrates with Jakarta Contexts and Dependency
+Injection (CDI), including agent scoping, dependency injection, and lifecycle management.
+
+=== Agents as CDI Beans
+
+Every agent is a CDI managed bean. This design provides:
+
+- **Dependency Injection**: Agents can inject other beans
+- **Interceptors**: Cross-cutting concerns via CDI interceptors
+- **Events**: CDI event observation
+- **Lifecycle Callbacks**: Standard CDI lifecycle methods
+- **Scoping**: Flexible scope management
+
+==== CDI Bean Requirements
+
+An agent class:
+
+- MUST be annotated with `@Agent`
+- MUST satisfy CDI managed bean requirements
+- MUST have a constructor with no parameters or a constructor annotated with `@Inject`
+- MUST NOT be an inner class (unless static)
+- MUST NOT be abstract
+- MAY be a concrete class or implement interfaces
+
+=== @WorkflowScoped
+
+`@WorkflowScoped` is a custom CDI scope that ties the agent's lifecycle to the workflow execution.
+
+==== Scope Definition
+
+[source,java]
+----
+package jakarta.agentic.ai;
+
+import jakarta.enterprise.context.NormalScope;
+import java.lang.annotation.*;
+
+@Target({TYPE, METHOD, FIELD})
+@Retention(RUNTIME)
+@Documented
+@NormalScope
+@Inherited
+public @interface WorkflowScoped {
+}
+----
+
+==== Scope Semantics
+
+When an agent is `@WorkflowScoped`:
+
+- A new instance is created for each workflow execution
+- The instance is active from trigger invocation through outcome completion
+- The instance is destroyed after the workflow completes or fails
+- Each concurrent workflow execution has its own instance
+
+=== CDI Interceptors
+
+Agents support CDI interceptors for cross-cutting concerns:
+
+==== Transaction Management
+
+[source,java]
+----
+@Agent
+public class TransactionalAgent {
+
+    @Action
+    @Transactional
+    public void updateDatabase(Data data) {
+        // Method runs in a transaction
+        entityManager.persist(data);
+    }
+}
+----
+
+=== CDI Events
+
+Agents can produce and observe CDI events:
+
+==== Producing Events
+
+[source,java]
+----
+@Agent
+public class EventProducer {
+
+    @Inject
+    private Event<WorkflowCompleted> completionEvent;
+
+    @Outcome
+    public void publishCompletion(Result result) {
+        WorkflowCompleted event = new WorkflowCompleted(result);
+        completionEvent.fire(event);
+    }
+}
+----
+
+==== Observing Events
+
+[source,java]
+----
+@Agent
+@ApplicationScoped
+public class EventObserver {
+
+    @Trigger
+    public void onCustomEvent(@Observes CustomEvent event) {
+        // Triggered by CDI event
+        processEvent(event);
+    }
+}
+----
+
+=== Lifecycle Callbacks
+
+Agents can use CDI lifecycle callbacks:
+
+[source,java]
+----
+@Agent
+@WorkflowScoped
+public class LifecycleAwareAgent {
+
+    @Inject
+    private ResourcePool resources;
+
+    @PostConstruct
+    public void initialize() {
+        // Called after dependency injection
+        logger.info("Agent initialized");
+        resources.allocate();
+    }
+
+    @PreDestroy
+    public void cleanup() {
+        // Called before agent destruction
+        logger.info("Agent destroying");
+        resources.release();
+    }
+}
+----

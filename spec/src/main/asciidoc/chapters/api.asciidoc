@@ -1,0 +1,79 @@
+== API Overview
+
+=== Agent Annotation
+[source,java]
+----
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.TYPE)
+public @interface Agent {
+    String name() default "";
+    String description() default "";
+}
+----
+
+=== LargeLanguageModel Interface
+[source,java]
+----
+/**
+ * Minimal facade for Large Language Model (LLM) operations.
+ * <p>
+ * Intended to be injected via CDI into agents. Provides a unified interface for querying LLMs
+ * with support for type conversion of parameters and results.
+ */
+public interface LargeLanguageModel {
+
+    /**
+     * Sends a prompt to the model and returns a String response.
+     *
+     * @param prompt The input prompt or question.
+     * @return The model's response as a String.
+     */
+    String query(String prompt);
+
+    /**
+     * Sends a prompt to the model and returns a response of the specified type.
+     *
+     * @param prompt The prompt or query.
+     * @param resultType The expected result type.
+     * @param <T> The type of the result.
+     * @return The model's response converted to the specified type.
+     */
+    <T> T query(String prompt, Class<T> resultType);
+
+    /**
+     * Sends a prompt and input objects to the model, returning a String response.
+     *
+     * @param prompt The prompt or query.
+     * @param inputs The input objects (e.g., domain objects, JSON, etc.).
+     * @return The model's response as a String.
+     */
+    String query(String prompt, Object... inputs);
+
+    /**
+     * Sends a prompt and input objects to the model, returning a typed response.
+     *
+     * @param prompt The prompt or query.
+     * @param resultType The expected result type.
+     * @param inputs The input objects.
+     * @param <T> The type of the result.
+     * @return The model's response converted to the specified type.
+     */
+    <T> T query(String prompt, Class<T> resultType, Object... inputs);
+
+    /**
+     * Unwraps the underlying LLM implementation.
+     *
+     * @param implClass The class of the underlying implementation to unwrap to.
+     * @param <T> The type of the underlying implementation.
+     * @return The underlying implementation instance.
+     * @throws IllegalArgumentException if the implementation cannot be unwrapped.
+     */
+    <T> T unwrap(Class<T> implClass);
+}
+----
+
+=== Result Record
+[source,java]
+----
+public record Result(boolean success, Object details) {}
+----

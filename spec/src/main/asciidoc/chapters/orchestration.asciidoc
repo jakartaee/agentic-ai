@@ -1,0 +1,167 @@
+== Workflow Orchestration
+
+This chapter describes how workflows are orchestrated in Jakarta Agentic AI, including
+parameter injection, context management, and execution flow control.
+
+=== Workflow Context
+
+The `WorkflowContext` interface represents the execution context for an agent workflow. It stores
+intermediate results and state as the workflow progresses through its phases.
+
+==== WorkflowContext Interface
+
+[source,java]
+----
+package jakarta.ai.agent;
+
+import java.util.Set;
+
+public interface WorkflowContext {
+
+    /**
+     * Store a named attribute in the workflow context.
+     *
+     * @param name the attribute name
+     * @param value the attribute value
+     */
+    void setAttribute(String name, Object value);
+
+    /**
+     * Retrieve a named attribute from the workflow context.
+     *
+     * @param name the attribute name
+     * @return the attribute value, or null if not found
+     */
+    Object getAttribute(String name);
+
+    /**
+     * Remove a named attribute from the workflow context.
+     *
+     * @param name the attribute name
+     */
+    void removeAttribute(String name);
+
+    /**
+     * Get all attribute names in the workflow context.
+     *
+     * @return a set of attribute names
+     */
+    Set<String> getAttributeNames();
+
+    /**
+     * Get the triggering event that started this workflow.
+     *
+     * @return the trigger event object
+     */
+    Object getTriggerEvent();
+}
+----
+
+==== Context Lifecycle
+
+A `WorkflowContext` instance:
+
+- Is created when a trigger method is invoked
+- Persists throughout the workflow execution
+- Stores the trigger event automatically
+- Stores return values from each phase
+- Is discarded when the workflow completes or fails
+
+==== Using WorkflowContext
+
+Methods in any phase can accept a `WorkflowContext` parameter to access shared workflow state:
+
+[source,java]
+----
+@Agent
+public class ContextAwareAgent {
+
+    @Trigger
+    public void onEvent(Event event, WorkflowContext context) {
+        // Store event metadata
+        context.setAttribute("eventTime", System.currentTimeMillis());
+        context.setAttribute("eventType", event.getType());
+    }
+
+    @Decision
+    public boolean shouldProcess(Event event, WorkflowContext context) {
+        long eventTime = (long) context.getAttribute("eventTime");
+        long age = System.currentTimeMillis() - eventTime;
+
+        // Only process recent events
+        return age < 60000; // 60 seconds
+    }
+
+    @Action
+    public void processEvent(Event event, WorkflowContext context) {
+        String eventType = (String) context.getAttribute("eventType");
+        handleEventType(event, eventType);
+    }
+}
+----
+
+=== Parameter Injection
+
+Jakarta Agentic AI provides automatic parameter injection for workflow methods. Parameters
+are resolved based on their type and the current workflow state.
+
+==== Injection Resolution Rules
+
+When a workflow method is invoked, the runtime resolves parameters in the following order:
+
+1. **Trigger Event**: If the parameter type matches the trigger event type
+2. **Previous Phase Results**: If the parameter type matches a stored result
+3. **WorkflowContext**: If the parameter type is `WorkflowContext`
+4. **LargeLanguageModel**: If the parameter type is `LargeLanguageModel`
+5. **CDI Injection**: If the parameter is a CDI bean
+
+=== Error Handling and Recovery
+
+==== Exception Handler Invocation
+
+When an exception occurs in any workflow phase, the runtime searches for a matching
+`@HandleException` method:
+
+[source,java]
+----
+@Agent
+public class ResilientAgent {
+
+    @Trigger
+    public void onEvent(Event event) {
+        if (event == null) {
+            throw new IllegalArgumentException("Event cannot be null");
+        }
+    }
+
+    @Decision
+    public boolean analyze(Event event) {
+        // May throw IOException
+        return analyzeEvent(event);
+    }
+
+    // Handles specific exception type
+    @HandleException
+    public void handleIOException(IOException e, WorkflowContext context) {
+        logger.warn("I/O error, will retry", e);
+        scheduleRetry(context);
+    }
+
+    // Handles any unhandled exception
+    @HandleException
+    public void handleGenericException(Exception e, WorkflowContext context) {
+        logger.error("Unexpected error", e);
+        Object trigger = context.getTriggerEvent();
+        logFailure(trigger, e);
+    }
+}
+----
+
+==== Workflow Termination
+
+Workflows terminate in the following scenarios:
+
+1. **Normal Completion**: Outcome phase completes successfully
+2. **Decision Stops**: Decision phase returns `false` or `null`
+3. **Unhandled Exception**: Exception occurs and no handler is defined
+4. **Handler Exception**: Exception handler itself throws an exception

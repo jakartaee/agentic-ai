@@ -20,10 +20,13 @@ import java.lang.annotation.Target;
 /**
  * Marks a method as a decision point in an agent workflow.
  * <p>
- * Decision methods are invoked at points after the @Trigger phase and 
- * determine how the workflow should proceed. They typically use a
- * {@link LargeLanguageModel} to analyze the workflow state and make
- * intelligent decisions.
+ * Decision methods are optional workflow phases that determine whether and how
+ * the workflow should proceed. Multiple decision methods can be defined and will
+ * execute in declaration order. Decisions can be intermixed with actions to create
+ * conditional branching logic.
+ * <p>
+ * Decision methods typically use a {@link LargeLanguageModel} to analyze the 
+ * workflow state and make intelligent decisions.
  * <p>
  * <b>Parameters</b><br>
  * Decision methods can have the following types of parameters that will

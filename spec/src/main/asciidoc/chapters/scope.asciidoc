@@ -1,0 +1,12 @@
+== Scope
+
+* Defines common usage patterns and life cycles for AI agents on Jakarta EE runtimes.
+* Provides a minimal facade for foundational AI capabilities (e.g., LLMs), with 
+  pluggable access to existing APIs.
+* Mechanism to define agent workflows using a fluent Java API.
+* Integrates with other Jakarta EE APIs (Validation, REST, JSON Binding, Persistence, 
+  Data, Transactions, NoSQL, Concurrency, Security, Messaging).
+* May utilize Jakarta Config and allows implementations to use MicroProfile Config.
+* May provide OpenTelemetry integration.
+* Designed for Jakarta EE runtimes, but potentially usable in Quarkus, Micronaut, 
+  Spring Boot.

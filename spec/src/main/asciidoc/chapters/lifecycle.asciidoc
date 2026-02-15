@@ -1,0 +1,673 @@
+== Agent Lifecycle
+
+This chapter defines the agent lifecycle annotations and their semantics. Each annotation
+marks a method as participating in a specific phase of the agent workflow.
+
+=== @Agent Annotation
+
+The `@Agent` annotation marks a class as an AI agent. Agent classes must be CDI beans and
+follow CDI bean definition rules.
+
+==== Syntax
+
+[source,java]
+----
+@Target(ElementType.TYPE)
+@Retention(RetentionPolicy.RUNTIME)
+public @interface Agent {
+    String name() default "";
+    String description() default "";
+}
+----
+
+==== Semantics
+
+- **Required**: Every agent class must be annotated with `@Agent`
+- **CDI Bean**: The annotated class becomes a CDI managed bean
+- **Scope**: If no scope is specified, `@WorkflowScoped` is the default
+- **Discovery**: Implementations must discover all `@Agent` annotated classes during deployment
+
+==== Scope Combinations
+
+Agents can use one of two scope annotations in combination with `@Agent`:
+
+[source,java]
+----
+// Application-scoped agent (for longer-lived agents across multiple executions)
+@Agent
+@ApplicationScoped
+public class MonitoringAgent {
+}
+
+// Workflow-scoped agent (default, for per-workflow lifecycle)
+@Agent
+@WorkflowScoped
+public class WorkflowAgent {
+}
+
+// If no scope specified, @WorkflowScoped is assumed
+@Agent
+public class DefaultScopedAgent {
+}
+----
+
+==== Workflow Context Lifecycle
+
+Regardless of the scope annotation used, a workflow context is created for each workflow 
+execution. For `@WorkflowScoped` agents, the workflow context's lifecycle is tied to 
+the workflow execution. For `@ApplicationScoped` agents, the agent instance may be 
+reused across multiple workflow executions, but a new workflow context is still 
+created and maintained for each workflow invocation, beginning with a trigger and 
+typically ending with an outcome.
+
+=== @Trigger Annotation
+
+The `@Trigger` annotation marks a method as a workflow trigger. Trigger methods 
+define the entry point for agent workflows and are invoked when triggering 
+events occur.
+
+==== Syntax
+
+[source,java]
+----
+@Target(ElementType.METHOD)
+@Retention(RetentionPolicy.RUNTIME)
+public @interface Trigger {
+}
+----
+
+==== Single Trigger Constraint
+
+Currently, there MUST be only one `@Trigger` method per agent class. This constraint
+will be relaxed in future versions to support multiple entry points.
+
+==== Parameter Injection
+
+Trigger methods can receive the following types of parameters:
+
+* The triggering event (CDI event) - Automatically detected and matched by the runtime
+* `LargeLanguageModel` - LLM instance for trigger analysis
+* CDI injectable dependencies - Any beans available to the agent
+
+==== Return Type Semantics
+
+Trigger methods support two return patterns:
+
+**Void Pattern**:
+- Method returns `void`
+- Trigger performs initialization with side effects only
+- No data is passed to subsequent phases
+
+**Domain Object Pattern**:
+- Method returns a non-void domain object
+- Returned object is automatically injected into subsequent workflow methods
+- Use this pattern to pass trigger analysis or transformation forward
+
+==== Semantics
+
+- **Workflow Initiation**: Marks the method that starts a workflow
+- **Event Reception**: Receives the triggering event as a parameter
+
+==== Trigger Invocation
+
+Currently, triggers can only be invoked by CDI events. The runtime automatically 
+observes CDI events for the trigger method parameter type. The event is added 
+to the workflow context.
+
+In the future, other trigger types may be supported such as Jakarta Messaging 
+messages, manual invocations from a life-cycle API, or REST POST requests.
+
+[source,java]
+----
+// Void return - initialization only
+@Agent
+public class EventDrivenAgent {
+
+    @Trigger
+    public void onCustomEvent(CustomEvent event) {
+        logger.info("Workflow triggered for event: " + event.getId());
+    }
+}
+
+// Domain object return - passes analysis forward
+@Agent
+public class AnalyzingAgent {
+
+    @Trigger
+    public EventAnalysis analyzeEvent(CustomEvent event, LargeLanguageModel llm) {
+        String analysis = llm.query("Classify this event", event);
+        EventAnalysis result = new EventAnalysis();
+        result.setEvent(event);
+        result.setClassification(analysis);
+        return result;
+    }
+}
+----
+
+=== @Decision Annotation
+
+The `@Decision` annotation marks a method that makes a decision about whether 
+and how the workflow should proceed. Decision methods typically use LLM analysis to 
+determine the workflow path.
+
+==== Syntax
+
+[source,java]
+----
+@Target(ElementType.METHOD)
+@Retention(RetentionPolicy.RUNTIME)
+public @interface Decision {
+}
+----
+
+==== Semantics
+
+- **Conditional Execution**: Determines if the workflow proceeds
+- **LLM Integration**: Typically invokes `LargeLanguageModel` for analysis
+- **Return Value Semantics**: The return value controls workflow progression
+
+==== Return Value Semantics
+
+Decision methods support three return patterns:
+
+**Boolean Pattern**:
+- `true`: Proceed with workflow
+- `false`: Terminate workflow
+
+**Result Pattern**:
+- `Result` record with success flag and optional details
+- Success `true`: Proceed with workflow
+- Success `false`: Terminate workflow
+- Details: Available for injection from the workflow context
+
+**Object Pattern**:
+- Non-null object: Proceed with workflow; object available for injection
+- `null`: Terminate workflow
+
+[source,java]
+----
+@Agent
+public class DecisionExamples {
+
+    @Inject
+    private LargeLanguageModel llm;
+
+    // Boolean return pattern
+    @Decision
+    public boolean shouldProcess(Event event) {
+        String analysis = llm.query("Should this event be processed?", event);
+        return analysis.toLowerCase().contains("yes");
+    }
+
+    // Result return pattern
+    @Decision
+    public Result evaluateEvent(Event event) {
+        String analysis = llm.query("Analyze this event", event);
+        boolean shouldProceed = requiresAction(analysis);
+        AnalysisDetails details = shouldProceed ? parseDetails(analysis) : null;
+        return new Result(shouldProceed, details);
+    }
+
+    // Object return pattern
+    @Decision
+    public AnalysisResult analyzeEvent(Event event) {
+        String analysis = llm.query("Analyze this event", event);
+
+        if (requiresAction(analysis)) {
+            return new AnalysisResult(analysis);
+        }
+
+        return null; // Stop workflow
+    }
+}
+----
+
+=== @Action Annotation
+
+The `@Action` annotation marks a method that performs an action as part of the agent workflow.
+Actions execute the agent's primary work based on decisions made earlier in the workflow.
+
+==== Syntax
+
+[source,java]
+----
+@Target(ElementType.METHOD)
+@Retention(RetentionPolicy.RUNTIME)
+public @interface Action {
+}
+----
+
+==== Semantics
+
+- **Execution Phase**: Performs the agent's primary work
+- **Independent Execution**: Can execute with or without prior decision phases
+- **Sequential Processing**: Multiple actions execute in declaration order
+- **Parameter Injection**: Receives workflow state, decision results, LargeLanguageModel
+- **Return Value Control**: Return type determines data flow to subsequent workflow phases
+
+==== Return Value Semantics
+
+Action methods support two return patterns:
+
+**Void Pattern**:
+- Method returns `void`
+- Action performs side effects only (e.g., sending alerts, updating databases)
+- No data is passed to the workflow
+
+**Domain Object Pattern**:
+- Method returns a non-void domain object
+- Returned object can be automatically injected into the subsequent life cycle methods
+- Use this pattern to pass action results forward in the workflow
+
+[source,java]
+----
+@Agent
+public class ActionExamples {
+
+    @Inject
+    private LargeLanguageModel llm;
+
+    // Void return - performs side effects only
+    @Action
+    public void handleFraud(Fraud fraud, BankTransaction transaction) {
+        if (fraud.isSerious()) {
+            alertBankSecurity(fraud);
+        }
+        Customer customer = getCustomer(transaction);
+        alertCustomer(fraud, transaction, customer);
+    }
+
+    // Domain object return - passes result to outcome phase
+    @Action
+    public FraudReport processFraudCase(Fraud fraud, BankTransaction transaction) {
+        FraudReport report = new FraudReport();
+        report.setFraudType(fraud.getType());
+        report.setTransaction(transaction);
+        report.setTimestamp(System.currentTimeMillis());
+        persistReport(report);
+        return report;
+    }
+
+    // Later phases receive the action result
+    @Outcome
+    public void recordOutcome(FraudReport report, WorkflowContext context) {
+        context.setAttribute("report", report);
+        auditLog("Fraud case processed: " + report.getId());
+    }
+}
+----
+
+==== Multiple Actions
+
+An agent MAY define multiple `@Action` methods. When multiple action methods are present:
+
+- The execution order is implementation-defined
+- Implementations MUST complete all actions before proceeding to the outcome phase
+- Applications SHOULD NOT rely on a specific execution order between actions
+
+==== Transactional Actions
+
+Actions may be transactional using Jakarta Transactions:
+
+[source,java]
+----
+@Agent
+public class TransactionalAgent {
+
+    @Action
+    @Transactional
+    public void updateRecords(UpdatePlan plan) {
+        // This action runs in a transaction
+        database.updateRecords(plan.getRecords());
+    }
+}
+----
+
+=== @Outcome Annotation
+
+The `@Outcome` annotation marks a method that produces the final result of the workflow.
+Outcome methods are invoked after actions complete successfully.
+
+==== Syntax
+
+[source,java]
+----
+@Target(ElementType.METHOD)
+@Retention(RetentionPolicy.RUNTIME)
+public @interface Outcome {
+}
+----
+
+==== Single Outcome Constraint
+
+Currently, there MUST be only one `@Outcome` method per agent class. This constraint may be relaxed in future versions to support more complex dynamic workflows.
+
+==== Parameter Injection
+
+Outcome methods can receive the following types of parameters:
+
+* Workflow state domain objects - Any objects from previous workflow phases (trigger events, decision results, action results)
+* `WorkflowContext` - For state management and accessing stored attributes
+* `LargeLanguageModel` - For analysis, summarization, or content generation based on workflow results
+* CDI injectable dependencies - Any beans available to the agent
+
+==== Return Type
+
+Outcome methods MUST return `void`. The outcome phase is designed for finalization and side effects rather than producing data for further processing. In future versions, return types may be supported for downstream system integration.
+
+==== Semantics
+
+- **Finalization**: Produces the final workflow result and handles completion logic
+- **Workflow Completion**: Marks the end of successful workflow execution
+- **Context Destruction**: The workflow context is destroyed by the container after outcome completion
+- **Single Instance**: Currently, exactly one outcome method per agent
+
+=== @HandleException Annotation
+
+The `@HandleException` annotation marks a method that handles exceptions occurring during
+workflow execution. Exception handlers provide agent-specific error recovery.
+
+==== Syntax
+
+[source,java]
+----
+@Target(ElementType.METHOD)
+@Retention(RetentionPolicy.RUNTIME)
+public @interface HandleException {
+}
+----
+
+==== Workflow Control
+
+Exception handlers control workflow continuation through their completion behavior:
+
+* **To continue workflow:** Handler completes successfully (returns normally)
+* **To stop workflow:** Handler re-throws the exception or throws a new exception
+
+==== Parameter Injection
+
+Exception handler methods can receive the following types of parameters:
+
+* Exception parameter (required) - The thrown exception or its supertype
+* Workflow state domain objects - Any objects from previous workflow phases (trigger event, decision results, action results)
+* `WorkflowContext` - Current workflow context for state management
+* `LargeLanguageModel` - For error analysis or diagnostics
+* CDI injectable dependencies - Any beans available to the agent
+
+==== Return Type
+
+Exception handler methods MUST return `void`. Handlers are designed for error recovery,
+logging, and cleanup rather than producing workflow data.
+
+==== Semantics
+
+- **Error Recovery**: Provides agent-specific exception handling
+- **Any Phase**: Invoked when exceptions occur in any workflow phase (trigger, decision, action, outcome)
+- **Exception Matching**: Most specific exception type match is selected (follows Java exception hierarchy)
+- **Workflow Continues**: If handler returns normally (successful recovery)
+- **Workflow Stops**: If handler throws an exception (re-throw or new exception)
+- **Fallback**: If no handler is defined, exceptions propagate to the container
+- **No Recursion**: Handler exceptions propagate to container (no recursive handling)
+
+==== Exception Handler Examples
+
+[source,java]
+----
+@Agent
+public class ExceptionHandlingExamples {
+
+    // Recoverable error - returns normally, workflow continues
+    @HandleException
+    public void handleRecoverable(IOException ex, BankTransaction transaction) {
+        logger.warn("I/O error, retrying: " + transaction.getId(), ex);
+        retryQueue.add(transaction);
+        // Returns normally - workflow continues
+    }
+
+    // Fatal error - re-throws, workflow stops
+    @HandleException
+    public void handleFatal(SecurityException ex, WorkflowContext context) {
+        logger.error("Security violation", ex);
+        auditService.logSecurityBreach(context.getTriggerEvent());
+        throw ex; // Re-throw - workflow stops
+    }
+
+    // Conditional recovery
+    @HandleException
+    public void handleWithFallback(Exception ex, WorkflowContext context) {
+        if (isRecoverable(ex)) {
+            performRecovery(context);
+            // Returns normally - workflow continues
+        } else {
+            throw new WorkflowFailureException("Unrecoverable", ex);
+            // Workflow stops
+        }
+    }
+
+    // Multiple handlers for different exception types
+    @HandleException
+    public void handleIOException(IOException ex, WorkflowContext context) {
+        logger.error("I/O error", ex);
+        retryOperation(context);
+    }
+}
+----
+
+=== Workflow Flexibility Patterns
+
+Jakarta Agentic AI supports flexible workflow composition. Agents are not constrained to a 
+rigid template and can define workflows tailored to their specific requirements.
+
+==== Required vs Optional Phases
+
+Only the `@Trigger` phase is required. All other phases are optional:
+
+- **@Trigger**: Required - exactly one per agent
+- **@Decision**: Optional - zero or more per agent
+- **@Action**: Optional - zero or more per agent
+- **@Outcome**: Optional - zero or one per agent
+- **@HandleException**: Optional - zero or more per agent
+
+==== Common Workflow Patterns
+
+**Minimal Agent - Trigger + Action**:
+
+Simple agents can execute actions directly without decisions or outcomes.
+
+[source,java]
+----
+@Agent
+public class SimpleNotificationAgent {
+
+    @Trigger
+    public void onAlert(SystemAlert alert) {
+        // Receive alert
+    }
+
+    @Action
+    public void sendNotification(SystemAlert alert) {
+        emailService.notifyAdmins(alert);
+        // No decision or outcome needed
+    }
+}
+----
+
+**Sequential Actions**:
+
+Multiple actions can execute in sequence without intervening decisions.
+
+[source,java]
+----
+@Agent
+public class DataProcessingAgent {
+
+    @Trigger
+    public void onDataReceived(DataBatch data) { }
+
+    @Action
+    public void validateData(DataBatch data) {
+        validator.check(data);
+    }
+
+    @Action
+    public void transformData(DataBatch data) {
+        transformer.process(data);
+    }
+
+    @Action
+    public void persistData(DataBatch data) {
+        database.save(data);
+    }
+}
+----
+
+**Intermixed Decisions and Actions**:
+
+Decisions and actions can be intermixed to create conditional branching workflows.
+
+[source,java]
+----
+@Agent
+public class ConditionalProcessingAgent {
+
+    @Inject
+    private LargeLanguageModel llm;
+
+    @Trigger
+    public void onRequest(ProcessingRequest request) { }
+
+    @Decision
+    public boolean needsPreprocessing(ProcessingRequest request) {
+        String analysis = llm.query("Does this require preprocessing?", request);
+        return analysis.contains("yes");
+    }
+
+    @Action
+    public void preprocessData(ProcessingRequest request) {
+        // Only executes if previous decision returned true
+        preprocessor.prepare(request);
+    }
+
+    @Decision
+    public boolean isValidAfterPreprocessing(ProcessingRequest request) {
+        return validator.check(request);
+    }
+
+    @Action
+    public void processData(ProcessingRequest request) {
+        // Only executes if previous decision returned true
+        processor.execute(request);
+    }
+
+    @Outcome
+    public void finalizeProcessing(ProcessingRequest request) {
+        auditLog.record(request);
+    }
+}
+----
+
+**Decision-Only Agent**:
+
+Agents can make decisions without executing actions, useful for routing or classification.
+
+[source,java]
+----
+@Agent
+public class ClassificationAgent {
+
+    @Inject
+    private LargeLanguageModel llm;
+
+    @Trigger
+    public void onDocument(Document doc) { }
+
+    @Decision
+    public DocumentCategory classifyDocument(Document doc) {
+        String category = llm.query("Classify this document", doc);
+        return new DocumentCategory(category);
+    }
+
+    @Outcome
+    public void recordClassification(DocumentCategory category) {
+        categoryDatabase.save(category);
+    }
+}
+----
+
+**Complex Multi-Stage Workflow**:
+
+Real-world agents can combine multiple decisions and actions in sophisticated patterns.
+
+[source,java]
+----
+@Agent
+public class ContentModerationAgent {
+
+    @Inject
+    private LargeLanguageModel llm;
+
+    @Trigger
+    public void onContentSubmitted(Content content) { }
+
+    @Decision
+    public boolean containsSensitiveContent(Content content) {
+        String analysis = llm.query("Does this contain sensitive content?", content);
+        return analysis.contains("yes");
+    }
+
+    @Action
+    public void flagForReview(Content content) {
+        reviewQueue.add(content);
+    }
+
+    @Decision
+    public boolean requiresAutoModeration(Content content) {
+        String severity = llm.query("Rate severity: low, medium, high", content);
+        return severity.contains("high");
+    }
+
+    @Action
+    public void applyAutoModeration(Content content) {
+        content.setStatus(Status.REMOVED);
+        database.update(content);
+    }
+
+    @Action
+    public void notifyUser(Content content) {
+        notificationService.send(content.getAuthor(), "Content moderated");
+    }
+
+    @Outcome
+    public void recordModerationAction(Content content) {
+        auditLog.record(content, "moderation_complete");
+    }
+}
+----
+
+==== Execution Order
+
+Workflow methods execute in **declaration order** within the source file. The runtime 
+invokes methods in the sequence they appear in the class, respecting decision-based 
+termination:
+
+1. Trigger method executes first
+2. Subsequent @Decision and @Action methods execute in declaration order
+3. If any @Decision returns `false` or `null`, the workflow terminates immediately
+4. Outcome method executes last (if present and workflow hasn't terminated)
+5. Exception handlers execute when exceptions occur in any phase
+
+=== Lifecycle Execution Order
+
+The workflow execution order is:
+
+1. **Trigger phase**: Trigger method is invoked
+2. **Decision phase**: Decision method(s) are invoked
+3. **Conditional execution**:
+   - If decision returns true/non-null:
+     a. **Action phase**: Action method(s) are invoked
+     b. **Outcome phase**: Outcome method is invoked
+   - If decision returns false/null:
+     - Workflow terminates (action and outcome phases are skipped)
+4. **Exception handling**: If an exception occurs at any point:
+   - HandleException method is invoked (if defined)
+   - Otherwise, exception propagates to the container
