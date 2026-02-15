@@ -4,8 +4,8 @@ include::chapters/intro.asciidoc[]
 
 Jakarta Agentic AI provides vendor-neutral APIs for building, deploying, and running AI
 agents on Jakarta EE runtimes. The specification aims to standardize agent life cycles,
-workflows, and integration with foundational AI technologies such as LLMs,
-while remaining extensible and minimal for the initial release.
+workflows, and integration with foundational AI technologies such as LLMs, while 
+remaining extensible and minimal for the initial release.
 
 Jakarta Agentic AI provides a standardized, portable API that integrates with existing
 Jakarta EE technologies, allowing AI agent capabilities to be added to enterprise 
@@ -37,74 +37,78 @@ standardized their respective domains.
 
 The primary goals of Jakarta Agentic AI are:
 
-**Annotation-driven agent development**:: Define agent workflows using familiar 
+**Annotation-driven agent development**:: Define agent workflows using familiar
 Jakarta EE annotations, making it simple to mark methods as triggers, decisions, 
 actions, and outcomes.
 
 **CDI integration**:: Agents are CDI beans with full support for dependency injection,
-interceptors, and scoping. Agents can use `@WorkflowScoped` (default) or 
+interceptors, and scoping. Agents can use `@WorkflowScoped` (default) or
 `@ApplicationScoped` scope annotations.
 
-**LLM abstraction**:: Provide a lightweight facade for accessing Large Language Models 
+ **LLM abstraction**:: Provide a lightweight facade for accessing Large Language Models
 without standardizing the LLM APIs themselves. This allows vendors to plug in different
 LLM backends while giving applications a consistent interface.
 
-**Workflow orchestration**:: Enable declarative workflows where the runtime manages 
-execution flow between agent lifecycle phases. Workflows begin with a trigger and may 
+**Workflow orchestration**:: Enable declarative workflows where the runtime manages
+execution flow between agent lifecycle phases. Workflows begin with a trigger and may
 include any combination of decisions and actions, optionally ending with an outcome.
 
 **Vendor neutrality**:: Allow implementations across Jakarta EE compatible products and
 potentially other CDI-based runtimes.
 
 **Jakarta EE alignment**:: Follow Jakarta EE patterns and conventions, ensuring 
-consistency with specifications like Jakarta Persistence, Jakarta REST, and Jakarta 
+consistency with specifications like Jakarta Persistence, Jakarta REST, and Jakarta
 Batch.
 
 === Non-goals
 
 The following are explicitly outside the scope of this specification:
 
-**Standardizing LLM APIs**:: Jakarta Agentic AI provides a facade interface for 
+**Standardizing LLM APIs**:: Jakarta Agentic AI provides a facade interface for
 accessing LLMs but does not standardize the underlying LLM APIs. LLM provider APIs 
-vary significantly and evolve rapidly, making standardization impractical for this 
-initial release. In the future, it is possible there is a need for a separate Jakarta
-EE LLM API.
+vary significantly and evolve rapidly, making standardization impractical for this
+initial release. In the future, it is possible there is a need for a separate
+Jakarta EE LLM API.
 
-**Machine learning frameworks**:: This specification focuses on agent orchestration 
-and lifecycle management, not ML framework standardization.
+**Machine learning frameworks**:: This specification focuses on agent
+orchestration and lifecycle management, not ML framework standardization.
 
 **Specific LLM models**:: The specification is model-agnostic. Model selection and
 configuration are runtime and deployment concerns.
 
-**Agent communication protocols**:: Multi-agent communication and coordination patterns
-are deferred to future releases.
+**Agent communication protocols**:: Multi-agent communication and coordination
+patterns are deferred to future releases.
 
 **Training and fine-tuning**:: Model training, fine-tuning, and ML model lifecycle 
 management are outside the scope of agent orchestration.
 
 === Terminology
 
-**Agent**:: An autonomous component that responds to events and orchestrates workflows 
-through flexible combinations of decisions and actions.
+**Agent**:: An autonomous component that responds to events and orchestrates
+workflows through flexible combinations of decisions and actions.
 
-**Trigger**:: An event or condition that initiates an agent workflow. Required for every agent.
+**Trigger**:: An event or condition that initiates an agent workflow. Required
+for every agent.
 
-**Decision**:: An optional determination point where the agent decides whether and how to 
-proceed, typically using an LLM. Workflows can have zero, one, or multiple decisions.
+**Decision**:: An optional determination point where the agent decides whether
+and how to proceed, typically using an LLM. Workflows can have zero, one, or 
+multiple decisions.
 
-**Action**:: An optional operation performed by the agent. Workflows can have zero, one, or 
-multiple actions, and actions can be intermixed with decisions.
+**Action**:: An optional operation performed by the agent. Workflows can have
+zero, one, or multiple actions, and actions can be intermixed with decisions.
 
-**Outcome**:: An optional finalization phase that produces the final result of the workflow.
+**Outcome**:: An optional finalization phase that produces the final result
+of the workflow.
 
-**Workflow**:: A flexible execution sequence starting with a trigger, followed by any 
-combination of decisions and actions in declaration order, optionally ending with an outcome.
+**Workflow**:: A flexible execution sequence starting with a trigger, followed 
+by any combination of decisions and actions in declaration order, optionally 
+ending with an outcome.
 
-**Workflow Context**:: An underlying context object that maintains state throughout 
-a workflow execution.
+**Workflow Context**:: An underlying context object that maintains state
+throughout a workflow execution.
 
-**LLM Facade**:: The `LargeLanguageModel` interface that provides access to Large 
-Language Model capabilities.
+**LLM Facade**:: The `LargeLanguageModel` interface that provides access to
+Large Language Model capabilities.
 
 include::chapters/scope.asciidoc[]
 
