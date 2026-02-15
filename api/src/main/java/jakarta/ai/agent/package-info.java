@@ -50,15 +50,16 @@
  *
  * <h2>Workflow Execution Model</h2>
  *
- * <p>An agent workflow is flexible and begins with a required trigger, followed by
- * any combination of optional decision and action phases. Workflows support simple 
- * linear execution or complex conditional branching patterns.
+ * <p>An agent workflow is flexible and begins with a required trigger,
+ * followed by any combination of optional decision and action phases.
+ * Workflows support simple linear execution currently, with potential for
+ * more complex dynamic conditional branching in future versions.
  *
  * <h3>Workflow Phases</h3>
  * <ol>
  *   <li><strong>Trigger Phase (required)</strong> - Exactly one 
  *       {@link jakarta.ai.agent.Trigger @Trigger} method is invoked when
- *       a CDI event matching its parameters is fired. This initiates the 
+ *       a CDI event matching its parameters is fired. This initiates the
  *       workflow.
  *       Triggers support two return patterns:
  *       <ul>
@@ -101,12 +102,14 @@
  * </ol>
  *
  * <h3>Flexible Composition</h3>
- * <p>Decisions and actions can be intermixed in any sequence, allowing patterns such as:
+ * <p>Decisions and actions can be intermixed in any sequence, allowing
+ * patterns such as:
  * <ul>
  *   <li>Trigger + Action (simple execution without decisions)</li>
  *   <li>Trigger + multiple Actions (sequential processing)</li>
  *   <li>Trigger + Decision + Action (conditional execution)</li>
- *   <li>Trigger + Decision + Action + Decision + Action (complex branching)</li>
+ *   <li>Trigger + Decision + Action + Decision + Action
+ *   (complex branching)</li>
  * </ul>
  * <p>Methods execute in declaration order within the source file.
  *
@@ -161,8 +164,8 @@
  *
  * <h2>Large Language Model Integration</h2>
  *
- * <p>The {@link jakarta.ai.agent.LargeLanguageModel} interface provides 
- * a minimal, type-converting facade for LLM operations. Implementations 
+ * <p>The {@link jakarta.ai.agent.LargeLanguageModel} interface provides
+ * a minimal, type-converting facade for LLM operations. Implementations
  * can support:
  *
  * <ul>
@@ -186,7 +189,8 @@
  *
  * <h2>Parameter Injection</h2>
  *
- * <p>Workflow methods automatically receive parameters based on type resolution:
+ * <p>Workflow methods automatically receive parameters based on type
+ * resolution:
  *
  * <ul>
  *   <li>Trigger event objects - From the workflow trigger</li>
@@ -195,7 +199,8 @@
  *   <li>Action results - Objects returned from
  *       {@link jakarta.ai.agent.Action @Action} methods</li>
  *   <li>{@link jakarta.ai.agent.LargeLanguageModel} - Injected LLM facade</li>
- *   <li>Any CDI injectable dependencies - Standard Jakarta EE beans and resources</li>
+ *   <li>Any CDI injectable dependencies - Standard Jakarta EE beans and
+ *       resources</li>
  * </ul>
  *
  * @see jakarta.ai.agent.Agent
