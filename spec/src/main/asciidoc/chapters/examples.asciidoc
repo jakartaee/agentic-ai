@@ -1,0 +1,282 @@
+== Examples
+
+This chapter provides complete examples demonstrating common agent patterns and use cases.
+
+=== Simple Fraud Detection Agent
+
+A basic agent that detects fraudulent transactions:
+
+[source,java]
+----
+@Agent(name="FraudDetection", description="Detects bank fraud transactions.")
+public class FraudDetectionAgent {
+
+    @Inject
+    private LargeLanguageModel model;
+
+    @Inject
+    private EntityManager entityManager;
+
+    @Inject
+    private AlertService alertService;
+
+    @Trigger
+    public void processTransaction(@Valid BankTransaction transaction) {
+        logger.info("Processing transaction: " + transaction.getId());
+    }
+
+    @Decision
+    public Result checkFraud(BankTransaction transaction) {
+        String prompt = String.format(
+            """
+            Analyze this transaction for fraud:
+            Amount: $%.2f
+            Merchant: %s
+            Location: %s
+
+            Respond with JSON: {"isFraud": true/false, "confidence": 0.0-1.0, "reason": "..."}
+            """,
+            transaction.getAmount(),
+            transaction.getMerchant(),
+            transaction.getLocation()
+        );
+
+        String output = model.query(prompt, transaction);
+        boolean fraud = isFraud(output);
+        Fraud details = fraud ? getFraudDetails(output) : null;
+        return new Result(fraud, details);
+    }
+
+    @Action
+    public void handleFraud(Fraud fraud, BankTransaction transaction) {
+        if (fraud.isSerious()) {
+            alertService.alertBankSecurity(fraud);
+        }
+        Customer customer = getCustomer(transaction);
+        alertService.alertCustomer(fraud, transaction, customer);
+    }
+
+    @Outcome
+    public void finalizeTransaction(BankTransaction transaction, Fraud fraud) {
+        transaction.setStatus(TransactionStatus.SUSPECT);
+        entityManager.merge(transaction);
+        logger.info("Transaction marked as suspect: " + transaction.getId());
+    }
+
+    @HandleException
+    public void handleError(Exception e, BankTransaction transaction) {
+        logger.error("Fraud detection failed for transaction: " + transaction.getId(), e);
+        // Flag for manual review when detection fails
+        transaction.setStatus(TransactionStatus.NEEDS_REVIEW);
+        entityManager.merge(transaction);
+    }
+}
+----
+
+=== Documentation Generation Agent
+
+An agent that monitors pull requests and generates documentation:
+
+[source,java]
+----
+@Agent
+@ApplicationScoped
+public class DocumentationAgent {
+
+    @Inject
+    private LargeLanguageModel llm;
+
+    @Inject
+    private GitService gitService;
+
+    @Trigger
+    public void onPullRequest(PullRequestEvent prEvent) {
+        logger.info("Processing PR #" + prEvent.getNumber());
+    }
+
+    @Decision
+    public DocumentationPlan shouldGenerateDocs(PullRequestEvent prEvent) {
+        PullRequest pr = prEvent.getPullRequest();
+
+        String prompt = String.format(
+            """
+            Analyze this pull request and determine if documentation is needed.
+
+            Title: %s
+            Description: %s
+            Changed Files: %s
+
+            Respond with JSON:
+            {"needsDocumentation": true/false, "suggestedFiles": ["file1.md"]}
+            """,
+            pr.getTitle(),
+            pr.getDescription(),
+            String.join(", ", pr.getChangedFiles())
+        );
+
+        String response = llm.query(prompt, pr);
+        DocumentationPlan plan = parseResponse(response);
+
+        if (!plan.needsDocumentation()) {
+            logger.info("No documentation needed for PR #" + pr.getNumber());
+            return null; // Stop workflow
+        }
+
+        return plan;
+    }
+
+    @Action
+    public DocumentationFiles generateDocumentation(
+        PullRequestEvent prEvent,
+        DocumentationPlan plan
+    ) {
+        PullRequest pr = prEvent.getPullRequest();
+        DocumentationFiles files = new DocumentationFiles();
+
+        for (String filename : plan.getSuggestedFiles()) {
+            String content = llm.query(
+                "Generate documentation for: " + filename,
+                pr.getDiff()
+            );
+            files.addFile(filename, content);
+        }
+
+        return files;
+    }
+
+    @Outcome
+    public void createDocumentationPR(
+        PullRequestEvent originalPr,
+        DocumentationFiles files
+    ) {
+        String branchName = "docs/pr-" + originalPr.getNumber();
+        gitService.createBranch(branchName);
+        gitService.commitFiles(branchName, files);
+
+        PullRequest docPr = gitService.createPullRequest(
+            branchName,
+            "main",
+            "Documentation for PR #" + originalPr.getNumber()
+        );
+
+        logger.info("Created documentation PR #" + docPr.getNumber());
+    }
+
+    @HandleException
+    public void handleError(Exception e, PullRequestEvent prEvent) {
+        logger.error("Failed to generate documentation for PR #" +
+            prEvent.getNumber(), e);
+
+        gitService.addComment(
+            prEvent.getNumber(),
+            "Failed to generate documentation automatically. Error: " + e.getMessage()
+        );
+    }
+}
+----
+
+=== Customer Support Agent
+
+A support agent that handles customer inquiries:
+
+[source,java]
+----
+@Agent
+@ApplicationScoped
+public class CustomerSupportAgent {
+
+    @Inject
+    private LargeLanguageModel llm;
+
+    @Inject
+    private KnowledgeBaseService knowledgeBase;
+
+    @Inject
+    private TicketService ticketService;
+
+    private List<Message> conversationHistory = new ArrayList<>();
+    private Customer customer;
+
+    @Trigger
+    public void onCustomerMessage(CustomerMessage message) {
+        conversationHistory.add(message);
+
+        if (customer == null) {
+            customer = customerService.getCustomer(message.getCustomerId());
+        }
+    }
+
+    @Decision
+    public SupportResponse generateResponse(CustomerMessage message) {
+        String context = conversationHistory.stream()
+            .map(m -> m.getSender() + ": " + m.getText())
+            .collect(Collectors.joining("\n"));
+
+        List<KnowledgeArticle> articles = knowledgeBase.search(message.getText(), 5);
+
+        String prompt = String.format(
+            """
+            You are a helpful customer support agent.
+
+            Customer: %s
+            Conversation History:
+            %s
+
+            Relevant Knowledge Base Articles:
+            %s
+
+            Customer's Latest Message: %s
+
+            Provide a helpful response. Respond with JSON:
+            {"response": "...", "canResolve": true/false, "needsEscalation": true/false}
+            """,
+            customer.getName(),
+            context,
+            articles.stream().map(a -> a.getSummary()).collect(Collectors.joining("\n")),
+            message.getText()
+        );
+
+        String llmResponse = llm.query(prompt, message);
+        return parseResponse(llmResponse);
+    }
+
+    @Action
+    public void sendResponse(SupportResponse response) {
+        messagingService.sendToCustomer(customer.getId(), response.getResponse());
+    }
+
+    @Outcome
+    public void finalizeInteraction(SupportResponse response) {
+        if (response.needsEscalation()) {
+            ticketService.escalate(customer.getId(), "Agent unable to resolve");
+            messagingService.sendToCustomer(
+                customer.getId(),
+                "I've escalated your issue to a specialist."
+            );
+        }
+    }
+
+    @HandleException
+    public void handleError(Exception e, CustomerMessage message) {
+        logger.error("Support agent error", e);
+        messagingService.sendToCustomer(
+            customer.getId(),
+            "I apologize, a human agent will assist you shortly."
+        );
+        ticketService.escalate(customer.getId(), "Agent system error");
+    }
+}
+----
+
+=== Key Patterns Demonstrated
+
+These examples demonstrate:
+
+1. **Different Scopes**: `@WorkflowScoped`, `@ApplicationScoped`
+2. **LLM Integration**: Using `LargeLanguageModel` for intelligent decisions
+3. **Conditional Workflows**: Decisions that stop or continue workflows
+4. **Multiple Actions**: Parallel action execution
+5. **Error Handling**: Graceful degradation and fallback strategies
+6. **CDI Integration**: Dependency injection, transactions
+7. **Context Management**: Maintaining state across workflow phases
+8. **Real-world Use Cases**: Fraud detection, documentation generation, customer support

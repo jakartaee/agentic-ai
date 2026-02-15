@@ -20,11 +20,13 @@ import java.lang.annotation.Target;
 /**
  * Marks a method as the outcome of an agent workflow.
  * <p>
- * Outcome methods denote the completion of the agent's workflow and produce
+ * Outcome methods are optional workflow phases that denote completion and produce
  * final results, side effects, or state management. The outcome phase executes
- * after action methods have completed successfully, providing an opportunity
+ * after other workflow phases have completed successfully, providing an opportunity
  * to finalize workflow results, audit operations, trigger downstream processes,
  * or clean up resources.
+ * <p>
+ * Workflows can omit the outcome phase if finalization is not needed.
  * <p>
  * There can currently be only one {@code @Outcome} method per agent class.
  * This will likely be relaxed in future versions to adapt to more complex 
@@ -50,8 +52,8 @@ import java.lang.annotation.Target;
  *
  * <p><b>Semantics</b>
  * <ul>
- *   <li>Outcome methods execute after all {@link Action @Action} methods 
- *       complete</li>
+ *   <li>Outcome methods execute after preceding workflow phases complete</li>
+ *   <li>Optional - agents can omit outcome if finalization is not needed</li>
  *   <li>Marks the end of successful workflow execution</li>
  *   <li>The current workflow context will be destroyed by the container
  *       after outcome completion</li>

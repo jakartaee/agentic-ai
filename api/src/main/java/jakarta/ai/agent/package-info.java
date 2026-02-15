@@ -50,10 +50,13 @@
  *
  * <h2>Workflow Execution Model</h2>
  *
- * <p>An agent workflow follows a structured lifecycle:
+ * <p>An agent workflow is flexible and begins with a required trigger, followed by
+ * any combination of optional decision and action phases. Workflows support simple 
+ * linear execution or complex conditional branching patterns.
  *
+ * <h3>Workflow Phases</h3>
  * <ol>
- *   <li><strong>Trigger Phase</strong> - A single 
+ *   <li><strong>Trigger Phase (required)</strong> - Exactly one 
  *       {@link jakarta.ai.agent.Trigger @Trigger} method is invoked when
  *       a CDI event matching its parameters is fired. This initiates the 
  *       workflow.
@@ -64,7 +67,7 @@
  *             subsequent phases</li>
  *       </ul>
  *   </li>
- *   <li><strong>Decision Phase</strong> - 
+ *   <li><strong>Decision Phases (optional)</strong> - Zero or more
  *       {@link jakarta.ai.agent.Decision @Decision} methods
  *       analyze the workflow state and determine whether to proceed. 
  *       They support three return patterns:
@@ -76,25 +79,36 @@
  *             null to terminate</li>
  *       </ul>
  *   </li>
- *   <li><strong>Action Phase</strong> - 
- *       {@link jakarta.ai.agent.Action @Action} methods execute the primary 
- *       work based on decisions made in the decision phase.
+ *   <li><strong>Action Phases (optional)</strong> - Zero or more
+ *       {@link jakarta.ai.agent.Action @Action} methods execute operations
+ *       as part of the workflow. Actions can execute independently or based
+ *       on prior decisions.
  *       Actions support two return patterns:
  *       <ul>
  *         <li>void - Performs side effects only (e.g., alerts, database updates)</li>
  *         <li>Domain Object - Returns an object available for injection 
- *             in the subsequent workflow methods</li>
+ *             in subsequent workflow methods</li>
  *       </ul>
  *   </li>
- *   <li><strong>Outcome Phase</strong> - A single 
+ *   <li><strong>Outcome Phase (optional)</strong> - Zero or one 
  *       {@link jakarta.ai.agent.Outcome @Outcome} method handles finalization, 
  *       state persistence, and downstream notifications. Must return void.</li>
- *   <li><strong>Exception Handling</strong> - 
+ *   <li><strong>Exception Handling (optional)</strong> - Zero or more
  *       {@link jakarta.ai.agent.HandleException @HandleException}
  *       methods handle exceptions throughout the workflow lifecycle. Handler 
  *       returns normally to continue workflow (after recovery), or re-throws 
  *       exception to stop workflow.</li>
  * </ol>
+ *
+ * <h3>Flexible Composition</h3>
+ * <p>Decisions and actions can be intermixed in any sequence, allowing patterns such as:
+ * <ul>
+ *   <li>Trigger + Action (simple execution without decisions)</li>
+ *   <li>Trigger + multiple Actions (sequential processing)</li>
+ *   <li>Trigger + Decision + Action (conditional execution)</li>
+ *   <li>Trigger + Decision + Action + Decision + Action (complex branching)</li>
+ * </ul>
+ * <p>Methods execute in declaration order within the source file.
  *
  * <h2>Usage Example</h2>
  *

@@ -21,10 +21,14 @@ import java.lang.annotation.Target;
  * Marks a method as an action in an agent workflow.
  * <p>
  * Actions perform operations as part of the agent's workflow execution.
- * They usually execute after decision methods determine the workflow should 
- * proceed, and receive the results from decision phases. Actions typically 
- * perform the primary work of the agent, such as persisting data, calling 
- * external services, or updating system state.
+ * Actions can execute independently or based on prior decision outcomes,
+ * allowing both simple sequential processing and complex conditional 
+ * workflows. Actions typically perform the primary work of the agent, such 
+ * as persisting data, calling external services, or updating system state.
+ * <p>
+ * Multiple action methods can be defined in a single agent, executing in 
+ * declaration order. Actions and decisions can be intermixed to create 
+ * sophisticated branching logic.
  * <p>
  * <b>Parameters</b><br>
  * Action methods can have the following types of parameters that will be

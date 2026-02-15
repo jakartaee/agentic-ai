@@ -1,0 +1,176 @@
+== Architecture
+
+This chapter provides an architectural overview of Jakarta Agentic AI, describing 
+how agents are structured, how they integrate with Jakarta EE, and the key design 
+patterns.
+
+=== Agent Architecture
+
+An agent in Jakarta Agentic AI is a CDI bean that orchestrates a flexible workflow. 
+Workflows always begin with a trigger and may include any combination of the following phases:
+
+1. **Trigger Phase** (required): Detects an event or condition that initiates the workflow
+2. **Decision Phases** (optional): Analyze workflow state and determine whether to proceed
+3. **Action Phases** (optional): Execute operations as part of the workflow
+4. **Outcome Phase** (optional): Produces the final result of the workflow
+
+**Phase Flexibility**: Decisions and actions can be intermixed in any sequence, allowing 
+agents to implement simple linear workflows or complex conditional branching patterns.
+
+Additionally, agents may define:
+
+- **Exception Handling**: Methods to handle errors that occur during workflow execution
+
+==== Agent as CDI Bean
+
+Every agent is a CDI bean annotated with `@Agent`. This design provides:
+
+- **Dependency Injection**: Agents can inject other CDI beans, Jakarta EE resources, and services
+- **Interceptors**: Standard CDI interceptors can be applied to agent methods
+- **Scoping**: Agents can be `@WorkflowScoped` or `@ApplicationScoped` 
+- **Events**: Agents observe CDI events
+- **Lifecycle Management**: CDI manages agent instantiation and destruction
+
+[source,java]
+----
+@Agent
+@ApplicationScoped
+public class MonitoringAgent {
+
+    @Inject
+    private LargeLanguageModel llm;
+
+    @Inject
+    private EventLogger logger;
+
+    @Trigger
+    public void onSystemAlert(Alert alert) {
+        // Triggered by external event
+    }
+
+    @Decision
+    public boolean shouldEscalate(Alert alert) {
+        // Use LLM to decide if escalation is needed
+        String analysis = llm.query("Should this alert be escalated?", alert);
+        return analysis.toLowerCase().contains("yes");
+    }
+
+    @Action
+    public void escalateAlert(Alert alert) {
+        // Execute escalation action
+        logger.logEscalation(alert);
+    }
+}
+----
+
+=== Workflow Model
+
+The workflow model in Jakarta Agentic AI is declarative and dynamic. Rather than explicitly
+programming control flow, developers annotate methods to mark their role in the workflow,
+and the runtime orchestrates execution.
+
+==== Workflow Execution Flow
+
+Workflows are flexible and can be tailored to agent requirements:
+
+1. **Event Occurs**: An external event triggers the workflow
+2. **Trigger Invoked**: The `@Trigger` method is called with the event (required)
+3. **Decision/Action Phases**: Zero or more `@Decision` and `@Action` methods execute in declaration order
+   - **Decisions** evaluate whether to proceed:
+     * If decision returns `true` or non-null object: workflow continues
+     * If decision returns `false` or `null`: workflow terminates
+   - **Actions** perform operations and can execute with or without prior decisions
+   - **Intermixing**: Decisions and actions can be intermixed in any sequence
+4. **Outcome Invoked**: The `@Outcome` method produces the final result (optional)
+
+At any point, if an exception occurs, the `@HandleException` method is invoked if defined.
+
+**Phase Requirements**:
+- `@Trigger`: Required (exactly one per agent)
+- `@Decision`: Optional (zero or more per agent)
+- `@Action`: Optional (zero or more per agent)
+- `@Outcome`: Optional (zero or one per agent)
+
+=== Integration with Jakarta EE
+
+Jakarta Agentic AI is designed to integrate seamlessly with the Jakarta EE ecosystem:
+
+==== CDI Integration
+
+Agents are CDI beans and thus integrate with:
+
+- **CDI Events**: Agents can observe CDI events as triggers
+- **Interceptors**: Security, transactions, and custom interceptors apply to agent methods
+- **Producers**: Agent dependencies can come from CDI producers
+- **Qualifiers**: Agents can use qualifiers to select specific implementations
+
+==== Scope Integration
+
+Agents support two scopes:
+
+- `@ApplicationScoped`: For long-running agents that maintain state across multiple workflow executions
+- `@WorkflowScoped`: For agents with per-workflow lifecycle (default)
+
+==== Jakarta EE Service Integration
+
+Agents can leverage Jakarta EE services:
+
+- **Jakarta Persistence**: Access databases via JPA
+- **Jakarta Transactions**: Transactional agent operations
+
+=== LLM Facade Pattern
+
+A key architectural decision in Jakarta Agentic AI is the use of a facade pattern for LLM
+access. The `LargeLanguageModel` interface provides a simple, consistent API while allowing
+vendors to integrate any LLM backend.
+
+==== Facade Benefits
+
+**Abstraction**: Applications depend on the facade, not specific LLM implementations
+
+**Vendor Flexibility**: Implementations can integrate any LLM provider or implementation
+
+**Unwrapping**: The `unwrap()` method allows accessing vendor-specific APIs when needed,
+following Jakarta Persistence's `EntityManager.unwrap()` pattern
+
+**Evolution**: LLM technologies evolve rapidly; the facade insulates applications from these changes
+
+=== Design Patterns
+
+Jakarta Agentic AI employs several design patterns familiar to Jakarta EE developers:
+
+==== Annotation-Driven Development
+
+Like Jakarta REST, Servlet, and Batch, Jakarta Agentic AI uses annotations to declaratively
+define behavior. This reduces boilerplate and makes code more readable.
+
+==== Convention over Configuration
+
+Sensible defaults minimize configuration:
+
+- Default scope is `@WorkflowScoped`
+- Workflow phases execute in method declaration order
+- Parameter injection resolves based on type
+
+==== Declarative Workflow Pattern
+
+Agents declare their workflow phases using annotations on methods. The runtime orchestrates
+execution based on method declaration order, starting with the trigger and proceeding through
+any combination of decisions and actions, optionally ending with an outcome.
+
+=== Threading and Concurrency
+
+Jakarta Agentic AI workflow phases execute sequentially:
+
+- **Sequential Phases**: Annotated methods (@Trigger, @Decision, @Action, @Outcome) execute in declaration order
+- **Flexible Composition**: Agents can define any combination of decisions and actions, intermixed as needed
+- **Thread Safety**: Agents using `@WorkflowScoped` typically execute within a single thread per workflow execution. `@ApplicationScoped` agents MUST take thread-safety into account as they may handle multiple concurrent workflow invocations.
+
+=== Error Handling
+
+Error handling in Jakarta Agentic AI follows Jakarta EE conventions:
+
+- Uncaught exceptions propagate to the container
+- `@HandleException` methods provide agent-specific error handling
+- Standard exception types (`IllegalArgumentException`, `IllegalStateException`) have defined semantics
+- Implementations should provide clear exception messages and cause chains

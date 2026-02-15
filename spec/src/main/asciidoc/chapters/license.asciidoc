@@ -1,4 +1,5 @@
 [colophon]
 == License
 
-Eclipse Public License 2.0 and GNU General Public License, version 2 with the GNU Classpath Exception.
+This specification is licensed under the Eclipse Foundation Specification License (EFSL).
+See https://www.eclipse.org/legal/efsl.php for details.
