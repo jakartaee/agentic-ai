@@ -58,7 +58,6 @@ import java.lang.annotation.Target;
  *       subsequent life-cycle methods. Use this pattern
  *       to pass action results forward in the workflow.</li>
  * </ul>
- *
  * <p><b>Examples</b><br>
  * <pre>{@code
  * // Void return - performs side effects only

@@ -30,7 +30,7 @@ import java.lang.annotation.Target;
  * <ul>
  *   <li><strong>To continue workflow:</strong> Handler completes 
  *       successfully (returns normally)</li>
- *   <li><strong>To stop workflow:</strong> Handler re-throws the exception 
+ *   <li><strong>To stop workflow:</strong> Handler re-throws the exception
  *       or throws a new exception</li>
  * </ul>
  * <p>

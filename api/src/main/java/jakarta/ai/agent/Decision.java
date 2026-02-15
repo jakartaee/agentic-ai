@@ -20,17 +20,17 @@ import java.lang.annotation.Target;
 /**
  * Marks a method as a decision point in an agent workflow.
  * <p>
- * Decision methods are optional workflow phases that determine whether and how
- * the workflow should proceed. Multiple decision methods can be defined and will
- * execute in declaration order. Decisions can be intermixed with actions to create
- * conditional branching logic.
+ * Decision methods are optional workflow phases that determine whether and
+ * how the workflow should proceed. Multiple decision methods can be defined 
+ * and will execute in declaration order. Decisions can be intermixed with 
+ * actions to create conditional branching logic.
  * <p>
- * Decision methods typically use a {@link LargeLanguageModel} to analyze the 
+ * Decision methods typically use a {@link LargeLanguageModel} to analyze the
  * workflow state and make intelligent decisions.
  * <p>
  * <b>Parameters</b><br>
- * Decision methods can have the following types of parameters that will
- * be automatically resolved:
+ * Decision methods can have the following types of parameters that will be
+ * automatically resolved:
  * <ul>
  *   <li>Workflow state domain objects - Any objects used by prior phases 
  *       in the workflow, particularly the triggering event object</li>
@@ -45,11 +45,11 @@ import java.lang.annotation.Target;
  * <ul>
  *   <li><strong>Boolean</strong>: {@code true} means proceed with the 
  *       workflow, {@code false} means stop the workflow</li>
- *   <li><strong>{@link Result}</strong>: A {@code Result} record with success 
- *       flag and optional details to control workflow and pass data to 
- *       subsequent phases</li>
- *   <li><strong>Object</strong>: A non-null object means proceed (and the 
- *       object is available for injection into subsequent phases), 
+ *   <li><strong>{@link Result}</strong>: A {@code Result} record with 
+ *       success flag and optional details to control workflow and pass 
+ *       data to subsequent phases</li>
+ *   <li><strong>Object</strong>: A non-null object means proceed (and 
+ *       the object is available for injection into subsequent phases), 
  *       {@code null} means stop the workflow</li>
  * </ul>
  * <p>
