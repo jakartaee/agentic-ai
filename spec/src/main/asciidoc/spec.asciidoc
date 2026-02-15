@@ -28,4 +28,3 @@ include::license-efsl.adoc[]
 
 :sectnums:
 include::jakarta-agentic-ai.adoc[]
-
