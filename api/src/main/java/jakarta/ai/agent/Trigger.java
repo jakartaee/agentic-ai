@@ -26,8 +26,8 @@ import java.lang.annotation.Target;
  * method's parameter type. The triggering event is automatically added to
  * the workflow context for access in subsequent phases.
  * <p>
- * While triggers are currently limited to CDI events, future versions may 
- * support other event sources, such as Jakarta Messaging messages, 
+ * While triggers are currently limited to CDI events, future versions may
+ * support other event sources, such as Jakarta Messaging messages,
  * manual/programmatic workflow invocation, or REST POST requests.
  * <p>
  * Currently, there MUST be only one {@code @Trigger} method per agent class.
@@ -48,8 +48,8 @@ import java.lang.annotation.Target;
  * <ul>
  *   <li><strong>void</strong> - The trigger handles initialization with 
  *       side effects only. No data is passed to subsequent phases.</li>
- *   <li><strong>Domain objects</strong> - The trigger returns an 
- *       object (non-void) that will be automatically injected into 
+ *   <li><strong>Domain objects</strong> - The trigger returns an
+ *       object (non-void) that will be automatically injected into
  *       subsequent workflow methods. Use this pattern to pass trigger 
  *       analysis or transformation forward in the workflow.</li>
  * </ul>
@@ -57,7 +57,8 @@ import java.lang.annotation.Target;
  * <b>Semantics</b>
  * <ul>
  *   <li>Invoked when a CDI event matching the trigger parameter is fired</li>
- *   <li>First phase of workflow execution - creates a new workflow context</li>
+ *   <li>First phase of workflow execution - creates a new workflow 
+ *       context</li>
  * </ul>
  * <p>
  * <b>Examples</b><br>

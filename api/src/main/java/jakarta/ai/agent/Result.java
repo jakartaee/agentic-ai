@@ -15,8 +15,8 @@ package jakarta.ai.agent;
 /**
  * Represents the result of a decision or workflow step in an agent.
  * <p>
- * The 'success' flag indicates a positive or negative result, and 'details' 
- * can hold additional information, such as error messages, domain objects, 
+ * The 'success' flag indicates a positive or negative result, and 'details'
+ * can hold additional information, such as error messages, domain objects,
  * or context.
  */
 public record Result(boolean success, Object details) {}
