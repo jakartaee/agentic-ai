@@ -48,7 +48,8 @@ public class LLMException extends RuntimeException {
     }
 
     /**
-     * Constructs a new LLM exception with the specified detail message and cause.
+     * Constructs a new LLM exception with the specified detail message
+     * and cause.
      *
      * @param message The detail message.
      * @param cause The cause (which is saved for later retrieval by 

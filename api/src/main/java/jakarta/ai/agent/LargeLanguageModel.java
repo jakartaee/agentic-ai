@@ -16,7 +16,7 @@ package jakarta.ai.agent;
  * Minimal facade for Large Language Model (LLM) operations.
  * <p>
  * Intended to be injected via CDI into agents. Provides a unified interface 
- * for querying LLMs with support for type conversion of parameters and 
+ * for querying LLMs with support for type conversion of parameters and
  * results.
  * <p>
  * Implementations will delegate to external LLM APIs or services.
@@ -38,7 +38,8 @@ public interface LargeLanguageModel {
     String query(String prompt);
 
     /**
-     * Sends a prompt to the model and returns a response of the specified type.
+     * Sends a prompt to the model and returns a response of the specified
+     * type.
      * <p>
      * The result is converted to the requested type if supported by the 
      * implementation.
