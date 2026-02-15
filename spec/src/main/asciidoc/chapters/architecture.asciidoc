@@ -1,25 +1,30 @@
 == Architecture
 
-This chapter provides an architectural overview of Jakarta Agentic AI, describing 
-how agents are structured, how they integrate with Jakarta EE, and the key design 
-patterns.
+This chapter provides an architectural overview of Jakarta Agentic AI,
+describing how agents are structured, how they integrate with Jakarta EE,
+and the key design patterns.
 
 === Agent Architecture
 
-An agent in Jakarta Agentic AI is a CDI bean that orchestrates a flexible workflow. 
-Workflows always begin with a trigger and may include any combination of the following phases:
+An agent in Jakarta Agentic AI is a CDI bean that orchestrates a flexible
+workflow. Workflows always begin with a trigger and may include any
+combination of the following phases:
 
-1. **Trigger Phase** (required): Detects an event or condition that initiates the workflow
-2. **Decision Phases** (optional): Analyze workflow state and determine whether to proceed
+1. **Trigger Phase** (required): Detects an event or condition that
+                                 initiates the workflow
+2. **Decision Phases** (optional): Analyze workflow state and determine 
+                                   whether to proceed
 3. **Action Phases** (optional): Execute operations as part of the workflow
 4. **Outcome Phase** (optional): Produces the final result of the workflow
 
-**Phase Flexibility**: Decisions and actions can be intermixed in any sequence, allowing 
-agents to implement simple linear workflows or complex conditional branching patterns.
+**Phase Flexibility**: Decisions and actions can be intermixed in any sequence,
+                       allowing agents to implement simple linear workflows or
+                       complex conditional branching patterns.
 
 Additionally, agents may define:
 
-- **Exception Handling**: Methods to handle errors that occur during workflow execution
+- **Exception Handling**: Methods to handle errors that occur during workflow
+                          execution
 
 ==== Agent as CDI Bean
 
