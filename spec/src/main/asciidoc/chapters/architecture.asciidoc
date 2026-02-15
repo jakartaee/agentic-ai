@@ -30,9 +30,10 @@ Additionally, agents may define:
 
 Every agent is a CDI bean annotated with `@Agent`. This design provides:
 
-- **Dependency Injection**: Agents can inject other CDI beans, Jakarta EE resources, and services
+- **Dependency Injection**: Agents can inject other CDI beans, Jakarta EE
+                            resources, and services
 - **Interceptors**: Standard CDI interceptors can be applied to agent methods
-- **Scoping**: Agents can be `@WorkflowScoped` or `@ApplicationScoped` 
+- **Scoping**: Agents can be `@WorkflowScoped` or `@ApplicationScoped`
 - **Events**: Agents observe CDI events
 - **Lifecycle Management**: CDI manages agent instantiation and destruction
 
@@ -70,9 +71,9 @@ public class MonitoringAgent {
 
 === Workflow Model
 
-The workflow model in Jakarta Agentic AI is declarative and dynamic. Rather than explicitly
-programming control flow, developers annotate methods to mark their role in the workflow,
-and the runtime orchestrates execution.
+The workflow model in Jakarta Agentic AI is declarative and dynamic. Rather
+than explicitly programming control flow, developers annotate methods to mark
+their role in the workflow, and the runtime orchestrates execution.
 
 ==== Workflow Execution Flow
 
