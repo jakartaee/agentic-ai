@@ -11,6 +11,12 @@ public @interface Agent {
 }
 ----
 
+Agent annotation highlights:
+
+- Marks a CDI bean as an agent; CDI rules apply.
+- `name` defaults to the camelCase class name when omitted.
+- `description` is metadata for discovery and documentation.
+
 === LargeLanguageModel Interface
 [source,java]
 ----
@@ -19,6 +25,9 @@ public @interface Agent {
  * <p>
  * Intended to be injected via CDI into agents. Provides a unified interface for querying LLMs
  * with support for type conversion of parameters and results.
+ * <p>
+ * Implementations delegate to external LLM APIs or services and may reject unsupported
+ * type conversions or unwrapping requests.
  */
 public interface LargeLanguageModel {
 
@@ -27,6 +36,8 @@ public interface LargeLanguageModel {
      *
      * @param prompt The input prompt or question.
      * @return The model's response as a String.
+     * @throws IllegalArgumentException if the prompt is null or invalid.
+     * @throws LLMException if the LLM service encounters an error during processing.
      */
     String query(String prompt);
 
@@ -37,6 +48,9 @@ public interface LargeLanguageModel {
      * @param resultType The expected result type.
      * @param <T> The type of the result.
      * @return The model's response converted to the specified type.
+     * @throws IllegalArgumentException if the prompt or resultType is null, or if the
+     *                                  type conversion is not supported.
+     * @throws LLMException if the LLM service encounters an error during processing.
      */
     <T> T query(String prompt, Class<T> resultType);
 
@@ -46,6 +60,8 @@ public interface LargeLanguageModel {
      * @param prompt The prompt or query.
      * @param inputs The input objects (e.g., domain objects, JSON, etc.).
      * @return The model's response as a String.
+     * @throws IllegalArgumentException if the prompt is null or if the inputs cannot be serialized.
+     * @throws LLMException if the LLM service encounters an error during processing.
      */
     String query(String prompt, Object... inputs);
 
@@ -57,6 +73,10 @@ public interface LargeLanguageModel {
      * @param inputs The input objects.
      * @param <T> The type of the result.
      * @return The model's response converted to the specified type.
+     * @throws IllegalArgumentException if the prompt or resultType is null, if the inputs
+     *                                  cannot be serialized, or if the type conversion is
+     *                                  not supported.
+     * @throws LLMException if the LLM service encounters an error during processing.
      */
     <T> T query(String prompt, Class<T> resultType, Object... inputs);
 
@@ -72,8 +92,23 @@ public interface LargeLanguageModel {
 }
 ----
 
+LargeLanguageModel behavior highlights:
+
+- Implementations may reject unsupported type conversions with `IllegalArgumentException`.
+- Invalid or unserializable inputs MUST surface as `IllegalArgumentException`.
+- LLM service failures surface as `LLMException`.
+- `unwrap()` allows vendor-specific access and may fail with `IllegalArgumentException`.
+
 === Result Record
 [source,java]
 ----
 public record Result(boolean success, Object details) {}
 ----
+
+Result record highlights:
+
+- `success` indicates whether the workflow should proceed.
+- `details` carries optional domain data for downstream injection.
+
+NOTE: The snippets above show the API shape; refer to the JavaDocs in the API module
+for the normative behavioral contract.
