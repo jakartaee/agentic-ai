@@ -89,6 +89,10 @@ Trigger methods can receive the following types of parameters:
 * `LargeLanguageModel` - LLM instance for trigger analysis
 * CDI injectable dependencies - Any beans available to the agent
 
+**Jakarta Validation**: Trigger method parameters can declare Jakarta Validation constraints 
+(e.g., `@Valid`, `@NotNull`, `@Email`). Validation occurs before the trigger method is invoked. 
+Validation failures raise `ConstraintViolationException`.
+
 ==== Return Type Semantics
 
 Trigger methods support two return patterns:
@@ -159,6 +163,18 @@ determine the workflow path.
 public @interface Decision {
 }
 ----
+
+==== Parameter Injection
+
+Decision methods can receive the following types of parameters:
+
+* Workflow state domain objects - Any objects from previous workflow phases
+* `LargeLanguageModel` - LLM instance for analysis
+* `WorkflowContext` - For accessing stored workflow state
+* CDI injectable dependencies - Any beans available to the agent
+
+**Jakarta Validation**: Decision method parameters can declare Jakarta Validation constraints. 
+Validation occurs before the decision method is invoked. Validation failures raise `ConstraintViolationException`.
 
 ==== Semantics
 
@@ -237,12 +253,23 @@ public @interface Action {
 }
 ----
 
+==== Parameter Injection
+
+Action methods can receive the following types of parameters:
+
+* Workflow state domain objects - Any objects from previous workflow phases (trigger events, decision results)
+* `LargeLanguageModel` - LLM instance for operations
+* `WorkflowContext` - For accessing and managing workflow state
+* CDI injectable dependencies - Any beans available to the agent
+
+**Jakarta Validation**: Action method parameters can declare Jakarta Validation constraints. 
+Validation occurs before the action method is invoked. Validation failures raise `ConstraintViolationException`.
+
 ==== Semantics
 
 - **Execution Phase**: Performs the agent's primary work
 - **Independent Execution**: Can execute with or without prior decision phases
 - **Sequential Processing**: Multiple actions execute in declaration order
-- **Parameter Injection**: Receives workflow state, decision results, LargeLanguageModel
 - **Return Value Control**: Return type determines data flow to subsequent workflow phases
 
 ==== Return Value Semantics
@@ -351,6 +378,9 @@ Outcome methods can receive the following types of parameters:
 * `LargeLanguageModel` - For analysis, summarization, or content generation based on workflow results
 * CDI injectable dependencies - Any beans available to the agent
 
+**Jakarta Validation**: Outcome method parameters can declare Jakarta Validation constraints. 
+Validation occurs before the outcome method is invoked. Validation failures raise `ConstraintViolationException`.
+
 ==== Return Type
 
 Outcome methods MUST return `void`. The outcome phase is designed for finalization and side effects rather than producing data for further processing. In future versions, return types may be supported for downstream system integration.
@@ -393,6 +423,10 @@ Exception handler methods can receive the following types of parameters:
 * `WorkflowContext` - Current workflow context for state management
 * `LargeLanguageModel` - For error analysis or diagnostics
 * CDI injectable dependencies - Any beans available to the agent
+
+**Jakarta Validation**: Exception handler parameters can declare Jakarta Validation constraints. 
+However, validation failures are typically not appropriate for exception handlers; if validation fails, 
+the exception is propagated to the container.
 
 ==== Return Type
 

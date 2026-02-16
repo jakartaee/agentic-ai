@@ -115,6 +115,14 @@ When a workflow method is invoked, the runtime resolves parameters in the follow
 4. **LargeLanguageModel**: If the parameter type is `LargeLanguageModel`
 5. **CDI Injection**: If the parameter is a CDI bean
 
+==== Jakarta Validation Constraints
+
+Parameters can declare Jakarta Validation constraints using annotations such as `@Valid`, 
+`@NotNull`, `@NotEmpty`, `@Size`, `@Pattern`, `@Email`, and custom constraint annotations. 
+Validation occurs before parameter injection and workflow method invocation. If validation fails, 
+a `ConstraintViolationException` is raised and can be handled by `@HandleException` methods 
+or propagated to the container.
+
 === Error Handling and Recovery
 
 ==== Exception Handler Invocation

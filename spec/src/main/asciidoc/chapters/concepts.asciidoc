@@ -38,5 +38,17 @@ workflows. Common failure scenarios include:
 - Model unavailability or timeout
 - Type conversion failures when processing LLM responses
 
+=== ConstraintViolationException
+`ConstraintViolationException` is thrown when Jakarta Validation constraints on method parameters
+are violated. As a runtime exception, it does not require explicit handling but can be caught by
+`@HandleException` methods in agent workflows. Common scenarios include:
+
+- Method parameter validation failures (`@NotNull`, `@Email`, `@Size`, etc.)
+- Custom constraint violations
+- Validation of complex domain objects passed between workflow phases
+
+Validation occurs automatically before workflow methods are invoked when parameters
+declare Jakarta Validation constraints.
+
 === Result
 The `Result` record standardizes decision outcomes, with a success flag and details object.

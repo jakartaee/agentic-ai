@@ -44,6 +44,11 @@ import java.lang.annotation.Target;
  *       - typically in the application scope or managed by the container</li>
  * </ul>
  * <p>
+ * Parameters can declare Jakarta Validation constraints (e.g., {@code @Valid},
+ * {@code @NotNull}). Validation occurs before the outcome method is invoked.
+ * Validation failures raise {@code jakarta.validation.ConstraintViolationException},
+ * which can be handled by {@link HandleException @HandleException} methods.
+ * <p>
  * <b>Return type</b><br>
  * Outcome methods currently must return {@code void}. The outcome phase is 
  * designed for finalization and side effects rather than producing data for 

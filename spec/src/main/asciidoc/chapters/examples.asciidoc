@@ -268,6 +268,62 @@ public class CustomerSupportAgent {
 }
 ----
 
+=== Parameter Validation and Error Recovery Agent
+
+An agent that validates input parameters and handles validation failures gracefully:
+
+[source,java]
+----
+@Agent
+public class ValidationAwareAgent {
+
+    @Inject
+    private EmailService emailService;
+
+    @Trigger
+    // Parameters are automatically validated with @Valid and @NotNull constraints
+    public void onInvitation(@Valid @NotNull UserInvitation invitation) {
+        logger.info("Processing invitation for: " + invitation.getEmail());
+    }
+
+    @Decision
+    // Decision method parameters are also validated
+    public boolean validateEmail(@Valid @Email String email) {
+        // Format verification has already occurred via @Email constraint
+        return emailService.isActiveEmail(email);
+    }
+
+    @Action
+    // Multiple validated parameters
+    public void sendWelcomeEmail(@Valid @NotEmpty String email,
+                                 @Valid @NotNull User user) {
+        String template = "Welcome " + user.getFirstName() + "!";
+        emailService.send(email, template);
+    }
+
+    // Handles constraint violations specifically
+    @HandleException
+    public void handleValidationError(ConstraintViolationException e,
+                                      UserInvitation invitation) {
+        logger.warn("Invalid invitation data", e);
+        // Log validation violations for audit trail
+        for (var violation : e.getConstraintViolations()) {
+            logger.debug("Violation: " + violation.getPropertyPath() + " - " +
+                        violation.getMessage());
+        }
+        // Still record attempt but mark as invalid
+        invitation.setStatus(InvitationStatus.INVALID);
+    }
+
+    // Handles other unexpected exceptions
+    @HandleException
+    public void handleGenericError(Exception e, UserInvitation invitation) {
+        logger.error("Unexpected error processing invitation", e);
+        invitation.setStatus(InvitationStatus.ERROR);
+    }
+}
+----
+
 === Key Patterns Demonstrated
 
 These examples demonstrate:
@@ -279,4 +335,5 @@ These examples demonstrate:
 5. **Error Handling**: Graceful degradation and fallback strategies
 6. **CDI Integration**: Dependency injection, transactions
 7. **Context Management**: Maintaining state across workflow phases
-8. **Real-world Use Cases**: Fraud detection, documentation generation, customer support
+8. **Parameter Validation**: Jakarta Validation constraints with failure recovery
+9. **Real-world Use Cases**: Fraud detection, documentation generation, customer support

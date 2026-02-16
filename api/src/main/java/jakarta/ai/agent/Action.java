@@ -47,6 +47,12 @@ import java.lang.annotation.Target;
  *       container</li>
  * </ul>
  * <p>
+ * Parameters can declare Jakarta Validation constraints (e.g., {@code @Valid},
+ * {@code @NotNull}, {@code @NotEmpty}). Validation occurs before the action 
+ * method is invoked. Validation failures raise 
+ * {@code jakarta.validation.ConstraintViolationException}, which can be
+ * handled by {@link HandleException @HandleException} methods.
+ * <p>
  * <b>Return types</b><br>
  * Action methods support two return patterns:
  * <ul>
