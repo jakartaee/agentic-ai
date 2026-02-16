@@ -104,7 +104,8 @@ In this release, workflows execute sequentially and are tailored to agent requir
    - **Intermixing**: Decisions and actions can be intermixed in any sequence
 4. **Outcome Invoked**: The `@Outcome` method produces the final result (optional)
 
-At any point, if an exception occurs, the `@HandleException` method is invoked if defined.
+At any point, if an exception occurs, the `@HandleException` method is invoked
+if defined.
 
 **Phase Requirements**:
 - `@Trigger`: Required (exactly one per agent)
@@ -121,7 +122,8 @@ Jakarta Agentic AI is designed to integrate seamlessly with the Jakarta EE ecosy
 Agents are CDI beans and thus integrate with:
 
 - **CDI Events**: Agents can observe CDI events as triggers
-- **Interceptors**: Security, transactions, and custom interceptors apply to agent methods
+- **Interceptors**: Security, transactions, and custom interceptors apply to
+                    agent methods
 - **Producers**: Agent dependencies can come from CDI producers
 - **Qualifiers**: Agents can use qualifiers to select specific implementations
 
@@ -129,8 +131,47 @@ Agents are CDI beans and thus integrate with:
 
 Agents support two scopes:
 
-- `@ApplicationScoped`: For long-running agents that maintain state across multiple workflow executions
+- `@ApplicationScoped`: For long-running agents that maintain state across multiple 
+                        workflow executions
 - `@WorkflowScoped`: For agents with per-workflow lifecycle (default)
+
+==== Jakarta Validation Integration
+
+Agent method parameters can be validated using Jakarta Validation constraints:
+
+- **Parameter Validation**: Trigger, decision, action, and outcome methods can declare 
+                           `@Valid` on parameters to trigger automatic validation
+- **Constraint Annotations**: Standard Jakarta Validation annotations (`@NotNull`, 
+                             `@NotEmpty`, `@Size`, `@Pattern`, `@Email`, etc.) 
+                             can constrain method parameters
+- **Validation Failure Handling**: Validation failures surface as `ConstraintViolationException`, 
+                                   which can be handled by `@HandleException` methods or 
+                                   propagated to the container
+- **CDI Integration**: Validation is performed by CDI interceptors on agent methods
+
+[source,java]
+----
+@Agent
+public class ValidatedAgent {
+
+    @Trigger
+    public void processClaim(@Valid @NotNull Claim claim) {
+        // claim is guaranteed to be valid and non-null
+    }
+
+    @Decision
+    public boolean evaluateAmount(@Valid ClaimDetails details) {
+        // details has been validated against its constraints
+        return details.getAmount() < 10000;
+    }
+
+    @Action
+    public void submitClaim(@Valid @NotEmpty String claimId,
+                           @Valid @Email String customerEmail) {
+        // Both parameters are validated before execution
+    }
+}
+----
 
 ==== Jakarta EE Service Integration
 

@@ -51,6 +51,11 @@ import java.lang.annotation.Target;
  *       container</li>
  * </ul>
  * <p>
+ * Parameters can declare Jakarta Validation constraints; however, constraint
+ * violations are typically not appropriate for exception handlers. If validation
+ * of exception handler parameters fails, the validation exception is propagated
+ * to the container.
+ * <p>
  * <b>Return type</b><br>
  * Exception handler methods MUST return {@code void}. Handlers are 
  * designed for error recovery, logging, and cleanup rather than producing 

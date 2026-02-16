@@ -43,6 +43,12 @@ import java.lang.annotation.Target;
  *   <li>Any other CDI injectable dependencies available to the agent</li>
  * </ul>
  * <p>
+ * Parameters can declare Jakarta Validation constraints (e.g., {@code @Valid},
+ * {@code @NotNull}, {@code @Email}, {@code @Size}). Validation occurs before
+ * the trigger method is invoked. Validation failures raise 
+ * {@code jakarta.validation.ConstraintViolationException}, which can be
+ * handled by {@link HandleException @HandleException} methods.
+ * <p>
  * <b>Return types</b><br>
  * Trigger methods support two return patterns:
  * <ul>
