@@ -177,8 +177,57 @@ public class ValidatedAgent {
 
 Agents can leverage Jakarta EE services:
 
-- **Jakarta Persistence**: Access databases via JPA
-- **Jakarta Transactions**: Transactional agent operations
+**Data Access Services**:
+- **Jakarta Persistence**: Access relational databases
+- **Jakarta Data**: High-level data access with repositories
+- **Jakarta NoSQL**: Access non-relational databases
+
+**Transactional Operations**:
+- **Jakarta Transactions**: Transactional agent operations across data sources
+
+**Messaging & Integration**:
+- **Jakarta Messaging**: Publish and consume messages from message brokers 
+                         (future trigger source)
+
+**Asynchronous Operations**:
+- **Jakarta Concurrency**: Managed executors for asynchronous tasks within
+                           agent logic
+
+[source,java]
+----
+@Agent
+public class DataIntegratedAgent {
+
+    @Inject
+    private EntityManager entityManager;  // Jakarta Persistence
+
+    @Inject
+    private CustomerRepository customerRepo;  // Jakarta Data
+
+    @Inject
+    @Inject("mongodb")
+    private Template mongoTemplate;  // Jakarta NoSQL
+
+    @Inject
+    private ManagedExecutorService executor;  // Jakarta Concurrency
+
+    @Action
+    @Transactional  // Jakarta Transactions
+    public void processCustomerData(CustomerId id) {
+        // Use JPA
+        Customer customer = entityManager.find(Customer.class, id);
+        
+        // Use Jakarta Data repository
+        List<Order> orders = customerRepo.findOrdersByCustomerId(id);
+        
+        // Use NoSQL for unstructured data
+        mongoTemplate.insert(new AnalyticsEvent(customer, orders));
+        
+        // Async processing
+        executor.submit(() -> generateReport(customer, orders));
+    }
+}
+----
 
 === LLM Facade Pattern
 
