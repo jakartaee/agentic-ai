@@ -71,20 +71,35 @@ public class MonitoringAgent {
 
 === Workflow Model
 
-The workflow model in Jakarta Agentic AI is declarative and dynamic. Rather
-than explicitly programming control flow, developers annotate methods to mark
-their role in the workflow, and the runtime orchestrates execution.
+The workflow model in Jakarta Agentic AI is built on a foundation of annotated methods 
+that serve as semantic building blocks. Annotations (`@Trigger`, `@Decision`, 
+`@Action`, `@Outcome`) define the vocabulary of an agent's workflow—marking methods that 
+trigger workflows, make decisions, perform actions, and produce outcomes.
 
-==== Workflow Execution Flow
+In the current release (v1.0), the runtime orchestrates these annotated methods using a
+sequential execution model: the trigger fires, followed by zero or more decisions and 
+actions in declaration order, optionally concluding with an outcome. This straightforward 
+model provides a clear pattern for developing agents.
 
-Workflows are flexible and can be tailored to agent requirements:
+**Future Direction**: A programmatic Workflow API will be introduced in subsequent 
+releases to enable dynamic workflow composition and runtime modification. The Workflow 
+API will wire together the annotated methods (the building blocks) into sophisticated, 
+potentially complex control flows that can be modified at runtime. This will unlock 
+powerful capabilities such as dynamic decision routing, conditional action execution, 
+and workflows that adapt based on agent state or LLM interactions.
+
+==== Workflow Execution Flow (Current Release)
+
+In this release, workflows execute sequentially and are tailored to agent requirements:
 
 1. **Event Occurs**: An external event triggers the workflow
 2. **Trigger Invoked**: The `@Trigger` method is called with the event (required)
-3. **Decision/Action Phases**: Zero or more `@Decision` and `@Action` methods execute in declaration order
+3. **Decision/Action Phases**: Zero or more `@Decision` and `@Action` methods 
+   execute in declaration order
    - **Decisions** evaluate whether to proceed:
-     * If decision returns `true` or non-null object: workflow continues
-     * If decision returns `false` or `null`: workflow terminates
+     * **Boolean pattern**: `true` continues, `false` terminates
+     * **Result pattern**: `Result` record with success flag controls workflow
+     * **Object pattern**: non-null object continues, `null` terminates
    - **Actions** perform operations and can execute with or without prior decisions
    - **Intermixing**: Decisions and actions can be intermixed in any sequence
 4. **Outcome Invoked**: The `@Outcome` method produces the final result (optional)
