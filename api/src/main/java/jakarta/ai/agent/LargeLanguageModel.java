@@ -19,6 +19,10 @@ package jakarta.ai.agent;
  * for querying LLMs with support for type conversion of parameters and
  * results.
  * <p>
+ * Implementations must use Jakarta JSON Binding for serialization of input
+ * objects and deserialization of typed responses. This ensures consistent,
+ * portable behavior across implementations.
+ * <p>
  * Implementations will delegate to external LLM APIs or services.
  */
 public interface LargeLanguageModel {
@@ -41,15 +45,15 @@ public interface LargeLanguageModel {
      * Sends a prompt to the model and returns a response of the specified
      * type.
      * <p>
-     * The result is converted to the requested type if supported by the 
-     * implementation.
+     * The LLM response (expected to be JSON) is deserialized to the requested
+     * type using Jakarta JSON Binding.
      *
      * @param prompt The prompt or query.
      * @param resultType The expected result type.
      * @param <T> The type of the result.
      * @return The model's response converted to the specified type.
      * @throws IllegalArgumentException if the prompt or resultType is null, or 
-     *                                  if the type conversion is not supported.
+     *                                  if the type conversion fails.
      * @throws LLMException if the LLM service encounters an error during 
      *                      processing.
      */
@@ -59,14 +63,14 @@ public interface LargeLanguageModel {
      * Sends a prompt and a variable number of input objects to the model, 
      * returning a String response.
      * <p>
-     * The input objects may be domain objects, JSON, or other serializable 
-     * types. Implementations should handle conversion as needed.
+     * Input objects are serialized to JSON using Jakarta JSON Binding before
+     * being sent to the LLM as context.
      *
      * @param prompt The prompt or query.
-     * @param inputs The input objects (e.g., domain objects, JSON, etc.).
+     * @param inputs The input objects (domain objects to be serialized to JSON).
      * @return The model's response as a String.
      * @throws IllegalArgumentException if the prompt is null or if the inputs 
-     *                                  cannot be serialized.
+     *                                  cannot be serialized to JSON.
      * @throws LLMException if the LLM service encounters an error during 
      *                      processing.
      */
@@ -76,18 +80,19 @@ public interface LargeLanguageModel {
      * Sends a prompt and a variable number of input objects to the model, 
      * returning a response of the specified type.
      * <p>
-     * The result is converted to the requested type if supported by the 
-     * implementation.
+     * Input objects are serialized to JSON using Jakarta JSON Binding before
+     * being sent to the LLM. The LLM response (expected to be JSON) is 
+     * deserialized to the requested type using Jakarta JSON Binding.
      *
      * @param prompt The prompt or query.
      * @param resultType The expected result type.
-     * @param inputs The input objects.
+     * @param inputs The input objects (domain objects to be serialized to JSON).
      * @param <T> The type of the result.
      * @return The model's response converted to the specified type.
      * @throws IllegalArgumentException if the prompt or resultType is null, 
-     *                                  if the inputs cannot be serialized, 
-     *                                  or if the type conversion is not 
-     *                                  supported.
+     *                                  if the inputs cannot be serialized to JSON, 
+     *                                  or if the response cannot be deserialized 
+     *                                  to the requested type.
      * @throws LLMException if the LLM service encounters an error during 
      *                      processing.
      */

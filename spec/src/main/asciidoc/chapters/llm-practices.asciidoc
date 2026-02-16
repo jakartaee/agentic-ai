@@ -101,6 +101,66 @@ public Priority parsePriority(Issue issue) {
 }
 ----
 
+=== Type-Safe Interactions
+
+Prefer typed responses over string parsing when possible. The
+`LargeLanguageModel` facade uses Jakarta JSON Binding to automatically
+deserialize LLM responses into Java objects:
+
+[source,java]
+----
+@Decision
+public FraudAnalysis analyzeTransaction(BankTransaction transaction) {
+    // Ask LLM to respond with JSON structure
+    String prompt = """
+        Analyze this transaction for fraud.
+        Respond with JSON matching this structure:
+        {
+          "isFraudulent": true/false,
+          "confidence": 0.0-1.0,
+          "reason": "explanation",
+          "riskLevel": "LOW|MEDIUM|HIGH|CRITICAL"
+        }
+        """;
+
+    // Automatic deserialization from JSON to FraudAnalysis object
+    try {
+        FraudAnalysis analysis = llm.query(prompt, FraudAnalysis.class, transaction);
+        return analysis;
+    } catch (IllegalArgumentException e) {
+        // Handle JSON deserialization failures
+        logger.warn("Failed to deserialize fraud analysis", e);
+        return FraudAnalysis.unknown();
+    }
+}
+
+// Define a clean Java record for the response
+public record FraudAnalysis(
+    boolean isFraudulent,
+    double confidence,
+    String reason,
+    RiskLevel riskLevel
+) {
+    public static FraudAnalysis unknown() {
+        return new FraudAnalysis(false, 0.0, "Analysis failed", RiskLevel.UNKNOWN);
+    }
+}
+----
+
+**Benefits of typed responses**:
+- Eliminates manual string parsing
+- Compile-time type safety
+- Clear data structures
+- Automatic validation via JSON Binding
+- Less error-prone than regex or substring matching
+
+**Best practices**:
+- Design response objects that match your LLM's output format
+- Include clear JSON structure examples in prompts
+- Handle `IllegalArgumentException` for deserialization failures
+- Use Java records for immutable response objects
+- Provide fallback values when deserialization fails
+
 === Accessing Vendor-Specific APIs
 
 The `unwrap()` method allows access to vendor-specific implementations, following the same
