@@ -41,7 +41,11 @@ and can be triggered by CDI events or other mechanisms.
 ==== Large Language Model (LLM) Facade
 The `LargeLanguageModel` interface provides a minimal, type-converting facade for LLM
 operations. It supports querying with prompts and input objects, returning results as
-strings or domain types. Implementations may also support unwrapping to access the underlying LLM implementation for advanced or vendor-specific features.
+strings or domain types. Implementations must use Jakarta JSON Binding for
+serialization of input objects and deserialization of typed responses, ensuring 
+consistent portable behavior.
+Implementations may also support unwrapping to access the underlying LLM 
+implementation for advanced or vendor-specific features.
 
 ==== Result
 The `Result` record standardizes decision outcomes, with a success flag and details object.

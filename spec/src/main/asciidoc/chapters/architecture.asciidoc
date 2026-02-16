@@ -185,6 +185,10 @@ Agents can leverage Jakarta EE services:
 **Transactional Operations**:
 - **Jakarta Transactions**: Transactional agent operations across data sources
 
+**Data Serialization**:
+- **Jakarta JSON Binding**: JSON serialization for LLM interactions 
+                            (required by `LargeLanguageModel` implementations)
+
 **Messaging & Integration**:
 - **Jakarta Messaging**: Publish and consume messages from message brokers 
                          (future trigger source)
@@ -245,6 +249,47 @@ vendors to integrate any LLM backend.
 following Jakarta Persistence's `EntityManager.unwrap()` pattern
 
 **Evolution**: LLM technologies evolve rapidly; the facade insulates applications from these changes
+
+==== JSON Binding Integration
+
+The `LargeLanguageModel` facade leverages Jakarta JSON Binding to enable
+type-safe LLM interactions. Implementations must use Jakarta JSON Binding for 
+serialization and deserialization.
+
+**Input Object Serialization**:
+- When domain objects are passed as `inputs` parameters, implementations
+  serialize them to JSON using Jakarta JSON Binding
+- The JSON representation provides structured context to the LLM
+- This allows agents to pass complex objects (transactions, events, entities)
+  directly to LLM queries without manual serialization
+
+**Response Type Conversion**:
+- When a `resultType` is specified, implementations deserialize the LLM's
+  response from JSON to the requested type using Jakarta JSON Binding
+- This enables type-safe responses without manual parsing
+- Implementations must throw `IllegalArgumentException` if type conversion
+  fails
+
+[source,java]
+----
+@Decision
+public FraudAnalysis analyzeFraud(BankTransaction transaction) {
+    // transaction is serialized to JSON automatically
+    // Response is deserialized to FraudAnalysis automatically
+    FraudAnalysis analysis = llm.query(
+        "Analyze this transaction for fraud patterns and return JSON",
+        FraudAnalysis.class,
+        transaction
+    );
+    return analysis;
+}
+----
+
+**Benefits**:
+- Type safety without manual JSON handling
+- Consistent serialization behavior across implementations
+- Portability through standard Jakarta JSON Binding
+- LLM-friendly structured data exchange
 
 === Design Patterns
 

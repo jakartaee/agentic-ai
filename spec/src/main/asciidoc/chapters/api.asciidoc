@@ -26,6 +26,10 @@ Agent annotation highlights:
  * Intended to be injected via CDI into agents. Provides a unified interface for querying LLMs
  * with support for type conversion of parameters and results.
  * <p>
+ * Implementations must use Jakarta JSON Binding for serialization of input objects and 
+ * deserialization of typed responses. This ensures consistent, portable behavior across 
+ * implementations.
+ * <p>
  * Implementations delegate to external LLM APIs or services and may reject unsupported
  * type conversions or unwrapping requests.
  */
@@ -94,8 +98,13 @@ public interface LargeLanguageModel {
 
 LargeLanguageModel behavior highlights:
 
-- Implementations may reject unsupported type conversions with `IllegalArgumentException`.
-- Invalid or unserializable inputs MUST surface as `IllegalArgumentException`.
+- Implementations must use Jakarta JSON Binding for serialization and 
+  deserialization.
+- Input objects are serialized to JSON before being sent to the LLM as context.
+- Typed responses are deserialized from JSON to the requested type.
+- Implementations must throw `IllegalArgumentException` for 
+  serialization/deserialization failures.
+- Invalid or null parameters must surface as `IllegalArgumentException`.
 - LLM service failures surface as `LLMException`.
 - `unwrap()` allows vendor-specific access and may fail with `IllegalArgumentException`.
 
