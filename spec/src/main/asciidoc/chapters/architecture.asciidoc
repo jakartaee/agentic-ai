@@ -297,8 +297,8 @@ Jakarta Agentic AI employs several design patterns familiar to Jakarta EE develo
 
 ==== Annotation-Driven Development
 
-Like Jakarta REST, Servlet, and Batch, Jakarta Agentic AI uses annotations to declaratively
-define behavior. This reduces boilerplate and makes code more readable.
+Like Jakarta REST, Servlet, and Batch, Jakarta Agentic AI uses annotations to
+declaratively define behavior. This reduces boilerplate and makes code more readable.
 
 ==== Convention over Configuration
 
@@ -310,17 +310,23 @@ Sensible defaults minimize configuration:
 
 ==== Declarative Workflow Pattern
 
-Agents declare their workflow phases using annotations on methods. The runtime orchestrates
-execution based on method declaration order, starting with the trigger and proceeding through
-any combination of decisions and actions, optionally ending with an outcome.
+Agents declare their workflow phases using annotations on methods. The runtime
+orchestrates execution based on method declaration order, starting with the
+trigger and proceeding through any combination of decisions and actions,
+optionally ending with an outcome.
 
 === Threading and Concurrency
 
 Jakarta Agentic AI workflow phases execute sequentially:
 
-- **Sequential Phases**: Annotated methods (@Trigger, @Decision, @Action, @Outcome) execute in declaration order
-- **Flexible Composition**: Agents can define any combination of decisions and actions, intermixed as needed
-- **Thread Safety**: Agents using `@WorkflowScoped` typically execute within a single thread per workflow execution. `@ApplicationScoped` agents MUST take thread-safety into account as they may handle multiple concurrent workflow invocations.
+- **Sequential Phases**: Annotated methods (@Trigger, @Decision, @Action,
+                         @Outcome) execute in declaration order
+- **Flexible Composition**: Agents can define any combination of decisions
+                            and actions, intermixed as needed
+- **Thread Safety**: Agents using `@WorkflowScoped` typically execute within a
+                     single thread per workflow execution. `@ApplicationScoped`
+                     agents must take thread-safety into account as they may
+                     handle multiple concurrent workflow invocations.
 
 === Error Handling
 
@@ -328,5 +334,6 @@ Error handling in Jakarta Agentic AI follows Jakarta EE conventions:
 
 - Uncaught exceptions propagate to the container
 - `@HandleException` methods provide agent-specific error handling
-- Standard exception types (`IllegalArgumentException`, `IllegalStateException`) have defined semantics
+- Standard exception types (`IllegalArgumentException`,
+  `IllegalStateException`) have defined semantics
 - Implementations should provide clear exception messages and cause chains
