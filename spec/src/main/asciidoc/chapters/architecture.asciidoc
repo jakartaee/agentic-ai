@@ -71,41 +71,52 @@ public class MonitoringAgent {
 
 === Workflow Model
 
-The workflow model in Jakarta Agentic AI is built on a foundation of annotated methods 
-that serve as semantic building blocks. Annotations (`@Trigger`, `@Decision`, 
-`@Action`, `@Outcome`) define the vocabulary of an agent's workflow—marking methods that 
-trigger workflows, make decisions, perform actions, and produce outcomes.
+The workflow model in Jakarta Agentic AI is built on a foundation of annotated
+methods that serve as semantic building blocks. Annotations (`@Trigger`,
+`@Decision`, `@Action`, `@Outcome`) define the basic vocabulary of an agent's
+workflow—marking methods that trigger workflows, make decisions, perform 
+actions, and produce outcomes.
 
-In the current release (v1.0), the runtime orchestrates these annotated methods using a
-sequential execution model: the trigger fires, followed by zero or more decisions and 
-actions in declaration order, optionally concluding with an outcome. This straightforward 
-model provides a clear pattern for developing agents.
+In the current release (v1.0), the runtime orchestrates these annotated methods
+using a sequential execution model: the trigger fires, followed by any 
+combination of zero or more decisions and actions in declaration order,
+optionally concluding with an outcome. This straightforward model provides a 
+clear pattern for developing agents.
 
-**Future Direction**: A programmatic Workflow API will be introduced in subsequent 
-releases to enable dynamic workflow composition and runtime modification. The Workflow 
-API will wire together the annotated methods (the building blocks) into sophisticated, 
-potentially complex control flows that can be modified at runtime. This will unlock 
-powerful capabilities such as dynamic decision routing, conditional action execution, 
-and workflows that adapt based on agent state or LLM interactions.
+**Future Direction**: A programmatic workflow API will be introduced in
+subsequent releases to enable dynamic workflow composition and runtime
+modification. The workflow API will wire together the annotated methods (the 
+basic building blocks) into sophisticated, potentially complex control flows
+that can be modified at runtime. This will unlock powerful capabilities such as
+dynamic decision routing, conditional action execution, and workflows that
+adapt based on agent state or LLM interactions. The initial agent workflow
+could be defined or loaded from storage in a `@PostConstruct` method and 
+placed into storage in a `@PreDestroy` method.
 
-==== Workflow Execution Flow (Current Release)
+==== Workflow Execution (Current Release)
 
-In this release, workflows execute sequentially and are tailored to agent requirements:
+In this release, workflows execute sequentially and are tailored to agent
+requirements:
 
 1. **Event Occurs**: An external event triggers the workflow
-2. **Trigger Invoked**: The `@Trigger` method is called with the event (required)
+2. **Trigger Invoked**: The `@Trigger` method is called with the
+                        event (required)
 3. **Decision/Action Phases**: Zero or more `@Decision` and `@Action` methods 
    execute in declaration order
    - **Decisions** evaluate whether to proceed:
      * **Boolean pattern**: `true` continues, `false` terminates
      * **Result pattern**: `Result` record with success flag controls workflow
      * **Object pattern**: non-null object continues, `null` terminates
-   - **Actions** perform operations and can execute with or without prior decisions
+   - **Actions** perform operations and can execute with or without prior
+     decisions
    - **Intermixing**: Decisions and actions can be intermixed in any sequence
-4. **Outcome Invoked**: The `@Outcome` method produces the final result (optional)
+4. **Outcome Invoked**: The `@Outcome` method produces the final
+                        result (optional). In absense of a defined outcome,
+                        the workflow ends when there are no more
+                        decisions/actions to execute.
 
 At any point, if an exception occurs, the `@HandleException` method is invoked
-if defined.
+if defined before the workflow proceeds.
 
 **Phase Requirements**:
 - `@Trigger`: Required (exactly one per agent)
@@ -115,39 +126,40 @@ if defined.
 
 === Integration with Jakarta EE
 
-Jakarta Agentic AI is designed to integrate seamlessly with the Jakarta EE ecosystem:
+Jakarta Agentic AI is designed to integrate seamlessly with the Jakarta EE
+ecosystem:
 
 ==== CDI Integration
 
 Agents are CDI beans and thus integrate with:
 
 - **CDI Events**: Agents can observe CDI events as triggers
-- **Interceptors**: Security, transactions, and custom interceptors apply to
-                    agent methods
+- **Interceptors**: Transactions and custom interceptors apply to agent methods
 - **Producers**: Agent dependencies can come from CDI producers
-- **Qualifiers**: Agents can use qualifiers to select specific implementations
+- **Qualifiers**: Agents can use qualifiers to select specific resources
 
 ==== Scope Integration
 
 Agents support two scopes:
 
-- `@ApplicationScoped`: For long-running agents that maintain state across multiple 
-                        workflow executions
+- `@ApplicationScoped`: For long-running agents that maintain state across
+                        multiple workflow executions
 - `@WorkflowScoped`: For agents with per-workflow lifecycle (default)
 
 ==== Jakarta Validation Integration
 
 Agent method parameters can be validated using Jakarta Validation constraints:
 
-- **Parameter Validation**: Trigger, decision, action, and outcome methods can declare 
-                           `@Valid` on parameters to trigger automatic validation
-- **Constraint Annotations**: Standard Jakarta Validation annotations (`@NotNull`, 
-                             `@NotEmpty`, `@Size`, `@Pattern`, `@Email`, etc.) 
-                             can constrain method parameters
-- **Validation Failure Handling**: Validation failures surface as `ConstraintViolationException`, 
-                                   which can be handled by `@HandleException` methods or 
+- **Parameter Validation**: Trigger, decision, action, and outcome methods can
+                            declare `@Valid` on parameters to trigger automatic
+                            validation
+- **Constraint Annotations**: Standard Jakarta Validation annotations
+                              (`@NotNull`, `@NotEmpty`, `@Size`, `@Pattern`,
+                              `@Email`, etc.) can constrain method parameters
+- **Validation Failure Handling**: Validation failures surface as 
+                                   `ConstraintViolationException`, which can be
+                                   handled by `@HandleException` methods or
                                    propagated to the container
-- **CDI Integration**: Validation is performed by CDI interceptors on agent methods
 
 [source,java]
 ----
@@ -187,7 +199,7 @@ Agents can leverage Jakarta EE services:
 
 **Data Serialization**:
 - **Jakarta JSON Binding**: JSON serialization for LLM interactions 
-                            (required by `LargeLanguageModel` implementations)
+                            (required by `LargeLanguageModel`)
 
 **Messaging & Integration**:
 - **Jakarta Messaging**: Publish and consume messages from message brokers 
@@ -235,20 +247,23 @@ public class DataIntegratedAgent {
 
 === LLM Facade Pattern
 
-A key architectural decision in Jakarta Agentic AI is the use of a facade pattern for LLM
-access. The `LargeLanguageModel` interface provides a simple, consistent API while allowing
-vendors to integrate any LLM backend.
+A key architectural decision in Jakarta Agentic AI is the use of a facade
+pattern for LLM access. The `LargeLanguageModel` interface provides a simple,
+consistent API while allowing vendors to integrate any LLM backend.
 
 ==== Facade Benefits
 
-**Abstraction**: Applications depend on the facade, not specific LLM implementations
+**Abstraction**: Applications depend on the facade, not specific LLM
+                 implementations
 
-**Vendor Flexibility**: Implementations can integrate any LLM provider or implementation
+**Vendor Flexibility**: Implementations can integrate any LLM provider or
+                        implementation
 
-**Unwrapping**: The `unwrap()` method allows accessing vendor-specific APIs when needed,
-following Jakarta Persistence's `EntityManager.unwrap()` pattern
+**Unwrapping**: The `unwrap()` method allows accessing vendor-specific APIs
+when needed, following Jakarta Persistence's `EntityManager.unwrap()` pattern
 
-**Evolution**: LLM technologies evolve rapidly; the facade insulates applications from these changes
+**Evolution**: LLM technologies evolve rapidly; the facade insulates
+               applications from these changes
 
 ==== JSON Binding Integration
 
@@ -293,12 +308,14 @@ public FraudAnalysis analyzeFraud(BankTransaction transaction) {
 
 === Design Patterns
 
-Jakarta Agentic AI employs several design patterns familiar to Jakarta EE developers:
+Jakarta Agentic AI employs several design patterns familiar to Jakarta EE
+developers:
 
 ==== Annotation-Driven Development
 
 Like Jakarta REST, Servlet, and Batch, Jakarta Agentic AI uses annotations to
-declaratively define behavior. This reduces boilerplate and makes code more readable.
+declaratively define behavior. This reduces boilerplate and makes code more
+readable.
 
 ==== Convention over Configuration
 
