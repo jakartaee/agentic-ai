@@ -1,7 +1,8 @@
 == CDI Integration
 
-This section describes how Jakarta Agentic AI integrates with Jakarta Contexts and Dependency
-Injection (CDI), including agent scoping, dependency injection, and lifecycle management.
+This section describes how Jakarta Agentic AI integrates with Jakarta Contexts
+and Dependency Injection (CDI), including agent scoping, dependency injection,
+and lifecycle management.
 
 === Agents as CDI Beans
 
@@ -9,7 +10,7 @@ Every agent is a CDI managed bean. This design provides:
 
 - **Dependency Injection**: Agents can inject other beans
 - **Interceptors**: Cross-cutting concerns via CDI interceptors
-- **Events**: CDI event observation
+- **Events**: CDI event observation (triggers)
 - **Lifecycle Callbacks**: Standard CDI lifecycle methods
 - **Scoping**: Flexible scope management
 
@@ -19,14 +20,16 @@ An agent class:
 
 - MUST be annotated with `@Agent`
 - MUST satisfy CDI managed bean requirements
-- MUST have a constructor with no parameters or a constructor annotated with `@Inject`
+- MUST have a constructor with no parameters or a constructor annotated
+  with `@Inject`
 - MUST NOT be an inner class (unless static)
 - MUST NOT be abstract
 - MAY be a concrete class or implement interfaces
 
 === @WorkflowScoped
 
-`@WorkflowScoped` is a custom CDI scope that ties the agent's lifecycle to the workflow execution.
+`@WorkflowScoped` is a custom CDI scope that ties the agent's lifecycle to the
+workflow execution.
 
 ==== Scope Definition
 
@@ -77,7 +80,16 @@ public class TransactionalAgent {
 
 === CDI Events
 
-Agents can produce and observe CDI events:
+Agents can produce and observe CDI events. However, CDI event observation
+depends on agent scope:
+
+* **@WorkflowScoped agents**: Can ONLY use `@Trigger` methods to handle CDI 
+                              events. A trigger method may optionally use 
+                              the `@Observes` annotation.
+* **@ApplicationScoped (or other) agents**: Can use both `@Trigger` methods
+                                            AND general CDI observer methods
+                                            (methods with `@Observes` but 
+                                            without `@Trigger`).
 
 ==== Producing Events
 

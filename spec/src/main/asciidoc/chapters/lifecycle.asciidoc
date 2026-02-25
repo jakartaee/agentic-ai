@@ -81,6 +81,17 @@ public @interface Trigger {
 Currently, there MUST be only one `@Trigger` method per agent class. This constraint
 will be relaxed in future versions to support multiple entry points.
 
+==== Scope-Based CDI Observer Restrictions
+
+CDI event observation capabilities depend on the agent's scope:
+
+* **@WorkflowScoped agents**: Can ONLY use `@Trigger` methods to handle CDI
+                              events. General CDI observer methods (with 
+                              `@Observes` but without `@Trigger`) are not 
+                              supported.
+* **@ApplicationScoped (or other) agents**: Can use both `@Trigger` methods 
+                                            AND general CDI observer methods.
+
 ==== Parameter Injection
 
 Trigger methods can receive the following types of parameters:
@@ -114,9 +125,10 @@ Trigger methods support two return patterns:
 
 ==== Trigger Invocation
 
-Currently, triggers can only be invoked by CDI events. The runtime automatically 
-observes CDI events for the trigger method parameter type. The event is added 
-to the workflow context.
+Currently, triggers can only be invoked by CDI events. A trigger method can
+optionally use the `@Observes` annotation to explicitly handle the triggering 
+event. The event is added to the workflow context and is available for
+injection.
 
 In the future, other trigger types may be supported such as Jakarta Messaging 
 messages, manual invocations from a life-cycle API, or REST POST requests.

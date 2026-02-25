@@ -21,10 +21,20 @@ import java.lang.annotation.Target;
  * Marks a method as an external trigger that initiates an agent workflow.
  * <p>
  * Trigger methods define the entry point for agent workflows and are invoked
- * when triggering events occur. Currently, triggers are invoked by CDI events,
- * where the runtime automatically observes CDI events matching the trigger
- * method's parameter type. The triggering event is automatically added to
- * the workflow context for access in subsequent phases.
+ * when triggering events occur. Currently, triggers are invoked by CDI events.
+ * A trigger method may optionally use the {@code @Observes} annotation to 
+ * explicitly handle the triggering event. The triggering event is automatically 
+ * added to the workflow context for access in subsequent phases.
+ * <p>
+ * <b>Scope Restrictions</b><br>
+ * CDI event observation capabilities depend on the agent's scope:
+ * <ul>
+ *   <li><strong>@WorkflowScoped agents:</strong> Can ONLY use {@code @Trigger} 
+ *       methods to handle CDI events. General CDI observers (methods with 
+ *       {@code @Observes} but without {@code @Trigger}) are not supported.</li>
+ *   <li><strong>@ApplicationScoped agents:</strong> Can use both 
+ *       {@code @Trigger} methods AND general CDI observer methods.</li>
+ * </ul>
  * <p>
  * While triggers are currently limited to CDI events, future versions may
  * support other event sources, such as Jakarta Messaging messages,
@@ -37,8 +47,8 @@ import java.lang.annotation.Target;
  * <b>Parameters</b><br>
  * Trigger methods can have the following types of parameters:
  * <ul>
- *   <li>The triggering event (CDI event) - Automatically detected and 
- *       matched by the runtime</li>
+ *   <li>The triggering event (CDI event) - Optionally annotated with
+ *       {@code @Observes} to explicitly declare CDI event observation</li>
  *   <li>{@link LargeLanguageModel} - LLM instance for trigger analysis</li>
  *   <li>Any other CDI injectable dependencies available to the agent</li>
  * </ul>
