@@ -2,15 +2,6 @@
 
 include::chapters/intro.asciidoc[]
 
-Jakarta Agentic AI provides vendor-neutral APIs for building, deploying, and running AI
-agents on Jakarta EE runtimes. The specification aims to standardize agent life cycles,
-workflows, and integration with foundational AI technologies such as LLMs, while 
-remaining extensible and minimal for the initial release.
-
-Jakarta Agentic AI provides a standardized, portable API that integrates with existing
-Jakarta EE technologies, allowing AI agent capabilities to be added to enterprise 
-applications.
-
 === Motivation
 
 Modern enterprise applications increasingly require automation capabilities that:
@@ -110,6 +101,8 @@ throughout a workflow execution.
 **LLM Facade**:: The `LargeLanguageModel` interface that provides access to
 Large Language Model capabilities.
 
+include::chapters/concepts.asciidoc[]
+
 include::chapters/scope.asciidoc[]
 
 include::chapters/architecture.asciidoc[]
@@ -117,8 +110,6 @@ include::chapters/architecture.asciidoc[]
 include::chapters/lifecycle.asciidoc[]
 
 include::chapters/orchestration.asciidoc[]
-
-include::chapters/concepts.asciidoc[]
 
 include::chapters/cdi.asciidoc[]
 

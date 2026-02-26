@@ -1,20 +1,26 @@
 == Key Concepts
 
 === Agent
-An agent is a CDI bean that encapsulates autonomous, goal-driven behavior. Agents are
-defined using the `@Agent` annotation, which may include an optional name and description.
+An agent is a CDI bean that encapsulates autonomous, goal-driven behavior.
+Agents are defined using the `@Agent` annotation, which may include an
+optional name and description.
 
 === Workflow
-Agent workflows are defined using annotated methods. The workflow is dynamic at runtime
-and can be triggered by CDI events or other mechanisms.
+Agent workflows are defined using annotated methods. The workflow is triggered 
+by CDI events.
 
 === Annotations Summary
 - `@Agent`: Declares a class as an agent (required on agent class)
-- `@Trigger`: Marks a method as a workflow trigger (required - exactly one per agent)
-- `@Decision`: Marks a method as a decision point; returns boolean, Result, or object (optional - zero or more per agent)
-- `@Action`: Marks a method as an action step (optional - zero or more per agent)
-- `@Outcome`: Marks a method as the workflow outcome (optional - zero or one per agent)
-- `@HandleException`: Marks a method as an exception handler (optional - zero or more per agent)
+- `@Trigger`: Marks a method as a workflow trigger (required - exactly one 
+              per agent)
+- `@Decision`: Marks a method as a decision point; returns boolean, Result, or
+               object (optional - zero or more per agent)
+- `@Action`: Marks a method as an action step (optional - zero or more per
+             agent)
+- `@Outcome`: Marks a method as the workflow outcome (optional - zero or one
+              per agent)
+- `@HandleException`: Marks a method as an exception handler (optional - zero
+                      or more per agent)
 
 === Large Language Model (LLM) Facade
 The `LargeLanguageModel` interface provides a minimal, type-converting facade for LLM

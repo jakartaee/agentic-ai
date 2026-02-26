@@ -100,9 +100,8 @@ Trigger methods can receive the following types of parameters:
 * `LargeLanguageModel` - LLM instance for trigger analysis
 * CDI injectable dependencies - Any beans available to the agent
 
-**Jakarta Validation**: Trigger method parameters can declare Jakarta Validation constraints 
-(e.g., `@Valid`, `@NotNull`, `@Email`). Validation occurs before the trigger method is invoked. 
-Validation failures raise `ConstraintViolationException`.
+See the <<Parameter Injection>> section in the Workflow Orchestration chapter for complete 
+parameter injection rules and Jakarta Validation support.
 
 ==== Return Type Semantics
 
@@ -185,8 +184,8 @@ Decision methods can receive the following types of parameters:
 * `WorkflowContext` - For accessing stored workflow state
 * CDI injectable dependencies - Any beans available to the agent
 
-**Jakarta Validation**: Decision method parameters can declare Jakarta Validation constraints. 
-Validation occurs before the decision method is invoked. Validation failures raise `ConstraintViolationException`.
+See the <<Parameter Injection>> section in the Workflow Orchestration chapter for complete 
+parameter injection rules and Jakarta Validation support.
 
 ==== Semantics
 
@@ -274,8 +273,8 @@ Action methods can receive the following types of parameters:
 * `WorkflowContext` - For accessing and managing workflow state
 * CDI injectable dependencies - Any beans available to the agent
 
-**Jakarta Validation**: Action method parameters can declare Jakarta Validation constraints. 
-Validation occurs before the action method is invoked. Validation failures raise `ConstraintViolationException`.
+See the <<Parameter Injection>> section in the Workflow Orchestration chapter for complete 
+parameter injection rules and Jakarta Validation support.
 
 ==== Semantics
 
@@ -390,8 +389,8 @@ Outcome methods can receive the following types of parameters:
 * `LargeLanguageModel` - For analysis, summarization, or content generation based on workflow results
 * CDI injectable dependencies - Any beans available to the agent
 
-**Jakarta Validation**: Outcome method parameters can declare Jakarta Validation constraints. 
-Validation occurs before the outcome method is invoked. Validation failures raise `ConstraintViolationException`.
+See the <<Parameter Injection>> section in the Workflow Orchestration chapter for complete 
+parameter injection rules and Jakarta Validation support.
 
 ==== Return Type
 
@@ -435,10 +434,6 @@ Exception handler methods can receive the following types of parameters:
 * `WorkflowContext` - Current workflow context for state management
 * `LargeLanguageModel` - For error analysis or diagnostics
 * CDI injectable dependencies - Any beans available to the agent
-
-**Jakarta Validation**: Exception handler parameters can declare Jakarta Validation constraints. 
-However, validation failures are typically not appropriate for exception handlers; if validation fails, 
-the exception is propagated to the container.
 
 ==== Return Type
 
@@ -702,18 +697,6 @@ termination:
 4. Outcome method executes last (if present and workflow hasn't terminated)
 5. Exception handlers execute when exceptions occur in any phase
 
-=== Lifecycle Execution Order
-
-The workflow execution order is:
-
-1. **Trigger phase**: Trigger method is invoked
-2. **Decision phase**: Decision method(s) are invoked
-3. **Conditional execution**:
-   - If decision returns true/non-null:
-     a. **Action phase**: Action method(s) are invoked
-     b. **Outcome phase**: Outcome method is invoked
-   - If decision returns false/null:
-     - Workflow terminates (action and outcome phases are skipped)
-4. **Exception handling**: If an exception occurs at any point:
-   - HandleException method is invoked (if defined)
-   - Otherwise, exception propagates to the container
+See the <<Workflow Model>> section in the Architecture chapter for a high-level overview
+of workflow execution, and the <<Workflow Orchestration>> chapter for detailed parameter
+injection, context management, and error handling.
