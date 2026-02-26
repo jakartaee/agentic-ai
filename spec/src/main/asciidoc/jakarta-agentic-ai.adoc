@@ -128,8 +128,6 @@ include::chapters/examples.asciidoc[]
 
 include::chapters/api.asciidoc[]
 
-include::chapters/license.asciidoc[]
-
 include::chapters/revision.asciidoc[]
 
 include::chapters/refs.asciidoc[]

@@ -1,5 +1,0 @@
-[colophon]
-== License
-
-This specification is licensed under the Eclipse Foundation Specification License (EFSL).
-See https://www.eclipse.org/legal/efsl.php for details.
