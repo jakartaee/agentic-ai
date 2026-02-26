@@ -60,3 +60,31 @@ declare Jakarta Validation constraints.
 
 === Result
 The `Result` record standardizes decision outcomes, with a success flag and details object.
+
+=== Terminology
+
+**Agent**:: An autonomous component that responds to events and orchestrates
+workflows through flexible combinations of decisions and actions.
+
+**Trigger**:: An event or condition that initiates an agent workflow. Required
+for every agent.
+
+**Decision**:: An optional determination point where the agent decides whether
+and how to proceed, typically using an LLM. Workflows can have zero, one, or 
+multiple decisions.
+
+**Action**:: An optional operation performed by the agent. Workflows can have
+zero, one, or multiple actions, and actions can be intermixed with decisions.
+
+**Outcome**:: An optional finalization phase that produces the final result
+of the workflow.
+
+**Workflow**:: A flexible execution sequence starting with a trigger, followed 
+by any combination of decisions and actions in declaration order, optionally 
+ending with an outcome.
+
+**Workflow Context**:: An underlying context object that maintains state
+throughout a workflow execution.
+
+**LLM Facade**:: The `LargeLanguageModel` interface that provides access to
+Large Language Model capabilities.
