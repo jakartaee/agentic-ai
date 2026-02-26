@@ -95,28 +95,14 @@ placed into storage in a `@PreDestroy` method.
 
 ==== Workflow Execution (Current Release)
 
-In this release, workflows execute sequentially and are tailored to agent
-requirements:
+In this release, workflows execute sequentially in declaration order:
 
-1. **Event Occurs**: An external event triggers the workflow
-2. **Trigger Invoked**: The `@Trigger` method is called with the
-                        event (required)
-3. **Decision/Action Phases**: Zero or more `@Decision` and `@Action` methods 
-   execute in declaration order
-   - **Decisions** evaluate whether to proceed:
-     * **Boolean pattern**: `true` continues, `false` terminates
-     * **Result pattern**: `Result` record with success flag controls workflow
-     * **Object pattern**: non-null object continues, `null` terminates
-   - **Actions** perform operations and can execute with or without prior
-     decisions
-   - **Intermixing**: Decisions and actions can be intermixed in any sequence
-4. **Outcome Invoked**: The `@Outcome` method produces the final
-                        result (optional). In absense of a defined outcome,
-                        the workflow ends when there are no more
-                        decisions/actions to execute.
+1. **Trigger** invoked with the event
+2. **Decisions and Actions** execute in declaration order, intermixed as defined
+3. **Decisions** control flow: `true`/non-null continues, `false`/`null` terminates
+4. **Outcome** invoked if workflow completes without early termination
 
-At any point, if an exception occurs, the `@HandleException` method is invoked
-if defined before the workflow proceeds.
+Exception handlers (`@HandleException`) execute if exceptions occur.
 
 **Phase Requirements**:
 - `@Trigger`: Required (exactly one per agent)
@@ -124,66 +110,24 @@ if defined before the workflow proceeds.
 - `@Action`: Optional (zero or more per agent)
 - `@Outcome`: Optional (zero or one per agent)
 
+See the <<Agent Lifecycle>> chapter for detailed semantics of each annotation,
+and the <<Workflow Orchestration>> chapter for execution flow details.
+
 === Integration with Jakarta EE
 
 Jakarta Agentic AI is designed to integrate seamlessly with the Jakarta EE
-ecosystem:
+ecosystem. Agents leverage CDI, Jakarta Validation, and other core Jakarta EE
+services.
 
-==== CDI Integration
+See the <<CDI Integration>> chapter for comprehensive details on:
 
-Agents are CDI beans and thus integrate with:
+- CDI scoping (`@WorkflowScoped` and `@ApplicationScoped`)
+- Dependency injection and lifecycle callbacks
+- Event observation and production
+- Interceptor support
 
-- **CDI Events**: Agents can observe CDI events as triggers
-- **Interceptors**: Transactions and custom interceptors apply to agent methods
-- **Producers**: Agent dependencies can come from CDI producers
-- **Qualifiers**: Agents can use qualifiers to select specific resources
-
-==== Scope Integration
-
-Agents support two scopes:
-
-- `@ApplicationScoped`: For long-running agents that maintain state across
-                        multiple workflow executions
-- `@WorkflowScoped`: For agents with per-workflow lifecycle (default)
-
-==== Jakarta Validation Integration
-
-Agent method parameters can be validated using Jakarta Validation constraints:
-
-- **Parameter Validation**: Trigger, decision, action, and outcome methods can
-                            declare `@Valid` on parameters to trigger automatic
-                            validation
-- **Constraint Annotations**: Standard Jakarta Validation annotations
-                              (`@NotNull`, `@NotEmpty`, `@Size`, `@Pattern`,
-                              `@Email`, etc.) can constrain method parameters
-- **Validation Failure Handling**: Validation failures surface as 
-                                   `ConstraintViolationException`, which can be
-                                   handled by `@HandleException` methods or
-                                   propagated to the container
-
-[source,java]
-----
-@Agent
-public class ValidatedAgent {
-
-    @Trigger
-    public void processClaim(@Valid @NotNull Claim claim) {
-        // claim is guaranteed to be valid and non-null
-    }
-
-    @Decision
-    public boolean evaluateAmount(@Valid ClaimDetails details) {
-        // details has been validated against its constraints
-        return details.getAmount() < 10000;
-    }
-
-    @Action
-    public void submitClaim(@Valid @NotEmpty String claimId,
-                           @Valid @Email String customerEmail) {
-        // Both parameters are validated before execution
-    }
-}
-----
+See the <<Parameter Injection>> section in the Workflow Orchestration chapter for
+details on Jakarta Validation integration.
 
 ==== Jakarta EE Service Integration
 
@@ -345,12 +289,5 @@ Jakarta Agentic AI workflow phases execute sequentially:
                      agents must take thread-safety into account as they may
                      handle multiple concurrent workflow invocations.
 
-=== Error Handling
-
-Error handling in Jakarta Agentic AI follows Jakarta EE conventions:
-
-- Uncaught exceptions propagate to the container
-- `@HandleException` methods provide agent-specific error handling
-- Standard exception types (`IllegalArgumentException`,
-  `IllegalStateException`) have defined semantics
-- Implementations should provide clear exception messages and cause chains
+For details on error handling, exception recovery, and workflow termination, see
+the <<Error Handling and Recovery>> section in the Workflow Orchestration chapter.
