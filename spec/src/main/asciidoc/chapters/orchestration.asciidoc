@@ -1,3 +1,4 @@
+[[workflow-orchestration]]
 == Workflow Orchestration
 
 This chapter describes how workflows are orchestrated in Jakarta Agentic AI, including
@@ -100,6 +101,7 @@ public class ContextAwareAgent {
 }
 ----
 
+[[workflow-parameter-injection]]
 === Parameter Injection
 
 Jakarta Agentic AI provides automatic parameter injection for workflow methods. Parameters
@@ -123,6 +125,20 @@ Validation occurs before parameter injection and workflow method invocation. If 
 a `ConstraintViolationException` is raised and can be handled by `@HandleException` methods 
 or propagated to the container.
 
+===== ConstraintViolationException
+
+`ConstraintViolationException` is a runtime exception thrown when Jakarta Validation constraints 
+on method parameters are violated. As a runtime exception, it does not require explicit handling 
+but can be caught by `@HandleException` methods in agent workflows. Common scenarios include:
+
+- Method parameter validation failures (`@NotNull`, `@Email`, `@Size`, etc.)
+- Custom constraint violations
+- Validation of complex domain objects passed between workflow phases
+
+Validation occurs automatically before workflow methods are invoked when parameters
+declare Jakarta Validation constraints.
+
+[[workflow-error-handling-recovery]]
 === Error Handling and Recovery
 
 ==== Exception Handler Invocation

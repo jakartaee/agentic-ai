@@ -1,15 +1,8 @@
 == API Overview
 
 === Agent Annotation
-[source,java]
-----
-@Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.TYPE)
-public @interface Agent {
-    String name() default "";
-    String description() default "";
-}
-----
+`@Agent` is defined as an annotation with optional `name` and `description`
+attributes on agent classes.
 
 Agent annotation highlights:
 
@@ -19,7 +12,7 @@ Agent annotation highlights:
 
 === LargeLanguageModel Interface
 [source,java]
-----
+....
 /**
  * Minimal facade for Large Language Model (LLM) operations.
  * <p>
@@ -103,7 +96,7 @@ public interface LargeLanguageModel {
      */
     <T> T unwrap(Class<T> implClass);
 }
-----
+....
 
 LargeLanguageModel behavior highlights:
 
@@ -117,16 +110,32 @@ LargeLanguageModel behavior highlights:
 - LLM service failures surface as `LLMException`.
 - `unwrap()` allows vendor-specific access and may fail with `IllegalArgumentException`.
 
+All `LargeLanguageModel` `query(...)` methods may throw:
+
+- `IllegalArgumentException` - For null or invalid parameters, or JSON serialization/deserialization failures.
+- `LLMException` - Runtime exception for LLM service errors.
+
+=== LLMException
+
+`LLMException` is a runtime exception thrown when LLM operations fail. As a runtime exception,
+it does not require explicit handling but can be caught by `@HandleException` methods in agent
+workflows. Common failure scenarios include:
+
+- Communication failures with the LLM service
+- Invalid or unparseable responses from the LLM
+- Rate limiting or quota exceeded errors
+- Model unavailability or timeout
+- Type conversion failures when processing LLM responses
+
 === Result Record
-[source,java]
-----
-public record Result(boolean success, Object details) {}
-----
+`Result` is defined as `public record Result(boolean success, Object details) {}`.
 
 Result record highlights:
 
 - `success` indicates whether the workflow should proceed.
 - `details` carries optional domain data for downstream injection.
+
+See the @Decision Annotation section in the Lifecycle chapter for Result usage semantics and patterns.
 
 NOTE: The snippets above show the API shape; refer to the JavaDocs in the API module
 for the normative behavioral contract.
