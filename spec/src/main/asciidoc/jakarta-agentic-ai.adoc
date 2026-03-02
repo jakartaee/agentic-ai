@@ -2,8 +2,6 @@
 
 include::chapters/intro.asciidoc[]
 
-include::chapters/scope.asciidoc[]
-
 include::chapters/architecture.asciidoc[]
 
 include::chapters/lifecycle.asciidoc[]
