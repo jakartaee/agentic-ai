@@ -2,45 +2,51 @@
 Introduction
 ------------
 
-Jakarta Agentic AI provides vendor-neutral APIs for building, deploying, and running AI
-agents on Jakarta EE runtimes. The specification aims to standardize agent life cycles,
-workflows, and integration with foundational AI technologies such as LLMs,
-while remaining extensible and minimal for the initial release.
+Jakarta Agentic AI provides vendor-neutral APIs for building, deploying, and
+running AI agents on Jakarta EE runtimes. The specification aims to standardize
+agent life cycles, workflows, and integration with foundational AI technologies
+such as LLMs, while remaining extensible and minimal for the initial release.
 
 === Scope
 
-* Defines common usage patterns and life cycles for AI agents on Jakarta EE runtimes.
+* Defines common usage patterns and life cycles for AI agents on Jakarta EE
+  runtimes.
 * Provides a minimal facade for foundational AI capabilities (e.g., LLMs), with
-pluggable access to existing APIs.
-* Mechanism to define agent workflows using a fluent Java API.
-* Integrates with other Jakarta EE APIs (Validation, REST, JSON Binding, Persistence, Data,
-Transactions, NoSQL, Concurrency, Security, Messaging).
-* Utilizes Jakarta Config and allows implementations to use MicroProfile Config.
-* May provide OpenTelemetry integration.
-* Designed for Jakarta EE runtimes, but potentially usable in Quarkus, Micronaut,
-Spring Boot.
+  pluggable access to existing APIs.
+* Mechanism to define agent workflows using a fluent Java API (this will be
+  done shortly after the initial release).
+* Integrates with other Jakarta EE APIs (Validation, REST, JSON Binding,
+  Persistence, Data, Transactions, NoSQL, Concurrency, Security, Messaging).
+* Aims to utilize Jakarta Config and allows implementations to use MicroProfile
+  Config.
+* Implementations may provide OpenTelemetry integration.
+* Designed for Jakarta EE runtimes, but potentially usable in Quarkus,
+  Micronaut, Spring Boot.
 
 === Motivation
 
-Modern enterprise applications increasingly require automation capabilities that:
+Modern enterprise applications increasingly require automation capabilities
+that:
 
 - Monitor systems and respond to events autonomously
 - Make context-aware decisions using AI/ML models
-- Execute workflows based on LLM-generated insights
+- Execute dynamic workflows based on LLM-generated insights
 - Integrate with existing enterprise infrastructure
 
-While AI and LLM technologies have matured rapidly, there is no standard way to build AI
-agents in Jakarta EE applications. Developers must rely on vendor-specific frameworks or
-integrate multiple disparate technologies, leading to:
+While AI and LLM technologies have matured rapidly, there is no standard way to
+build AI agents in Jakarta EE applications. Developers must rely on 
+vendor-specific frameworks, or integrate multiple disparate technologies
+themselves, leading to:
 
 - Lack of portability between Jakarta EE implementations
 - Inconsistent programming models
 - Difficulty integrating with CDI and other Jakarta EE technologies
-- Complex boilerplate code for agent orchestration
+- Completely custom boilerplate code for agent orchestration, even for common
+  patterns and use cases
 
-Jakarta Agentic AI addresses these challenges by providing a standard API that feels 
-natural to Jakarta EE developers, similar to how Jakarta Servlet, REST, and Batch 
-standardized their respective domains.
+Jakarta Agentic AI addresses these challenges by providing a standard API that
+feels natural to Java and Jakarta EE developers, similar to how Jakarta
+Servlet, REST, and Batch standardized their respective domains.
 
 === Goals
 
@@ -50,76 +56,68 @@ The primary goals of Jakarta Agentic AI are:
 Jakarta EE annotations, making it simple to mark methods as triggers, decisions, 
 actions, and outcomes.
 
-**CDI integration**:: Agents are CDI beans with full support for dependency injection,
-interceptors, and scoping. Agents can use `@WorkflowScoped` (default) or
-`@ApplicationScoped` scope annotations.
+**CDI integration**:: Agents are CDI beans with full support for dependency
+injection, interceptors, and scoping. Agents can use `@WorkflowScoped`
+(default) or `@ApplicationScoped` scope annotations.
 
-**LLM abstraction**:: Provide a lightweight facade for accessing Large Language Models
-without standardizing the LLM APIs themselves. This allows vendors to plug in different
-LLM backends while giving applications a consistent interface.
+**Simple LLM abstraction**:: Provide a lightweight facade for accessing Large
+Language Models without standardizing the LLM APIs themselves. This allows
+vendors to plug in different LLM backends while giving applications a
+consistent interface when possible.
 
-**Workflow orchestration**:: Enable declarative workflows where the runtime manages
-execution flow between agent lifecycle phases. Workflows begin with a trigger and may
-include any combination of decisions and actions, optionally ending with an outcome.
+**Workflow orchestration**:: Enable declarative workflows where the runtime
+manages execution flow between agent lifecycle phases. Workflows begin with a
+trigger and may include any combination of decisions and actions, optionally
+ending with an outcome.
 
-**Vendor neutrality**:: Allow implementations across Jakarta EE compatible products and
-potentially other CDI-based runtimes.
+**Vendor neutrality**:: Allow implementations across Jakarta EE compatible
+products and potentially other CDI/Java-based runtimes.
 
-**Jakarta EE alignment**:: Follow Jakarta EE patterns and conventions, ensuring 
-consistency with specifications like Jakarta Persistence, Jakarta REST, and Jakarta
-Batch.
+**Jakarta EE alignment**:: Follow familiar Jakarta EE patterns and conventions,
+ensuring  consistency with specifications like Jakarta Persistence, Jakarta
+REST, and Jakarta Batch.
 
 === Non-goals
 
 The following are explicitly outside the scope of this specification:
 
-**Standardizing LLM APIs**:: Jakarta Agentic AI provides a facade interface for
-accessing LLMs but does not standardize the underlying LLM APIs. LLM provider APIs 
-vary significantly and evolve rapidly, making standardization impractical for this
-initial release. In the future, it is possible there is a need for a separate
-Jakarta EE LLM API.
+**Standardizing LLM APIs**:: Jakarta Agentic AI provides a simple facade for
+accessing LLMs but does not standardize the underlying LLM APIs. LLM provider
+APIs vary significantly and evolve rapidly, making standardization impractical
+for this initial release. In the future, it is possible there is a need for a
+separate Jakarta EE LLM API. The facade will provide ready access to the 
+underlying provider APIs.
 
 **Machine learning frameworks**:: This specification focuses on agent
 orchestration and lifecycle management, not ML framework standardization.
 
-**Specific LLM models**:: The specification is model-agnostic. Model selection and
-configuration are runtime and deployment concerns.
-
-**Agent communication protocols**:: Multi-agent communication and coordination
-patterns are deferred to future releases.
-
-**Training and fine-tuning**:: Model training, fine-tuning, and ML model lifecycle 
-management are outside the scope of agent orchestration.
+**Training and fine-tuning**:: Model training, fine-tuning, and ML model
+lifecycle management are outside the scope of agent orchestration.
 
 === Key Concepts
 
 ==== Agent
-An agent is a CDI bean that encapsulates autonomous, goal-driven behavior. Agents are
-defined using the `@Agent` annotation, which may include an optional name and description.
+An agent is a CDI bean that encapsulates autonomous, goal-driven behavior.
+Agents are defined using the `@Agent` annotation, which may include an optional
+name and description.
 
 ==== Workflow
-Agent workflows are defined using annotated methods. The workflow is dynamic at runtime
-and can be triggered by CDI events or other mechanisms.
+Agent workflows consist of triggers, decisions, actions, and outcomes that model
+the capabilities of the agent. Each workflow has an underlying execution context.
 
 ==== Annotations
-- `@Agent`: Declares a class as an agent.
-- `@Trigger`: Marks a method as a workflow trigger.
-- `@Decision`: Marks a method as a decision point; returns boolean, `Result`, or domain objects.
+- `@Agent`: Declares a class as an agent CDI bean.
+- `@Trigger`: Marks a method as the workflow trigger.
+- `@Decision`: Marks a method as a decision point.
 - `@Action`: Marks a method as an action step.
 - `@Outcome`: Marks a method as the workflow outcome.
-- `@HandleException`: Marks a method as an exception handler.
 
 ==== Large Language Model (LLM) Facade
-The `LargeLanguageModel` interface provides a minimal, type-converting facade for LLM
-operations. It supports querying with prompts and input objects, returning results as
-strings or domain types. Implementations must use Jakarta JSON Binding for
-serialization of input objects and deserialization of typed responses, ensuring 
-consistent portable behavior.
-Implementations may also support unwrapping to access the underlying LLM 
-implementation for advanced or vendor-specific features.
-
-==== Result
-The `Result` record standardizes decision outcomes, with a success flag and details object.
+The `LargeLanguageModel` interface provides a minimal, type-converting facade
+for LLM operations. Input into and output from the interface are strings or
+Java objects. Implementations use Jakarta JSON Binding for portable
+serialization and deserialization. The facade also provides an `unwrap()`
+method for accessing vendor-specific APIs when needed.
 
 === Example
 
@@ -151,92 +149,7 @@ public class FraudDetectionAgent {
     }
 
     @Outcome
-    private void processTransaction(BankTransaction transaction) {
+    private void markTransaction(BankTransaction transaction) {
         // Mark transaction suspect
     }
 }
-----
-
-=== API Overview
-
-==== Agent Annotation
-[source,java]
-----
-@Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.TYPE)
-public @interface Agent {
-    String name() default "";
-    String description() default "";
-}
-----
-
-==== LargeLanguageModel Interface
-[source,java]
-----
-public interface LargeLanguageModel {
-    /**
-     * Sends a prompt to the model and returns a String response.
-     * <p>
-     * This is the simplest form of LLM interaction, suitable for plain text prompts and responses.
-     *
-     * @param prompt The input prompt or question.
-     * @return The model's response as a String.
-     */
-    String query(String prompt);
-
-    /**
-     * Sends a prompt to the model and returns a response of the specified type.
-     * <p>
-     * The result is converted to the requested type if supported by the implementation.
-     *
-     * @param prompt The prompt or query.
-     * @param resultType The expected result type.
-     * @param <T> The type of the result.
-     * @return The model's response converted to the specified type.
-     */
-    <T> T query(String prompt, Class<T> resultType);
-
-    /**
-     * Sends a prompt and a variable number of input objects to the model, returning a String response.
-     * <p>
-     * The input objects may be domain objects, JSON, or other serializable types. Implementations
-     * should handle conversion as needed.
-     *
-     * @param prompt The prompt or query.
-     * @param inputs The input objects (e.g., domain objects, JSON, etc.).
-     * @return The model's response as a String.
-     */
-    String query(String prompt, Object... inputs);
-
-    /**
-     * Sends a prompt and a variable number of input objects to the model, returning a response of the specified type.
-     * <p>
-     * The result is converted to the requested type if supported by the implementation.
-     *
-     * @param prompt The prompt or query.
-     * @param resultType The expected result type.
-     * @param inputs The input objects.
-     * @param <T> The type of the result.
-     * @return The model's response converted to the specified type.
-     */
-    <T> T query(String prompt, Class<T> resultType, Object... inputs);
-
-    /**
-     * Unwraps the underlying LLM implementation.
-     * <p>
-     * This allows access to vendor-specific APIs or advanced features not exposed by the facade.
-     *
-     * @param implClass The class of the underlying implementation to unwrap to.
-     * @param <T> The type of the underlying implementation.
-     * @return The underlying implementation instance, or throws if not available.
-     * @throws IllegalArgumentException if the implementation cannot be unwrapped to the requested type.
-     */
-    <T> T unwrap(Class<T> implClass);
-}
-----
-
-==== Result Record
-[source,java]
-----
-public record Result(boolean success, Object details) {}
-----
