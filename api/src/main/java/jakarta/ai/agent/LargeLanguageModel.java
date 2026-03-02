@@ -24,6 +24,15 @@ package jakarta.ai.agent;
  * portable behavior across implementations.
  * <p>
  * Implementations will delegate to external LLM APIs or services.
+ * <p>
+ * In the initial release, implementations are free to support whichever LLM
+ * libraries and APIs they choose. Configuration mechanisms (if any) are 
+ * implementation-specific. Future releases will provide standardized provider 
+ * selection and some common LLM configuration, allowing developers to switch 
+ * between different LLM implementations, and rely on very common configurable
+ * LLM features in a standardized way. This is very similar to how Jakarta 
+ * Persistence works with multiple providers and a common set of configuration 
+ * properties.
  */
 public interface LargeLanguageModel {
 
