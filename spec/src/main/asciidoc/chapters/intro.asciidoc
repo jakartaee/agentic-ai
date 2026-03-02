@@ -103,14 +103,23 @@ name and description.
 
 ==== Workflow
 Agent workflows consist of triggers, decisions, actions, and outcomes that model
-the capabilities of the agent. Each workflow has an underlying execution context.
+the basic capabilities of the agent. Each workflow has an underlying execution 
+context that helps maintain state. In the initial version, the workflow can
+only be triggered by CDI events.
 
 ==== Annotations
 - `@Agent`: Declares a class as an agent CDI bean.
-- `@Trigger`: Marks a method as the workflow trigger.
-- `@Decision`: Marks a method as a decision point.
-- `@Action`: Marks a method as an action step.
-- `@Outcome`: Marks a method as the workflow outcome.
+- `@Trigger`: Marks a method as a workflow trigger (required - exactly one 
+              per agent in the initial release)
+- `@Decision`: Marks a method as a decision point; returns boolean, 
+               Result record, or domain object (optional - zero or more per
+               agent)
+- `@Action`: Marks a method as an action step (optional - zero or more per
+             agent)
+- `@Outcome`: Marks a method as the workflow outcome (optional - zero or one
+              per agent)
+- `@HandleException`: Marks a method as an exception handler (optional - zero
+                      or more per agent)
 
 ==== Large Language Model (LLM) Facade
 The `LargeLanguageModel` interface provides a minimal, type-converting facade
@@ -153,3 +162,4 @@ public class FraudDetectionAgent {
         // Mark transaction suspect
     }
 }
+----

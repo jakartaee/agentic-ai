@@ -1,3 +1,4 @@
+[[agent-lifecycle]]
 == Agent Lifecycle
 
 This chapter defines the agent lifecycle annotations and their semantics. Each annotation
@@ -100,7 +101,7 @@ Trigger methods can receive the following types of parameters:
 * `LargeLanguageModel` - LLM instance for trigger analysis
 * CDI injectable dependencies - Any beans available to the agent
 
-See the <<Parameter Injection>> section in the Workflow Orchestration chapter for complete 
+See the xref:workflow-parameter-injection[Parameter Injection] section in the Workflow Orchestration chapter for complete 
 parameter injection rules and Jakarta Validation support.
 
 ==== Return Type Semantics
@@ -184,7 +185,7 @@ Decision methods can receive the following types of parameters:
 * `WorkflowContext` - For accessing stored workflow state
 * CDI injectable dependencies - Any beans available to the agent
 
-See the <<Parameter Injection>> section in the Workflow Orchestration chapter for complete 
+See the xref:workflow-parameter-injection[Parameter Injection] section in the Workflow Orchestration chapter for complete 
 parameter injection rules and Jakarta Validation support.
 
 ==== Semantics
@@ -202,10 +203,11 @@ Decision methods support three return patterns:
 - `false`: Terminate workflow
 
 **Result Pattern**:
-- `Result` record with success flag and optional details
-- Success `true`: Proceed with workflow
-- Success `false`: Terminate workflow
-- Details: Available for injection from the workflow context
+- `Result` record standardizes decision outcomes with a boolean success flag and optional details object
+- The `Result` record is defined as: `public record Result(boolean success, Object details) {}`
+- `success` flag: `true` proceeds with workflow, `false` terminates workflow
+- `details` field: Carries optional domain data that becomes available for injection in subsequent workflow phases
+- Primary use: When decisions need to return both a proceed/stop signal and contextual data
 
 **Object Pattern**:
 - Non-null object: Proceed with workflow; object available for injection
@@ -273,7 +275,7 @@ Action methods can receive the following types of parameters:
 * `WorkflowContext` - For accessing and managing workflow state
 * CDI injectable dependencies - Any beans available to the agent
 
-See the <<Parameter Injection>> section in the Workflow Orchestration chapter for complete 
+See the xref:workflow-parameter-injection[Parameter Injection] section in the Workflow Orchestration chapter for complete 
 parameter injection rules and Jakarta Validation support.
 
 ==== Semantics
@@ -389,7 +391,7 @@ Outcome methods can receive the following types of parameters:
 * `LargeLanguageModel` - For analysis, summarization, or content generation based on workflow results
 * CDI injectable dependencies - Any beans available to the agent
 
-See the <<Parameter Injection>> section in the Workflow Orchestration chapter for complete 
+See the xref:workflow-parameter-injection[Parameter Injection] section in the Workflow Orchestration chapter for complete 
 parameter injection rules and Jakarta Validation support.
 
 ==== Return Type
@@ -697,6 +699,6 @@ termination:
 4. Outcome method executes last (if present and workflow hasn't terminated)
 5. Exception handlers execute when exceptions occur in any phase
 
-See the <<Workflow Model>> section in the Architecture chapter for a high-level overview
-of workflow execution, and the <<Workflow Orchestration>> chapter for detailed parameter
+See the xref:workflow-model[Workflow Model] section in the Architecture chapter for a high-level overview
+of workflow execution, and the xref:workflow-orchestration[Workflow Orchestration] chapter for detailed parameter
 injection, context management, and error handling.

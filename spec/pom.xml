@@ -42,9 +42,9 @@
                             <goal>process-asciidoc</goal>
                         </goals>
                         <configuration>
-                            <sourceHighlighter>highlightjs</sourceHighlighter>
                             <backend>html5</backend>
                             <attributes>
+                                <source-highlighter>highlightjs</source-highlighter>
                                 <toc/>
                                 <linkcss>false</linkcss>
                                 <project-version>${project.version}</project-version>

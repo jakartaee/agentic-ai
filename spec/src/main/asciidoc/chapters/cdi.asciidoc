@@ -1,3 +1,4 @@
+[[cdi-integration]]
 == CDI Integration
 
 This section describes how Jakarta Agentic AI integrates with Jakarta Contexts
@@ -153,3 +154,28 @@ public class LifecycleAwareAgent {
     }
 }
 ----
+
+=== LLM Provider Configuration
+
+The `LargeLanguageModel` interface is injected as a CDI bean managed by
+the Jakarta Agentic AI runtime. Implementations are responsible for providing
+this bean.
+
+==== Initial Release
+
+In the initial release, implementations are free to support whichever LLM
+libraries and APIs they choose (e.g., Spring AI, LangChain4j, or vendor-specific
+SDKs). Configuration of the LLM provider (if supported) is implementation-specific
+and may use properties, environment variables, or other mechanisms provided by
+the implementation.
+
+==== Future Releases
+
+Future releases may introduce standardized configuration for LLM provider
+selection and common parameters through Jakarta Config. This will allow developers
+to switch between different LLM implementations and configure shared settings
+(API endpoints, authentication, model selection, etc.) in a consistent manner,
+similar to how Jakarta Persistence handles multiple database providers.
+
+For details on the current implementation, refer to your Jakarta Agentic AI
+implementation's documentation.

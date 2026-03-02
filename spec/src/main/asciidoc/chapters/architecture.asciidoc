@@ -93,6 +93,7 @@ adapt based on agent state or LLM interactions. The initial agent workflow
 could be defined or loaded from storage in a `@PostConstruct` method and 
 placed into storage in a `@PreDestroy` method.
 
+[[workflow-model]]
 ==== Workflow Execution (Current Release)
 
 In this release, workflows execute sequentially in declaration order:
@@ -110,8 +111,8 @@ Exception handlers (`@HandleException`) execute if exceptions occur.
 - `@Action`: Optional (zero or more per agent)
 - `@Outcome`: Optional (zero or one per agent)
 
-See the <<Agent Lifecycle>> chapter for detailed semantics of each annotation,
-and the <<Workflow Orchestration>> chapter for execution flow details.
+See the xref:agent-lifecycle[Agent Lifecycle] chapter for detailed semantics of each annotation,
+and the xref:workflow-orchestration[Workflow Orchestration] chapter for execution flow details.
 
 === Integration with Jakarta EE
 
@@ -119,14 +120,14 @@ Jakarta Agentic AI is designed to integrate seamlessly with the Jakarta EE
 ecosystem. Agents leverage CDI, Jakarta Validation, and other core Jakarta EE
 services.
 
-See the <<CDI Integration>> chapter for comprehensive details on:
+See the xref:cdi-integration[CDI Integration] chapter for comprehensive details on:
 
 - CDI scoping (`@WorkflowScoped` and `@ApplicationScoped`)
 - Dependency injection and lifecycle callbacks
 - Event observation and production
 - Interceptor support
 
-See the <<Parameter Injection>> section in the Workflow Orchestration chapter for
+See the xref:workflow-parameter-injection[Parameter Injection] section in the Workflow Orchestration chapter for
 details on Jakarta Validation integration.
 
 ==== Jakarta EE Service Integration
@@ -290,4 +291,4 @@ Jakarta Agentic AI workflow phases execute sequentially:
                      handle multiple concurrent workflow invocations.
 
 For details on error handling, exception recovery, and workflow termination, see
-the <<Error Handling and Recovery>> section in the Workflow Orchestration chapter.
+the xref:workflow-error-handling-recovery[Error Handling and Recovery] section in the Workflow Orchestration chapter.
