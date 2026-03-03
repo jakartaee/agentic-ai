@@ -10,7 +10,7 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  *****************************************************************************/
-package jakarta.ai.agent.example.docsagent;
+package jakartaee.examples.ai.agent.docsagent;
 
 import jakarta.ai.agent.Action;
 import jakarta.ai.agent.Agent;
