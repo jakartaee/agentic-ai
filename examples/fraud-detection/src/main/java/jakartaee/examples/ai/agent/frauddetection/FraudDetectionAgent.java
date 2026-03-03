@@ -10,7 +10,7 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  *****************************************************************************/
-package jakarta.ai.agent.example.frauddetection;
+package jakartaee.examples.ai.agent.frauddetection;
 
 import jakarta.ai.agent.Agent;
 import jakarta.ai.agent.Trigger;
