@@ -15,7 +15,7 @@ This TCK verifies that implementations of Jakarta Agentic AI conform to the spec
 
 ```
 tck/
-├── src/main/java/jakarta/ai/agent/tck/
+├── src/main/java/ee/jakarta/tck/ai/agent/
 │   ├── core/
 │   │   ├── agent/           # Agent annotation and interface tests
 │   │   ├── lifecycle/       # Workflow lifecycle annotation tests
@@ -24,7 +24,7 @@ tck/
 │       ├── junit/anno/      # Custom test annotations
 │       └── signature/       # API signature tests
 └── src/main/resources/
-    └── jakarta/ai/agent/tck/framework/signature/
+    └── ee/jakarta/tck/ai/agent/framework/signature/
 ```
 
 ## Building the TCK

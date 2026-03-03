@@ -10,9 +10,9 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  *****************************************************************************/
-package jakarta.ai.agent.tck.core.agent;
+package ee.jakarta.tck.ai.agent.core.agent;
 
-import jakarta.ai.agent.tck.framework.junit.anno.Assertion;
+import ee.jakarta.tck.ai.agent.framework.junit.anno.Assertion;
 import jakarta.ai.agent.LLMException;
 
 import static org.junit.jupiter.api.Assertions.*;
