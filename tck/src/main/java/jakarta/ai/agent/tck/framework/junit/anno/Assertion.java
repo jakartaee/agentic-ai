@@ -10,7 +10,7 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  *****************************************************************************/
-package ee.jakarta.tck.ai.agent.framework.junit.anno;
+package jakarta.ai.agent.tck.framework.junit.anno;
 
 import org.junit.jupiter.api.Test;
 

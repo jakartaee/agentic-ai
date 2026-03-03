@@ -10,9 +10,9 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  *****************************************************************************/
-package ee.jakarta.tck.ai.agent.core.cdi;
+package jakarta.ai.agent.tck.core.cdi;
 
-import ee.jakarta.tck.ai.agent.framework.junit.anno.Assertion;
+import jakarta.ai.agent.tck.framework.junit.anno.Assertion;
 
 import jakarta.ai.agent.WorkflowScoped;
 import jakarta.enterprise.context.NormalScope;
