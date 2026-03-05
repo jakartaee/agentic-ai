@@ -111,6 +111,8 @@ import java.lang.annotation.Target;
  * @see Decision
  * @see Trigger
  * @see LargeLanguageModel
+ *
+ * @since 1.0
  */
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)

@@ -103,6 +103,8 @@ import java.lang.annotation.Target;
  * @see Trigger
  * @see Action
  * @see Outcome
+ *
+ * @since 1.0
  */
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)

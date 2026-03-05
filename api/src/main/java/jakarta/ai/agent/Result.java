@@ -14,9 +14,15 @@ package jakarta.ai.agent;
 
 /**
  * Represents the result of a decision or workflow step in an agent.
- * <p>
- * The 'success' flag indicates a positive or negative result, and 'details'
- * can hold additional information, such as error messages, domain objects,
- * or context.
+ *
+ * @param success {@code true} if the decision or step succeeded,
+ *                {@code false} otherwise. When used as a
+ *                {@link Decision @Decision} return type, {@code true}
+ *                means the workflow proceeds and {@code false} stops it.
+ * @param details can hold additional information, such as error messages, domain objects,
+ *                or context.
+ *
+ * @since 1.0
  */
-public record Result(boolean success, Object details) {}
+public record Result(boolean success, Object details) {
+}

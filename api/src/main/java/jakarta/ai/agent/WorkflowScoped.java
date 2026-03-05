@@ -50,6 +50,10 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
  *     private Map<String, Object> cache = new HashMap<>();
  * }
  * }</pre>
+ *
+ * @see Agent
+ *
+ * @since 1.0
  */
 @Target({ TYPE, METHOD, FIELD })
 @Retention(RUNTIME)
