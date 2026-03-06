@@ -26,6 +26,8 @@ package jakarta.ai.agent;
  * <p>
  * As a runtime exception, it does not require explicit handling but can be 
  * caught by {@link HandleException} annotated methods in agent workflows.
+ *
+ * @since 1.0
  */
 public class LLMException extends RuntimeException {
 

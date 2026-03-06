@@ -25,13 +25,15 @@ import java.lang.annotation.Target;
  * additional annotations.
  * <p>
  * Agents support two scope annotations: {@link WorkflowScoped} and 
- * @ApplicationScoped. If no scope annotation is present on the class, the 
+ * {@code @ApplicationScoped}. If no scope annotation is present on the class, the
  * agent will be assumed to be {@link WorkflowScoped}.
  * <p>
  * A workflow context will still be created for each workflow execution even 
  * when the agent is @ApplicationScoped, beginning with a trigger and in most 
  * cases ending with an outcome.
  * </p>
+ *
+ * @since 1.0
  */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
@@ -40,8 +42,8 @@ public @interface Agent {
     /**
      * The agent's name.
      * <p>
-     * If not specified, the agent's class name in camelCase will be used as a 
-     * default.
+     * If not specified, the simple class name with the first letter lowercased
+     * will be used as a default (e.g., {@code MyAgent} becomes {@code myAgent}).
      */
     String name() default "";
 
