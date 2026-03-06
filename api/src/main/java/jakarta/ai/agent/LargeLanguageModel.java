@@ -33,6 +33,10 @@ package jakarta.ai.agent;
  * LLM features in a standardized way. This is very similar to how Jakarta 
  * Persistence works with multiple providers and a common set of configuration 
  * properties.
+ *
+ * @see LLMException
+ *
+ * @since 1.0
  */
 public interface LargeLanguageModel {
 

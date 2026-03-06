@@ -210,5 +210,7 @@
  * @see jakarta.ai.agent.Outcome
  * @see jakarta.ai.agent.LargeLanguageModel
  * @see jakarta.ai.agent.WorkflowScoped
+ *
+ * @since 1.0
  */
 package jakarta.ai.agent;
