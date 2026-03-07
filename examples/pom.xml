@@ -3,19 +3,24 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
+
     <parent>
         <groupId>jakarta.ai</groupId>
         <artifactId>jakarta-agentic-ai-parent</artifactId>
         <version>1.0.0-SNAPSHOT</version>
     </parent>
+
     <artifactId>jakarta-agentic-ai-examples</artifactId>
     <packaging>pom</packaging>
+
     <name>Jakarta Agentic AI Examples</name>
     <description>Example applications for Jakarta Agentic AI.</description>
+
     <modules>
         <module>fraud-detection</module>
         <module>docs-agent</module>
     </modules>
+
     <licenses>
         <license>
             <name>Eclipse Foundation Specification License (EFSL)</name>
@@ -23,6 +28,7 @@
             <distribution>repo</distribution>
         </license>
     </licenses>
+
     <properties>
         <maven.compiler.release>17</maven.compiler.release>
     </properties>
