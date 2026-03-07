@@ -3,12 +3,19 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <groupId>jakarta.ai</groupId>
+
+    <parent>
+        <groupId>jakarta.ai</groupId>
+        <artifactId>jakarta-agentic-ai-parent</artifactId>
+        <version>1.0.0-SNAPSHOT</version>
+    </parent>
+
     <artifactId>jakarta.agentic-ai-api</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
     <packaging>jar</packaging>
+
     <name>Jakarta Agentic AI API</name>
     <description>Vendor-neutral API for building agentic AI applications on Jakarta EE runtimes.</description>
+
     <licenses>
         <license>
             <name>Eclipse Foundation Specification License (EFSL)</name>
@@ -16,9 +23,11 @@
             <distribution>repo</distribution>
         </license>
     </licenses>
+
     <properties>
         <maven.compiler.release>17</maven.compiler.release>
     </properties>
+
     <dependencies>
         <dependency>
             <groupId>jakarta.enterprise</groupId>
