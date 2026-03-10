@@ -102,13 +102,6 @@
             <groupId>org.jboss.shrinkwrap</groupId>
             <artifactId>shrinkwrap-api</artifactId>
         </dependency>
-
-        <!-- Signature Testing -->
-        <dependency>
-            <groupId>jakarta.tck</groupId>
-            <artifactId>sigtest-maven-plugin</artifactId>
-            <version>${sigtest.version}</version>
-        </dependency>
     </dependencies>
 
     <build>
