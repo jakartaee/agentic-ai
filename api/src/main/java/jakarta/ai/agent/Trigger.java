@@ -103,6 +103,7 @@ import java.lang.annotation.Target;
  *     result.setClassification(analysis);
  *     result.setEventData(event);
  *     return result;
+ * }
  * }</pre>
  *
  * @see Decision

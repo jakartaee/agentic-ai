@@ -70,5 +70,11 @@ public @interface WorkflowScoped {
         public static final Literal INSTANCE = new Literal();
 
         private static final long serialVersionUID = 1L;
+
+        /**
+         * Creates the singleton literal instance.
+         */
+        private Literal() {
+        }
     }
 }

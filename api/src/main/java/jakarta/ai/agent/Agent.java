@@ -44,6 +44,9 @@ public @interface Agent {
      * <p>
      * If not specified, the simple class name with the first letter lowercased
      * will be used as a default (e.g., {@code MyAgent} becomes {@code myAgent}).
+     *
+     * @return the configured agent name, or an empty string to use the default 
+     * derived name
      */
     String name() default "";
 
@@ -51,6 +54,8 @@ public @interface Agent {
      * The agent's description.
      * <p>
      * Used for documentation and discovery purposes.
+     *
+     * @return the agent description, or an empty string if none is provided
      */
     String description() default "";
 }
