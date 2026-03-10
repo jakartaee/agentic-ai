@@ -10,6 +10,7 @@
     </parent>
 
     <artifactId>jakarta.agentic-ai-spec</artifactId>
+    <packaging>pom</packaging>
 
     <name>Jakarta Agentic AI Specification</name>
     <description>Specification for Jakarta Agentic AI.</description>
