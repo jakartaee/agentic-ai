@@ -61,6 +61,12 @@ reused across multiple workflow executions, but a new workflow context is still
 created and maintained for each workflow invocation, beginning with a trigger and 
 typically ending with an outcome.
 
+Conversational state maintained by `LargeLanguageModel` implementations must
+follow the same lifecycle boundaries. For `@WorkflowScoped` agents,
+conversational state is bound to the current workflow context and must end when
+that context ends. For `@ApplicationScoped` agents, conversational state must
+remain isolated per workflow execution.
+
 === @Trigger Annotation
 
 The `@Trigger` annotation marks a method as a workflow trigger. Trigger methods 

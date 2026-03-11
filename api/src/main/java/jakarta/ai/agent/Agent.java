@@ -31,6 +31,9 @@ import java.lang.annotation.Target;
  * A workflow context will still be created for each workflow execution even 
  * when the agent is @ApplicationScoped, beginning with a trigger and in most 
  * cases ending with an outcome.
+ * Any conversational state maintained by injected
+ * {@link LargeLanguageModel} implementations is expected to follow this
+ * workflow context lifecycle.
  * </p>
  *
  * @since 1.0

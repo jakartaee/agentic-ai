@@ -41,6 +41,16 @@ package jakarta.ai.agent;
  * llm.query("Classify this event", event);
  * }</pre>
  * <p>
+ * Implementations must maintain conversational state for the current workflow
+ * execution across query calls. For {@link WorkflowScoped} agents, that
+ * conversational state is bound to the workflow context and must end when the
+ * workflow context ends. For {@code @ApplicationScoped} agents,
+ * conversational state must remain isolated per workflow execution and must
+ * not leak across concurrent invocations.
+ * <p>
+ * Implementations must be thread-safe in the context of a single workflow
+ * execution.
+ * <p>
  * Implementations will delegate to external LLM APIs or services.
  * <p>
  * In the initial release, implementations are free to support whichever LLM
