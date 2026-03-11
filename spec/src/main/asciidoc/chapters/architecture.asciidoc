@@ -216,10 +216,16 @@ The `LargeLanguageModel` facade leverages Jakarta JSON Binding to enable
 type-safe LLM interactions. Implementations must use Jakarta JSON Binding for 
 serialization and deserialization.
 
-**Input Object Serialization**:
-- When domain objects are passed as `inputs` parameters, implementations
-  serialize them to JSON using Jakarta JSON Binding
-- The JSON representation provides structured context to the LLM
+**Prompt Parameter Serialization**:
+- When domain objects are passed as parameters to the varargs `query(...)`
+  methods, implementations serialize them to JSON using Jakarta JSON Binding
+- The exact token `{}` in the prompt acts as a positional placeholder,
+  similar to well-known logger APIs
+- Parameters are substituted in declaration order
+- When the prompt contains one or more `{}` placeholders, the number of
+  supplied parameters must exactly match the number of placeholders
+- When the prompt contains no placeholder, at most one supplied parameter may
+  be provided to the LLM as structured context
 - This allows agents to pass complex objects (transactions, events, entities)
   directly to LLM queries without manual serialization
 

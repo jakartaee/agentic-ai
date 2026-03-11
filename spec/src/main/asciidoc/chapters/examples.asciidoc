@@ -27,12 +27,12 @@ public class FraudDetectionAgent {
 
     @Decision
     public Result checkFraud(BankTransaction transaction) {
-        String prompt = String.format(
+        String output = model.query(
             """
             Analyze this transaction for fraud:
-            Amount: $%.2f
-            Merchant: %s
-            Location: %s
+            Amount: ${}
+            Merchant: {}
+            Location: {}
 
             Respond with JSON: {"isFraud": true/false, "confidence": 0.0-1.0, "reason": "..."}
             """,
@@ -40,8 +40,6 @@ public class FraudDetectionAgent {
             transaction.getMerchant(),
             transaction.getLocation()
         );
-
-        String output = model.query(prompt, transaction);
         boolean fraud = isFraud(output);
         Fraud details = fraud ? getFraudDetails(output) : null;
         return new Result(fraud, details);
@@ -98,13 +96,13 @@ public class DocumentationAgent {
     public DocumentationPlan shouldGenerateDocs(PullRequestEvent prEvent) {
         PullRequest pr = prEvent.getPullRequest();
 
-        String prompt = String.format(
+        String response = llm.query(
             """
             Analyze this pull request and determine if documentation is needed.
 
-            Title: %s
-            Description: %s
-            Changed Files: %s
+            Title: {}
+            Description: {}
+            Changed Files: {}
 
             Respond with JSON:
             {"needsDocumentation": true/false, "suggestedFiles": ["file1.md"]}
@@ -113,8 +111,6 @@ public class DocumentationAgent {
             pr.getDescription(),
             String.join(", ", pr.getChangedFiles())
         );
-
-        String response = llm.query(prompt, pr);
         DocumentationPlan plan = parseResponse(response);
 
         if (!plan.needsDocumentation()) {
@@ -135,7 +131,8 @@ public class DocumentationAgent {
 
         for (String filename : plan.getSuggestedFiles()) {
             String content = llm.query(
-                "Generate documentation for: " + filename,
+                "Generate documentation for: {}. Diff: {}",
+                filename,
                 pr.getDiff()
             );
             files.addFile(filename, content);
@@ -214,18 +211,18 @@ public class CustomerSupportAgent {
 
         List<KnowledgeArticle> articles = knowledgeBase.search(message.getText(), 5);
 
-        String prompt = String.format(
+        String llmResponse = llm.query(
             """
             You are a helpful customer support agent.
 
-            Customer: %s
+            Customer: {}
             Conversation History:
-            %s
+            {}
 
             Relevant Knowledge Base Articles:
-            %s
+            {}
 
-            Customer's Latest Message: %s
+            Customer's Latest Message: {}
 
             Provide a helpful response. Respond with JSON:
             {"response": "...", "canResolve": true/false, "needsEscalation": true/false}
@@ -235,8 +232,6 @@ public class CustomerSupportAgent {
             articles.stream().map(a -> a.getSummary()).collect(Collectors.joining("\n")),
             message.getText()
         );
-
-        String llmResponse = llm.query(prompt, message);
         return parseResponse(llmResponse);
     }
 
