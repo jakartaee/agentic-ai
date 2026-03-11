@@ -6,16 +6,23 @@ This section provides guidance on effectively using the `LargeLanguageModel` int
 
 Agents should use clear, specific prompts:
 
+When using the varargs `query(...)` overloads, prefer exact `{}` placeholders
+for positional parameters, similar to well-known logger APIs.
+
+A single supplied parameter is also valid when the prompt contains no
+placeholder; in that case the parameter remains available as structured
+context. Omitting placeholders for multiple supplied parameters is invalid.
+
 [source,java]
 ----
 @Decision
 public boolean goodPrompt(Issue issue) {
     // Good: Clear, specific, with expected response format
-    String prompt = String.format(
+    String response = llm.query(
         """
         Analyze this issue and respond with YES or NO:
-        Title: %s
-        Description: %s
+        Title: {}
+        Description: {}
 
         Should this issue be escalated to senior engineers?
         Respond with only: YES or NO
@@ -23,9 +30,15 @@ public boolean goodPrompt(Issue issue) {
         issue.getTitle(),
         issue.getDescription()
     );
-
-    String response = llm.query(prompt, issue);
     return response.trim().equalsIgnoreCase("YES");
+}
+----
+
+[source,java]
+----
+@Decision
+public String classifyEvent(MyEvent event) {
+    return llm.query("Classify this event", event);
 }
 ----
 
@@ -42,7 +55,7 @@ Use try-catch blocks for inline error handling:
 @Decision
 public boolean robustEvaluation(Task task) {
     try {
-        String response = llm.query("Evaluate: " + task.getDescription(), task);
+        String response = llm.query("Evaluate this task", task);
         return parseResponse(response);
 
     } catch (LLMException e) {
