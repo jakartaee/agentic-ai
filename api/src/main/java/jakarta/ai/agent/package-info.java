@@ -169,7 +169,7 @@
  * can support:
  *
  * <ul>
- *   <li>Text prompts with input objects</li>
+ *   <li>Parameterized text prompts with structured context objects</li>
  *   <li>String and domain object returns</li>
  *   <li>Unwrapping for vendor-specific features</li>
  * </ul>
