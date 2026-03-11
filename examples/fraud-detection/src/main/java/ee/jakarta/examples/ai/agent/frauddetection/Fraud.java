@@ -1,4 +1,3 @@
-
 /*****************************************************************************
  * Copyright (c) 2026 Contributors to the Eclipse Foundation
  *
@@ -11,8 +10,9 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  *****************************************************************************/
-package jakartaee.examples.ai.agent.frauddetection;
+package ee.jakarta.examples.ai.agent.frauddetection;
 
-public class BankTransaction {
+public class Fraud {
+    public boolean isSerious() { return true; }
     // Add fields and methods as needed
 }

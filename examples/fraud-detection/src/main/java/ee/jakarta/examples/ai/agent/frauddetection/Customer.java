@@ -10,7 +10,7 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  *****************************************************************************/
-package jakartaee.examples.ai.agent.frauddetection;
+package ee.jakarta.examples.ai.agent.frauddetection;
 
 public class Customer {
     // Add fields and methods as needed
