@@ -95,7 +95,7 @@ Parse LLM responses defensively:
 @Decision
 public Priority parsePriority(Issue issue) {
     String response = llm.query(
-        "Assess priority (CRITICAL, HIGH, MEDIUM, LOW): " + issue.getDescription(),
+        "Assess priority (CRITICAL, HIGH, MEDIUM, LOW) for this issue",
         issue
     );
 
