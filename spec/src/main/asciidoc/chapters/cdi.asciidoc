@@ -161,6 +161,14 @@ The `LargeLanguageModel` interface is injected as a CDI bean managed by
 the Jakarta Agentic AI runtime. Implementations are responsible for providing
 this bean.
 
+If an implementation maintains conversational state in its LLM integration,
+that state must align with workflow context boundaries. For `@WorkflowScoped`
+agents, conversational state is bound to the current workflow execution. For
+`@ApplicationScoped` agents, conversational state must remain isolated per
+workflow execution and must not leak across concurrent invocations.
+`LargeLanguageModel` implementations must be thread-safe in the context of a 
+single workflow execution.
+
 ==== Initial Release
 
 In the initial release, implementations are free to support whichever LLM

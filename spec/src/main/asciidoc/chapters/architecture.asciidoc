@@ -295,6 +295,17 @@ Jakarta Agentic AI workflow phases execute sequentially:
                      single thread per workflow execution. `@ApplicationScoped`
                      agents must take thread-safety into account as they may
                      handle multiple concurrent workflow invocations.
+- **LLM Conversational State**: `LargeLanguageModel` implementations must
+                               maintain conversational state per workflow
+                               execution across query calls. For
+                               `@WorkflowScoped` agents, that state is tied to
+                               the workflow context lifecycle. For
+                               `@ApplicationScoped` agents, that state must
+                               remain isolated per workflow execution.
+- **LLM Thread Safety**: `LargeLanguageModel` implementations must be
+                         thread-safe in the context of a single workflow and 
+                         must not leak conversational state
+                         across concurrent workflow invocations.
 
 For details on error handling, exception recovery, and workflow termination, see
 the xref:workflow-error-handling-recovery[Error Handling and Recovery] section in the Workflow Orchestration chapter.
