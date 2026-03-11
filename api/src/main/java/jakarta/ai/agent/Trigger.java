@@ -98,7 +98,7 @@ import java.lang.annotation.Target;
  * // Trigger with LLM analysis
  * @Trigger
  * public TriggerResult analyzeTrigger(MyEvent event, LargeLanguageModel llm) {
- *     String analysis = llm.query("Classify this event: " + event.toString());
+ *     String analysis = llm.query("Classify this event", event);
  *     TriggerResult result = new TriggerResult();
  *     result.setClassification(analysis);
  *     result.setEventData(event);

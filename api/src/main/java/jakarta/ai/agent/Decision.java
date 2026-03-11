@@ -65,7 +65,8 @@ import java.lang.annotation.Target;
  * @Decision
  * public boolean shouldGenerateDocs(PullRequest pr) {
  *     String response = llm.query(
- *         "Does this PR require documentation updates? " + pr.getDiff(), pr);
+ *         "Does this PR require documentation updates?",
+ *         pr);
  *     return response.contains("yes");
  * }
  *
@@ -83,7 +84,8 @@ import java.lang.annotation.Target;
  * @Decision
  * public DocumentationPlan planDocumentation(PullRequest pr) {
  *     String analysis = llm.query(
- *         "Analyze what documentation is needed for: " + pr.getDiff(), pr);
+ *         "Analyze what documentation is needed for this pull request",
+ *         pr);
  *
  *     if (analysis.contains("no documentation needed")) {
  *         return null;  // Stop workflow

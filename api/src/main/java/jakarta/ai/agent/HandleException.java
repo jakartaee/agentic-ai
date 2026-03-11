@@ -126,7 +126,8 @@ import java.lang.annotation.Target;
  * @HandleException
  * public void handleWithDiagnostics(Exception ex, LargeLanguageModel llm) {
  *     String analysis = llm.query(
- *         "Analyze this error and suggest recovery", ex);
+ *         "Analyze this error and suggest recovery",
+ *         ex);
  *     logger.info("LLM diagnostic: " + analysis);
  *
  *     if (analysis.contains("recoverable")) {

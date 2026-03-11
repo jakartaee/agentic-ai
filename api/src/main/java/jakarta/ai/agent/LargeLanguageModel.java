@@ -15,13 +15,31 @@ package jakarta.ai.agent;
 /**
  * Minimal facade for Large Language Model (LLM) operations.
  * <p>
- * Intended to be injected via CDI into agents. Provides a unified interface 
- * for querying LLMs with support for type conversion of parameters and
- * results.
+ * Intended to be injected via CDI into agents. Provides a unified interface
+ * for parameterized querying of LLMs with support for type conversion of
+ * parameters and results.
  * <p>
- * Implementations must use Jakarta JSON Binding for serialization of input
- * objects and deserialization of typed responses. This ensures consistent,
- * portable behavior across implementations.
+ * Implementations must use Jakarta JSON Binding for serialization of
+ * structured prompt parameters and deserialization of typed responses. This
+ * ensures consistent, portable behavior across implementations.
+ * <p>
+ * For the varargs query methods, supplied parameters are positional. The exact
+ * token {@code {}} in the prompt acts as a placeholder marker, similar to
+ * well-known logger APIs. Implementations must substitute placeholders in
+ * declaration order using the Jakarta JSON Binding serialization of the
+ * corresponding parameter. When the prompt contains one or more
+ * {@code {}} placeholders, the number of supplied parameters must exactly
+ * match the number of placeholders. When the prompt contains no placeholder,
+ * at most one supplied parameter may be made available to the model as
+ * structured context. Only the exact token {@code {}} is treated as a
+ * placeholder; other brace usage remains literal prompt text.
+ * A single supplied parameter is therefore valid either as the value for one
+ * {@code {}} placeholder or as structured context when the prompt contains no
+ * placeholder.
+ * <pre>{@code
+ * llm.query("Classify this event: {}", event);
+ * llm.query("Classify this event", event);
+ * }</pre>
  * <p>
  * Implementations will delegate to external LLM APIs or services.
  * <p>
@@ -30,7 +48,8 @@ package jakarta.ai.agent;
  * implementation-specific. Future releases will provide standardized provider 
  * selection and some common LLM configuration, allowing developers to switch 
  * between different LLM implementations, and rely on very common configurable
- * LLM features in a standardized way. This is very similar to how Jakarta 
+ * LLM features in a standardized way. Common examples may include temperature 
+ * or maximum output tokens. This is very similar to how Jakarta 
  * Persistence works with multiple providers and a common set of configuration 
  * properties.
  *
@@ -73,43 +92,67 @@ public interface LargeLanguageModel {
     <T> T query(String prompt, Class<T> resultType);
 
     /**
-     * Sends a prompt and a variable number of input objects to the model, 
+     * Sends a prompt template and a variable number of parameters to the model,
      * returning a String response.
      * <p>
-     * Input objects are serialized to JSON using Jakarta JSON Binding before
-     * being sent to the LLM as context.
+     * Parameters are serialized to JSON using Jakarta JSON Binding. The exact
+     * token {@code {}} in the prompt indicates a positional substitution point.
+     * Implementations must substitute parameters in declaration order, similar
+     * to well-known logger APIs. When the prompt contains one or more
+     * {@code {}} placeholders, the number of supplied parameters must exactly
+     * match the number of placeholders. When the prompt contains no
+     * placeholder, at most one supplied parameter may still be sent to the LLM
+     * as structured context.
      *
-     * @param prompt The prompt or query.
-     * @param inputs The input objects (domain objects to be serialized to JSON).
+     * @param prompt The prompt or prompt template.
+     * @param parameters The positional parameters, or a single structured
+     *                   context object when the prompt contains no placeholder.
      * @return The model's response as a String.
-     * @throws IllegalArgumentException if the prompt is null or if the inputs 
-     *                                  cannot be serialized to JSON.
+     * @throws IllegalArgumentException if the prompt is null, if the number of
+     *                                  supplied parameters does not match the
+     *                                  number of {@code {}} placeholders,
+     *                                  except that a prompt with no placeholder
+     *                                  may accept at most one supplied
+     *                                  parameter, or if a parameter cannot be
+     *                                  serialized to JSON.
      * @throws LLMException if the LLM service encounters an error during 
      *                      processing.
      */
-    String query(String prompt, Object... inputs);
+    String query(String prompt, Object... parameters);
 
     /**
-     * Sends a prompt and a variable number of input objects to the model, 
+     * Sends a prompt template and a variable number of parameters to the model,
      * returning a response of the specified type.
      * <p>
-     * Input objects are serialized to JSON using Jakarta JSON Binding before
-     * being sent to the LLM. The LLM response (expected to be JSON) is 
+     * Parameters are serialized to JSON using Jakarta JSON Binding. The exact
+     * token {@code {}} in the prompt indicates a positional substitution point.
+     * Implementations must substitute parameters in declaration order, similar
+     * to well-known logger APIs. When the prompt contains one or more
+     * {@code {}} placeholders, the number of supplied parameters must exactly
+     * match the number of placeholders. When the prompt contains no
+     * placeholder, at most one supplied parameter may still be sent to the LLM
+     * as structured context. The LLM response (expected to be JSON) is
      * deserialized to the requested type using Jakarta JSON Binding.
      *
-     * @param prompt The prompt or query.
+     * @param prompt The prompt or prompt template.
      * @param resultType The expected result type.
-     * @param inputs The input objects (domain objects to be serialized to JSON).
+     * @param parameters The positional parameters, or a single structured
+     *                   context object when the prompt contains no placeholder.
      * @param <T> The type of the result.
      * @return The model's response converted to the specified type.
-     * @throws IllegalArgumentException if the prompt or resultType is null, 
-     *                                  if the inputs cannot be serialized to JSON, 
-     *                                  or if the response cannot be deserialized 
-     *                                  to the requested type.
+     * @throws IllegalArgumentException if the prompt or resultType is null,
+     *                                  if the number of supplied parameters
+     *                                  does not match the number of
+     *                                  {@code {}} placeholders, except that a
+     *                                  prompt with no placeholder may accept at
+     *                                  most one supplied parameter, if a
+     *                                  parameter cannot be serialized to JSON,
+     *                                  or if the response cannot be
+     *                                  deserialized to the requested type.
      * @throws LLMException if the LLM service encounters an error during 
      *                      processing.
      */
-    <T> T query(String prompt, Class<T> resultType, Object... inputs);
+    <T> T query(String prompt, Class<T> resultType, Object... parameters);
 
     /**
      * Unwraps the underlying LLM implementation.
