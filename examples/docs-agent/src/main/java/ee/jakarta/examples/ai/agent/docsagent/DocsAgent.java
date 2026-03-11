@@ -72,16 +72,12 @@ public class DocsAgent implements Serializable {
     @Decision
     private DocumentationAnalysis requiresDocumentationPullRequest(PullRequest pullRequest) {
         // Use LLM to analyze the pull request
-        String prompt = String.format(
-            "Analyze this pull request and determine if documentation is needed.\n" +
-            "PR Title: %s\n" +
-            "Changed Files: %s\n" +
-            "Diff: %s\n\n" +
-            "Return 'YES' if documentation is needed, 'NO' otherwise.",
-            pullRequest.getTitle(),
-            pullRequest.getChangedFiles(),
-            pullRequest.getDiff()
-        );
+        String prompt = """
+            Analyze this pull request and determine if documentation is needed.
+            Pull Request: {}
+
+            Return 'YES' if documentation is needed, 'NO' otherwise.
+            """;
 
         String llmResponse = languageModel.query(prompt, pullRequest);
 
@@ -123,19 +119,12 @@ public class DocsAgent implements Serializable {
         System.out.println("   Topics: " + analysis.getSuggestedTopics());
 
         // Use LLM to generate documentation content
-        String prompt = String.format(
-            "Generate documentation for these changes:\n" +
-            "Original PR: %s\n" +
-            "Files affected: %s\n" +
-            "Topics to cover: %s\n" +
-            "Priority: %s",
-            pullRequest.getTitle(),
-            analysis.getAffectedFiles(),
-            analysis.getSuggestedTopics(),
-            analysis.getPriority()
-        );
+        String prompt = """
+            Generate documentation for this pull request: {}
+            Use this documentation analysis: {}
+            """;
 
-        String docContent = languageModel.query(prompt, pullRequest);
+        String docContent = languageModel.query(prompt, pullRequest, analysis);
 
         // Create documentation pull request
         DocumentationPullRequest docPR = new DocumentationPullRequest();

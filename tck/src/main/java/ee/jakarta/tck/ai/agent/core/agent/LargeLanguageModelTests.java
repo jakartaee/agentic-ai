@@ -132,7 +132,7 @@ public class LargeLanguageModelTests {
                 "LargeLanguageModel must be implementable");
         assertNotNull(mockImpl.query("test"),
                 "query(String) must be callable");
-        assertNotNull(mockImpl.query("test", "input1", "input2"),
+        assertNotNull(mockImpl.query("test {} {}", "input1", "input2"),
                 "query(String, Object...) must be callable");
     }
 }
