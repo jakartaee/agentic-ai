@@ -16,7 +16,6 @@
     <description>Specification for Jakarta Agentic AI.</description>
 
     <properties>
-        <maven.compiler.release>17</maven.compiler.release>
         <maven.build.timestamp.format>MMMM dd, yyyy</maven.build.timestamp.format>
         <revisiondate>${maven.build.timestamp}</revisiondate>
     </properties>
@@ -26,7 +25,6 @@
             <plugin>
                 <groupId>org.asciidoctor</groupId>
                 <artifactId>asciidoctor-maven-plugin</artifactId>
-                <version>3.2.0</version>
                 <dependencies>
                     <dependency>
                         <groupId>org.asciidoctor</groupId>

@@ -57,13 +57,13 @@
 
     <properties>
         <maven.compiler.release>17</maven.compiler.release>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <spec.version>1.0</spec.version>
         <!-- set to false for release -->
         <spec.nonFinal>true</spec.nonFinal>
         <!-- Draft | Final Release -->
         <spec.status>Draft</spec.status>
         <nexus.staging.repository>agentic-ai-staging</nexus.staging.repository>
+        <project.build.outputTimestamp>2026-04-12T00:00:00Z</project.build.outputTimestamp>
         <!-- Only the API module is published for now, all others are skipped -->
         <maven.deploy.skip>true</maven.deploy.skip>
     </properties>
