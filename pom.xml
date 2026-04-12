@@ -4,6 +4,13 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
+    <parent>
+        <groupId>org.eclipse.ee4j</groupId>
+        <artifactId>project</artifactId>
+        <version>2.0.2</version>
+        <relativePath/>
+    </parent>
+
     <groupId>jakarta.ai</groupId>
     <artifactId>jakarta.agentic-ai-parent</artifactId>
     <version>1.0.0-SNAPSHOT</version>
@@ -11,6 +18,7 @@
 
     <name>Jakarta Agentic AI Parent</name>
     <description>Parent build for Jakarta Agentic AI modules.</description>
+    <url>https://github.com/jakartaee/agentic-ai</url>
 
     <modules>
         <module>api</module>
@@ -27,6 +35,26 @@
         </license>
     </licenses>
 
+    <scm>
+        <connection>scm:git:git://github.com/jakartaee/agentic-ai.git</connection>
+        <developerConnection>scm:git:ssh://git@github.com/jakartaee/agentic-ai.git</developerConnection>
+        <url>https://github.com/jakartaee/agentic-ai</url>
+    </scm>
+
+    <issueManagement>
+        <system>GitHub</system>
+        <url>https://github.com/jakartaee/agentic-ai/issues</url>
+    </issueManagement>
+
+    <developers>
+        <developer>
+            <name>Jakarta Agentic AI Developers</name>
+            <email>agentic-ai-dev@eclipse.org</email>
+            <organization>Eclipse Foundation</organization>
+            <organizationUrl>https://www.eclipse.org</organizationUrl>
+        </developer>
+    </developers>
+
     <properties>
         <maven.compiler.release>17</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -35,5 +63,8 @@
         <spec.nonFinal>true</spec.nonFinal>
         <!-- Draft | Final Release -->
         <spec.status>Draft</spec.status>
+        <nexus.staging.repository>agentic-ai-staging</nexus.staging.repository>
+        <!-- Only the API module is published for now, all others are skipped -->
+        <maven.deploy.skip>true</maven.deploy.skip>
     </properties>
 </project>
