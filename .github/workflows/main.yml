@@ -25,9 +25,19 @@ jobs:
             - name: Cache Maven packages
               uses: actions/cache@v4
               with:
-                  path: ~/.m2
+                  path: ~/.m2/repository
                   key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
                   restore-keys: ${{ runner.os }}-m2
 
             - name: Build
               run: mvn clean install
+
+            - name: License Check
+              run: mvn org.eclipse.dash:license-tool-plugin:license-check -Pdash-licenses -Ddash.summary=DEPENDENCIES -Ddash.fail=true
+
+            - name: Upload DEPENDENCIES
+              uses: actions/upload-artifact@v4
+              if: always()
+              with:
+                  name: DEPENDENCIES
+                  path: DEPENDENCIES
