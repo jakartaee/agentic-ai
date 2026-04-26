@@ -40,14 +40,13 @@ Agent annotation highlights:
  * }</pre>
  * <p>
  * Implementations must maintain conversational state for the current workflow
- * execution across query calls. For {@link WorkflowScoped} agents, that
+ * context across query calls. For {@link WorkflowScoped} agents, that
  * conversational state is bound to the workflow context and must end when the
  * workflow context ends. For {@code @ApplicationScoped} agents,
- * conversational state must remain isolated per workflow execution and must
+ * conversational state must remain isolated per workflow context and must
  * not leak across concurrent invocations.
  * <p>
- * Implementations must be thread-safe within the context of a single workflow
- * execution.
+ * Implementations must be thread-safe within a single workflow context.
  * <p>
  * Implementations will delegate to external LLM APIs or services.
  * <p>
@@ -147,13 +146,12 @@ LargeLanguageModel behavior highlights:
 - When the prompt contains no placeholder, at most one supplied parameter may
   be sent as structured context.
 - Implementations must maintain conversational state for each workflow
-  execution across query calls.
+  context across query calls.
 - For `@WorkflowScoped` agents, conversational state is bound to the workflow
   context and must end when that context ends.
 - For `@ApplicationScoped` agents, conversational state must remain isolated
-  per workflow execution and must not leak across concurrent invocations.
-- Implementations must be thread-safe in the context of a single workflow
-  execution.
+  per workflow context and must not leak across concurrent invocations.
+- Implementations must be thread-safe within a single workflow context.
 - Typed responses are deserialized from JSON to the requested type.
 - Implementations must throw `IllegalArgumentException` for 
   serialization/deserialization failures.

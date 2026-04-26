@@ -291,20 +291,20 @@ Jakarta Agentic AI workflow phases execute sequentially:
 - **Flexible Composition**: Agents can define any combination of decisions
                             and actions, intermixed as needed
 - **Thread Safety**: Agents using `@WorkflowScoped` typically execute within a
-                     single thread per workflow execution. `@ApplicationScoped`
+         single thread for a given workflow context. `@ApplicationScoped`
                      agents must take thread-safety into account as they may
                      handle multiple concurrent workflow invocations.
 - **LLM Conversational State**: `LargeLanguageModel` implementations must
-                               maintain conversational state per workflow
-                               execution across query calls. For
-                               `@WorkflowScoped` agents, that state is tied to
-                               the current workflow execution. For
-                               `@ApplicationScoped` agents, that state must
-                               remain isolated per workflow execution.
+           maintain conversational state per workflow
+           context across query calls. For
+           `@WorkflowScoped` agents, that state is tied to
+           the current workflow context. For
+           `@ApplicationScoped` agents, that state must
+           remain isolated per workflow context.
 - **LLM Thread Safety**: `LargeLanguageModel` implementations must be
-                         thread-safe in the context of a single workflow and 
+         thread-safe within a single workflow context and
                          must not leak conversational state
-                         across concurrent workflow invocations.
+         across concurrent workflow contexts.
 
 For details on error handling, exception recovery, and workflow termination, see
 the xref:workflow-error-handling-recovery[Error Handling and Recovery] section in the Workflow Orchestration chapter.

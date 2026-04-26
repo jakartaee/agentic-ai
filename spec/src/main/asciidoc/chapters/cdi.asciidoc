@@ -30,7 +30,7 @@ An agent class:
 === @WorkflowScoped
 
 `@WorkflowScoped` is a custom CDI scope that ties the agent's lifecycle to the
-workflow execution.
+workflow context.
 
 ==== Scope Definition
 
@@ -72,10 +72,10 @@ public @interface WorkflowScoped {
 
 When an agent is `@WorkflowScoped`:
 
-- A new instance is created for each workflow execution
+- A new instance is created for each workflow context
 - The instance is active from trigger invocation through outcome completion
 - The instance is destroyed after the workflow completes or fails
-- Each concurrent workflow execution has its own instance
+- Each concurrent workflow context has its own instance
 
 === CDI Interceptors
 
@@ -181,11 +181,11 @@ this bean.
 
 If an implementation maintains conversational state in its LLM integration,
 that state must align with workflow context boundaries. For `@WorkflowScoped`
-agents, conversational state is bound to the current workflow execution. For
+agents, conversational state is bound to the current workflow context. For
 `@ApplicationScoped` agents, conversational state must remain isolated per
-workflow execution and must not leak across concurrent invocations.
-`LargeLanguageModel` implementations must be thread-safe in the context of a 
-single workflow execution.
+workflow context and must not leak across concurrent invocations.
+`LargeLanguageModel` implementations must be thread-safe within a single
+workflow context.
 
 ==== Initial Release
 

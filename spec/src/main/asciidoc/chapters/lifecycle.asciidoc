@@ -52,20 +52,20 @@ public class DefaultScopedAgent {
 }
 ----
 
-==== Workflow Execution State
+==== Workflow Context
 
-Regardless of the scope annotation used, the runtime maintains fresh execution
-state for each workflow invocation. For `@WorkflowScoped` agents, that
-execution state is tied to the workflow execution itself. For
+Regardless of the scope annotation used, the runtime maintains a fresh
+workflow context for each workflow invocation. For `@WorkflowScoped` agents,
+that workflow context is tied to the workflow invocation itself. For
 `@ApplicationScoped` agents, the agent instance may be reused across multiple
-workflow executions, but each invocation still has isolated execution state,
-beginning with a trigger and typically ending with an outcome.
+workflow invocations, but each invocation still has an isolated workflow
+context, beginning with a trigger and typically ending with an outcome.
 
 Conversational state maintained by `LargeLanguageModel` implementations must
 follow the same lifecycle boundaries. For `@WorkflowScoped` agents,
-conversational state is bound to the current workflow execution and must end
-when that execution ends. For `@ApplicationScoped` agents, conversational
-state must remain isolated per workflow execution.
+conversational state is bound to the current workflow context and must end
+when that context ends. For `@ApplicationScoped` agents, conversational state
+must remain isolated per workflow context.
 
 === @Trigger Annotation
 
@@ -382,7 +382,7 @@ public @interface Outcome {
 
 ==== Single Outcome Constraint
 
-Currently, there MUST be only one `@Outcome` method per agent class. This constraint may be relaxed in future versions to support more complex dynamic workflows.
+Currently, an agent MAY declare zero or one `@Outcome` methods. This constraint may be relaxed in future versions to support more complex dynamic workflows.
 
 ==== Parameter Injection
 
@@ -405,7 +405,7 @@ Outcome methods MUST return `void`. The outcome phase is designed for finalizati
 - **Workflow Completion**: Marks the end of successful workflow execution
 - **Execution Cleanup**: Any runtime-managed state associated with the current 
                          execution is discarded after outcome completion
-- **Single Instance**: Currently, exactly one outcome method per agent
+- **Optional Presence**: Currently, agents may declare zero or one outcome method
 
 === @HandleException Annotation
 
