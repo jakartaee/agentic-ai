@@ -30,7 +30,7 @@ public class FraudDetectionAgent {
         String output = model.query(
             """
             Analyze this transaction for fraud:
-            Amount: ${}
+            Amount: {}
             Merchant: {}
             Location: {}
 

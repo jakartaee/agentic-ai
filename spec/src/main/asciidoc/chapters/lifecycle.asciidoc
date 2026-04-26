@@ -344,9 +344,8 @@ public class ActionExamples {
 
 An agent MAY define multiple `@Action` methods. When multiple action methods are present:
 
-- The execution order is implementation-defined
+- The execution order follows declaration order within the source file
 - Implementations MUST complete all actions before proceeding to the outcome phase
-- Applications SHOULD NOT rely on a specific execution order between actions
 
 ==== Transactional Actions
 
