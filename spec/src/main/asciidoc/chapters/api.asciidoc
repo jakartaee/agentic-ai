@@ -49,8 +49,7 @@ Agent annotation highlights:
  * Implementations must be thread-safe within the context of a single workflow
  * execution.
  * <p>
- * Implementations delegate to external LLM APIs or services and may reject unsupported
- * type conversions or unwrapping requests.
+ * Implementations will delegate to external LLM APIs or services.
  * <p>
  * In the initial release, implementations are free to support whichever LLM
  * libraries and APIs they choose. Configuration mechanisms (if any) are 
@@ -82,7 +81,7 @@ public interface LargeLanguageModel {
      * @param <T> The type of the result.
      * @return The model's response converted to the specified type.
      * @throws IllegalArgumentException if the prompt or resultType is null, or if the
-     *                                  type conversion is not supported.
+    *                                  type conversion fails.
      * @throws LLMException if the LLM service encounters an error during processing.
      */
     <T> T query(String prompt, Class<T> resultType);
@@ -116,8 +115,8 @@ public interface LargeLanguageModel {
      *                                  supplied parameters does not match the number of {}
      *                                  placeholders, except that a prompt with no placeholder
      *                                  may accept at most one supplied parameter, if a
-     *                                  parameter cannot be serialized, or if the type conversion is
-     *                                  not supported.
+    *                                  parameter cannot be serialized, or if the response cannot
+    *                                  be deserialized to the requested type.
      * @throws LLMException if the LLM service encounters an error during processing.
      */
     <T> T query(String prompt, Class<T> resultType, Object... parameters);
@@ -128,7 +127,8 @@ public interface LargeLanguageModel {
      * @param implClass The class of the underlying implementation to unwrap to.
      * @param <T> The type of the underlying implementation.
      * @return The underlying implementation instance.
-     * @throws IllegalArgumentException if the implementation cannot be unwrapped.
+     * @throws IllegalArgumentException if the implementation cannot be unwrapped to the
+     *                                  requested type.
      */
     <T> T unwrap(Class<T> implClass);
 }
