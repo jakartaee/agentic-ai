@@ -28,7 +28,7 @@ import java.lang.annotation.Target;
  * <p>
  * Workflows can omit the outcome phase if finalization is not needed.
  * <p>
- * There can currently be only one {@code @Outcome} method per agent class.
+ * An agent may currently declare zero or one {@code @Outcome} methods.
  * This will likely be relaxed in future versions to adapt to more complex
  * dynamic workflows.
  * <p>
