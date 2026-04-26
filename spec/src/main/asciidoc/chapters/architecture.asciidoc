@@ -166,7 +166,6 @@ public class DataIntegratedAgent {
     private CustomerRepository customerRepo;  // Jakarta Data
 
     @Inject
-    @Inject("mongodb")
     private Template mongoTemplate;  // Jakarta NoSQL
 
     @Inject
@@ -299,7 +298,7 @@ Jakarta Agentic AI workflow phases execute sequentially:
                                maintain conversational state per workflow
                                execution across query calls. For
                                `@WorkflowScoped` agents, that state is tied to
-                               the workflow context lifecycle. For
+                               the current workflow execution. For
                                `@ApplicationScoped` agents, that state must
                                remain isolated per workflow execution.
 - **LLM Thread Safety**: `LargeLanguageModel` implementations must be
