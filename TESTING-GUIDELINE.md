@@ -7,9 +7,13 @@ This document describes the testing practices for Jakarta Agentic AI, including 
 - All implementations must pass the TCK to be considered compliant.
 
 ## Running Tests
-- Build the TCK module with:
+- Build and run the TCK with required upstream modules:
   ```
-  mvn clean package
+  mvn --projects tck --also-make verify
+  ```
+- If you need a full clean build of the TCK artifacts as well:
+  ```
+  mvn --projects tck --also-make clean install
   ```
 - Add additional tests as needed to cover new features and edge cases.
 
