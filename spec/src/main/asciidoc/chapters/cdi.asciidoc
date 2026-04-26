@@ -1,21 +1,23 @@
 [[cdi-integration]]
 == CDI Integration
 
-This section describes how Jakarta Agentic AI integrates with Jakarta Contexts
-and Dependency Injection (CDI), including agent scoping, dependency injection,
-and lifecycle management.
+This chapter describes how Jakarta Agentic AI integrates with Jakarta
+Contexts and Dependency Injection (CDI), including agent scoping, the
+`@WorkflowScoped` custom scope, event observation rules, interceptors, and
+lifecycle callbacks.
 
 === Agents as CDI Beans
 
-Every agent is a CDI managed bean. This design provides:
+Every agent is a CDI managed bean. This provides:
 
-- **Dependency Injection**: Agents can inject other beans
-- **Interceptors**: Cross-cutting concerns via CDI interceptors
-- **Events**: CDI event observation (triggers)
-- **Lifecycle Callbacks**: Standard CDI lifecycle methods
-- **Scoping**: Flexible scope management
+- **Dependency injection** of other beans, Jakarta EE resources, and
+  services
+- **Interceptors** for cross-cutting concerns
+- **CDI events** for production and observation
+- **Lifecycle callbacks** (`@PostConstruct`, `@PreDestroy`)
+- **Flexible scoping**
 
-==== CDI Bean Requirements
+==== Bean Requirements
 
 An agent class:
 
@@ -27,12 +29,19 @@ An agent class:
 - MUST NOT be abstract
 - MAY be a concrete class or implement interfaces
 
-=== @WorkflowScoped
+=== Agent Scopes
 
-`@WorkflowScoped` is a custom CDI scope that ties the agent's lifecycle to the
-workflow context.
+An agent uses one of two scopes:
 
-==== Scope Definition
+- `@WorkflowScoped` (default) — a new instance per workflow context.
+- `@ApplicationScoped` — a single shared instance across workflows.
+
+If no scope is declared, `@WorkflowScoped` applies.
+
+==== @WorkflowScoped
+
+`@WorkflowScoped` is a custom CDI scope that ties the agent's lifecycle to
+the workflow context.
 
 [source,java]
 ----
@@ -68,47 +77,34 @@ public @interface WorkflowScoped {
 }
 ----
 
-==== Scope Semantics
-
 When an agent is `@WorkflowScoped`:
 
-- A new instance is created for each workflow context
-- The instance is active from trigger invocation through outcome completion
-- The instance is destroyed after the workflow completes or fails
-- Each concurrent workflow context has its own instance
+- A new instance is created for each workflow context.
+- The instance is active from trigger invocation through outcome completion.
+- The instance is destroyed after the workflow completes or fails.
+- Each concurrent workflow has its own instance.
 
-=== CDI Interceptors
+==== @ApplicationScoped
 
-Agents support CDI interceptors for cross-cutting concerns:
+When an agent is `@ApplicationScoped`, a single instance is shared across
+all workflows. Each invocation still runs in an isolated workflow context.
+Application-scoped agents are appropriate when the agent itself is
+stateless or maintains only thread-safe shared state.
 
-==== Transaction Management
+[[cdi-events]]
+=== Event Observation Rules
 
-[source,java]
-----
-@Agent
-public class TransactionalAgent {
+Agents may produce CDI events freely. Event *observation* depends on
+agent scope:
 
-    @Action
-    @Transactional
-    public void updateDatabase(Data data) {
-        // Method runs in a transaction
-        entityManager.persist(data);
-    }
-}
-----
+- **`@WorkflowScoped` agents** — MAY observe CDI events ONLY through their
+  `@Trigger` method. General observer methods (`@Observes` without
+  `@Trigger`) are not supported.
+- **`@ApplicationScoped` (or other) agents** — MAY use both `@Trigger`
+  methods and general CDI observer methods.
 
-=== CDI Events
-
-Agents can produce and observe CDI events. However, CDI event observation
-depends on agent scope:
-
-* **@WorkflowScoped agents**: Can ONLY use `@Trigger` methods to handle CDI 
-                              events. A trigger method may optionally use 
-                              the `@Observes` annotation.
-* **@ApplicationScoped (or other) agents**: Can use both `@Trigger` methods
-                                            AND general CDI observer methods
-                                            (methods with `@Observes` but 
-                                            without `@Trigger`).
+A trigger method may optionally use `@Observes` on the event parameter to
+explicitly declare the observed type.
 
 ==== Producing Events
 
@@ -122,8 +118,7 @@ public class EventProducer {
 
     @Outcome
     public void publishCompletion(Result result) {
-        WorkflowCompleted event = new WorkflowCompleted(result);
-        completionEvent.fire(event);
+        completionEvent.fire(new WorkflowCompleted(result));
     }
 }
 ----
@@ -138,15 +133,32 @@ public class EventObserver {
 
     @Trigger
     public void onCustomEvent(@Observes CustomEvent event) {
-        // Triggered by CDI event
         processEvent(event);
+    }
+}
+----
+
+=== Interceptors
+
+Standard CDI interceptors apply to agent methods. Jakarta Transactions is a
+common case:
+
+[source,java]
+----
+@Agent
+public class TransactionalAgent {
+
+    @Action
+    @Transactional
+    public void updateDatabase(Data data) {
+        entityManager.persist(data);
     }
 }
 ----
 
 === Lifecycle Callbacks
 
-Agents can use CDI lifecycle callbacks:
+Agents support standard CDI lifecycle callbacks:
 
 [source,java]
 ----
@@ -159,49 +171,22 @@ public class LifecycleAwareAgent {
 
     @PostConstruct
     public void initialize() {
-        // Called after dependency injection
         logger.info("Agent initialized");
         resources.allocate();
     }
 
     @PreDestroy
     public void cleanup() {
-        // Called before agent destruction
         logger.info("Agent destroying");
         resources.release();
     }
 }
 ----
 
-=== LLM Provider Configuration
+=== LargeLanguageModel as a CDI Bean
 
-The `LargeLanguageModel` interface is injected as a CDI bean managed by
-the Jakarta Agentic AI runtime. Implementations are responsible for providing
-this bean.
-
-If an implementation maintains conversational state in its LLM integration,
-that state must align with workflow context boundaries. For `@WorkflowScoped`
-agents, conversational state is bound to the current workflow context. For
-`@ApplicationScoped` agents, conversational state must remain isolated per
-workflow context and must not leak across concurrent invocations.
-`LargeLanguageModel` implementations must be thread-safe within a single
-workflow context.
-
-==== Initial Release
-
-In the initial release, implementations are free to support whichever LLM
-libraries and APIs they choose (e.g., Spring AI, LangChain4j, or vendor-specific
-SDKs). Configuration of the LLM provider (if supported) is implementation-specific
-and may use properties, environment variables, or other mechanisms provided by
-the implementation.
-
-==== Future Releases
-
-Future releases may introduce standardized configuration for LLM provider
-selection and common parameters through Jakarta Config. This will allow developers
-to switch between different LLM implementations and configure shared settings
-(API endpoints, authentication, model selection, etc.) in a consistent manner,
-similar to how Jakarta Persistence handles multiple database providers.
-
-For details on the current implementation, refer to your Jakarta Agentic AI
-implementation's documentation.
+The `LargeLanguageModel` interface is provided as a CDI bean by the
+implementation and is injected into agents like any other bean. Its
+conversational state lifecycle aligns with workflow context boundaries; see
+the xref:llm-integration[Large Language Model Integration] chapter for the
+full contract.

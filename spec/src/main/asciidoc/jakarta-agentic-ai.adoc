@@ -2,19 +2,15 @@
 
 include::chapters/intro.asciidoc[]
 
-include::chapters/architecture.asciidoc[]
+include::chapters/programming-model.asciidoc[]
 
 include::chapters/lifecycle.asciidoc[]
 
-include::chapters/orchestration.asciidoc[]
-
 include::chapters/cdi.asciidoc[]
 
-include::chapters/llm-practices.asciidoc[]
+include::chapters/llm.asciidoc[]
 
 include::chapters/examples.asciidoc[]
-
-include::chapters/api.asciidoc[]
 
 include::chapters/revision.asciidoc[]
 
