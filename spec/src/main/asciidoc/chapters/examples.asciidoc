@@ -1,6 +1,9 @@
+[[examples]]
 == Examples
 
-This chapter provides complete examples demonstrating common agent patterns and use cases.
+This chapter provides informative end-to-end examples demonstrating common
+agent patterns and use cases. The examples focus on composition and
+integration style rather than production-ready completeness.
 
 === Simple Fraud Detection Agent
 
