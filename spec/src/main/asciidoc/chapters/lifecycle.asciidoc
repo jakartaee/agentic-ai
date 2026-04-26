@@ -52,20 +52,20 @@ public class DefaultScopedAgent {
 }
 ----
 
-==== Workflow Context Lifecycle
+==== Workflow Execution State
 
-Regardless of the scope annotation used, a workflow context is created for each workflow 
-execution. For `@WorkflowScoped` agents, the workflow context's lifecycle is tied to 
-the workflow execution. For `@ApplicationScoped` agents, the agent instance may be 
-reused across multiple workflow executions, but a new workflow context is still 
-created and maintained for each workflow invocation, beginning with a trigger and 
-typically ending with an outcome.
+Regardless of the scope annotation used, the runtime maintains fresh execution
+state for each workflow invocation. For `@WorkflowScoped` agents, that
+execution state is tied to the workflow execution itself. For
+`@ApplicationScoped` agents, the agent instance may be reused across multiple
+workflow executions, but each invocation still has isolated execution state,
+beginning with a trigger and typically ending with an outcome.
 
 Conversational state maintained by `LargeLanguageModel` implementations must
 follow the same lifecycle boundaries. For `@WorkflowScoped` agents,
-conversational state is bound to the current workflow context and must end when
-that context ends. For `@ApplicationScoped` agents, conversational state must
-remain isolated per workflow execution.
+conversational state is bound to the current workflow execution and must end
+when that execution ends. For `@ApplicationScoped` agents, conversational
+state must remain isolated per workflow execution.
 
 === @Trigger Annotation
 
@@ -133,8 +133,8 @@ Trigger methods support two return patterns:
 
 Currently, triggers can only be invoked by CDI events. A trigger method can
 optionally use the `@Observes` annotation to explicitly handle the triggering 
-event. The event is added to the workflow context and is available for
-injection.
+event. The event becomes part of the current workflow state and is available
+for injection.
 
 In the future, other trigger types may be supported such as Jakarta Messaging 
 messages, manual invocations from a life-cycle API, or REST POST requests.
@@ -188,7 +188,6 @@ Decision methods can receive the following types of parameters:
 
 * Workflow state domain objects - Any objects from previous workflow phases
 * `LargeLanguageModel` - LLM instance for analysis
-* `WorkflowContext` - For accessing stored workflow state
 * CDI injectable dependencies - Any beans available to the agent
 
 See the xref:workflow-parameter-injection[Parameter Injection] section in the Workflow Orchestration chapter for complete 
@@ -278,7 +277,6 @@ Action methods can receive the following types of parameters:
 
 * Workflow state domain objects - Any objects from previous workflow phases (trigger events, decision results)
 * `LargeLanguageModel` - LLM instance for operations
-* `WorkflowContext` - For accessing and managing workflow state
 * CDI injectable dependencies - Any beans available to the agent
 
 See the xref:workflow-parameter-injection[Parameter Injection] section in the Workflow Orchestration chapter for complete 
@@ -336,8 +334,7 @@ public class ActionExamples {
 
     // Later phases receive the action result
     @Outcome
-    public void recordOutcome(FraudReport report, WorkflowContext context) {
-        context.setAttribute("report", report);
+    public void recordOutcome(FraudReport report) {
         auditLog("Fraud case processed: " + report.getId());
     }
 }
@@ -393,7 +390,6 @@ Currently, there MUST be only one `@Outcome` method per agent class. This constr
 Outcome methods can receive the following types of parameters:
 
 * Workflow state domain objects - Any objects from previous workflow phases (trigger events, decision results, action results)
-* `WorkflowContext` - For state management and accessing stored attributes
 * `LargeLanguageModel` - For analysis, summarization, or content generation based on workflow results
 * CDI injectable dependencies - Any beans available to the agent
 
@@ -408,7 +404,8 @@ Outcome methods MUST return `void`. The outcome phase is designed for finalizati
 
 - **Finalization**: Produces the final workflow result and handles completion logic
 - **Workflow Completion**: Marks the end of successful workflow execution
-- **Context Destruction**: The workflow context is destroyed by the container after outcome completion
+- **Execution Cleanup**: Any runtime-managed state associated with the current 
+                         execution is discarded after outcome completion
 - **Single Instance**: Currently, exactly one outcome method per agent
 
 === @HandleException Annotation
@@ -439,7 +436,6 @@ Exception handler methods can receive the following types of parameters:
 
 * Exception parameter (required) - The thrown exception or its supertype
 * Workflow state domain objects - Any objects from previous workflow phases (trigger event, decision results, action results)
-* `WorkflowContext` - Current workflow context for state management
 * `LargeLanguageModel` - For error analysis or diagnostics
 * CDI injectable dependencies - Any beans available to the agent
 
@@ -475,17 +471,17 @@ public class ExceptionHandlingExamples {
 
     // Fatal error - re-throws, workflow stops
     @HandleException
-    public void handleFatal(SecurityException ex, WorkflowContext context) {
+    public void handleFatal(SecurityException ex, BankTransaction transaction) {
         logger.error("Security violation", ex);
-        auditService.logSecurityBreach(context.getTriggerEvent());
+        auditService.logSecurityBreach(transaction);
         throw ex; // Re-throw - workflow stops
     }
 
     // Conditional recovery
     @HandleException
-    public void handleWithFallback(Exception ex, WorkflowContext context) {
+    public void handleWithFallback(Exception ex, BankTransaction transaction) {
         if (isRecoverable(ex)) {
-            performRecovery(context);
+            performRecovery(transaction);
             // Returns normally - workflow continues
         } else {
             throw new WorkflowFailureException("Unrecoverable", ex);
@@ -495,9 +491,9 @@ public class ExceptionHandlingExamples {
 
     // Multiple handlers for different exception types
     @HandleException
-    public void handleIOException(IOException ex, WorkflowContext context) {
+    public void handleIOException(IOException ex, BankTransaction transaction) {
         logger.error("I/O error", ex);
-        retryOperation(context);
+        retryOperation(transaction);
     }
 }
 ----

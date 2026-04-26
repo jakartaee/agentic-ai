@@ -75,7 +75,7 @@ Or use `@HandleException` methods for workflow-level error handling:
 [source,java]
 ----
 @HandleException
-public void handleLLMError(LLMException e, Task task, WorkflowContext context) {
+public void handleLLMError(LLMException e, Task task) {
     logger.error("LLM failed for task: " + task.getId(), e);
     
     // Mark task for manual review
