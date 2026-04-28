@@ -88,8 +88,25 @@ When an agent is `@WorkflowScoped`:
 
 When an agent is `@ApplicationScoped`, a single instance is shared across
 all workflows. Each invocation still runs in an isolated workflow context.
-Application-scoped agents are appropriate when the agent itself is
-stateless or maintains only thread-safe shared state.
+Because a single instance may handle multiple concurrent workflow
+invocations, `@ApplicationScoped` agents MUST be thread-safe; the agent
+itself MUST either be stateless or guard any shared state with
+appropriate concurrency controls.
+
+==== Threading and Concurrency
+
+- **Sequential phases** — within a single workflow context, annotated
+  methods (`@Trigger`, `@Decision`, `@Action`, `@Outcome`,
+  `@HandleException`) execute sequentially in declaration order.
+- **`@WorkflowScoped` agents** — a workflow context typically executes
+  on a single thread; the agent instance is therefore not exposed to
+  concurrent invocation by the runtime.
+- **`@ApplicationScoped` agents** — the same instance may serve
+  concurrent workflows; the agent MUST be thread-safe (see above).
+- **`LargeLanguageModel`** — implementations MUST be thread-safe within
+  a single workflow context and MUST NOT leak conversational state
+  across concurrent workflow contexts. See the
+  xref:llm-integration[Large Language Model Integration] chapter.
 
 [[cdi-events]]
 === Event Observation Rules
