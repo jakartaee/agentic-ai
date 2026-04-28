@@ -18,7 +18,7 @@
  * @since 1.0
  */
 module jakarta.ai.agent {
-    requires jakarta.cdi;
+    requires transitive jakarta.cdi;
 
     exports jakarta.ai.agent;
 }
