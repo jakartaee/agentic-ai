@@ -41,9 +41,9 @@ the following order:
 
 Parameters may declare Jakarta Validation constraints (`@Valid`, `@NotNull`,
 `@NotEmpty`, `@Size`, `@Pattern`, `@Email`, custom constraints). Validation
-occurs before the method is invoked. If validation fails, a
-`ConstraintViolationException` is raised; it can be caught by an
-`@HandleException` method or propagated to the container.
+occurs before parameter injection and workflow method invocation. If
+validation fails, a `ConstraintViolationException` is raised; it can be
+caught by an `@HandleException` method or propagated to the container.
 
 `ConstraintViolationException` is a runtime exception, so explicit handling
 is not required. Common scenarios include parameter constraint failures,
@@ -55,9 +55,10 @@ passed between phases.
 
 ==== Exception Handler Invocation
 
-When an exception occurs in any workflow phase, the runtime searches for a
-matching `@HandleException` method. The most specific exception type match
-wins, following Java's exception hierarchy.
+When an exception occurs in any workflow phase (`@Trigger`, `@Decision`,
+`@Action`, or `@Outcome`), the runtime searches for a matching
+`@HandleException` method. The most specific exception type match wins,
+following Java's exception hierarchy.
 
 - If the handler returns normally, the workflow continues with the next
   phase.
