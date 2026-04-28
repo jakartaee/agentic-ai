@@ -4,3 +4,23 @@
 [[bibliography]]
 
 == Bibliography
+
+[[ref-javase17]]
+* *Java SE 17*,
+  https://docs.oracle.com/en/java/javase/17/
+
+[[ref-jakartaee10]]
+* *Jakarta EE Platform 10*,
+  https://jakarta.ee/specifications/platform/10/
+
+[[ref-cdi]]
+* *Jakarta Contexts and Dependency Injection 4.0*,
+  https://jakarta.ee/specifications/cdi/4.0/
+
+[[ref-validation]]
+* *Jakarta Validation 3.0*,
+  https://jakarta.ee/specifications/bean-validation/3.0/
+
+[[ref-jsonb]]
+* *Jakarta JSON Binding 3.0*,
+  https://jakarta.ee/specifications/jsonb/3.0/

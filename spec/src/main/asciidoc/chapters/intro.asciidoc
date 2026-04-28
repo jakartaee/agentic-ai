@@ -9,6 +9,10 @@ extensible for the initial release.
 
 === Scope
 
+Jakarta Agentic AI targets Java SE 17 or higher and Jakarta EE Platform 10
+or higher. See the xref:bibliography[Bibliography] for referenced
+specifications.
+
 * Defines common usage patterns and lifecycles for AI agents on Jakarta EE
   runtimes.
 * Provides a minimal facade for foundational AI capabilities (e.g., LLMs),
