@@ -13,6 +13,7 @@
 package ee.jakarta.tck.ai.agent.core.lifecycle;
 
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Assertion;
+import ee.jakarta.tck.ai.agent.framework.junit.anno.Standalone;
 import jakarta.ai.agent.Agent;
 import jakarta.ai.agent.Outcome;
 
@@ -32,6 +33,7 @@ import static org.junit.jupiter.api.Assertions.*;
  * marks methods that produce the final result of a workflow and handle
  * completion logic.
  */
+@Standalone
 public class OutcomeAnnotationTests {
 
     @Assertion(id = "AGENTICAI-OUTCOME-001",
