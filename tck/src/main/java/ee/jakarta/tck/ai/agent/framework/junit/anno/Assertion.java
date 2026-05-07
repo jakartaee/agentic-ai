@@ -29,6 +29,7 @@ import java.lang.annotation.Target;
  * <h2>Example Usage</h2>
  * <pre>{@code
  * @Assertion(id = "AGENTICAI-001",
+ *            section = "3.1 Agent Metadata",
  *            strategy = "Verify @Agent annotation is retained at runtime")
  * public void testAgentAnnotationRetention() {
  *     // test implementation
@@ -47,6 +48,14 @@ public @interface Assertion {
      * @return the assertion ID
      */
     String id();
+
+    /**
+     * The specification section being verified, e.g. "3.2 Agent Lifecycle".
+     * Enables direct mapping between TCK failures and the specification.
+     *
+     * @return the specification section reference
+     */
+    String section() default "";
 
     /**
      * A description of the test strategy used to verify this assertion.
