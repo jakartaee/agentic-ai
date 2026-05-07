@@ -13,6 +13,7 @@
 package ee.jakarta.tck.ai.agent.framework.signature;
 
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Assertion;
+import ee.jakarta.tck.ai.agent.framework.junit.anno.Standalone;
 import jakarta.ai.agent.*;
 
 import java.lang.reflect.Method;
@@ -29,6 +30,7 @@ import static org.junit.jupiter.api.Assertions.*;
  * They ensure that all required types, methods, and annotations are present
  * with the correct signatures.
  */
+@Standalone
 public class SignatureTests {
 
     private static final String PACKAGE_NAME = "jakarta.ai.agent";

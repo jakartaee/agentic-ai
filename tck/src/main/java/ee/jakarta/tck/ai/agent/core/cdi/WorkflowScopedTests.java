@@ -13,6 +13,7 @@
 package ee.jakarta.tck.ai.agent.core.cdi;
 
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Assertion;
+import ee.jakarta.tck.ai.agent.framework.junit.anno.Standalone;
 
 import jakarta.ai.agent.WorkflowScoped;
 import jakarta.enterprise.context.NormalScope;
@@ -36,6 +37,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * <p>These tests verify that the @WorkflowScoped annotation conforms to the Jakarta Agentic AI
  * 1.0 specification requirements for custom CDI scopes.
  */
+@Standalone
 public class WorkflowScopedTests {
 
     @Assertion(id = "AGENTICAI-WORKFLOWSCOPED-001",

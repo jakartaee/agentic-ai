@@ -13,6 +13,7 @@
 package ee.jakarta.tck.ai.agent.core.agent;
 
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Assertion;
+import ee.jakarta.tck.ai.agent.framework.junit.anno.Standalone;
 import jakarta.ai.agent.LLMException;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -23,6 +24,7 @@ import static org.junit.jupiter.api.Assertions.*;
  * <p>These tests verify that the LLMException class conforms to the
  * Jakarta Agentic AI 1.0 specification requirements.
  */
+@Standalone
 public class LLMExceptionTests {
 
     @Assertion(id = "AGENTICAI-LLMEXCEPTION-001",

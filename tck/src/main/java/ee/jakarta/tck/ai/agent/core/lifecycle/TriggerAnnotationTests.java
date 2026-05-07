@@ -13,6 +13,7 @@
 package ee.jakarta.tck.ai.agent.core.lifecycle;
 
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Assertion;
+import ee.jakarta.tck.ai.agent.framework.junit.anno.Standalone;
 import jakarta.ai.agent.Agent;
 import jakarta.ai.agent.Trigger;
 
@@ -31,6 +32,7 @@ import static org.junit.jupiter.api.Assertions.*;
  * Jakarta Agentic AI 1.0 specification requirements. The @Trigger annotation
  * marks methods that initiate an agent workflow in response to external events.
  */
+@Standalone
 public class TriggerAnnotationTests {
 
     @Assertion(id = "AGENTICAI-TRIGGER-001",
