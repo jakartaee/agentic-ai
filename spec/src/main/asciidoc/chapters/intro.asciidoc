@@ -4,21 +4,15 @@
 Jakarta Agentic AI provides vendor-neutral APIs for building, deploying, and
 running AI agents on Jakarta EE runtimes. The specification standardizes
 agent lifecycles, workflow composition, and integration with foundational AI
-technologies such as Large Language Models, while remaining minimal and
-extensible for the initial release.
+technologies such as Large Language Models.
 
 === Scope
-
-Jakarta Agentic AI targets Java SE 17 or higher and Jakarta EE Platform 10
-or higher. See the xref:bibliography[Bibliography] for referenced
-specifications.
 
 * Defines common usage patterns and lifecycles for AI agents on Jakarta EE
   runtimes.
 * Provides a minimal facade for foundational AI capabilities (e.g., LLMs),
   with pluggable access to existing APIs.
-* A mechanism to define agent workflows using a fluent Java API is planned
-  shortly after the initial release.
+* A mechanism to define dynamic agent workflows using a fluent Java API.
 * Integrates with other Jakarta EE APIs (Validation, REST, JSON Binding,
   Persistence, Data, Transactions, NoSQL, Concurrency, Security, Messaging).
 * Aims to utilize Jakarta Config and allows implementations to use
@@ -27,12 +21,16 @@ specifications.
 * Designed for Jakarta EE runtimes, but potentially usable in Quarkus,
   Micronaut, and Spring Boot.
 
+The current version of Jakarta Agentic AI targets Java SE 17 or higher and 
+Jakarta EE Platform 10 or higher. See the xref:bibliography[Bibliography] for referenced
+specifications.
+
 === Motivation
 
 Modern enterprise applications increasingly require automation capabilities
 that:
 
-- Monitor systems and respond to events autonomously
+- Monitor systems and respond to events
 - Make context-aware decisions using AI/ML models
 - Execute dynamic workflows based on LLM-generated insights
 - Integrate with existing enterprise infrastructure
@@ -57,17 +55,17 @@ The primary goals of Jakarta Agentic AI are:
 
 **Annotation-driven agent development**:: Define agent workflows using
 familiar Jakarta EE annotations, marking methods as triggers, decisions,
-actions, and outcomes.
+actions, outcomes, etc.
 
 **CDI integration**:: Agents are CDI beans with full support for dependency
-injection, interceptors, and scoping.
+injection, interceptors, scoping, etc.
 
 **Simple LLM abstraction**:: Provide a lightweight facade for accessing Large
 Language Models without standardizing the LLM APIs themselves. Vendors plug
-in different LLM backends while applications enjoy a consistent interface.
+in different LLM backends while applications enjoy a consistent basic interface.
 
-**Workflow orchestration**:: Enable declarative workflows where the runtime
-manages execution flow between agent lifecycle phases.
+**Workflow orchestration**:: Enable declarative and programmatic workflows where 
+the runtime manages execution flow between agent lifecycle phases.
 
 **Vendor neutrality**:: Allow implementations across Jakarta EE compatible
 products and other CDI/Java-based runtimes.
@@ -83,7 +81,7 @@ The following are explicitly outside the scope of this specification:
 **Standardizing LLM APIs**:: Jakarta Agentic AI provides a simple facade for
 accessing LLMs but does not standardize the underlying LLM APIs. LLM
 provider APIs vary significantly and evolve rapidly, making standardization
-impractical for this initial release. The facade provides ready access to
+impractical at the current moment. The facade provides ready access to
 the underlying provider APIs through `unwrap()`. A separate Jakarta EE LLM
 API may be appropriate in the future.
 
@@ -93,7 +91,7 @@ orchestration and lifecycle management, not ML framework standardization.
 **Training and fine-tuning**:: Model training, fine-tuning, and ML model
 lifecycle management are outside the scope of agent orchestration.
 
-=== How This Specification Is Organized
+=== How this Specification is Organized
 
 The chapters that follow take the reader from concept to normative behavior
 to reference material:
