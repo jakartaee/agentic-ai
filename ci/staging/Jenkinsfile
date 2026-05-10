@@ -86,7 +86,8 @@ pipeline {
                                 sh "git tag -a -m 'Release ${params.RELEASE_VERSION}' ${params.RELEASE_VERSION}"
 
                                 // Stage API to Eclipse Nexus (only api has maven.deploy.skip=false)
-                                sh "mvn clean deploy -Pstage-release -DskipTests=true -Dstatus=${params.SPEC_STATUS}"
+                                def nonFinalArg = params.SPEC_STATUS ? "" : "-Dspec.nonFinal=false"
+                                sh "mvn clean deploy -Pstage-release -DskipTests=true ${nonFinalArg} -Dspec.status=${params.SPEC_STATUS}"
 
                                 // Reset the version back to development
                                 sh "mvn clean versions:set -DnewVersion=${params.DEVELOPMENT_VERSION} -DgenerateBackupPoms=false"
