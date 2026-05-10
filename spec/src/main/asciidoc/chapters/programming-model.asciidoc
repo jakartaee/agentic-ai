@@ -9,15 +9,15 @@ annotation normatively.
 === Agents and Workflows
 
 An agent is a CDI bean annotated with `@Agent` that orchestrates a flexible
-workflow. Every workflow begins with a single trigger and may include any
+workflow. Every workflow begins with a trigger and may include any
 combination of the following phases:
 
-. **Trigger** (required): detects an event or condition that initiates the
+. **Trigger**: detects an event or condition that initiates the
   workflow.
-. **Decisions** (optional): analyze workflow state and determine whether and
+. **Decisions**: analyze workflow state and determine whether and
   how to proceed.
-. **Actions** (optional): execute operations as part of the workflow.
-. **Outcome** (optional): produces or finalizes the result of the workflow.
+. **Actions**: execute operations as part of the workflow.
+. **Outcome**: produces or finalizes the result of the workflow.
 
 Decisions and actions can be intermixed in any sequence, allowing agents to
 implement simple linear workflows or complex conditional branching.
@@ -25,20 +25,17 @@ implement simple linear workflows or complex conditional branching.
 In addition, an agent may declare `@HandleException` methods to recover from
 errors that occur during workflow execution.
 
-==== Workflow Execution (Initial Release)
+==== Workflow Execution
 
-In the initial release, the runtime orchestrates annotated methods using a
+The runtime orchestrates annotated methods using a
 sequential execution model:
 
 . The trigger fires.
-. Decisions and actions execute in source-declaration order, intermixed as
-  defined.
-. Decisions control flow: a `true` or non-`null` return continues; `false`
-  or `null` terminates.
-. The outcome (if defined) executes once the workflow completes without
+. Decisions and actions execute in order, intermixed as defined.
+. Decisions control flow: a positive return continues, negative terminates.
+. The outcome executes once the workflow completes without
   early termination.
-. Exception handlers (`@HandleException`) execute if exceptions occur in any
-  phase.
+. Exception handlers execute if exceptions occur in any phase.
 
 The phase rules and per-annotation cardinality are defined normatively in
 the xref:agent-lifecycle[Annotations and Lifecycle] chapter.
@@ -55,13 +52,12 @@ a `@PreDestroy` method.
 
 === An Agent at a Glance
 
-The following agent illustrates the model: a CDI bean with a trigger, a
+The following agent illustrates the basic model: a CDI bean with a trigger, a
 decision that consults an LLM, and an action.
 
 [source,java]
 ----
 @Agent
-@ApplicationScoped
 public class MonitoringAgent {
 
     @Inject
@@ -92,23 +88,32 @@ public class MonitoringAgent {
 
 Agents are first-class Jakarta EE citizens. They inject other beans, are
 managed by CDI, and participate in transactions, validation, persistence,
-messaging, and concurrency just like any other Jakarta EE component.
+messaging, concurrency, security, and REST integration just like any other
+Jakarta EE component.
+
+**Validation**::
+- Jakarta Validation — constraint annotations on agent life-cycle method
+  parameters; see xref:_jakarta_validation_constraints[Jakarta Validation Constraints].
 
 **Data access**::
 - Jakarta Persistence — relational databases
-- Jakarta Data — repositories
 - Jakarta NoSQL — non-relational databases
+- Jakarta Data — repositories
 
 **Transactional operations**::
 - Jakarta Transactions — `@Transactional` agent methods
 
 **Data serialization**::
 - Jakarta JSON Binding — used by `LargeLanguageModel` for structured prompt
-  parameters and typed responses
+  parameters and typed responses; see xref:llm-integration[Large Language Model Integration].
 
 **Messaging and integration**::
 - Jakarta Messaging — publish and consume messages (a future trigger
   source)
+
+**REST integration**::
+- Jakarta REST — expose agents as REST resources or consume external
+  services; a REST `POST` endpoint is an anticipated future trigger source
 
 **Asynchronous operations**::
 - Jakarta Concurrency — managed executors for asynchronous work within
@@ -126,7 +131,8 @@ public class DataIntegratedAgent {
 
     @Action
     @Transactional                                          // Jakarta Transactions
-    public void processCustomerData(CustomerId id) {
+    public void processCustomerData(
+            @Valid @NotNull CustomerId id) {                // Jakarta Validation
         Customer customer = entityManager.find(Customer.class, id);
         List<Order> orders = customerRepo.findOrdersByCustomerId(id);
         mongoTemplate.insert(new AnalyticsEvent(customer, orders));
