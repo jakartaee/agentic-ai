@@ -13,6 +13,7 @@
 package ee.jakarta.tck.ai.agent.core.lifecycle;
 
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Assertion;
+import ee.jakarta.tck.ai.agent.framework.junit.anno.Standalone;
 import jakarta.ai.agent.Action;
 import jakarta.ai.agent.Agent;
 
@@ -31,6 +32,7 @@ import static org.junit.jupiter.api.Assertions.*;
  * Jakarta Agentic AI 1.0 specification requirements. The @Action annotation
  * marks methods that perform operations as part of the agent's workflow.
  */
+@Standalone
 public class ActionAnnotationTests {
 
     @Assertion(id = "AGENTICAI-ACTION-001",

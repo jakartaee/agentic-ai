@@ -13,6 +13,7 @@
 package ee.jakarta.tck.ai.agent.core.lifecycle;
 
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Assertion;
+import ee.jakarta.tck.ai.agent.framework.junit.anno.Standalone;
 import jakarta.ai.agent.Agent;
 import jakarta.ai.agent.Decision;
 import jakarta.ai.agent.Result;
@@ -32,6 +33,7 @@ import static org.junit.jupiter.api.Assertions.*;
  * Jakarta Agentic AI 1.0 specification requirements. The @Decision annotation
  * marks methods that evaluate conditions and determine workflow continuation.
  */
+@Standalone
 public class DecisionAnnotationTests {
 
     @Assertion(id = "AGENTICAI-DECISION-001",

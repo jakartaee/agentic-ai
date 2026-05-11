@@ -13,6 +13,7 @@
 package ee.jakarta.tck.ai.agent.core.lifecycle;
 
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Assertion;
+import ee.jakarta.tck.ai.agent.framework.junit.anno.Standalone;
 import jakarta.ai.agent.Agent;
 import jakarta.ai.agent.HandleException;
 
@@ -31,6 +32,7 @@ import static org.junit.jupiter.api.Assertions.*;
  * Jakarta Agentic AI 1.0 specification requirements. The @HandleException annotation
  * marks methods that handle errors occurring during workflow execution.
  */
+@Standalone
 public class HandleExceptionAnnotationTests {
 
     @Assertion(id = "AGENTICAI-HANDLEEXCEPTION-001",
