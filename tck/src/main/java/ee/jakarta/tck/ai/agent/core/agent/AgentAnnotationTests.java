@@ -13,6 +13,7 @@
 package ee.jakarta.tck.ai.agent.core.agent;
 
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Assertion;
+import ee.jakarta.tck.ai.agent.framework.junit.anno.Standalone;
 import jakarta.ai.agent.Agent;
 
 import java.lang.annotation.ElementType;
@@ -28,6 +29,7 @@ import static org.junit.jupiter.api.Assertions.*;
  * <p>These tests verify that the @Agent annotation conforms to the
  * Jakarta Agentic AI 1.0 specification requirements.
  */
+@Standalone
 public class AgentAnnotationTests {
 
     @Assertion(id = "AGENTICAI-AGENT-001",

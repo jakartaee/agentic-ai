@@ -13,6 +13,7 @@
 package ee.jakarta.tck.ai.agent.core.agent;
 
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Assertion;
+import ee.jakarta.tck.ai.agent.framework.junit.anno.Standalone;
 import jakarta.ai.agent.LargeLanguageModel;
 
 import java.lang.reflect.Method;
@@ -27,6 +28,7 @@ import static org.junit.jupiter.api.Assertions.*;
  * Jakarta Agentic AI 1.0 specification requirements. This interface provides
  * a lightweight facade for accessing LLM capabilities.
  */
+@Standalone
 public class LargeLanguageModelTests {
 
     @Assertion(id = "AGENTICAI-LLM-001",
