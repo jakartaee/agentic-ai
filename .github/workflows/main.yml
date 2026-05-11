@@ -30,7 +30,7 @@ jobs:
                   restore-keys: ${{ runner.os }}-m2
 
             - name: Build
-              run: mvn clean install
+              run: mvn clean install -Pweld-embedded
 
             - name: License Check
               run: mvn org.eclipse.dash:license-tool-plugin:license-check -Pdash-licenses -Ddash.summary=DEPENDENCIES -Ddash.fail=true
