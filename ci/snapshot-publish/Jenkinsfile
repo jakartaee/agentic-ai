@@ -40,7 +40,10 @@ pipeline {
                 script {
                     def currentVersion = sh(script: 'mvn help:evaluate -Dexpression=project.version -q -DforceStdout -f api', returnStdout: true).trim()
                     if (currentVersion.endsWith("-SNAPSHOT")) {
-                        withCredentials([file(credentialsId: 'secret-subkeys.asc', variable: 'KEYRING')]) {
+                        withCredentials([
+                            file(credentialsId: 'secret-subkeys.asc', variable: 'KEYRING'),
+                            string(credentialsId: 'gpg-passphrase', variable: 'KEYRING_PASSPHRASE')
+                        ]) {
                             withMaven(mavenLocalRepo: env.WORKSPACE_TMP + '/.m2repository') {
                                 sh "find . -type d -exec chmod -s {} \\;"
                                 sh "find . -type d -exec chmod 0755 {} \\;"
@@ -54,7 +57,7 @@ pipeline {
                                 sh 'gpg-connect-agent reloadagent /bye'
 
                                 // Deploy API snapshot (only api has maven.deploy.skip=false)
-                                sh "mvn clean deploy -Poss-release -Psnapshots -DskipTests=true"
+                                sh 'mvn clean deploy -Poss-release -Psnapshots -DskipTests=true -Dgpg.passphrase=$KEYRING_PASSPHRASE'
                             }
                         }
                     } else {

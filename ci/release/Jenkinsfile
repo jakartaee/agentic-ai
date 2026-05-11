@@ -40,7 +40,10 @@ pipeline {
                 script {
                     echo "Promoting staged artifacts from Eclipse Nexus to Maven Central"
 
-                    withCredentials([file(credentialsId: 'secret-subkeys.asc', variable: 'KEYRING')]) {
+                    withCredentials([
+                        file(credentialsId: 'secret-subkeys.asc', variable: 'KEYRING'),
+                        string(credentialsId: 'gpg-passphrase', variable: 'KEYRING_PASSPHRASE')
+                    ]) {
                         withMaven(mavenLocalRepo: env.WORKSPACE_TMP + '/.m2repository') {
                             sh "find . -type d -exec chmod -s {} \\;"
                             sh "find . -type d -exec chmod 0755 {} \\;"
@@ -51,7 +54,7 @@ pipeline {
                             sh 'for fpr in $(gpg --list-keys --with-colons  | awk -F: \'/fpr:/ {print $10}\' | sort -u); do echo -e "5\\ny\\n" |  gpg --batch --command-fd 0 --expert --edit-key ${fpr} trust; done'
 
                             // Promote from Eclipse Nexus staging to Maven Central
-                            sh "mvn deploy -Ppromote-stage"
+                            sh 'mvn deploy -Ppromote-stage -Dgpg.passphrase=$KEYRING_PASSPHRASE'
                         }
                     }
                 }

@@ -67,7 +67,10 @@ pipeline {
                     echo "Staging release for version ${params.RELEASE_VERSION}"
 
                     sshagent(['github-bot-ssh', 'projects-storage.eclipse.org-bot-ssh']) {
-                        withCredentials([file(credentialsId: 'secret-subkeys.asc', variable: 'KEYRING')]) {
+                        withCredentials([
+                            file(credentialsId: 'secret-subkeys.asc', variable: 'KEYRING'),
+                            string(credentialsId: 'gpg-passphrase', variable: 'KEYRING_PASSPHRASE')
+                        ]) {
                             withMaven(mavenLocalRepo: env.WORKSPACE_TMP + '/.m2repository') {
                                 sh "find . -type d -exec chmod -s {} \\;"
                                 sh "find . -type d -exec chmod 0755 {} \\;"
@@ -90,7 +93,7 @@ pipeline {
 
                                 // Stage API to Eclipse Nexus (only api has maven.deploy.skip=false)
                                 def nonFinalArg = params.SPEC_STATUS ? "" : "-Dspec.nonFinal=false"
-                                sh "mvn clean deploy -Pstage-release -DskipTests=true ${nonFinalArg} -Dspec.status=${params.SPEC_STATUS}"
+                                sh "mvn clean deploy -Pstage-release -DskipTests=true ${nonFinalArg} -Dspec.status=${params.SPEC_STATUS} -Dgpg.passphrase=\$KEYRING_PASSPHRASE"
 
                                 // Reset the version back to development
                                 sh "mvn clean versions:set -DnewVersion=${params.DEVELOPMENT_VERSION} -DgenerateBackupPoms=false"
