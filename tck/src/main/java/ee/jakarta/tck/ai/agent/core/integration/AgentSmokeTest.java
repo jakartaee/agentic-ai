@@ -52,9 +52,7 @@ public class AgentSmokeTest {
     @Deployment
     public static Archive<?> createDeployment() {
         return ShrinkWrap.create(WebArchive.class, "agent-smoke.war")
-                .addClasses(GreetingAgent.class, GreetEvent.class,
-                        LargeLanguageModelStub.class,
-                        ExecutionTraceRecorder.class)
+                .addClasses(GreetingAgent.class, GreetEvent.class)
                 .addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml");
     }
 
