@@ -56,8 +56,10 @@ pipeline {
                                 // Reload gpg-agent to pick up allow-loopback-pinentry
                                 sh 'gpg-connect-agent reloadagent /bye'
 
-                                // Deploy API snapshot (only api has maven.deploy.skip=false)
-                                sh 'mvn clean deploy -Poss-release -Psnapshots -DskipTests=true -Dgpg.passphrase=$KEYRING_PASSPHRASE'
+                                // Deploy API snapshot only. -pl api -am builds api and its required ancestors;
+                                // running a single-module reactor ensures central-publishing-maven-plugin's
+                                // bundle upload fires (it triggers on the last reactor module).
+                                sh 'mvn clean deploy -pl api -am -Poss-release -Psnapshots -DskipTests=true -Dgpg.passphrase=$KEYRING_PASSPHRASE'
                             }
                         }
                     } else {
