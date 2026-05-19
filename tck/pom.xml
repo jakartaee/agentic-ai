@@ -22,6 +22,8 @@
         <shrinkwrap.version>1.2.6</shrinkwrap.version>
         <cdi.version>4.1.0</cdi.version>
         <sigtest.version>2.6</sigtest.version>
+        <maven.deploy.skip>true</maven.deploy.skip>
+        <skipPublishing>true</skipPublishing>
     </properties>
 
     <dependencyManagement>

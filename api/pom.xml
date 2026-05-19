@@ -16,11 +16,6 @@
     <name>Jakarta Agentic AI API</name>
     <description>Vendor-neutral API for building agentic AI applications on Jakarta EE runtimes.</description>
 
-    <properties>
-        <maven.deploy.skip>false</maven.deploy.skip>
-        <skipPublishing>false</skipPublishing>
-    </properties>
-
     <dependencies>
         <dependency>
             <groupId>jakarta.enterprise</groupId>
