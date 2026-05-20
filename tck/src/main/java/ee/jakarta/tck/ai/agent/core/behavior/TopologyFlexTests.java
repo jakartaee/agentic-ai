@@ -30,10 +30,12 @@ import org.jboss.shrinkwrap.api.asset.EmptyAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.TestInstance;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 @Deployed
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class TopologyFlexTests {
 
     private static final String NO_RI =
@@ -63,6 +65,8 @@ public class TopologyFlexTests {
                section = "3.5 Optional Phases",
                strategy = "Agent without @Decision triggers successfully via CDI")
     public void noDecisionAgentTriggerObserved() {
+        llm.reset();
+        trace.reset();
         noDecisionEvents.fire(new NoDecisionEvent("test"));
         assertThat(trace.phases()).containsExactly(Phase.TRIGGER);
     }
@@ -71,6 +75,8 @@ public class TopologyFlexTests {
                section = "3.5 Optional Phases",
                strategy = "Agent without @Outcome triggers successfully via CDI")
     public void noOutcomeAgentTriggerObserved() {
+        llm.reset();
+        trace.reset();
         noOutcomeEvents.fire(new NoOutcomeEvent("test"));
         assertThat(trace.phases()).containsExactly(Phase.TRIGGER);
     }

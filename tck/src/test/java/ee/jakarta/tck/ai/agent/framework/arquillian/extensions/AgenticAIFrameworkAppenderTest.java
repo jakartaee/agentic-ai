@@ -12,57 +12,63 @@
  *****************************************************************************/
 package ee.jakarta.tck.ai.agent.framework.arquillian.extensions;
 
-import ee.jakarta.tck.ai.agent.framework.stub.LargeLanguageModelStub;
-import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Assertion;
 import ee.jakarta.tck.ai.agent.framework.junit.extensions.AssertionExtension;
-import org.jboss.shrinkwrap.api.Archive;
+import ee.jakarta.tck.ai.agent.framework.stub.LargeLanguageModelStub;
+import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder;
 import org.jboss.shrinkwrap.api.ArchivePaths;
+import org.jboss.shrinkwrap.api.ShrinkWrap;
+import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class AgenticAIFrameworkAppenderTest {
 
-    private final AgenticAIFrameworkAppender appender = new AgenticAIFrameworkAppender();
+    private final AgenticAIFrameworkProcessor processor = new AgenticAIFrameworkProcessor();
 
     @Test
-    public void archiveContainsLargeLanguageModelStub() {
-        Archive<?> archive = appender.createAuxiliaryArchive();
+    public void processorAddsLargeLanguageModelStub() {
+        WebArchive archive = process(ShrinkWrap.create(WebArchive.class, "test.war"));
 
-        assertThat(archive.contains(classPath(LargeLanguageModelStub.class)))
-                .as("Archive should contain LargeLanguageModelStub")
+        assertThat(archive.contains(webClassPath(LargeLanguageModelStub.class)))
+                .as("Processed WAR should contain LargeLanguageModelStub")
                 .isTrue();
     }
 
     @Test
-    public void archiveContainsExecutionTraceRecorder() {
-        Archive<?> archive = appender.createAuxiliaryArchive();
+    public void processorAddsExecutionTraceRecorder() {
+        WebArchive archive = process(ShrinkWrap.create(WebArchive.class, "test.war"));
 
-        assertThat(archive.contains(classPath(ExecutionTraceRecorder.class)))
-                .as("Archive should contain ExecutionTraceRecorder")
+        assertThat(archive.contains(webClassPath(ExecutionTraceRecorder.class)))
+                .as("Processed WAR should contain ExecutionTraceRecorder")
                 .isTrue();
     }
 
     @Test
-    public void archiveContainsAssertionAnnotation() {
-        Archive<?> archive = appender.createAuxiliaryArchive();
+    public void processorAddsAssertionAnnotation() {
+        WebArchive archive = process(ShrinkWrap.create(WebArchive.class, "test.war"));
 
-        assertThat(archive.contains(classPath(Assertion.class)))
-                .as("Archive should contain Assertion annotation")
+        assertThat(archive.contains(webClassPath(Assertion.class)))
+                .as("Processed WAR should contain Assertion annotation")
                 .isTrue();
     }
 
     @Test
-    public void archiveContainsAssertionExtension() {
-        Archive<?> archive = appender.createAuxiliaryArchive();
+    public void processorAddsAssertionExtension() {
+        WebArchive archive = process(ShrinkWrap.create(WebArchive.class, "test.war"));
 
-        assertThat(archive.contains(classPath(AssertionExtension.class)))
-                .as("Archive should contain AssertionExtension")
+        assertThat(archive.contains(webClassPath(AssertionExtension.class)))
+                .as("Processed WAR should contain AssertionExtension")
                 .isTrue();
     }
 
-    private static org.jboss.shrinkwrap.api.ArchivePath classPath(Class<?> clazz) {
-        return ArchivePaths.create("/" + clazz.getName().replace('.', '/') + ".class");
+    private WebArchive process(WebArchive archive) {
+        processor.process(archive, null);
+        return archive;
+    }
+
+    private static org.jboss.shrinkwrap.api.ArchivePath webClassPath(Class<?> clazz) {
+        return ArchivePaths.create("/WEB-INF/classes/" + clazz.getName().replace('.', '/') + ".class");
     }
 }
