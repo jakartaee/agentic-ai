@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>jakarta.ai</groupId>
+        <groupId>jakarta.agentic-ai</groupId>
         <artifactId>jakarta.agentic-ai-parent</artifactId>
         <version>1.0.0-SNAPSHOT</version>
     </parent>
@@ -23,6 +23,8 @@
         <cdi.version>4.1.0</cdi.version>
         <sigtest.version>2.6</sigtest.version>
         <assertj.version>3.27.7</assertj.version>
+        <maven.deploy.skip>true</maven.deploy.skip>
+        <skipPublishing>true</skipPublishing>
     </properties>
 
     <dependencyManagement>
@@ -61,7 +63,7 @@
     <dependencies>
         <!-- Jakarta Agentic AI API -->
         <dependency>
-            <groupId>jakarta.ai</groupId>
+            <groupId>jakarta.agentic-ai</groupId>
             <artifactId>jakarta.agentic-ai-api</artifactId>
             <version>${project.version}</version>
             <scope>provided</scope>
