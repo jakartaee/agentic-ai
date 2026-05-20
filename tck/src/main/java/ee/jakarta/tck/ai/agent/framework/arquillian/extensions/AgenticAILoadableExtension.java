@@ -12,18 +12,18 @@
  *****************************************************************************/
 package ee.jakarta.tck.ai.agent.framework.arquillian.extensions;
 
-import org.jboss.arquillian.container.test.spi.client.deployment.AuxiliaryArchiveAppender;
+import org.jboss.arquillian.container.test.spi.client.deployment.ApplicationArchiveProcessor;
 import org.jboss.arquillian.core.spi.LoadableExtension;
 
 /**
- * Registers the {@link AgenticAIFrameworkAppender} as an Arquillian
- * {@link AuxiliaryArchiveAppender} so it is applied to every deployment
- * archive automatically.
+ * Registers the {@link AgenticAIFrameworkProcessor} as an Arquillian
+ * {@link ApplicationArchiveProcessor} so the TCK framework classes are
+ * injected into every deployment archive before it reaches the container.
  */
 public class AgenticAILoadableExtension implements LoadableExtension {
 
     @Override
     public void register(ExtensionBuilder builder) {
-        builder.service(AuxiliaryArchiveAppender.class, AgenticAIFrameworkAppender.class);
+        builder.service(ApplicationArchiveProcessor.class, AgenticAIFrameworkProcessor.class);
     }
 }

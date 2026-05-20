@@ -32,10 +32,12 @@ import org.jboss.shrinkwrap.api.asset.EmptyAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.TestInstance;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 @Deployed
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class TerminationTests {
 
     private static final String NO_RI =
@@ -66,6 +68,7 @@ public class TerminationTests {
                section = "3.3 Decision Phase",
                strategy = "Trigger is observed in the boolean-termination agent")
     public void booleanAgentTriggerObserved() {
+        trace.reset();
         booleanEvents.fire(new BooleanTerminationEvent("x"));
         assertThat(trace.phases()).containsExactly(Phase.TRIGGER);
     }
@@ -74,6 +77,7 @@ public class TerminationTests {
                section = "3.3 Decision Phase",
                strategy = "Trigger is observed in the Result-termination agent")
     public void resultAgentTriggerObserved() {
+        trace.reset();
         resultEvents.fire(new ResultTerminationEvent("x"));
         assertThat(trace.phases()).containsExactly(Phase.TRIGGER);
     }
@@ -82,6 +86,7 @@ public class TerminationTests {
                section = "3.3 Decision Phase",
                strategy = "Trigger is observed in the Object-termination agent")
     public void objectAgentTriggerObserved() {
+        trace.reset();
         objectEvents.fire(new ObjectTerminationEvent("x"));
         assertThat(trace.phases()).containsExactly(Phase.TRIGGER);
     }

@@ -28,10 +28,12 @@ import org.jboss.shrinkwrap.api.asset.EmptyAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.TestInstance;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 @Deployed
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class ContextInjectionTests {
 
     private static final String NO_RI =
@@ -59,6 +61,8 @@ public class ContextInjectionTests {
                section = "3.2 Agent Lifecycle",
                strategy = "LargeLanguageModel is injectable as a direct method parameter of @Trigger")
     public void llmIsInjectedAsTriggerParameter() {
+        llm.reset();
+        trace.reset();
         llm.enqueueResponse("classified");
         events.fire(new ContextInjectionEvent("payload"));
 
@@ -72,6 +76,8 @@ public class ContextInjectionTests {
                section = "3.2 Agent Lifecycle",
                strategy = "Triggering event payload is accessible in @Trigger and preserved in the trace")
     public void eventPayloadIsPreservedInTrigger() {
+        llm.reset();
+        trace.reset();
         llm.enqueueResponse("ok");
         events.fire(new ContextInjectionEvent("my-payload"));
 
