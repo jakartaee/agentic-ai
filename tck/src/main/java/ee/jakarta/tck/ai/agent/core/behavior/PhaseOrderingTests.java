@@ -14,6 +14,7 @@ package ee.jakarta.tck.ai.agent.core.behavior;
 
 import ee.jakarta.tck.ai.agent.core.behavior.agents.phaseordering.PhaseOrderingAgent;
 import ee.jakarta.tck.ai.agent.core.behavior.agents.phaseordering.PhaseOrderingEvent;
+import ee.jakarta.tck.ai.agent.core.behavior.agents.phaseordering.TriggerOutput;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Assertion;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Deployed;
 import ee.jakarta.tck.ai.agent.framework.stub.LargeLanguageModelStub;
@@ -41,7 +42,7 @@ public class PhaseOrderingTests {
     @Deployment
     public static Archive<?> createDeployment() {
         return ShrinkWrap.create(WebArchive.class, "phaseordering.war")
-                .addClasses(PhaseOrderingAgent.class, PhaseOrderingEvent.class)
+                .addClasses(PhaseOrderingAgent.class, PhaseOrderingEvent.class, TriggerOutput.class)
                 .addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml");
     }
 
@@ -89,6 +90,11 @@ public class PhaseOrderingTests {
         llm.enqueueResponse("proceed");
         events.fire(new PhaseOrderingEvent("test-payload"));
 
-        assertThat(trace.entries().get(1).args()[0]).isInstanceOf(PhaseOrderingEvent.class);
+        Object[] decisionArgs = trace.entries().get(1).args();
+        assertThat(decisionArgs[0]).isInstanceOf(PhaseOrderingEvent.class);
+        assertThat(decisionArgs[1])
+                .isInstanceOf(TriggerOutput.class)
+                .extracting(o -> ((TriggerOutput) o).fromTrigger())
+                .isEqualTo("trigger:test-payload");
     }
 }

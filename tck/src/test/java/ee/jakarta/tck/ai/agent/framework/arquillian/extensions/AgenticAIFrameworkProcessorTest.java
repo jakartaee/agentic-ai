@@ -23,7 +23,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class AgenticAIFrameworkAppenderTest {
+public class AgenticAIFrameworkProcessorTest {
 
     private final AgenticAIFrameworkProcessor processor = new AgenticAIFrameworkProcessor();
 

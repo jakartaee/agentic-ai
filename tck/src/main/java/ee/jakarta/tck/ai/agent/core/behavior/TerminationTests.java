@@ -30,7 +30,6 @@ import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.EmptyAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.TestInstance;
 
@@ -58,11 +57,6 @@ public class TerminationTests {
     @Inject Event<ResultTerminationEvent>  resultEvents;
     @Inject Event<ObjectTerminationEvent>  objectEvents;
     @Inject ExecutionTraceRecorder trace;
-
-    @BeforeEach
-    public void setUp() {
-        trace.reset();
-    }
 
     @Assertion(id = "AGENTICAI-TERM-001",
                section = "3.3 Decision Phase",
@@ -96,6 +90,7 @@ public class TerminationTests {
                section = "3.3 Decision Phase",
                strategy = "Boolean false from @Decision halts all downstream phases")
     public void booleanFalseTerminatesWorkflow() {
+        trace.reset();
         booleanEvents.fire(new BooleanTerminationEvent("x"));
         assertThat(trace.phases()).containsExactly(Phase.TRIGGER, Phase.DECISION);
     }
@@ -105,6 +100,7 @@ public class TerminationTests {
                section = "3.3 Decision Phase",
                strategy = "Result(success=false) from @Decision halts all downstream phases")
     public void resultFalseTerminatesWorkflow() {
+        trace.reset();
         resultEvents.fire(new ResultTerminationEvent("x"));
         assertThat(trace.phases()).containsExactly(Phase.TRIGGER, Phase.DECISION);
     }
@@ -114,6 +110,7 @@ public class TerminationTests {
                section = "3.3 Decision Phase",
                strategy = "Object null from @Decision halts all downstream phases")
     public void objectNullTerminatesWorkflow() {
+        trace.reset();
         objectEvents.fire(new ObjectTerminationEvent("x"));
         assertThat(trace.phases()).containsExactly(Phase.TRIGGER, Phase.DECISION);
     }

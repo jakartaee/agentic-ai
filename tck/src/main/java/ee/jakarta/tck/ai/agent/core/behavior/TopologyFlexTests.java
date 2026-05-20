@@ -28,7 +28,6 @@ import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.EmptyAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.TestInstance;
 
@@ -55,12 +54,6 @@ public class TopologyFlexTests {
     @Inject LargeLanguageModelStub llm;
     @Inject ExecutionTraceRecorder trace;
 
-    @BeforeEach
-    public void setUp() {
-        llm.reset();
-        trace.reset();
-    }
-
     @Assertion(id = "AGENTICAI-FLEX-001",
                section = "3.5 Optional Phases",
                strategy = "Agent without @Decision triggers successfully via CDI")
@@ -86,6 +79,8 @@ public class TopologyFlexTests {
                section = "3.5 Optional Phases",
                strategy = "Workflow without @Decision executes T→A→O without error")
     public void workflowWithoutDecisionExecutesActions() {
+        llm.reset();
+        trace.reset();
         noDecisionEvents.fire(new NoDecisionEvent("test"));
         assertThat(trace.phases()).containsExactly(Phase.TRIGGER, Phase.ACTION, Phase.OUTCOME);
     }
@@ -95,6 +90,8 @@ public class TopologyFlexTests {
                section = "3.5 Optional Phases",
                strategy = "Workflow without @Outcome completes gracefully after @Action")
     public void workflowWithoutOutcomeCompletesGracefully() {
+        llm.reset();
+        trace.reset();
         noOutcomeEvents.fire(new NoOutcomeEvent("test"));
         assertThat(trace.phases()).containsExactly(Phase.TRIGGER, Phase.DECISION, Phase.ACTION);
     }
