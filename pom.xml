@@ -11,7 +11,7 @@
         <relativePath/>
     </parent>
 
-    <groupId>jakarta.ai</groupId>
+    <groupId>jakarta.agentic-ai</groupId>
     <artifactId>jakarta.agentic-ai-parent</artifactId>
     <version>1.0.0-SNAPSHOT</version>
     <packaging>pom</packaging>
@@ -64,8 +64,5 @@
         <spec.status>Draft</spec.status>
         <nexus.staging.repository>agentic-ai-staging</nexus.staging.repository>
         <project.build.outputTimestamp>2026-04-12T00:00:00Z</project.build.outputTimestamp>
-        <!-- Only the API module is published for now, all others are skipped -->
-        <maven.deploy.skip>true</maven.deploy.skip>
-        <skipPublishing>true</skipPublishing>
     </properties>
 </project>

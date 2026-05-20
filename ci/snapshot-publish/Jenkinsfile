@@ -56,7 +56,8 @@ pipeline {
                                 // Reload gpg-agent to pick up allow-loopback-pinentry
                                 sh 'gpg-connect-agent reloadagent /bye'
 
-                                // Deploy API snapshot (only api has maven.deploy.skip=false)
+                                // Deploy snapshots. Only the API module publishes; spec/tck/examples
+                                // have skipPublishing=true so they build but are skipped at upload time.
                                 sh 'mvn clean deploy -Poss-release -Psnapshots -DskipTests=true -Dgpg.passphrase=$KEYRING_PASSPHRASE'
                             }
                         }

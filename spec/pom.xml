@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>jakarta.ai</groupId>
+        <groupId>jakarta.agentic-ai</groupId>
         <artifactId>jakarta.agentic-ai-parent</artifactId>
         <version>1.0.0-SNAPSHOT</version>
     </parent>
@@ -18,6 +18,8 @@
     <properties>
         <maven.build.timestamp.format>MMMM dd, yyyy</maven.build.timestamp.format>
         <revisiondate>${maven.build.timestamp}</revisiondate>
+        <maven.deploy.skip>true</maven.deploy.skip>
+        <skipPublishing>true</skipPublishing>
     </properties>
 
     <build>
