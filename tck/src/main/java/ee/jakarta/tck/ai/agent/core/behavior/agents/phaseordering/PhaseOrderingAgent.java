@@ -33,14 +33,14 @@ public class PhaseOrderingAgent {
     @Inject ExecutionTraceRecorder trace;
 
     @Trigger
-    public PhaseOrderingEvent onEvent(@Observes PhaseOrderingEvent event) {
+    public TriggerOutput onEvent(@Observes PhaseOrderingEvent event) {
         trace.record(Phase.TRIGGER, "onEvent", event);
-        return event;
+        return new TriggerOutput("trigger:" + event.payload());
     }
 
     @Decision
-    public Result decide(PhaseOrderingEvent event) {
-        trace.record(Phase.DECISION, "decide", event);
+    public Result decide(PhaseOrderingEvent event, TriggerOutput triggerOutput) {
+        trace.record(Phase.DECISION, "decide", event, triggerOutput);
         String response = llm.query("Should we proceed?", event.payload());
         return new Result("proceed".equals(response), response);
     }

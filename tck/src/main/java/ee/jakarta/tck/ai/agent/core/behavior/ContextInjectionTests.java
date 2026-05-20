@@ -26,7 +26,6 @@ import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.EmptyAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.TestInstance;
 
@@ -50,12 +49,6 @@ public class ContextInjectionTests {
     @Inject Event<ContextInjectionEvent> events;
     @Inject LargeLanguageModelStub llm;
     @Inject ExecutionTraceRecorder trace;
-
-    @BeforeEach
-    public void setUp() {
-        llm.reset();
-        trace.reset();
-    }
 
     @Assertion(id = "AGENTICAI-CTX-001",
                section = "3.2 Agent Lifecycle",
@@ -90,8 +83,11 @@ public class ContextInjectionTests {
                section = "3.4 Data Propagation",
                strategy = "Triggering event is available for injection in @Action")
     public void eventIsInjectableInAction() {
+        llm.reset();
+        trace.reset();
         events.fire(new ContextInjectionEvent("payload"));
-        assertThat(trace.phases()).contains(Phase.ACTION);
+        assertThat(trace.phases())
+                .containsExactly(Phase.TRIGGER, Phase.ACTION, Phase.OUTCOME);
         assertThat(trace.entries().stream()
                 .filter(e -> e.phase() == Phase.ACTION)
                 .findFirst()
@@ -104,8 +100,11 @@ public class ContextInjectionTests {
                section = "3.4 Data Propagation",
                strategy = "LargeLanguageModel is injectable as a direct method parameter of @Action")
     public void llmIsInjectedInAction() {
+        llm.reset();
+        trace.reset();
         llm.enqueueResponse("classified");
         events.fire(new ContextInjectionEvent("payload"));
-        assertThat(trace.phases()).contains(Phase.ACTION);
+        assertThat(trace.phases())
+                .containsExactly(Phase.TRIGGER, Phase.ACTION, Phase.OUTCOME);
     }
 }

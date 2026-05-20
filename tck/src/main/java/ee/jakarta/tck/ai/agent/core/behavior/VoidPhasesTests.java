@@ -83,7 +83,8 @@ public class VoidPhasesTests {
     public void voidActionDoesNotBreakOutcome() {
         events.fire(new VoidPhasesEvent("test"));
 
-        assertThat(trace.phases()).contains(Phase.OUTCOME);
+        assertThat(trace.phases())
+                .containsExactly(Phase.TRIGGER, Phase.DECISION, Phase.ACTION, Phase.OUTCOME);
         assertThat(trace.entries().stream()
                 .filter(e -> e.phase() == Phase.OUTCOME)
                 .findFirst()
