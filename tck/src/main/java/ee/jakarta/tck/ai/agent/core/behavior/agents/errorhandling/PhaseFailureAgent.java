@@ -31,7 +31,11 @@ public class PhaseFailureAgent {
     public enum FailingPhase { NONE, TRIGGER, DECISION, ACTION, OUTCOME }
 
     @Inject ExecutionTraceRecorder trace;
-    public volatile FailingPhase failAt = FailingPhase.NONE;
+    private volatile FailingPhase failAt = FailingPhase.NONE;
+
+    public void setFailAt(FailingPhase failAt) {
+        this.failAt = failAt;
+    }
 
     @Trigger
     public void onEvent(@Observes PhaseFailureEvent event) {
