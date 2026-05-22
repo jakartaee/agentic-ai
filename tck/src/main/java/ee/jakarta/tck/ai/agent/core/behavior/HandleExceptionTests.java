@@ -126,7 +126,7 @@ public class HandleExceptionTests {
                strategy = "PhaseFailureAgent @Trigger is observed by CDI when no phase is configured to fail")
     public void phaseFailureAgentTriggerObserved() {
         trace.reset();
-        phaseFailureAgent.failAt = PhaseFailureAgent.FailingPhase.NONE;
+        phaseFailureAgent.setFailAt(PhaseFailureAgent.FailingPhase.NONE);
         phaseFailureEvents.fire(new PhaseFailureEvent("x"));
         assertThat(trace.phases()).containsExactly(Phase.TRIGGER);
     }
@@ -213,7 +213,7 @@ public class HandleExceptionTests {
                strategy = "@HandleException is invoked when an exception originates in the @Trigger phase")
     public void triggerFailureInvokesHandler() {
         trace.reset();
-        phaseFailureAgent.failAt = PhaseFailureAgent.FailingPhase.TRIGGER;
+        phaseFailureAgent.setFailAt(PhaseFailureAgent.FailingPhase.TRIGGER);
         phaseFailureEvents.fire(new PhaseFailureEvent("x"));
         assertThat(trace.phases()).contains(Phase.TRIGGER, Phase.HANDLE_EXCEPTION);
     }
@@ -224,7 +224,7 @@ public class HandleExceptionTests {
                strategy = "@HandleException is invoked when an exception originates in the @Decision phase")
     public void decisionFailureInvokesHandler() {
         trace.reset();
-        phaseFailureAgent.failAt = PhaseFailureAgent.FailingPhase.DECISION;
+        phaseFailureAgent.setFailAt(PhaseFailureAgent.FailingPhase.DECISION);
         phaseFailureEvents.fire(new PhaseFailureEvent("x"));
         assertThat(trace.phases()).contains(Phase.TRIGGER, Phase.DECISION, Phase.HANDLE_EXCEPTION);
     }
@@ -235,7 +235,7 @@ public class HandleExceptionTests {
                strategy = "@HandleException is invoked when an exception originates in the @Action phase")
     public void actionFailureInvokesHandler() {
         trace.reset();
-        phaseFailureAgent.failAt = PhaseFailureAgent.FailingPhase.ACTION;
+        phaseFailureAgent.setFailAt(PhaseFailureAgent.FailingPhase.ACTION);
         phaseFailureEvents.fire(new PhaseFailureEvent("x"));
         assertThat(trace.phases()).contains(Phase.TRIGGER, Phase.ACTION, Phase.HANDLE_EXCEPTION);
     }
@@ -246,7 +246,7 @@ public class HandleExceptionTests {
                strategy = "@HandleException is invoked when an exception originates in the @Outcome phase")
     public void outcomeFailureInvokesHandler() {
         trace.reset();
-        phaseFailureAgent.failAt = PhaseFailureAgent.FailingPhase.OUTCOME;
+        phaseFailureAgent.setFailAt(PhaseFailureAgent.FailingPhase.OUTCOME);
         phaseFailureEvents.fire(new PhaseFailureEvent("x"));
         assertThat(trace.phases()).contains(Phase.TRIGGER, Phase.OUTCOME, Phase.HANDLE_EXCEPTION);
     }
@@ -318,7 +318,7 @@ public class HandleExceptionTests {
                strategy = "Normal workflow completion ends with @Outcome as the final recorded phase")
     public void normalTerminationCompletesOutcome() {
         trace.reset();
-        phaseFailureAgent.failAt = PhaseFailureAgent.FailingPhase.NONE;
+        phaseFailureAgent.setFailAt(PhaseFailureAgent.FailingPhase.NONE);
         phaseFailureEvents.fire(new PhaseFailureEvent("x"));
         assertThat(trace.phases()).last().isEqualTo(Phase.OUTCOME);
     }
