@@ -182,7 +182,6 @@ A support agent that handles customer inquiries:
 [source,java]
 ----
 @Agent
-@ApplicationScoped
 public class CustomerSupportAgent {
 
     @Inject
@@ -194,24 +193,21 @@ public class CustomerSupportAgent {
     @Inject
     private TicketService ticketService;
 
-    private List<Message> conversationHistory = new ArrayList<>();
+    @Inject
+    private CustomerService customerService;
+
+    @Inject
+    private MessagingService messagingService;
+
     private Customer customer;
 
     @Trigger
     public void onCustomerMessage(CustomerMessage message) {
-        conversationHistory.add(message);
-
-        if (customer == null) {
-            customer = customerService.getCustomer(message.getCustomerId());
-        }
+        customer = customerService.getCustomer(message.getCustomerId());
     }
 
     @Decision
     public SupportResponse generateResponse(CustomerMessage message) {
-        String context = conversationHistory.stream()
-            .map(m -> m.getSender() + ": " + m.getText())
-            .collect(Collectors.joining("\n"));
-
         List<KnowledgeArticle> articles = knowledgeBase.search(message.getText(), 5);
 
         String llmResponse = llm.query(
@@ -219,9 +215,6 @@ public class CustomerSupportAgent {
             You are a helpful customer support agent.
 
             Customer: {}
-            Conversation History:
-            {}
-
             Relevant Knowledge Base Articles:
             {}
 
@@ -231,7 +224,6 @@ public class CustomerSupportAgent {
             {"response": "...", "canResolve": true/false, "needsEscalation": true/false}
             """,
             customer.getName(),
-            context,
             articles.stream().map(a -> a.getSummary()).collect(Collectors.joining("\n")),
             message.getText()
         );
@@ -326,7 +318,7 @@ public class ValidationAwareAgent {
 
 These examples demonstrate:
 
-1. **Different Scopes**: `@WorkflowScoped`, `@ApplicationScoped`
+1. **Different Scopes**: default `@WorkflowScoped`, explicit `@ApplicationScoped`
 2. **LLM Integration**: Using `LargeLanguageModel` for intelligent decisions
 3. **Conditional Workflows**: Decisions that stop or continue workflows
 4. **Multiple Actions**: Sequential action execution
