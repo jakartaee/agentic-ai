@@ -87,7 +87,7 @@ When an exception occurs in any workflow phase (`@Trigger`, `@Decision`,
 following Java's exception hierarchy.
 
 - If the handler returns normally, the workflow continues with the next
-  phase.
+  step.
 - If the handler re-throws or throws a new exception, the workflow stops and
   the exception propagates to the container.
 - If no handler is defined, the exception propagates to the container.
