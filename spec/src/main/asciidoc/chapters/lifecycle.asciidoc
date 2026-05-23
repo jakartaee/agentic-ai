@@ -164,7 +164,7 @@ public @interface Agent {
 - **Default scope**: if no scope is specified, `@WorkflowScoped` is the
   default. See xref:cdi-integration[CDI Integration] for scope semantics
   and bean requirements.
-- **`name`** defaults to the camelCase class name when omitted.
+- **`name`** defaults to the simple class name with the first character converted to lower case when omitted.
 - **`description`** is metadata for discovery and documentation.
 
 [source,java]

@@ -65,7 +65,23 @@ public class SignatureTests {
                 "LargeLanguageModel must be in " + PACKAGE_NAME);
     }
 
+    @Assertion(id = "AGENTICAI-SIG-002B",
+               strategy = "Verify @Action and @Decision have an order() attribute defaulting to 0")
+    public void testOrderAttributeOnActionAndDecision() throws NoSuchMethodException {
+        Method actionOrder = Action.class.getDeclaredMethod("order");
+        assertNotNull(actionOrder, "@Action must have an order() attribute");
+        assertEquals(int.class, actionOrder.getReturnType(),
+                "@Action.order() must return int");
+        assertEquals(0, (int) actionOrder.getDefaultValue(),
+                "@Action.order() must default to 0");
 
+        Method decisionOrder = Decision.class.getDeclaredMethod("order");
+        assertNotNull(decisionOrder, "@Decision must have an order() attribute");
+        assertEquals(int.class, decisionOrder.getReturnType(),
+                "@Decision.order() must return int");
+        assertEquals(0, (int) decisionOrder.getDefaultValue(),
+                "@Decision.order() must default to 0");
+    }
 
     @Assertion(id = "AGENTICAI-SIG-003",
                strategy = "Verify LargeLanguageModel interface has all required methods")

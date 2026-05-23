@@ -43,7 +43,7 @@ The following annotated example demonstrates the key concepts this initial minim
  */
 // Infers agent type and name by default.
 // Default scope is agent workflow, but agents can have application scope.
-// Just a CDI bean and ideally @Agent is a CDI stereotype.
+// A CDI bean annotated with @Agent.
 @Agent
 public class FraudDetectionAgent {
 
