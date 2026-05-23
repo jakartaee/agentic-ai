@@ -303,8 +303,8 @@ public record Result(boolean success, Object details) {}
 ----
 +
 - `success == true` proceeds; `success == false` terminates.
-- `details` (if non-`null`) becomes part of workflow state and is available
-  for injection into later phases.
+- `details` (if non-`null`) becomes part of workflow state and is 
+available for injection by its runtime type into later steps.
 
 **Domain object**::
 - Non-`null` — proceed; the returned object becomes part of workflow state.
