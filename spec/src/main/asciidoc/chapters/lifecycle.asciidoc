@@ -16,6 +16,32 @@ Per agent class:
 - `@Outcome` — optional, zero or one
 - `@HandleException` — optional, zero or more
 
+[[execution-order]]
+=== Execution Order
+
+The execution order of `@Action` and `@Decision` methods can be intermixed
+as needed. The runtime determines their order using the following rules, 
+in decreasing precedence:
+
+. **`@Priority` on the method** — `jakarta.annotation.Priority` value is the
+  sort key; lower values execute first.
+. **`order` attribute** — used as the sort key when `@Priority` is absent;
+  lower values execute first.
+. **Source declaration order** — fallback when no `@Action` or `@Decision`
+  method in the agent declares `@Priority` or an explicit `order`.
+
+NOTE: Java SE does not guarantee that reflection returns methods
+in source declaration order. However, all major implementations do so in 
+practice. Portable applications requiring strict ordering must use
+ `@Priority` or `order`.
+
+==== Consistency Requirement
+
+If any `@Action` or `@Decision` method in an agent declares an explicit
+`order` or `@Priority`, every `@Action` and `@Decision` method in that
+agent must do the same. Mixing explicitly ordered and unordered methods
+is a deployment error.
+
 [[parameter-resolution]]
 === Parameter Resolution
 
@@ -325,9 +351,9 @@ public @interface Action {
 
 ==== Cardinality and Order
 
-An agent MAY define zero or more `@Action` methods. When multiple actions
-are present, they execute in source-declaration order, intermixed with
-decisions as defined. All actions complete before the outcome phase runs.
+An agent may define zero or more `@Action` methods. All actions complete
+before the outcome phase runs. For execution ordering, see
+xref:execution-order[Execution Order].
 
 ==== Parameters
 
