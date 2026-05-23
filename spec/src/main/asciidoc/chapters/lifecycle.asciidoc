@@ -273,6 +273,11 @@ public @interface Decision {
 }
 ----
 
+==== Cardinality
+
+An agent may define zero or more `@Decision` methods. For execution ordering,
+see xref:execution-order[Execution Order].
+
 ==== Parameters
 
 Decision methods follow the standard xref:parameter-resolution[parameter
