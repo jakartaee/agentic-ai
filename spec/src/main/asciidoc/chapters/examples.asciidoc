@@ -329,7 +329,7 @@ These examples demonstrate:
 1. **Different Scopes**: `@WorkflowScoped`, `@ApplicationScoped`
 2. **LLM Integration**: Using `LargeLanguageModel` for intelligent decisions
 3. **Conditional Workflows**: Decisions that stop or continue workflows
-4. **Multiple Actions**: Parallel action execution
+4. **Multiple Actions**: Sequential action execution
 5. **Error Handling**: Graceful degradation and fallback strategies
 6. **CDI Integration**: Dependency injection, transactions
 7. **Context Management**: Maintaining state across workflow phases
