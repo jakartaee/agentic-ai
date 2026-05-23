@@ -21,8 +21,6 @@ import jakarta.ai.agent.Outcome;
 import jakarta.ai.agent.Trigger;
 import jakarta.inject.Inject;
 
-import java.io.Serializable;
-
 /**
  * Documentation Agent - Monitors pull requests and automatically generates
  * documentation updates when needed.
@@ -43,7 +41,7 @@ import java.io.Serializable;
  * - Exception handling with @HandleException
  */
 @Agent(name = "DocsAgent", description = "Monitors pull requests and automatically generates documentation updates")
-public class DocsAgent implements Serializable {
+public class DocsAgent {
 
     @Inject
     LargeLanguageModel languageModel;
