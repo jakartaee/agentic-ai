@@ -283,15 +283,15 @@ public class HandleExceptionTests {
 
     @Assertion(id = "AGENTICAI-HANDLEEXCEPTION-BHV-012",
                section = "3.6 Exception Handling",
-               strategy = "@HandleException methods must declare exactly one parameter that is a Throwable subtype")
+               strategy = "@HandleException methods must declare a Throwable subtype as the first parameter")
     public void handlerParameterMustBeExceptionType() {
         for (Method m : RecoveryAgent.class.getDeclaredMethods()) {
             if (m.isAnnotationPresent(HandleException.class)) {
                 assertThat(m.getParameterCount())
-                        .as("@HandleException method '%s' must have exactly one parameter", m.getName())
-                        .isEqualTo(1);
+                        .as("@HandleException method '%s' must have at least one parameter", m.getName())
+                        .isGreaterThanOrEqualTo(1);
                 assertThat(Throwable.class.isAssignableFrom(m.getParameterTypes()[0]))
-                        .as("@HandleException method '%s' parameter must be a Throwable subtype", m.getName())
+                        .as("@HandleException method '%s' first parameter must be a Throwable subtype", m.getName())
                         .isTrue();
             }
         }
