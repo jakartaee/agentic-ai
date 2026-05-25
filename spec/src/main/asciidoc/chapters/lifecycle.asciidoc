@@ -16,6 +16,32 @@ Per agent class:
 - `@Outcome` — optional, zero or one
 - `@HandleException` — optional, zero or more
 
+[[execution-order]]
+=== Execution Order
+
+The execution order of `@Action` and `@Decision` methods can be intermixed
+as needed. The runtime determines their order using the following rules, 
+in decreasing precedence:
+
+. **`@Priority` on the method** — `jakarta.annotation.Priority` value is the
+  sort key; lower values execute first.
+. **`order` attribute** — used as the sort key when `@Priority` is absent;
+  lower values execute first.
+. **Source declaration order** — fallback when no `@Action` or `@Decision`
+  method in the agent declares `@Priority` or an explicit `order`.
+
+NOTE: Java SE does not guarantee that reflection returns methods
+in source declaration order. However, all major implementations do so in 
+practice. Portable applications requiring strict ordering must use
+ `@Priority` or `order`.
+
+==== Consistency Requirement
+
+If any `@Action` or `@Decision` method in an agent declares an explicit
+`order` or `@Priority`, every `@Action` and `@Decision` method in that
+agent must do the same. Mixing explicitly ordered and unordered methods
+is a deployment error.
+
 [[parameter-resolution]]
 === Parameter Resolution
 
@@ -31,7 +57,9 @@ the following order:
 
 . **Trigger event** — if the parameter type matches the triggering event.
 . **Previous phase results** — if the parameter type matches an object
-  returned by an earlier phase in the current workflow.
+  returned by an earlier step in the current workflow. When multiple steps
+  have returned objects of the same type, the most recently returned object
+  is used.
 . **`LargeLanguageModel`** — if the parameter type is `LargeLanguageModel`.
 . **Exception** — for `@HandleException` methods only, the thrown exception
   (or any supertype thereof) is the required first parameter.
@@ -61,7 +89,7 @@ When an exception occurs in any workflow phase (`@Trigger`, `@Decision`,
 following Java's exception hierarchy.
 
 - If the handler returns normally, the workflow continues with the next
-  phase.
+  step.
 - If the handler re-throws or throws a new exception, the workflow stops and
   the exception propagates to the container.
 - If no handler is defined, the exception propagates to the container.
@@ -136,7 +164,7 @@ public @interface Agent {
 - **Default scope**: if no scope is specified, `@WorkflowScoped` is the
   default. See xref:cdi-integration[CDI Integration] for scope semantics
   and bean requirements.
-- **`name`** defaults to the camelCase class name when omitted.
+- **`name`** defaults to the simple class name with the first character converted to lower case when omitted.
 - **`description`** is metadata for discovery and documentation.
 
 [source,java]
@@ -247,6 +275,11 @@ public @interface Decision {
 }
 ----
 
+==== Cardinality
+
+An agent may define zero or more `@Decision` methods. For execution ordering,
+see xref:execution-order[Execution Order].
+
 ==== Parameters
 
 Decision methods follow the standard xref:parameter-resolution[parameter
@@ -270,8 +303,8 @@ public record Result(boolean success, Object details) {}
 ----
 +
 - `success == true` proceeds; `success == false` terminates.
-- `details` (if non-`null`) becomes part of workflow state and is available
-  for injection into later phases.
+- `details` (if non-`null`) becomes part of workflow state and is 
+available for injection by its runtime type into later steps.
 
 **Domain object**::
 - Non-`null` — proceed; the returned object becomes part of workflow state.
@@ -325,9 +358,9 @@ public @interface Action {
 
 ==== Cardinality and Order
 
-An agent MAY define zero or more `@Action` methods. When multiple actions
-are present, they execute in source-declaration order, intermixed with
-decisions as defined. All actions complete before the outcome phase runs.
+An agent may define zero or more `@Action` methods. All actions complete
+before the outcome phase runs. For execution ordering, see
+xref:execution-order[Execution Order].
 
 ==== Parameters
 
