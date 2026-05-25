@@ -26,9 +26,33 @@ import java.lang.annotation.Target;
  * workflows. Actions typically perform the primary work of the agent, such 
  * as persisting data, calling external services, or updating system state.
  * <p>
- * Multiple action methods can be defined in a single agent, executing in 
- * declaration order. Actions and decisions can be intermixed to create 
- * sophisticated branching logic.
+ * Multiple action methods can be defined in a single agent. Actions and
+ * decisions can be intermixed to create sophisticated branching logic.
+ * <p>
+ * <b>Execution Order</b><br>
+ * The execution order of {@code @Action} and {@code @Decision} methods is
+ * determined by the following precedence rules, applied in order:
+ * <ol>
+ *   <li><strong>{@link jakarta.annotation.Priority @Priority} on the
+ *       method</strong> — the annotation value is the sort key; lower
+ *       values execute first.</li>
+ *   <li><strong>{@link #order()} attribute</strong> — used as the sort key
+ *       when {@code @Priority} is absent on the method; lower values
+ *       execute first.</li>
+ *   <li><strong>Source declaration order</strong> — used when no action 
+ *       or decision method in the agent declares either {@code @Priority} 
+ *       or an explicit {@code order}. In this case, methods execute in 
+ *       the order they are declared in the source code. Note that
+ *       Java SE does not guarantee that reflection returns methods in source
+ *       declaration order. However, all major JVM implementations do so in
+ *       practice. Portable applications that require a strict, guaranteed
+ *       execution order must use {@code @Priority} or {@code order}.</li>
+ * </ol>
+ * <strong>Consistency requirement</strong>: if any {@code @Action} or
+ * {@code @Decision} method in an agent declares an explicit {@code order}
+ * or {@code @Priority}, every {@code @Action} and {@code @Decision} method
+ * in that agent must do the same. Mixing explicitly ordered and unordered
+ * methods is a deployment error.
  * <p>
  * <b>Parameters</b><br>
  * Action methods can have the following types of parameters that will be
@@ -112,4 +136,21 @@ import java.lang.annotation.Target;
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Action {
+
+    /**
+     * The position of this action in the workflow execution sequence.
+     * Lower values execute first.
+     * <p>
+     * Ignored when {@link jakarta.annotation.Priority @Priority} is also
+     * present on the method — {@code @Priority} takes precedence.
+     * <p>
+     * Defaults to {@code 0}. When all {@code @Action} and {@code @Decision}
+     * methods in an agent use the default value, source declaration order
+     * determines execution order. If any method in the agent explicitly sets
+     * {@code order} or declares {@code @Priority}, all other {@code @Action}
+     * and {@code @Decision} methods in that agent must also declare one.
+     *
+     * @return the sort key for this action; lower values execute first
+     */
+    int order() default 0;
 }
