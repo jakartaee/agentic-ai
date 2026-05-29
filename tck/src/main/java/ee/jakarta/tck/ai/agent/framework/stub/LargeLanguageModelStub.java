@@ -13,79 +13,70 @@
 package ee.jakarta.tck.ai.agent.framework.stub;
 
 import jakarta.ai.agent.LargeLanguageModel;
+import jakarta.annotation.PreDestroy;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.json.bind.Jsonb;
+import jakarta.json.bind.JsonbBuilder;
 
 import java.time.Instant;
-import java.util.ArrayDeque;
 import java.util.List;
 import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
- * CDI-enabled stub for {@link LargeLanguageModel} used in TCK behavioral tests.
- * Provides a way to script responses and verify received prompts.
+ * Spec-faithful CDI stub for {@link LargeLanguageModel} used in TCK behavioral tests.
  *
- * <p>Responses and failures are queued and consumed in FIFO order.</p>
+ * <p>Enforces the spec contract: null-prompt/resultType → IAE, strict arity on varargs
+ * overloads, JSON-B serialization of parameters and deserialization of typed responses.
+ * Responses and failures are queued and consumed in FIFO order.</p>
  */
 @ApplicationScoped
 public class LargeLanguageModelStub implements LargeLanguageModel {
 
-    private final Queue<Object> scriptedResponses = new ArrayDeque<>();
-    private final Queue<RuntimeException> scriptedFailures = new ArrayDeque<>();
+    private final Jsonb jsonb = JsonbBuilder.create();
+    private final Queue<Object> scriptedResponses = new ConcurrentLinkedQueue<>();
+    private final Queue<RuntimeException> scriptedFailures = new ConcurrentLinkedQueue<>();
     private final List<RecordedCall> calls = new CopyOnWriteArrayList<>();
 
     /**
-     * Records a call to the model.
-     *
-     * @param prompt the prompt sent to the model
-     * @param resultType the expected result type, or null for default String queries
-     * @param params the parameters sent to the model
-     * @param overload the overload index (1-4)
-     * @param at the timestamp of the call
+     * Releases the underlying {@link Jsonb} instance when the CDI context shuts down.
+     * Yasson does not hold OS-level resources today, but the spec contract is to close it.
      */
-    public record RecordedCall(String prompt, Class<?> resultType, Object[] params, int overload, Instant at) {}
+    @PreDestroy
+    void close() {
+        try {
+            jsonb.close();
+        } catch (Exception ignored) {
+            // best-effort — the bean is going away anyway
+        }
+    }
 
     /**
-     * Enqueues a response to be returned by the next call to any query method.
-     *
-     * @param response the response object
+     * Records a call to the model. {@code prompt} is the raw template; {@code effectivePrompt}
+     * is the post-substitution text (equals {@code prompt} for single-arg overloads).
      */
+    public record RecordedCall(String prompt, String effectivePrompt, Class<?> resultType,
+                               Object[] params, int overload, Instant at) {}
+
     public void enqueueResponse(Object response) {
         scriptedResponses.add(response);
     }
 
-    /**
-     * Enqueues a failure to be thrown on the next call to any query method.
-     *
-     * @param e the exception to throw
-     */
     public void failWith(RuntimeException e) {
-        this.scriptedFailures.add(e);
+        scriptedFailures.add(e);
     }
 
-    /**
-     * Resets the stub's state (scripted responses, failures, and recorded calls).
-     */
     public void reset() {
         scriptedResponses.clear();
         scriptedFailures.clear();
         calls.clear();
     }
 
-    /**
-     * Returns a list of all recorded calls.
-     *
-     * @return the list of recorded calls
-     */
     public List<RecordedCall> recordedCalls() {
         return List.copyOf(calls);
     }
 
-    /**
-     * Returns the last recorded call, or null if no calls were made.
-     *
-     * @return the last recorded call
-     */
     public RecordedCall lastCall() {
         return calls.isEmpty() ? null : calls.get(calls.size() - 1);
     }
@@ -97,6 +88,7 @@ public class LargeLanguageModelStub implements LargeLanguageModel {
 
     @Override
     public <T> T query(String prompt, Class<T> resultType) {
+        if (resultType == null) throw new IllegalArgumentException("resultType is null");
         return dispatch(prompt, resultType, 2);
     }
 
@@ -107,20 +99,18 @@ public class LargeLanguageModelStub implements LargeLanguageModel {
 
     @Override
     public <T> T query(String prompt, Class<T> resultType, Object... parameters) {
+        if (resultType == null) throw new IllegalArgumentException("resultType is null");
         return dispatch(prompt, resultType, 4, parameters);
     }
 
-    @SuppressWarnings("unchecked")
     private <T> T dispatch(String prompt, Class<T> resultType, int overload, Object... params) {
-        if (prompt == null) {
-            throw new IllegalArgumentException("prompt is null");
-        }
-        calls.add(new RecordedCall(prompt, resultType, params, overload, Instant.now()));
+        if (prompt == null) throw new IllegalArgumentException("prompt is null");
 
-        RuntimeException scriptedFailure = scriptedFailures.poll();
-        if (scriptedFailure != null) {
-            throw scriptedFailure;
-        }
+        String effectivePrompt = (overload >= 3) ? applyPlaceholders(prompt, params) : prompt;
+        calls.add(new RecordedCall(prompt, effectivePrompt, resultType, params, overload, Instant.now()));
+
+        RuntimeException failure = scriptedFailures.poll();
+        if (failure != null) throw failure;
 
         Object next = scriptedResponses.poll();
         if (next == null) {
@@ -129,19 +119,54 @@ public class LargeLanguageModelStub implements LargeLanguageModel {
                   + "Call enqueueResponse(...) before invoking the LLM in this test.");
         }
 
-        if (resultType != null && !resultType.isInstance(next)) {
-            // For String result type, fall back to toString() conversion of the queued value.
-            if (resultType == String.class) {
-                return (T) next.toString();
-            }
-            // Spec contract: type conversion failures are reported as IllegalArgumentException
-            // (see LargeLanguageModel.query Javadoc).
-            throw new IllegalArgumentException(
-                    "Cannot convert queued response of type " + next.getClass().getName()
-                  + " to requested result type " + resultType.getName());
-        }
+        return convert(next, resultType);
+    }
 
-        return (T) (resultType == null ? next.toString() : next);
+    private String applyPlaceholders(String prompt, Object[] params) {
+        int n = countExactBraces(prompt);
+        if (n >= 1 && params.length != n) {
+            throw new IllegalArgumentException(
+                "placeholder/parameter arity mismatch: " + n + " vs " + params.length);
+        }
+        if (n == 0 && params.length > 1) {
+            throw new IllegalArgumentException(
+                "prompt has no placeholder but received " + params.length + " parameters");
+        }
+        if (n == 0) {
+            // single structured context param — keep raw prompt as effective text
+            return prompt;
+        }
+        String result = prompt;
+        for (Object p : params) {
+            result = result.replaceFirst(java.util.regex.Pattern.quote("{}"),
+                     java.util.regex.Matcher.quoteReplacement(jsonb.toJson(p)));
+        }
+        return result;
+    }
+
+    private int countExactBraces(String prompt) {
+        int count = 0;
+        int idx = 0;
+        while ((idx = prompt.indexOf("{}", idx)) != -1) {
+            count++;
+            idx += 2;
+        }
+        return count;
+    }
+
+    @SuppressWarnings("unchecked")
+    private <T> T convert(Object next, Class<T> resultType) {
+        if (resultType == null)          return (T) next.toString();
+        if (resultType.isInstance(next)) return (T) next;
+        if (resultType == String.class)  return (T) next.toString();
+        if (next instanceof String json) {
+            try {
+                return jsonb.fromJson(json, resultType);
+            } catch (jakarta.json.bind.JsonbException e) {
+                throw new IllegalArgumentException("type conversion failed", e);
+            }
+        }
+        throw new IllegalArgumentException("Cannot convert " + next.getClass() + " to " + resultType);
     }
 
     @Override
