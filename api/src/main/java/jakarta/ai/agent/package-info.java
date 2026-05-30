@@ -176,11 +176,11 @@
  *
  * <p>LLM operations may throw:
  * <ul>
- *   <li>{@link java.lang.IllegalArgumentException} - For null or 
- *       invalid parameters, or unsupported type conversions</li>
- *   <li>{@link jakarta.ai.agent.LLMException} - Runtime exception 
- *       for LLM service failures (communication errors, 
- *       rate limiting, timeouts, invalid responses)</li>
+ *   <li>{@link java.lang.IllegalArgumentException} - For null or
+ *       invalid parameters, or serialization failures on input parameters</li>
+ *   <li>{@link jakarta.ai.agent.LLMException} - Runtime exception
+ *       for LLM service failures (communication errors, rate limiting,
+ *       timeouts, invalid responses) or response deserialization failures</li>
  * </ul>
  *
  * <p>These exceptions can be handled with try-catch blocks or 

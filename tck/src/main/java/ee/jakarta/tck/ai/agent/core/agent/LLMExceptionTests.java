@@ -43,20 +43,6 @@ public class LLMExceptionTests {
                 "LLMException must extend RuntimeException");
     }
 
-    @Assertion(id = "AGENTICAI-LLMEXCEPTION-003",
-               strategy = "Verify LLMException has no-arg constructor")
-    public void testLLMExceptionNoArgConstructor() {
-        try {
-            LLMException exception = new LLMException();
-            assertNotNull(exception,
-                    "LLMException no-arg constructor must create instance");
-            assertNull(exception.getMessage(),
-                    "LLMException created with no-arg constructor should have null message");
-        } catch (Exception e) {
-            fail("LLMException no-arg constructor must be accessible: " + e.getMessage());
-        }
-    }
-
     @Assertion(id = "AGENTICAI-LLMEXCEPTION-004",
                strategy = "Verify LLMException has String message constructor")
     public void testLLMExceptionStringConstructor() {

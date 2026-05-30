@@ -23,6 +23,11 @@ import jakarta.ai.agent.LLMException;
 import jakarta.ai.agent.LargeLanguageModel;
 import jakarta.enterprise.event.Event;
 import jakarta.inject.Inject;
+import jakarta.json.bind.JsonbException;
+import jakarta.json.bind.annotation.JsonbTypeSerializer;
+import jakarta.json.bind.serializer.JsonbSerializer;
+import jakarta.json.bind.serializer.SerializationContext;
+import jakarta.json.stream.JsonGenerator;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
@@ -56,6 +61,16 @@ public class LlmContractTests {
     @Inject ExecutionTraceRecorder trace;
 
     public static record PersonFixture(String name, int age) {}
+
+    @JsonbTypeSerializer(NonSerializableParam.Serializer.class)
+    public static class NonSerializableParam {
+        public static class Serializer implements JsonbSerializer<NonSerializableParam> {
+            @Override
+            public void serialize(NonSerializableParam obj, JsonGenerator generator, SerializationContext ctx) {
+                throw new JsonbException("intentional serialization failure");
+            }
+        }
+    }
 
     // -------------------------------------------------------------------------
     // A. Portable contract tests — assert against LargeLanguageModel interface
@@ -112,6 +127,15 @@ public class LlmContractTests {
         stub.reset();
         stub.enqueueResponse("ok");
         assertThatThrownBy(() -> llm.query("Analyze this", "a", "b"))
+                .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Assertion(id = "AGENTICAI-LLM-BHV-002",
+               section = "LLM Interface, Positional Parameters",
+               strategy = "parameter that cannot be converted must throw IllegalArgumentException")
+    public void parameterSerializationFailureThrowsIllegalArgumentException() {
+        stub.reset();
+        assertThatThrownBy(() -> llm.query("process {}", new NonSerializableParam()))
                 .isInstanceOf(IllegalArgumentException.class);
     }
 
@@ -200,12 +224,12 @@ public class LlmContractTests {
 
     @Assertion(id = "AGENTICAI-LLM-BHV-005",
                section = "LLM Interface, Error Semantics",
-               strategy = "type conversion failure propagates as IllegalArgumentException, not LLMException")
-    public void typeConversionFailurePropagatesAsIllegalArgumentException() {
+               strategy = "response type conversion failure propagates as LLMException")
+    public void typeConversionFailurePropagatesAsLlmException() {
         stub.reset();
         stub.enqueueResponse(Integer.valueOf(42));
         assertThatThrownBy(() -> llm.query("p", PersonFixture.class))
-                .isInstanceOf(IllegalArgumentException.class);
+                .isInstanceOf(LLMException.class);
     }
 
     @Assertion(id = "AGENTICAI-LLM-BHV-006",

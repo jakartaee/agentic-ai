@@ -120,9 +120,9 @@ public interface LargeLanguageModel {
      * @param resultType The expected result type.
      * @param <T> The type of the result.
      * @return The model's response converted to the specified type.
-     * @throws IllegalArgumentException if the prompt or resultType is null, or if the
-     *                                  type conversion fails.
-     * @throws LLMException if the LLM service encounters an error during processing.
+     * @throws IllegalArgumentException if the prompt or resultType is null.
+     * @throws LLMException if the LLM service encounters an error during processing,
+     *                      or if the response cannot be deserialized to the requested type.
      */
     <T> T query(String prompt, Class<T> resultType);
 
@@ -154,10 +154,10 @@ public interface LargeLanguageModel {
      * @throws IllegalArgumentException if the prompt or resultType is null, if the number of
      *                                  supplied parameters does not match the number of {}
      *                                  placeholders, except that a prompt with no placeholder
-     *                                  may accept at most one supplied parameter, if a
-     *                                  parameter cannot be serialized, or if the response cannot
-     *                                  be deserialized to the requested type.
-     * @throws LLMException if the LLM service encounters an error during processing.
+     *                                  may accept at most one supplied parameter, or if a
+     *                                  parameter cannot be serialized.
+     * @throws LLMException if the LLM service encounters an error during processing,
+     *                      or if the response cannot be deserialized to the requested type.
      */
     <T> T query(String prompt, Class<T> resultType, Object... parameters);
 
@@ -179,9 +179,10 @@ public interface LargeLanguageModel {
 All `query(...)` methods may throw:
 
 - `IllegalArgumentException` — for null or invalid parameters, placeholder
-  or parameter-count mismatches, or JSON serialization/deserialization
-  failures.
-- `LLMException` — for LLM service errors (see below).
+  or parameter-count mismatches, or conversion failures (input
+  parameters that cannot be converted).
+- `LLMException` — for LLM service errors or conversion failures
+  (responses that cannot be converted to the requested type). See below.
 
 `unwrap()` throws `IllegalArgumentException` if the underlying
 implementation cannot be unwrapped to the requested type.
@@ -193,10 +194,12 @@ runtime exception, it does not require explicit handling but may be caught
 by `@HandleException` methods in agent workflows. Common failure scenarios:
 
 - Communication failures with the LLM service
-- Invalid or unparseable responses from the LLM
+- Invalid or malformed responses from the LLM (truncated output, error
+  payloads, protocol-level failures)
 - Rate limiting or quota exceeded
 - Model unavailability or timeout
-- Type conversion failures when processing LLM responses
+- Response deserialization failures when a typed result is requested and
+  the LLM response cannot be converted to the expected Java type
 
 === Usage Guidance
 
@@ -295,7 +298,7 @@ public FraudAnalysis analyzeTransaction(BankTransaction transaction) {
         """;
     try {
         return llm.query(prompt, FraudAnalysis.class, transaction);
-    } catch (IllegalArgumentException e) {
+    } catch (LLMException e) {
         logger.warn("Failed to deserialize fraud analysis", e);
         return FraudAnalysis.unknown();
     }

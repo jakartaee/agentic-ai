@@ -58,10 +58,10 @@ public class LargeLanguageModelStubTests {
     }
 
     @Test
-    void testTypeMismatchThrowsIllegalArgumentException() {
+    void testTypeMismatchThrowsLlmException() {
         stub.enqueueResponse(42);
-        assertThrows(IllegalArgumentException.class, () -> stub.query("test", java.util.Date.class),
-                "Spec contract: type conversion failures must be IllegalArgumentException");
+        assertThrows(jakarta.ai.agent.LLMException.class, () -> stub.query("test", java.util.Date.class),
+                "Spec contract: response type conversion failures must be LLMException");
     }
 
     @Test

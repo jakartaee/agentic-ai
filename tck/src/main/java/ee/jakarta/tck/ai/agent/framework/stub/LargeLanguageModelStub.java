@@ -12,6 +12,7 @@
  *****************************************************************************/
 package ee.jakarta.tck.ai.agent.framework.stub;
 
+import jakarta.ai.agent.LLMException;
 import jakarta.ai.agent.LargeLanguageModel;
 import jakarta.annotation.PreDestroy;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -138,8 +139,14 @@ public class LargeLanguageModelStub implements LargeLanguageModel {
         }
         String result = prompt;
         for (Object p : params) {
+            String json;
+            try {
+                json = jsonb.toJson(p);
+            } catch (jakarta.json.bind.JsonbException e) {
+                throw new IllegalArgumentException("parameter cannot be serialized to JSON", e);
+            }
             result = result.replaceFirst(java.util.regex.Pattern.quote("{}"),
-                     java.util.regex.Matcher.quoteReplacement(jsonb.toJson(p)));
+                     java.util.regex.Matcher.quoteReplacement(json));
         }
         return result;
     }
@@ -163,10 +170,10 @@ public class LargeLanguageModelStub implements LargeLanguageModel {
             try {
                 return jsonb.fromJson(json, resultType);
             } catch (jakarta.json.bind.JsonbException e) {
-                throw new IllegalArgumentException("type conversion failed", e);
+                throw new LLMException("type conversion failed", e);
             }
         }
-        throw new IllegalArgumentException("Cannot convert " + next.getClass() + " to " + resultType);
+        throw new LLMException("Cannot convert " + next.getClass() + " to " + resultType);
     }
 
     @Override
