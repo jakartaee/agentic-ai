@@ -93,10 +93,10 @@ public interface LargeLanguageModel {
      * @param resultType The expected result type.
      * @param <T> The type of the result.
      * @return The model's response converted to the specified type.
-     * @throws IllegalArgumentException if the prompt or resultType is null, or 
-     *                                  if the type conversion fails.
-     * @throws LLMException if the LLM service encounters an error during 
-     *                      processing.
+     * @throws IllegalArgumentException if the prompt or resultType is null.
+     * @throws LLMException if the LLM service encounters an error during
+     *                      processing, or if the response cannot be
+     *                      deserialized to the requested type.
      */
     <T> T query(String prompt, Class<T> resultType);
 
@@ -154,12 +154,11 @@ public interface LargeLanguageModel {
      *                                  does not match the number of
      *                                  {@code {}} placeholders, except that a
      *                                  prompt with no placeholder may accept at
-     *                                  most one supplied parameter, if a
-     *                                  parameter cannot be serialized to JSON,
-     *                                  or if the response cannot be
-     *                                  deserialized to the requested type.
-     * @throws LLMException if the LLM service encounters an error during 
-     *                      processing.
+     *                                  most one supplied parameter, or if a
+     *                                  parameter cannot be converted.
+     * @throws LLMException if the LLM service encounters an error during
+     *                      processing, or if the response cannot be
+     *                      deserialized to the requested type.
      */
     <T> T query(String prompt, Class<T> resultType, Object... parameters);
 

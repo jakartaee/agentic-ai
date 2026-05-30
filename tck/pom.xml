@@ -111,14 +111,16 @@
             <scope>test</scope>
         </dependency>
 
-        <!-- AssertJ — compile scope: tests in src/main/java cannot use test-scoped deps -->
         <dependency>
             <groupId>org.assertj</groupId>
             <artifactId>assertj-core</artifactId>
             <version>${assertj.version}</version>
         </dependency>
-
-        <!-- Jakarta JSON-B — compile scope: stub in src/main/java references Jsonb/JsonbBuilder -->
+        <dependency>
+            <groupId>jakarta.json</groupId>
+            <artifactId>jakarta.json-api</artifactId>
+            <version>2.1.3</version>
+        </dependency>
         <dependency>
             <groupId>jakarta.json.bind</groupId>
             <artifactId>jakarta.json.bind-api</artifactId>

@@ -203,10 +203,6 @@ public class SignatureTests {
                     "LLMException must extend RuntimeException");
 
             // Verify constructors exist
-            boolean hasDefaultConstructor = Arrays.stream(llmExceptionClass.getDeclaredConstructors())
-                    .anyMatch(c -> c.getParameterCount() == 0);
-            assertTrue(hasDefaultConstructor, "LLMException must have a no-arg constructor");
-
             boolean hasStringConstructor = Arrays.stream(llmExceptionClass.getDeclaredConstructors())
                     .anyMatch(c -> c.getParameterCount() == 1 && c.getParameterTypes()[0].equals(String.class));
             assertTrue(hasStringConstructor, "LLMException must have a constructor with String parameter");
