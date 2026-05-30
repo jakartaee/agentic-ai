@@ -117,6 +117,19 @@
             <artifactId>assertj-core</artifactId>
             <version>${assertj.version}</version>
         </dependency>
+
+        <!-- Jakarta JSON-B — compile scope: stub in src/main/java references Jsonb/JsonbBuilder -->
+        <dependency>
+            <groupId>jakarta.json.bind</groupId>
+            <artifactId>jakarta.json.bind-api</artifactId>
+            <version>3.0.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse</groupId>
+            <artifactId>yasson</artifactId>
+            <version>3.0.4</version>
+            <scope>runtime</scope>
+        </dependency>
     </dependencies>
 
     <build>
