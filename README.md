@@ -140,7 +140,7 @@ public class FraudDetectionAgent {
 
 ## Standalone Specification
 
-The project will not initially seek inclusion into the Jakarta EE platform or any profile. Rather, the project will seek to provide a usable standalone API under the Jakarta EE umbrella that vendors may choose to adopt. In the future, it may make sense to define a Jakarta EE profile for AI in general to which this project could be added. Such a profile could conceivably also include separate specifications to attempt to standardize other important AI concepts, such as LLMs and MCP.
+The project will not initially seek inclusion into the Jakarta EE platform or any profile. Rather, the project will seek to provide a usable standalone API under the Jakarta EE umbrella that vendors may choose to adopt. In the future, it may make sense to define a Jakarta EE profile for AI in general to which this project could be added. Such a profile could conceivably also include separate specifications to attempt to standardize other important AI concepts, such as LLMs/RAG and MCP.
 
 ## Community
 
