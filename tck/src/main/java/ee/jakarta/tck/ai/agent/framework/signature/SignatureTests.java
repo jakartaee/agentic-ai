@@ -214,6 +214,12 @@ public class SignatureTests {
             assertTrue(hasStringThrowableConstructor,
                     "LLMException must have a constructor with String and Throwable parameters");
 
+            boolean hasThrowableConstructor = Arrays.stream(llmExceptionClass.getDeclaredConstructors())
+                    .anyMatch(c -> c.getParameterCount() == 1 &&
+                            c.getParameterTypes()[0].equals(Throwable.class));
+            assertTrue(hasThrowableConstructor,
+                    "LLMException must have a constructor with Throwable parameter");
+
         } catch (ClassNotFoundException e) {
             fail("LLMException class not found: " + e.getMessage());
         }
