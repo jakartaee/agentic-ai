@@ -139,6 +139,41 @@ public class LlmContractTests {
                 .isInstanceOf(IllegalArgumentException.class);
     }
 
+    @Assertion(id = "AGENTICAI-LLM-BHV-002",
+               section = "LLM Interface, Positional Parameters",
+               strategy = "parameter that cannot be converted on the typed varargs overload must throw IllegalArgumentException")
+    public void parameterSerializationFailureOnTypedOverloadThrowsIllegalArgumentException() {
+        stub.reset();
+        assertThatThrownBy(() -> llm.query("process {}", PersonFixture.class, new NonSerializableParam()))
+                .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Assertion(id = "AGENTICAI-LLM-BHV-002",
+               section = "LLM Interface, Input Integrity",
+               strategy = "null prompt on the typed varargs overload must throw IllegalArgumentException immediately")
+    public void nullPromptOnTypedVarargsOverloadThrowsIllegalArgumentException() {
+        assertThatThrownBy(() -> llm.query(null, PersonFixture.class, "x"))
+                .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Assertion(id = "AGENTICAI-LLM-BHV-002",
+               section = "LLM Interface, Input Integrity",
+               strategy = "null resultType on the typed varargs overload must throw IllegalArgumentException immediately")
+    public void nullResultTypeOnTypedVarargsOverloadThrowsIllegalArgumentException() {
+        assertThatThrownBy(() -> llm.query("p", (Class<?>) null, "x"))
+                .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Assertion(id = "AGENTICAI-LLM-BHV-002",
+               section = "LLM Interface, Positional Parameters",
+               strategy = "more parameters than placeholders on the typed varargs overload must throw IllegalArgumentException")
+    public void arityMismatchOnTypedVarargsOverloadThrows() {
+        stub.reset();
+        stub.enqueueResponse("ok");
+        assertThatThrownBy(() -> llm.query("one {} here", PersonFixture.class, "a", "b"))
+                .isInstanceOf(IllegalArgumentException.class);
+    }
+
     @Assertion(id = "AGENTICAI-LLM-BHV-006",
                section = "LLM Interface, Provider Abstraction",
                strategy = "unwrap to an incompatible type must throw IllegalArgumentException")
@@ -229,6 +264,16 @@ public class LlmContractTests {
         stub.reset();
         stub.enqueueResponse(Integer.valueOf(42));
         assertThatThrownBy(() -> llm.query("p", PersonFixture.class))
+                .isInstanceOf(LLMException.class);
+    }
+
+    @Assertion(id = "AGENTICAI-LLM-BHV-005",
+               section = "LLM Interface, Error Semantics",
+               strategy = "response type conversion failure on the typed varargs overload propagates as LLMException")
+    public void typeConversionFailureOnTypedVarargsOverloadPropagatesAsLlmException() {
+        stub.reset();
+        stub.enqueueResponse(Integer.valueOf(42));
+        assertThatThrownBy(() -> llm.query("p", PersonFixture.class, "irrelevant"))
                 .isInstanceOf(LLMException.class);
     }
 
