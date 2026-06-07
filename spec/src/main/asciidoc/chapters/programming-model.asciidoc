@@ -93,7 +93,7 @@ Jakarta EE component.
 
 **Validation**::
 - Jakarta Validation — constraint annotations on agent life-cycle method
-  parameters; see xref:_jakarta_validation_constraints[Jakarta Validation Constraints].
+  parameters; see xref:jakarta-validation-constraints[Jakarta Validation Constraints].
 
 **Data access**::
 - Jakarta Persistence — relational databases
