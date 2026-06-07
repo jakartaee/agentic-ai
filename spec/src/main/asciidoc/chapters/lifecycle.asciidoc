@@ -514,32 +514,39 @@ public class DataProcessingAgent {
 [source,java]
 ----
 @Agent
-public class ConditionalProcessingAgent {
-
-    @Inject
-    private LargeLanguageModel llm;
+public class OrderAgent {
 
     @Trigger
-    public void onRequest(ProcessingRequest request) { }
+    public void onOrder(Order order) { }
 
     @Decision
-    public boolean isEligible(ProcessingRequest request) {
-        return llm.query("Is this request eligible for processing?", request).contains("yes");
+    public boolean isLegitimate(Order order, LargeLanguageModel llm) {
+        return llm.query("Does this order appear legitimate?", order).contains("yes");
+    }
+
+    @Decision
+    public boolean inStock(Order order) {
+        return inventory.available(order);
     }
 
     @Action
-    public void preprocessData(ProcessingRequest request) {
-        preprocessor.prepare(request);
+    public void reserveStock(Order order) {
+        inventory.reserve(order);
     }
 
     @Decision
-    public boolean isValid(ProcessingRequest request) {
-        return validator.check(request);
+    public boolean paymentClears(Order order) {
+        return payment.charge(order);
+    }
+
+    @Action
+    public void shipOrder(Order order) {
+        shipping.dispatch(order);
     }
 
     @Outcome
-    public void processData(ProcessingRequest request) {
-        processor.run(request);
+    public void confirmOrder(Order order) {
+        notifier.confirm(order);
     }
 }
 ----
