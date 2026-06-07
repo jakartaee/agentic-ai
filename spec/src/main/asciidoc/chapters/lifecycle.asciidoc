@@ -63,130 +63,6 @@ ends with an outcome.
 `LargeLanguageModel` conversational state follows the same boundaries; see
 the xref:llm-integration[Large Language Model Integration] chapter.
 
-[[parameter-resolution]]
-=== Parameter Resolution
-
-All workflow methods (annotated with `@Trigger`, `@Decision`, `@Action`, 
-`@Outcome`, and `@HandleException`) receive their parameters through automatic
-resolution based on type and the current workflow state. Each subsequent
-annotation section refers to this single set of rules.
-
-==== Resolution Order
-
-When a workflow method is invoked, the runtime resolves each parameter in
-the following order:
-
-. **Trigger event** — if the parameter type matches the triggering event.
-. **Previous phase results** — if the parameter type matches an object
-  returned by an earlier step in the current workflow. When multiple steps
-  have returned objects of the same type, the most recently returned object
-  is used.
-. **`LargeLanguageModel`** — if the parameter type is `LargeLanguageModel`.
-. **Exception** — for `@HandleException` methods only, the thrown exception
-  (or any supertype thereof) is the required first parameter.
-. **CDI injection** — if the parameter is a CDI bean.
-
-==== Jakarta Validation Constraints
-
-Parameters may declare Jakarta Validation constraints (`@Valid`, `@NotNull`,
-`@NotEmpty`, `@Size`, etc). Validation occurs before parameter injection and
-workflow method invocation. If validation fails, a
-`ConstraintViolationException` is raised; it can be caught by an
-`@HandleException` method or propagated to the container.
-
-`ConstraintViolationException` is a runtime exception, so explicit handling
-is not required. Common scenarios include parameter constraint failures,
-custom constraint violations, and validation of complex domain objects
-passed between phases.
-
-[[execution-order]]
-=== Execution Order
-
-The execution order of `@Action` and `@Decision` methods can be intermixed
-as needed. The runtime determines their order using the following rules, 
-in decreasing precedence:
-
-. **`@Priority` on the method** — `jakarta.annotation.Priority` value is the
-  sort key; lower values execute first.
-. **`order` attribute** — used as the sort key when `@Priority` is absent;
-  lower values execute first.
-. **Source declaration order** — fallback when no `@Action` or `@Decision`
-  method in the agent declares `@Priority` or an explicit `order`.
-
-NOTE: Java SE does not guarantee that reflection returns methods
-in source declaration order. However, all major implementations do so in 
-practice. Portable applications requiring strict ordering must use
- `@Priority` or `order`.
-
-==== Consistency Requirement
-
-If any `@Action` or `@Decision` method in an agent declares an explicit
-`order` or `@Priority`, every `@Action` and `@Decision` method in that
-agent must do the same. Mixing explicitly ordered and unordered methods
-is a deployment error.
-
-[[error-handling]]
-=== Error Handling and Workflow Termination
-
-==== Exception Handler Invocation
-
-When an exception occurs in any workflow phase (`@Trigger`, `@Decision`,
-`@Action`, or `@Outcome`), the runtime searches for a matching
-`@HandleException` method. The most specific exception type match wins,
-following Java's exception hierarchy.
-
-- If the handler returns normally, the workflow continues with the next
-  step.
-- If the handler re-throws or throws a new exception, the workflow stops and
-  the exception propagates to the container.
-- If no handler is defined, the exception propagates to the container.
-- Exceptions thrown from handler methods are not handled recursively.
-
-[source,java]
-----
-@Agent
-public class ResilientAgent {
-
-    @Trigger
-    public void onEvent(Event event) {
-        if (event == null) {
-            throw new IllegalArgumentException("Event cannot be null");
-        }
-    }
-
-    @Decision
-    public boolean analyze(Event event) {
-        return analyzeEvent(event); // may throw IOException
-    }
-
-    @HandleException
-    public void handleIOException(IOException e, Event event) {
-        logger.warn("I/O error, will retry", e);
-        scheduleRetry(event);
-    }
-
-    @HandleException
-    public void handleGenericException(Exception e, Event event) {
-        logger.error("Unexpected error", e);
-        logFailure(event, e);
-    }
-}
-----
-
-==== Workflow Termination
-
-A workflow terminates when any of the following occurs:
-
-. **Normal completion** — the outcome phase completes successfully (or, if
-  no outcome is defined, the last phase completes).
-. **Decision stop** — a decision phase returns `false` or `null`.
-. **Unhandled exception** — an exception is raised and no matching handler
-  is defined.
-. **Handler exception** — an exception handler itself throws.
-
-Any runtime-managed state associated with the current workflow is discarded
-once the workflow terminates.
-
 === @Trigger
 
 The `@Trigger` annotation marks the entry point of an agent workflow.
@@ -249,6 +125,42 @@ public class AnalyzingAgent {
     }
 }
 ----
+
+[[parameter-resolution]]
+=== Parameter Resolution
+
+All workflow methods (annotated with `@Trigger`, `@Decision`, `@Action`, 
+`@Outcome`, and `@HandleException`) receive their parameters through automatic
+resolution based on type and the current workflow state. Each subsequent
+annotation section refers to this single set of rules.
+
+==== Resolution Order
+
+When a workflow method is invoked, the runtime resolves each parameter in
+the following order:
+
+. **Trigger event** — if the parameter type matches the triggering event.
+. **Previous phase results** — if the parameter type matches an object
+  returned by an earlier step in the current workflow. When multiple steps
+  have returned objects of the same type, the most recently returned object
+  is used.
+. **`LargeLanguageModel`** — if the parameter type is `LargeLanguageModel`.
+. **Exception** — for `@HandleException` methods only, the thrown exception
+  (or any supertype thereof) is the required first parameter.
+. **CDI injection** — if the parameter is a CDI bean.
+
+==== Jakarta Validation Constraints
+
+Parameters may declare Jakarta Validation constraints (`@Valid`, `@NotNull`,
+`@NotEmpty`, `@Size`, etc). Validation occurs before parameter injection and
+workflow method invocation. If validation fails, a
+`ConstraintViolationException` is raised; it can be caught by an
+`@HandleException` method or propagated to the container.
+
+`ConstraintViolationException` is a runtime exception, so explicit handling
+is not required. Common scenarios include parameter constraint failures,
+custom constraint violations, and validation of complex domain objects
+passed between phases.
 
 === @Decision
 
@@ -395,6 +307,32 @@ public class TransactionalAgent {
 }
 ----
 
+[[execution-order]]
+=== Execution Order
+
+The execution order of `@Action` and `@Decision` methods can be intermixed
+as needed. The runtime determines their order using the following rules, 
+in decreasing precedence:
+
+. **`@Priority` on the method** — `jakarta.annotation.Priority` value is the
+  sort key; lower values execute first.
+. **`order` attribute** — used as the sort key when `@Priority` is absent;
+  lower values execute first.
+. **Source declaration order** — fallback when no `@Action` or `@Decision`
+  method in the agent declares `@Priority` or an explicit `order`.
+
+NOTE: Java SE does not guarantee that reflection returns methods
+in source declaration order. However, all major implementations do so in 
+practice. Portable applications requiring strict ordering must use
+ `@Priority` or `order`.
+
+==== Consistency Requirement
+
+If any `@Action` or `@Decision` method in an agent declares an explicit
+`order` or `@Priority`, every `@Action` and `@Decision` method in that
+agent must do the same. Mixing explicitly ordered and unordered methods
+is a deployment error.
+
 === @Outcome
 
 The `@Outcome` annotation marks a method that finalizes the workflow. It
@@ -422,7 +360,7 @@ releases may relax this for downstream system integration.
 
 The `@HandleException` annotation marks a method that handles exceptions
 occurring during workflow execution. See xref:error-handling[Error Handling
-and Workflow Termination] above for the matching algorithm and termination
+and Workflow Termination] below for the matching algorithm and termination
 rules.
 
 ==== Cardinality
@@ -473,6 +411,68 @@ public class ExceptionHandlingExamples {
     }
 }
 ----
+
+[[error-handling]]
+=== Error Handling and Workflow Termination
+
+==== Exception Handler Invocation
+
+When an exception occurs in any workflow phase (`@Trigger`, `@Decision`,
+`@Action`, or `@Outcome`), the runtime searches for a matching
+`@HandleException` method. The most specific exception type match wins,
+following Java's exception hierarchy.
+
+- If the handler returns normally, the workflow continues with the next
+  step.
+- If the handler re-throws or throws a new exception, the workflow stops and
+  the exception propagates to the container.
+- If no handler is defined, the exception propagates to the container.
+- Exceptions thrown from handler methods are not handled recursively.
+
+[source,java]
+----
+@Agent
+public class ResilientAgent {
+
+    @Trigger
+    public void onEvent(Event event) {
+        if (event == null) {
+            throw new IllegalArgumentException("Event cannot be null");
+        }
+    }
+
+    @Decision
+    public boolean analyze(Event event) {
+        return analyzeEvent(event); // may throw IOException
+    }
+
+    @HandleException
+    public void handleIOException(IOException e, Event event) {
+        logger.warn("I/O error, will retry", e);
+        scheduleRetry(event);
+    }
+
+    @HandleException
+    public void handleGenericException(Exception e, Event event) {
+        logger.error("Unexpected error", e);
+        logFailure(event, e);
+    }
+}
+----
+
+==== Workflow Termination
+
+A workflow terminates when any of the following occurs:
+
+. **Normal completion** — the outcome phase completes successfully (or, if
+  no outcome is defined, the last phase completes).
+. **Decision stop** — a decision phase returns `false` or `null`.
+. **Unhandled exception** — an exception is raised and no matching handler
+  is defined.
+. **Handler exception** — an exception handler itself throws.
+
+Any runtime-managed state associated with the current workflow is discarded
+once the workflow terminates.
 
 === Workflow Composition Patterns
 
