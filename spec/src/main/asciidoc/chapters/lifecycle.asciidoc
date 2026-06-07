@@ -471,10 +471,10 @@ A workflow terminates when any of the following occurs:
 Any runtime-managed state associated with the current workflow is discarded
 once the workflow terminates.
 
-=== Workflow Composition Patterns
+=== Workflow Patterns
 
 Agents are not constrained to a rigid template — only `@Trigger` is
-required. The following patterns illustrate common shapes.
+required. The following patterns illustrate some common shapes.
 
 ==== Trigger + Action
 
@@ -505,7 +505,7 @@ public class DataProcessingAgent {
 
     @Action public void validateData(DataBatch data)   { validator.check(data); }
     @Action public void transformData(DataBatch data)  { transformer.process(data); }
-    @Action public void persistData(DataBatch data)    { database.save(data); }
+    @Outcome public void persistData(DataBatch data)    { database.save(data); }
 }
 ----
 
@@ -537,7 +537,7 @@ public class ConditionalProcessingAgent {
         return validator.check(request);
     }
 
-    @Action
+    @Outcome
     public void processData(ProcessingRequest request) {
         processor.run(request);
     }
