@@ -1,46 +1,75 @@
 [[agent-lifecycle]]
 == Annotations and Lifecycle
 
-This chapter is the normative reference for the agent lifecycle annotations.
-Each annotation marks a method as participating in a specific phase of the
+This chapter is the normative reference for the annotations included in 
+the specification, including the lifecycle annotations. Each lifecycle
+annotation marks a method as participating in a specific phase of the
 agent workflow. The chapter also defines parameter resolution, validation,
-error handling, and workflow termination.
+error handling, return type handling, and workflow termination.
+
+=== @Agent
+
+The `@Agent` annotation marks a class as an AI agent. Agent classes are
+CDI beans and follow CDI bean definition rules.
+
+[source,java]
+----
+@Target(ElementType.TYPE)
+@Retention(RetentionPolicy.RUNTIME)
+public @interface Agent {
+    String name() default "";
+    String description() default "";
+}
+----
+
+==== Semantics
+
+- **Required**: every agent class must be annotated with `@Agent`.
+- **CDI bean**: the annotated class becomes a CDI managed bean.
+- **Discovery**: implementations must discover all `@Agent`-annotated
+  classes during deployment.
+- **Default scope**: if no scope is specified, `@WorkflowScoped` is the
+  default. See xref:cdi-integration[CDI Integration] for scope semantics
+  and bean requirements.
+- **`name`** defaults to the simple class name with the first character converted to lower case when omitted.
+- **`description`** is metadata for discovery and documentation.
+
+[source,java]
+----
+@Agent
+@ApplicationScoped
+public class MonitoringAgent { /* longer-lived agent */ }
+
+@Agent
+@WorkflowScoped
+public class WorkflowAgent { /* per-workflow lifecycle */ }
+
+@Agent
+public class DefaultScopedAgent { /* @WorkflowScoped is implied */ }
+----
+
+==== Workflow Context
+
+Regardless of the scope, the runtime maintains a fresh workflow context for
+each workflow invocation. For `@WorkflowScoped` agents, that context is
+tied to the workflow itself. For `@ApplicationScoped` agents, the agent
+instance may be reused across multiple workflows, but each invocation still
+has an isolated workflow context that begins with a trigger and typically
+ends with an outcome.
+
+`LargeLanguageModel` conversational state follows the same boundaries; see
+the xref:llm-integration[Large Language Model Integration] chapter.
 
 === Phase Cardinality
 
 Per agent class:
 
+- `@Agent` — required, exactly one (class-level)
 - `@Trigger` — required, exactly one
 - `@Decision` — optional, zero or more
 - `@Action` — optional, zero or more
 - `@Outcome` — optional, zero or one
 - `@HandleException` — optional, zero or more
-
-[[execution-order]]
-=== Execution Order
-
-The execution order of `@Action` and `@Decision` methods can be intermixed
-as needed. The runtime determines their order using the following rules, 
-in decreasing precedence:
-
-. **`@Priority` on the method** — `jakarta.annotation.Priority` value is the
-  sort key; lower values execute first.
-. **`order` attribute** — used as the sort key when `@Priority` is absent;
-  lower values execute first.
-. **Source declaration order** — fallback when no `@Action` or `@Decision`
-  method in the agent declares `@Priority` or an explicit `order`.
-
-NOTE: Java SE does not guarantee that reflection returns methods
-in source declaration order. However, all major implementations do so in 
-practice. Portable applications requiring strict ordering must use
- `@Priority` or `order`.
-
-==== Consistency Requirement
-
-If any `@Action` or `@Decision` method in an agent declares an explicit
-`order` or `@Priority`, every `@Action` and `@Decision` method in that
-agent must do the same. Mixing explicitly ordered and unordered methods
-is a deployment error.
 
 [[parameter-resolution]]
 === Parameter Resolution
@@ -77,6 +106,32 @@ caught by an `@HandleException` method or propagated to the container.
 is not required. Common scenarios include parameter constraint failures,
 custom constraint violations, and validation of complex domain objects
 passed between phases.
+
+[[execution-order]]
+=== Execution Order
+
+The execution order of `@Action` and `@Decision` methods can be intermixed
+as needed. The runtime determines their order using the following rules, 
+in decreasing precedence:
+
+. **`@Priority` on the method** — `jakarta.annotation.Priority` value is the
+  sort key; lower values execute first.
+. **`order` attribute** — used as the sort key when `@Priority` is absent;
+  lower values execute first.
+. **Source declaration order** — fallback when no `@Action` or `@Decision`
+  method in the agent declares `@Priority` or an explicit `order`.
+
+NOTE: Java SE does not guarantee that reflection returns methods
+in source declaration order. However, all major implementations do so in 
+practice. Portable applications requiring strict ordering must use
+ `@Priority` or `order`.
+
+==== Consistency Requirement
+
+If any `@Action` or `@Decision` method in an agent declares an explicit
+`order` or `@Priority`, every `@Action` and `@Decision` method in that
+agent must do the same. Mixing explicitly ordered and unordered methods
+is a deployment error.
 
 [[error-handling]]
 === Error Handling and Workflow Termination
@@ -139,59 +194,6 @@ A workflow terminates when any of the following occurs:
 
 Any runtime-managed state associated with the current workflow is discarded
 once the workflow terminates.
-
-=== @Agent
-
-The `@Agent` annotation marks a class as an AI agent. Agent classes must be
-CDI beans and follow CDI bean definition rules.
-
-[source,java]
-----
-@Target(ElementType.TYPE)
-@Retention(RetentionPolicy.RUNTIME)
-public @interface Agent {
-    String name() default "";
-    String description() default "";
-}
-----
-
-==== Semantics
-
-- **Required**: every agent class must be annotated with `@Agent`.
-- **CDI bean**: the annotated class becomes a CDI managed bean.
-- **Discovery**: implementations must discover all `@Agent`-annotated
-  classes during deployment.
-- **Default scope**: if no scope is specified, `@WorkflowScoped` is the
-  default. See xref:cdi-integration[CDI Integration] for scope semantics
-  and bean requirements.
-- **`name`** defaults to the simple class name with the first character converted to lower case when omitted.
-- **`description`** is metadata for discovery and documentation.
-
-[source,java]
-----
-@Agent
-@ApplicationScoped
-public class MonitoringAgent { /* longer-lived agent */ }
-
-@Agent
-@WorkflowScoped
-public class WorkflowAgent { /* per-workflow lifecycle */ }
-
-@Agent
-public class DefaultScopedAgent { /* @WorkflowScoped is implied */ }
-----
-
-==== Workflow Context
-
-Regardless of the scope, the runtime maintains a fresh workflow context for
-each workflow invocation. For `@WorkflowScoped` agents, that context is
-tied to the workflow itself. For `@ApplicationScoped` agents, the agent
-instance may be reused across multiple workflows, but each invocation still
-has an isolated workflow context that begins with a trigger and typically
-ends with an outcome.
-
-`LargeLanguageModel` conversational state follows the same boundaries; see
-the xref:llm-integration[Large Language Model Integration] chapter.
 
 === @Trigger
 
