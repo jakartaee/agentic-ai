@@ -133,8 +133,8 @@ public class AnalyzingAgent {
 
 All workflow methods (annotated with `@Trigger`, `@Decision`, `@Action`, 
 `@Outcome`, and `@HandleException`) receive their parameters through automatic
-resolution based on type and the current workflow state. Each subsequent
-annotation section refers to this single set of rules.
+resolution based on type and the current workflow state. Each annotation uses 
+this single set of rules.
 
 ==== Resolution Order
 
@@ -161,8 +161,8 @@ workflow method invocation. If validation fails, a
 
 `ConstraintViolationException` is a runtime exception, so explicit handling
 is not required. Common scenarios include parameter constraint failures,
-custom constraint violations, and validation of complex domain objects
-passed between phases.
+custom constraint violations, and validation of complex domain objects passed
+between phases.
 
 === @Decision
 
