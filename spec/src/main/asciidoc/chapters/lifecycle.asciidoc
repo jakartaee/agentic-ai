@@ -171,13 +171,12 @@ workflow should proceed.
 
 ==== Cardinality
 
-An agent may define zero or more `@Decision` methods. For execution ordering,
-see xref:execution-order[Execution Order].
+An agent may define zero or more `@Decision` methods.
 
 ==== Parameters
 
-Decision methods follow the standard xref:parameter-resolution[parameter
-resolution] rules.
+Decision methods follow the standard
+xref:parameter-resolution[parameter resolution] rules.
 
 ==== Return Type
 
