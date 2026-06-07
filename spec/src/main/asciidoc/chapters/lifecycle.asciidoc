@@ -12,16 +12,6 @@ error handling, return type handling, and workflow termination.
 The `@Agent` annotation marks a class as an AI agent. Agent classes are
 CDI beans and follow CDI bean definition rules.
 
-[source,java]
-----
-@Target(ElementType.TYPE)
-@Retention(RetentionPolicy.RUNTIME)
-public @interface Agent {
-    String name() default "";
-    String description() default "";
-}
-----
-
 ==== Semantics
 
 - **Required**: every agent class must be annotated with `@Agent`.
@@ -199,14 +189,6 @@ once the workflow terminates.
 
 The `@Trigger` annotation marks the entry point of an agent workflow.
 
-[source,java]
-----
-@Target(ElementType.METHOD)
-@Retention(RetentionPolicy.RUNTIME)
-public @interface Trigger {
-}
-----
-
 ==== Cardinality and Invocation
 
 Currently there MUST be exactly one `@Trigger` method per agent class. This
@@ -268,14 +250,6 @@ public class AnalyzingAgent {
 
 The `@Decision` annotation marks a method that decides whether and how the
 workflow should proceed.
-
-[source,java]
-----
-@Target(ElementType.METHOD)
-@Retention(RetentionPolicy.RUNTIME)
-public @interface Decision {
-}
-----
 
 ==== Cardinality
 
@@ -350,14 +324,6 @@ public class DecisionExamples {
 The `@Action` annotation marks a method that performs work as part of the
 workflow.
 
-[source,java]
-----
-@Target(ElementType.METHOD)
-@Retention(RetentionPolicy.RUNTIME)
-public @interface Action {
-}
-----
-
 ==== Cardinality and Order
 
 An agent may define zero or more `@Action` methods. All actions complete
@@ -429,14 +395,6 @@ public class TransactionalAgent {
 
 The `@Outcome` annotation marks a method that finalizes the workflow.
 
-[source,java]
-----
-@Target(ElementType.METHOD)
-@Retention(RetentionPolicy.RUNTIME)
-public @interface Outcome {
-}
-----
-
 ==== Cardinality
 
 Currently, an agent MAY declare zero or one `@Outcome` method. This
@@ -466,14 +424,6 @@ The `@HandleException` annotation marks a method that handles exceptions
 occurring during workflow execution. See xref:error-handling[Error Handling
 and Workflow Termination] above for the matching algorithm and termination
 rules.
-
-[source,java]
-----
-@Target(ElementType.METHOD)
-@Retention(RetentionPolicy.RUNTIME)
-public @interface HandleException {
-}
-----
 
 ==== Parameters
 
