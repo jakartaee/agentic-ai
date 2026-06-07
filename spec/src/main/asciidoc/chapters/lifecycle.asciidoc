@@ -53,22 +53,22 @@ the xref:llm-integration[Large Language Model Integration] chapter.
 
 === Phase Cardinality
 
-Annotations are structured per agent class:
+Annotations are structured per agent class, generally in order:
 
 - `@Agent` — required, exactly one (class-level)
-- `@Trigger` — required, exactly one
+- `@Trigger` — required, exactly one (may be relaxed in the future)
 - `@Decision` — optional, zero or more
 - `@Action` — optional, zero or more
-- `@Outcome` — optional, zero or one
+- `@Outcome` — optional, zero or one (may be relaxed in the future)
 - `@HandleException` — optional, zero or more
 
 [[parameter-resolution]]
 === Parameter Resolution
 
-All workflow methods (`@Trigger`, `@Decision`, `@Action`, `@Outcome`, and
-`@HandleException`) receive their parameters through automatic resolution
-based on type and the current workflow state. Each subsequent annotation
-section refers to this single set of rules.
+All workflow methods (annotated with `@Trigger`, `@Decision`, `@Action`, 
+`@Outcome`, and `@HandleException`) receive their parameters through automatic
+resolution based on type and the current workflow state. Each subsequent
+annotation section refers to this single set of rules.
 
 ==== Resolution Order
 
@@ -88,10 +88,10 @@ the following order:
 ==== Jakarta Validation Constraints
 
 Parameters may declare Jakarta Validation constraints (`@Valid`, `@NotNull`,
-`@NotEmpty`, `@Size`, `@Pattern`, `@Email`, custom constraints). Validation
-occurs before parameter injection and workflow method invocation. If
-validation fails, a `ConstraintViolationException` is raised; it can be
-caught by an `@HandleException` method or propagated to the container.
+`@NotEmpty`, `@Size`, etc). Validation occurs before parameter injection and
+workflow method invocation. If validation fails, a
+`ConstraintViolationException` is raised; it can be caught by an
+`@HandleException` method or propagated to the container.
 
 `ConstraintViolationException` is a runtime exception, so explicit handling
 is not required. Common scenarios include parameter constraint failures,
