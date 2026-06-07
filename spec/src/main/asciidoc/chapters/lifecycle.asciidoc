@@ -317,8 +317,8 @@ in decreasing precedence:
 
 . **`@Priority` on the method** — `jakarta.annotation.Priority` value is the
   sort key; lower values execute first.
-. **`order` attribute** — used as the sort key when `@Priority` is absent;
-  lower values execute first.
+. **`order` attribute on the `@Action` and `@Decision` annotations** — used as
+  the sort key when `@Priority` is absent; lower values execute first.
 . **Source declaration order** — fallback when no `@Action` or `@Decision`
   method in the agent declares `@Priority` or an explicit `order`.
 
