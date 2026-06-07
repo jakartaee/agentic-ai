@@ -151,6 +151,7 @@ the following order:
   (or any supertype thereof) is the required first parameter.
 . **CDI injection** — if the parameter is a CDI bean.
 
+[[jakarta-validation-constraints]]
 ==== Jakarta Validation Constraints
 
 Parameters may declare Jakarta Validation constraints (`@Valid`, `@NotNull`,
@@ -470,6 +471,21 @@ A workflow terminates when any of the following occurs:
 
 Any runtime-managed state associated with the current workflow is discarded
 once the workflow terminates.
+
+==== One Phase per Method
+
+Each lifecycle annotation marks a method as participating in a single
+workflow phase. A method must not declare more than one of `@Trigger`,
+`@Decision`, `@Action`, `@Outcome`, or `@HandleException`; combining two or
+more of them on the same method is a deployment error.
+
+==== Inherited Methods
+
+Phase methods declared on a superclass are inherited by an agent subclass
+and participate in the workflow as if declared on the subclass itself. A method
+that overrides an inherited phase method participates only when the overriding
+method is itself annotated; following Java semantics, phase annotations are
+not implicitly carried onto an unannotated override.
 
 === Workflow Patterns
 
