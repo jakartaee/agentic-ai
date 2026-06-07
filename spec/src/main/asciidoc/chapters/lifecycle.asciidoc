@@ -493,7 +493,7 @@ public class SimpleNotificationAgent {
 }
 ----
 
-==== Sequential Actions
+==== Sequential Phases
 
 [source,java]
 ----
@@ -523,8 +523,8 @@ public class ConditionalProcessingAgent {
     public void onRequest(ProcessingRequest request) { }
 
     @Decision
-    public boolean needsPreprocessing(ProcessingRequest request) {
-        return llm.query("Does this require preprocessing?", request).contains("yes");
+    public boolean isEligible(ProcessingRequest request) {
+        return llm.query("Is this request eligible for processing?", request).contains("yes");
     }
 
     @Action
@@ -533,7 +533,7 @@ public class ConditionalProcessingAgent {
     }
 
     @Decision
-    public boolean isValidAfterPreprocessing(ProcessingRequest request) {
+    public boolean isValid(ProcessingRequest request) {
         return validator.check(request);
     }
 
