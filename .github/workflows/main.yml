@@ -33,7 +33,18 @@ jobs:
               run: mvn clean install -Pweld-embedded
 
             - name: License Check
-              run: mvn org.eclipse.dash:license-tool-plugin:license-check -Pdash-licenses -Ddash.summary=DEPENDENCIES -Ddash.fail=true
+              run: |
+                  attempt=1
+                  max_attempts=3
+                  until mvn org.eclipse.dash:license-tool-plugin:license-check -Pdash-licenses -Ddash.summary=DEPENDENCIES -Ddash.fail=true; do
+                      if [ "$attempt" -ge "$max_attempts" ]; then
+                          echo "License check failed after $max_attempts attempts."
+                          exit 1
+                      fi
+                      echo "License check attempt $attempt failed (possible transient Eclipse/ClearlyDefined API timeout). Retrying in 30s..."
+                      attempt=$((attempt + 1))
+                      sleep 30
+                  done
 
             - name: Upload DEPENDENCIES
               uses: actions/upload-artifact@v4
