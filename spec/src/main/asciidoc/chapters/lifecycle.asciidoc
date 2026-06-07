@@ -342,18 +342,18 @@ end of successful workflow execution.
 
 ==== Cardinality
 
-Currently, an agent MAY declare zero or one `@Outcome` method. This
+Currently, an agent may declare zero or one `@Outcome` method. This
 constraint may be relaxed in a future release.
 
 ==== Parameters
 
-Outcome methods follow the standard xref:parameter-resolution[parameter
-resolution] rules. Any object produced by an earlier phase is eligible for
-injection.
+Outcome methods follow the standard
+xref:parameter-resolution[parameter resolution] rules. Any object produced by
+an earlier phase is eligible for injection.
 
 ==== Return Type
 
-Outcome methods MUST return `void`. The outcome phase is intended for
+Outcome methods must return `void`. The outcome phase is intended for
 finalization and side effects, not for producing further data. Future
 releases may relax this for downstream system integration.
 
