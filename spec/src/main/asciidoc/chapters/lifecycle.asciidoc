@@ -244,13 +244,12 @@ workflow.
 ==== Cardinality
 
 An agent may define zero or more `@Action` methods. All actions complete
-before the outcome phase runs. For execution ordering, see
-xref:execution-order[Execution Order].
+before the outcome phase runs.
 
 ==== Parameters
 
-Action methods follow the standard xref:parameter-resolution[parameter
-resolution] rules.
+Action methods follow the standard
+xref:parameter-resolution[parameter resolution] rules.
 
 ==== Return Type
 
@@ -293,7 +292,8 @@ public class ActionExamples {
 }
 ----
 
-Actions may be transactional via Jakarta Transactions:
+You can apply or use Jakarta Transactions in lifecycle methods including
+Actions:
 
 [source,java]
 ----
