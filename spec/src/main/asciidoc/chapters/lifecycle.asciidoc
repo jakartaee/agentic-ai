@@ -7,6 +7,17 @@ annotation marks a method as participating in a specific phase of the
 agent workflow. The chapter also defines parameter resolution, validation,
 error handling, return type handling, and workflow termination.
 
+=== Workflow Phases
+
+Annotations are structured per agent class, generally in order:
+
+- `@Agent` — required, exactly one (class-level)
+- `@Trigger` — required, exactly one (may be relaxed in the future)
+- `@Decision` — optional, zero or more
+- `@Action` — optional, zero or more
+- `@Outcome` — optional, zero or one (may be relaxed in the future)
+- `@HandleException` — optional, zero or more
+
 === @Agent
 
 The `@Agent` annotation marks a class as an AI agent. Agent classes are
@@ -50,17 +61,6 @@ ends with an outcome.
 
 `LargeLanguageModel` conversational state follows the same boundaries; see
 the xref:llm-integration[Large Language Model Integration] chapter.
-
-=== Phase Cardinality
-
-Annotations are structured per agent class, generally in order:
-
-- `@Agent` — required, exactly one (class-level)
-- `@Trigger` — required, exactly one (may be relaxed in the future)
-- `@Decision` — optional, zero or more
-- `@Action` — optional, zero or more
-- `@Outcome` — optional, zero or one (may be relaxed in the future)
-- `@HandleException` — optional, zero or more
 
 [[parameter-resolution]]
 === Parameter Resolution
@@ -190,10 +190,12 @@ once the workflow terminates.
 
 The `@Trigger` annotation marks the entry point of an agent workflow.
 
-==== Cardinality and Invocation
+==== Cardinality
 
 Currently there MUST be exactly one `@Trigger` method per agent class. This
 constraint will be relaxed in future releases.
+
+==== Invocation
 
 In the initial release, triggers are invoked by CDI events. A trigger
 method may use `@Observes` on the event parameter to explicitly declare the
@@ -262,7 +264,7 @@ see xref:execution-order[Execution Order].
 Decision methods follow the standard xref:parameter-resolution[parameter
 resolution] rules.
 
-==== Return Value
+==== Return Type
 
 Decisions support three return patterns:
 
@@ -325,7 +327,7 @@ public class DecisionExamples {
 The `@Action` annotation marks a method that performs work as part of the
 workflow.
 
-==== Cardinality and Order
+==== Cardinality
 
 An agent may define zero or more `@Action` methods. All actions complete
 before the outcome phase runs. For execution ordering, see
@@ -394,7 +396,9 @@ public class TransactionalAgent {
 
 === @Outcome
 
-The `@Outcome` annotation marks a method that finalizes the workflow.
+The `@Outcome` annotation marks a method that finalizes the workflow. It
+produces the final workflow result, runs completion logic, and marks the
+end of successful workflow execution.
 
 ==== Cardinality
 
@@ -413,18 +417,16 @@ Outcome methods MUST return `void`. The outcome phase is intended for
 finalization and side effects, not for producing further data. Future
 releases may relax this for downstream system integration.
 
-==== Semantics
-
-- **Finalization** — produces the final workflow result and runs completion
-  logic.
-- **Workflow completion** — marks the end of successful workflow execution.
-
 === @HandleException
 
 The `@HandleException` annotation marks a method that handles exceptions
 occurring during workflow execution. See xref:error-handling[Error Handling
 and Workflow Termination] above for the matching algorithm and termination
 rules.
+
+==== Cardinality
+
+An agent may define zero or more `@HandleException` methods.
 
 ==== Parameters
 
