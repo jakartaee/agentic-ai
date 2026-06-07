@@ -69,19 +69,20 @@ The `@Trigger` annotation marks the entry point of an agent workflow.
 
 ==== Cardinality
 
-Currently there MUST be exactly one `@Trigger` method per agent class. This
+Currently there must be exactly one `@Trigger` method per agent class. This
 constraint will be relaxed in future releases.
 
 ==== Invocation
 
 In the initial release, triggers are invoked by CDI events. A trigger
 method may use `@Observes` on the event parameter to explicitly declare the
-observed type. The triggering event becomes part of the workflow state and
-is available for xref:parameter-resolution[parameter resolution] in later
-phases.
+observed type. However, explicitly using `@Observes` is not required. There
+must be exactly one event parameter. The triggering event becomes part of the
+workflow state and is available for 
+xref:parameter-resolution[parameter resolution] in later phases.
 
 In future releases, additional trigger sources are anticipated, such as
-Jakarta Messaging, manual invocation through a lifecycle API, and REST POST
+Jakarta Messaging, manual invocation through a lifecycle API, or REST POST
 requests.
 
 NOTE: CDI observer behavior depends on agent scope. See the
@@ -89,8 +90,9 @@ xref:cdi-events[Event Observation Rules] in the CDI Integration chapter.
 
 ==== Parameters
 
-Trigger methods follow the standard xref:parameter-resolution[parameter
-resolution] rules. The triggering event is the most common parameter.
+Trigger methods follow the standard 
+xref:parameter-resolution[parameter resolution] rules. The required triggering
+event is the most common parameter.
 
 ==== Return Type
 
