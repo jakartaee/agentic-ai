@@ -19,10 +19,11 @@ CDI beans and follow CDI bean definition rules.
 - **Discovery**: implementations must discover all `@Agent`-annotated
   classes during deployment.
 - **Default scope**: if no scope is specified, `@WorkflowScoped` is the
-  default. See xref:cdi-integration[CDI Integration] for scope semantics
-  and bean requirements.
-- **`name`** defaults to the simple class name with the first character converted to lower case when omitted.
-- **`description`** is metadata for discovery and documentation.
+  default. Agents can also be `@ApplicationScoped`.
+  See xref:cdi-integration[CDI Integration] for scope semantics and bean
+  requirements.
+- **Naming**: the agent name defaults to the simple class name with the first
+  character converted to lower case when omitted.
 
 [source,java]
 ----
@@ -52,7 +53,7 @@ the xref:llm-integration[Large Language Model Integration] chapter.
 
 === Phase Cardinality
 
-Per agent class:
+Annotations are structured per agent class:
 
 - `@Agent` — required, exactly one (class-level)
 - `@Trigger` — required, exactly one
