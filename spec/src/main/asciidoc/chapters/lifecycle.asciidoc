@@ -360,9 +360,7 @@ releases may relax this for downstream system integration.
 === @HandleException
 
 The `@HandleException` annotation marks a method that handles exceptions
-occurring during workflow execution. See xref:error-handling[Error Handling
-and Workflow Termination] below for the matching algorithm and termination
-rules.
+occurring during workflow execution.
 
 ==== Cardinality
 
@@ -376,7 +374,7 @@ xref:parameter-resolution[parameter resolution] rules. The thrown exception
 
 ==== Return Type
 
-Exception handler methods MUST return `void`. They are intended for error
+Exception handler methods must return `void`. They are intended for error
 recovery, logging, and cleanup.
 
 ==== Examples
@@ -414,9 +412,7 @@ public class ExceptionHandlingExamples {
 ----
 
 [[error-handling]]
-=== Error Handling and Workflow Termination
-
-==== Exception Handler Invocation
+=== Error Handling
 
 When an exception occurs in any workflow phase (`@Trigger`, `@Decision`,
 `@Action`, or `@Outcome`), the runtime searches for a matching
@@ -461,13 +457,13 @@ public class ResilientAgent {
 }
 ----
 
-==== Workflow Termination
+=== Workflow Termination
 
 A workflow terminates when any of the following occurs:
 
 . **Normal completion** — the outcome phase completes successfully (or, if
   no outcome is defined, the last phase completes).
-. **Decision stop** — a decision phase returns `false` or `null`.
+. **Decision stop** — a decision phase returns a negative result.
 . **Unhandled exception** — an exception is raised and no matching handler
   is defined.
 . **Handler exception** — an exception handler itself throws.
