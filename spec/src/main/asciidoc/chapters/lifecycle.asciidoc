@@ -308,7 +308,6 @@ public class TransactionalAgent {
 }
 ----
 
-[[execution-order]]
 === Execution Order
 
 The execution order of `@Action` and `@Decision` methods can be intermixed
@@ -360,7 +359,8 @@ releases may relax this for downstream system integration.
 === @HandleException
 
 The `@HandleException` annotation marks a method that handles exceptions
-occurring during workflow execution.
+occurring during workflow execution. For handler matching and dispatch
+semantics, see xref:error-handling[Error Handling].
 
 ==== Cardinality
 
