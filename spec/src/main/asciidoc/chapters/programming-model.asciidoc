@@ -112,7 +112,7 @@ Jakarta EE component.
   source)
 
 **REST integration**::
-- Jakarta REST — expose agents as REST resources or consume external
+- Jakarta RESTful Web Services — expose agents as REST resources or consume external
   services; a REST `POST` endpoint is an anticipated future trigger source
 
 **Asynchronous operations**::

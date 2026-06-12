@@ -82,7 +82,7 @@ workflow state and is available for
 xref:parameter-resolution[parameter resolution] in later phases.
 
 In future releases, additional trigger sources are anticipated, such as
-Jakarta Messaging, manual invocation through a lifecycle API, or REST POST
+Jakarta Messaging, manual invocation through a lifecycle API, or REST `POST`
 requests.
 
 NOTE: CDI observer behavior depends on agent scope. See the
