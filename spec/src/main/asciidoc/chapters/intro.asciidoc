@@ -13,7 +13,7 @@ technologies such as Large Language Models.
 * Provides a minimal facade for foundational AI capabilities (e.g., LLMs),
   with pluggable access to existing APIs.
 * A mechanism to define dynamic agent workflows using a fluent Java API.
-* Integrates with other Jakarta EE APIs (Validation, REST, JSON Binding,
+* Integrates with other Jakarta EE APIs (Validation, RESTful Web Services, JSON Binding,
   Persistence, Data, Transactions, NoSQL, Concurrency, Security, Messaging).
 * Aims to utilize Jakarta Config and allows implementations to use
   MicroProfile Config.
@@ -35,7 +35,7 @@ that:
 - Execute dynamic workflows based on LLM-generated insights
 - Integrate with existing enterprise infrastructure
 
-While AI and LLM technologies have matured rapidly, there is no standard way
+While AI and LLM technologies have rapidly matured, there is no standard way
 to build AI agents in Jakarta EE applications. Developers must rely on
 vendor-specific frameworks or integrate multiple disparate technologies
 themselves, leading to:
@@ -47,7 +47,7 @@ themselves, leading to:
 
 Jakarta Agentic AI addresses these challenges by providing a standard API
 that feels natural to Java and Jakarta EE developers, similar to how Jakarta
-Servlet, REST, and Batch standardized their respective domains.
+Servlet, Jakarta RESTful Web Services, and Jakarta Batch standardized their respective domains.
 
 === Goals
 
@@ -72,7 +72,7 @@ products and other CDI/Java-based runtimes.
 
 **Jakarta EE alignment**:: Follow familiar Jakarta EE patterns and
 conventions, ensuring consistency with specifications like Jakarta
-Persistence, Jakarta REST, and Jakarta Batch.
+Persistence, Jakarta RESTful Web Services, and Jakarta Batch.
 
 === Non-goals
 
