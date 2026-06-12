@@ -21,13 +21,8 @@ Every agent is a CDI managed bean. This provides:
 
 An agent class:
 
-- MUST be annotated with `@Agent`
-- MUST satisfy CDI managed bean requirements
-- MUST have a constructor with no parameters or a constructor annotated
-  with `@Inject`
-- MUST NOT be an inner class (unless static)
-- MUST NOT be abstract
-- MAY be a concrete class or implement interfaces
+- Must be annotated with `@Agent`
+- Must satisfy CDI managed bean requirements
 
 === Agent Scopes
 
@@ -41,13 +36,13 @@ If no scope is declared, `@WorkflowScoped` applies.
 ==== @WorkflowScoped
 
 `@WorkflowScoped` is a custom CDI scope that ties the agent's lifecycle to
-the workflow context. It is a normal scope (`@NormalScope`) and is defined
-in the `jakarta.ai.agent` package.
+the workflow context. It is a normal scope (`@NormalScope`).
 
 When an agent is `@WorkflowScoped`:
 
 - A new instance is created for each workflow context.
-- The instance is active from trigger invocation through outcome completion.
+- The instance is active from trigger invocation through workflow
+  completion.
 - The instance is destroyed after the workflow completes or fails.
 - Each concurrent workflow has its own instance.
 
@@ -56,22 +51,23 @@ When an agent is `@WorkflowScoped`:
 When an agent is `@ApplicationScoped`, a single instance is shared across
 all workflows. Each invocation still runs in an isolated workflow context.
 Because a single instance may handle multiple concurrent workflow
-invocations, `@ApplicationScoped` agents MUST be thread-safe; the agent
-itself MUST either be stateless or guard any shared state with
+invocations, `@ApplicationScoped` agents must be thread-safe; the agent
+itself must either be stateless or guard any shared state with
 appropriate concurrency controls.
 
 ==== Threading and Concurrency
 
 - **Sequential phases** — within a single workflow context, annotated
   methods (`@Trigger`, `@Decision`, `@Action`, `@Outcome`,
-  `@HandleException`) execute sequentially in declaration order.
+  `@HandleException`) execute sequentially (see the Execution Order rules
+  in xref:agent-lifecycle[Annotations and Lifecycle]).
 - **`@WorkflowScoped` agents** — a workflow context typically executes
   on a single thread; the agent instance is therefore not exposed to
   concurrent invocation by the runtime.
 - **`@ApplicationScoped` agents** — the same instance may serve
-  concurrent workflows; the agent MUST be thread-safe (see above).
-- **`LargeLanguageModel`** — implementations MUST be thread-safe within
-  a single workflow context and MUST NOT leak conversational state
+  concurrent workflows; the agent must be thread-safe (see above).
+- **`LargeLanguageModel`** — implementations must be thread-safe within
+  a single workflow context and must not leak conversational state
   across concurrent workflow contexts. See the
   xref:llm-integration[Large Language Model Integration] chapter.
 
@@ -81,10 +77,10 @@ appropriate concurrency controls.
 Agents may produce CDI events freely. Event *observation* depends on
 agent scope:
 
-- **`@WorkflowScoped` agents** — MAY observe CDI events ONLY through their
+- **`@WorkflowScoped` agents** — may observe CDI events only through their
   `@Trigger` method. General observer methods (`@Observes` without
   `@Trigger`) are not supported.
-- **`@ApplicationScoped` (or other) agents** — MAY use both `@Trigger`
+- **`@ApplicationScoped` agents** — may use both `@Trigger`
   methods and general CDI observer methods.
 
 A trigger method may optionally use `@Observes` on the event parameter to
@@ -132,6 +128,9 @@ common case:
 @Agent
 public class TransactionalAgent {
 
+    @Inject
+    private EntityManager entityManager;
+
     @Action
     @Transactional
     public void updateDatabase(Data data) {
@@ -149,6 +148,9 @@ Agents support standard CDI lifecycle callbacks:
 @Agent
 @WorkflowScoped
 public class LifecycleAwareAgent {
+
+    private static final Logger logger =
+            Logger.getLogger(LifecycleAwareAgent.class.getName());
 
     @Inject
     private ResourcePool resources;

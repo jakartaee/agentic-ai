@@ -1,7 +1,6 @@
 [appendix]
 [[revision_history]]
-Revision History
-----------------
+== Revision History
 
 === 1.0
 
