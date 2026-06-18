@@ -28,6 +28,7 @@ import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.EmptyAsset;
+import org.jboss.shrinkwrap.api.asset.StringAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.jupiter.api.TestInstance;
 
@@ -39,6 +40,19 @@ import static org.assertj.core.api.Assertions.assertThat;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class WorkflowScopeLifecycleTests {
 
+    // bean-discovery-mode="all" is required so that ScopeDefaultAgent (which has no
+    // explicit CDI scope annotation) is discovered and processed by the RI extension,
+    // which adds the default @WorkflowScoped scope to it.
+    private static final String BEANS_XML = """
+            <?xml version="1.0" encoding="UTF-8"?>
+            <beans xmlns="https://jakarta.ee/xml/ns/jakartaee"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="https://jakarta.ee/xml/ns/jakartaee
+                       https://jakarta.ee/xml/ns/jakartaee/beans_4_0.xsd"
+                   version="4.0" bean-discovery-mode="all">
+            </beans>
+            """;
+
     @Deployment
     public static Archive<?> createDeployment() {
         return ShrinkWrap.create(WebArchive.class, "workflowscopelifecycle.war")
@@ -47,7 +61,7 @@ public class WorkflowScopeLifecycleTests {
                         ScopeDefaultAgent.class,        ScopeDefaultEvent.class,
                         LifecycleCallbackRecorder.class
                 )
-                .addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml");
+                .addAsWebInfResource(new StringAsset(BEANS_XML), "beans.xml");
     }
 
     @Inject Event<LifecycleSpyEvent>  lifecycleSpyEvents;
