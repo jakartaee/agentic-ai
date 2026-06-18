@@ -19,6 +19,8 @@ import ee.jakarta.tck.ai.agent.core.behavior.agents.datapropagation.DecisionOutp
 import ee.jakarta.tck.ai.agent.core.behavior.agents.datapropagation.TriggerOutput;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Assertion;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Deployed;
+import ee.jakarta.tck.ai.agent.framework.junit.anno.RequiresEngine;
+import ee.jakarta.tck.ai.agent.framework.junit.anno.RequiresNoEngine;
 import ee.jakarta.tck.ai.agent.framework.stub.LargeLanguageModelStub;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder.Phase;
@@ -30,16 +32,11 @@ import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.EmptyAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 @Deployed
 public class DataPropagationTests {
-
-    private static final String NO_RI =
-            "Requires a Reference Implementation of the Agentic AI engine "
-          + "to dispatch @Decision/@Action/@Outcome phases.";
 
     @Deployment
     public static Archive<?> createDeployment() {
@@ -59,6 +56,7 @@ public class DataPropagationTests {
         trace.reset();
     }
 
+    @RequiresNoEngine
     @Assertion(id = "AGENTICAI-DATA-001",
                section = "3.4 Data Propagation",
                strategy = "Trigger fires and records its phase before the engine dispatches further phases")
@@ -67,7 +65,7 @@ public class DataPropagationTests {
         assertThat(trace.phases()).containsExactly(Phase.TRIGGER);
     }
 
-    @Disabled(NO_RI)
+    @RequiresEngine
     @Assertion(id = "AGENTICAI-DATA-002",
                section = "3.4 Data Propagation",
                strategy = "TriggerOutput returned by @Trigger is injectable as a parameter in @Decision")
@@ -77,7 +75,7 @@ public class DataPropagationTests {
         assertThat(trace.entries().get(1).args()[1]).isInstanceOf(TriggerOutput.class);
     }
 
-    @Disabled(NO_RI)
+    @RequiresEngine
     @Assertion(id = "AGENTICAI-DATA-003",
                section = "3.4 Data Propagation",
                strategy = "DecisionOutput returned by @Decision is injectable as a parameter in @Action")
@@ -87,7 +85,7 @@ public class DataPropagationTests {
         assertThat(trace.entries().get(2).args()[1]).isInstanceOf(DecisionOutput.class);
     }
 
-    @Disabled(NO_RI)
+    @RequiresEngine
     @Assertion(id = "AGENTICAI-DATA-004",
                section = "3.4 Data Propagation",
                strategy = "@Outcome can inject objects from all preceding phases simultaneously")
