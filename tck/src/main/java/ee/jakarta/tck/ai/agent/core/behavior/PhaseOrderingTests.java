@@ -17,6 +17,8 @@ import ee.jakarta.tck.ai.agent.core.behavior.agents.phaseordering.PhaseOrderingE
 import ee.jakarta.tck.ai.agent.core.behavior.agents.phaseordering.TriggerOutput;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Assertion;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Deployed;
+import ee.jakarta.tck.ai.agent.framework.junit.anno.RequiresEngine;
+import ee.jakarta.tck.ai.agent.framework.junit.anno.RequiresNoEngine;
 import ee.jakarta.tck.ai.agent.framework.stub.LargeLanguageModelStub;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder.Phase;
@@ -28,16 +30,11 @@ import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.EmptyAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 @Deployed
 public class PhaseOrderingTests {
-
-    private static final String NO_RI =
-            "Requires a Reference Implementation of the Agentic AI engine "
-          + "to dispatch @Decision/@Action/@Outcome phases.";
 
     @Deployment
     public static Archive<?> createDeployment() {
@@ -56,6 +53,7 @@ public class PhaseOrderingTests {
         trace.reset();
     }
 
+    @RequiresNoEngine
     @Assertion(id = "AGENTICAI-ORDER-001",
                section = "3.2 Agent Lifecycle",
                strategy = "Trigger event is observed; trace records TRIGGER with method name and payload")
@@ -70,7 +68,7 @@ public class PhaseOrderingTests {
                 .isEqualTo("test-payload");
     }
 
-    @Disabled(NO_RI)
+    @RequiresEngine
     @Assertion(id = "AGENTICAI-ORDER-002",
                section = "3.2 Agent Lifecycle",
                strategy = "Full T→D→A→O pipeline executes in strict declaration order")
@@ -82,7 +80,7 @@ public class PhaseOrderingTests {
                 .containsExactly(Phase.TRIGGER, Phase.DECISION, Phase.ACTION, Phase.OUTCOME);
     }
 
-    @Disabled(NO_RI)
+    @RequiresEngine
     @Assertion(id = "AGENTICAI-ORDER-003",
                section = "3.2 Agent Lifecycle",
                strategy = "Trigger return value (non-void) is available for injection in Decision")

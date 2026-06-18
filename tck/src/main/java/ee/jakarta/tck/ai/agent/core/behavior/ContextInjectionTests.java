@@ -16,6 +16,8 @@ import ee.jakarta.tck.ai.agent.core.behavior.agents.contextinjection.ContextInje
 import ee.jakarta.tck.ai.agent.core.behavior.agents.contextinjection.ContextInjectionEvent;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Assertion;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Deployed;
+import ee.jakarta.tck.ai.agent.framework.junit.anno.RequiresEngine;
+import ee.jakarta.tck.ai.agent.framework.junit.anno.RequiresNoEngine;
 import ee.jakarta.tck.ai.agent.framework.stub.LargeLanguageModelStub;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder.Phase;
@@ -26,7 +28,6 @@ import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.EmptyAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.TestInstance;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -34,10 +35,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 @Deployed
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class ContextInjectionTests {
-
-    private static final String NO_RI =
-            "Requires a Reference Implementation of the Agentic AI engine "
-          + "to dispatch @Decision/@Action/@Outcome phases.";
 
     @Deployment
     public static Archive<?> createDeployment() {
@@ -50,6 +47,7 @@ public class ContextInjectionTests {
     @Inject LargeLanguageModelStub llm;
     @Inject ExecutionTraceRecorder trace;
 
+    @RequiresNoEngine
     @Assertion(id = "AGENTICAI-CTX-001",
                section = "3.2 Agent Lifecycle",
                strategy = "LargeLanguageModel is injectable as a direct method parameter of @Trigger")
@@ -78,13 +76,14 @@ public class ContextInjectionTests {
         assertThat(recorded.payload()).isEqualTo("my-payload");
     }
 
-    @Disabled(NO_RI)
+    @RequiresEngine
     @Assertion(id = "AGENTICAI-CTX-003",
                section = "3.4 Data Propagation",
                strategy = "Triggering event is available for injection in @Action")
     public void eventIsInjectableInAction() {
         llm.reset();
         trace.reset();
+        llm.enqueueResponse("classified"); // @Trigger calls llm.query("classify {}", payload)
         events.fire(new ContextInjectionEvent("payload"));
         assertThat(trace.phases())
                 .containsExactly(Phase.TRIGGER, Phase.ACTION, Phase.OUTCOME);
@@ -95,7 +94,7 @@ public class ContextInjectionTests {
                 .args()[0]).isInstanceOf(ContextInjectionEvent.class);
     }
 
-    @Disabled(NO_RI)
+    @RequiresEngine
     @Assertion(id = "AGENTICAI-CTX-004",
                section = "3.4 Data Propagation",
                strategy = "LargeLanguageModel is injectable as a direct method parameter of @Action")

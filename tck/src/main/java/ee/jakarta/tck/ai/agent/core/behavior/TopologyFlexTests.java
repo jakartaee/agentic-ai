@@ -18,6 +18,8 @@ import ee.jakarta.tck.ai.agent.core.behavior.agents.topologyflex.NoOutcomeAgent;
 import ee.jakarta.tck.ai.agent.core.behavior.agents.topologyflex.NoOutcomeEvent;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Assertion;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Deployed;
+import ee.jakarta.tck.ai.agent.framework.junit.anno.RequiresEngine;
+import ee.jakarta.tck.ai.agent.framework.junit.anno.RequiresNoEngine;
 import ee.jakarta.tck.ai.agent.framework.stub.LargeLanguageModelStub;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder.Phase;
@@ -28,7 +30,6 @@ import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.EmptyAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.TestInstance;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -36,10 +37,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 @Deployed
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class TopologyFlexTests {
-
-    private static final String NO_RI =
-            "Requires a Reference Implementation of the Agentic AI engine "
-          + "to dispatch @Decision/@Action/@Outcome phases.";
 
     @Deployment
     public static Archive<?> createDeployment() {
@@ -54,6 +51,7 @@ public class TopologyFlexTests {
     @Inject LargeLanguageModelStub llm;
     @Inject ExecutionTraceRecorder trace;
 
+    @RequiresNoEngine
     @Assertion(id = "AGENTICAI-FLEX-001",
                section = "3.5 Optional Phases",
                strategy = "Agent without @Decision triggers successfully via CDI")
@@ -64,6 +62,7 @@ public class TopologyFlexTests {
         assertThat(trace.phases()).containsExactly(Phase.TRIGGER);
     }
 
+    @RequiresNoEngine
     @Assertion(id = "AGENTICAI-FLEX-002",
                section = "3.5 Optional Phases",
                strategy = "Agent without @Outcome triggers successfully via CDI")
@@ -74,7 +73,7 @@ public class TopologyFlexTests {
         assertThat(trace.phases()).containsExactly(Phase.TRIGGER);
     }
 
-    @Disabled(NO_RI)
+    @RequiresEngine
     @Assertion(id = "AGENTICAI-FLEX-003",
                section = "3.5 Optional Phases",
                strategy = "Workflow without @Decision executes T→A→O without error")
@@ -85,7 +84,7 @@ public class TopologyFlexTests {
         assertThat(trace.phases()).containsExactly(Phase.TRIGGER, Phase.ACTION, Phase.OUTCOME);
     }
 
-    @Disabled(NO_RI)
+    @RequiresEngine
     @Assertion(id = "AGENTICAI-FLEX-004",
                section = "3.5 Optional Phases",
                strategy = "Workflow without @Outcome completes gracefully after @Action")

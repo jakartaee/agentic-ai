@@ -27,6 +27,8 @@ import ee.jakarta.tck.ai.agent.core.behavior.agents.cdi.SingletonCdiAgent;
 import ee.jakarta.tck.ai.agent.core.behavior.agents.cdi.SingletonCdiEvent;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Assertion;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Deployed;
+import ee.jakarta.tck.ai.agent.framework.junit.anno.RequiresEngine;
+import ee.jakarta.tck.ai.agent.framework.junit.anno.RequiresNoEngine;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder.Phase;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder.TraceEntry;
@@ -38,7 +40,6 @@ import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.TestInstance;
 
 import java.util.List;
@@ -48,10 +49,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 @Deployed
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class CdiIntegrationTests {
-
-    private static final String NO_RI =
-            "Requires a Reference Implementation of the Agentic AI engine "
-          + "to dispatch @Decision/@Action/@Outcome phases.";
 
     // Interceptor enabled here (NOT via @Priority — see constraint #5 in steps.md).
     private static final String BEANS_XML = """
@@ -127,6 +124,7 @@ public class CdiIntegrationTests {
         assertThat(singletonAgent.getClass()).isNotEqualTo(SingletonCdiAgent.class);
     }
 
+    @RequiresNoEngine
     @Assertion(id = "AGENTICAI-CDI-BHV-003-PRECONDITION",
                section = "CDI Integration, Lifecycle",
                strategy = "SingletonCdiAgent @Trigger fires via CDI; confirms the bean is instantiated and managed")
@@ -163,6 +161,7 @@ public class CdiIntegrationTests {
         assertThat(id1).isEqualTo(id2);
     }
 
+    @RequiresNoEngine
     @Assertion(id = "AGENTICAI-CDI-BHV-006-PRECONDITION",
                section = "CDI Integration, Interceptors",
                strategy = "InterceptedAgent @Trigger fires via CDI; confirms the agent and its enabled interceptor "
@@ -173,6 +172,7 @@ public class CdiIntegrationTests {
         assertThat(trace.phases()).containsExactly(Phase.TRIGGER);
     }
 
+    @RequiresNoEngine
     @Assertion(id = "AGENTICAI-CDI-BHV-005-PRECONDITION",
                section = "Workflow Orchestration, Parameter Injection",
                strategy = "ResolutionOrderAgent @Trigger fires via CDI; confirms the agent and its CDI-bean "
@@ -187,7 +187,7 @@ public class CdiIntegrationTests {
     // RI-required tests
     // -------------------------------------------------------------------------
 
-    @Disabled(NO_RI)
+    @RequiresEngine
     @Assertion(id = "AGENTICAI-CDI-BHV-004",
                section = "CDI Integration, Scopes",
                strategy = "An @ApplicationScoped @Agent uses the same bean instance across all phases of a "
@@ -204,7 +204,7 @@ public class CdiIntegrationTests {
         assertThat(outcomeId).isEqualTo(triggerId);
     }
 
-    @Disabled(NO_RI)
+    @RequiresEngine
     @Assertion(id = "AGENTICAI-CDI-BHV-005",
                section = "Workflow Orchestration, Parameter Injection",
                strategy = "The RI resolves method parameters in priority order: (1) triggering event, (3) "
@@ -223,7 +223,7 @@ public class CdiIntegrationTests {
         assertThat(actionEntry.args()[2]).isInstanceOf(ResolutionCdiBean.class);
     }
 
-    @Disabled(NO_RI)
+    @RequiresEngine
     @Assertion(id = "AGENTICAI-CDI-BHV-006",
                section = "CDI Integration, Interceptors",
                strategy = "A CDI interceptor bound via a custom @InterceptorBinding executes before and after the "
@@ -241,7 +241,7 @@ public class CdiIntegrationTests {
                 "interceptorBefore", "finish",   "interceptorAfter");
     }
 
-    @Disabled(NO_RI)
+    @RequiresEngine
     @Assertion(id = "AGENTICAI-CDI-BHV-007",
                section = "Workflow Orchestration",
                strategy = "The triggering event object is available as a method parameter in @Decision, @Action, "
