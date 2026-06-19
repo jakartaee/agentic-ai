@@ -14,6 +14,8 @@ package ee.jakarta.tck.ai.agent.core.integration;
 
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Assertion;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Deployed;
+import ee.jakarta.tck.ai.agent.framework.junit.anno.RequiresEngine;
+import ee.jakarta.tck.ai.agent.framework.junit.anno.RequiresNoEngine;
 import ee.jakarta.tck.ai.agent.framework.stub.LargeLanguageModelStub;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder.Phase;
@@ -26,7 +28,6 @@ import org.jboss.shrinkwrap.api.asset.EmptyAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -71,6 +72,7 @@ public class AgentSmokeTest {
         trace.reset();
     }
 
+    @RequiresNoEngine
     @Assertion(id = "AGENTICAI-SMOKE-001",
                section = "3.2 Agent Lifecycle",
                strategy = "Agent Deployment -> CDI Event Trigger -> Trace records the @Trigger phase")
@@ -90,8 +92,7 @@ public class AgentSmokeTest {
      * of the Agentic AI orchestration engine is available — plain CDI does
      * not invoke {@code @Action} and {@code @Outcome} methods on its own.
      */
-    @Disabled("Requires a Reference Implementation of the Agentic AI engine "
-            + "to dispatch @Action and @Outcome phases after the trigger.")
+    @RequiresEngine
     @Assertion(id = "AGENTICAI-SMOKE-002",
                section = "3.2 Agent Lifecycle",
                strategy = "Full lifecycle: @Trigger -> @Action -> @Outcome with LLM stub interaction")

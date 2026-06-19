@@ -16,6 +16,8 @@ import ee.jakarta.tck.ai.agent.core.behavior.agents.voidphases.VoidPhasesAgent;
 import ee.jakarta.tck.ai.agent.core.behavior.agents.voidphases.VoidPhasesEvent;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Assertion;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Deployed;
+import ee.jakarta.tck.ai.agent.framework.junit.anno.RequiresEngine;
+import ee.jakarta.tck.ai.agent.framework.junit.anno.RequiresNoEngine;
 import ee.jakarta.tck.ai.agent.framework.stub.LargeLanguageModelStub;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder.Phase;
@@ -27,16 +29,11 @@ import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.EmptyAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 @Deployed
 public class VoidPhasesTests {
-
-    private static final String NO_RI =
-            "Requires a Reference Implementation of the Agentic AI engine "
-          + "to dispatch @Decision/@Action/@Outcome phases.";
 
     @Deployment
     public static Archive<?> createDeployment() {
@@ -55,6 +52,7 @@ public class VoidPhasesTests {
         trace.reset();
     }
 
+    @RequiresNoEngine
     @Assertion(id = "AGENTICAI-VOID-001",
                section = "3.2 Agent Lifecycle",
                strategy = "void @Trigger is observed and recorded without error")
@@ -63,7 +61,7 @@ public class VoidPhasesTests {
         assertThat(trace.phases()).containsExactly(Phase.TRIGGER);
     }
 
-    @Disabled(NO_RI)
+    @RequiresEngine
     @Assertion(id = "AGENTICAI-VOID-002",
                section = "3.2 Agent Lifecycle",
                strategy = "void @Trigger does not pollute the injection context; @Decision receives only the original event")
@@ -76,7 +74,7 @@ public class VoidPhasesTests {
                 .allSatisfy(arg -> assertThat(arg).isInstanceOf(VoidPhasesEvent.class));
     }
 
-    @Disabled(NO_RI)
+    @RequiresEngine
     @Assertion(id = "AGENTICAI-VOID-003",
                section = "3.3 Action Phase",
                strategy = "void @Action does not break the injection context for @Outcome")
