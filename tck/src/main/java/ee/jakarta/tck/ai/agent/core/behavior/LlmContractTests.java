@@ -16,6 +16,7 @@ import ee.jakarta.tck.ai.agent.core.behavior.agents.llm.LlmQuerierAgent;
 import ee.jakarta.tck.ai.agent.core.behavior.agents.llm.LlmQuerierEvent;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Assertion;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Deployed;
+import ee.jakarta.tck.ai.agent.framework.junit.anno.RequiresEngine;
 import ee.jakarta.tck.ai.agent.framework.stub.LargeLanguageModelStub;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder.Phase;
@@ -33,7 +34,6 @@ import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.EmptyAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.TestInstance;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -43,10 +43,6 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 @Deployed
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class LlmContractTests {
-
-    private static final String NO_RI =
-            "Requires a Reference Implementation orchestration engine to drive @WorkflowScoped "
-          + "workflow contexts (and ideally concurrent executions).";
 
     @Deployment
     public static Archive<?> createDeployment() {
@@ -289,7 +285,7 @@ public class LlmContractTests {
     // C. Disabled — requires RI / spec-open
     // -------------------------------------------------------------------------
 
-    @Disabled(NO_RI)
+    @RequiresEngine
     @Assertion(id = "AGENTICAI-LLM-BHV-007",
                section = "Architecture, Concurrency",
                strategy = "conversational state does not leak between sequential workflow executions "
@@ -302,9 +298,9 @@ public class LlmContractTests {
         events.fire(new LlmQuerierEvent("workflow-1"));
         events.fire(new LlmQuerierEvent("workflow-2"));
 
-        // Structural: each workflow ran its @Trigger and produced exactly one LLM call,
-        // with the event payload serialized via JSON-B into the prompt.
-        assertThat(trace.phases()).containsExactly(Phase.TRIGGER, Phase.TRIGGER);
+        // Structural: each workflow ran its @Trigger + @Action and produced exactly one LLM call.
+        // LlmQuerierAgent has both @Trigger and @Action; the RI dispatches both phases per workflow.
+        assertThat(trace.phases()).containsExactly(Phase.TRIGGER, Phase.ACTION, Phase.TRIGGER, Phase.ACTION);
         assertThat(stub.recordedCalls()).hasSize(2);
         assertThat(stub.recordedCalls().get(0).effectivePrompt()).isEqualTo("turn for \"workflow-1\"");
         assertThat(stub.recordedCalls().get(1).effectivePrompt()).isEqualTo("turn for \"workflow-2\"");

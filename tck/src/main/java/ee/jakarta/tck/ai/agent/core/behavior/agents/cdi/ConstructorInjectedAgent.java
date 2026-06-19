@@ -26,6 +26,11 @@ public class ConstructorInjectedAgent {
 
     private final ExecutionTraceRecorder trace;
 
+    /** Required by CDI for normal-scoped bean proxying; the @Inject constructor is used for actual instantiation. */
+    protected ConstructorInjectedAgent() {
+        this.trace = null;
+    }
+
     @Inject
     public ConstructorInjectedAgent(ExecutionTraceRecorder trace) {
         this.trace = trace;

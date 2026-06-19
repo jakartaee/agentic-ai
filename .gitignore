@@ -22,3 +22,5 @@ Thumbs.db
 # Others
 /node_modules/
 /.claude/settings.local.json
+/.claude/issue.txt
+/.claude/steps.md

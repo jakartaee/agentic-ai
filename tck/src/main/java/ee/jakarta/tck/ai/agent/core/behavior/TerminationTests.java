@@ -21,6 +21,8 @@ import ee.jakarta.tck.ai.agent.core.behavior.agents.termination.ResultTerminatio
 import ee.jakarta.tck.ai.agent.core.behavior.agents.termination.ResultTerminationEvent;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Assertion;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Deployed;
+import ee.jakarta.tck.ai.agent.framework.junit.anno.RequiresEngine;
+import ee.jakarta.tck.ai.agent.framework.junit.anno.RequiresNoEngine;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder.Phase;
 import jakarta.enterprise.event.Event;
@@ -30,7 +32,6 @@ import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.EmptyAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.TestInstance;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -38,10 +39,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 @Deployed
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class TerminationTests {
-
-    private static final String NO_RI =
-            "Requires a Reference Implementation of the Agentic AI engine "
-          + "to dispatch @Decision/@Action/@Outcome phases.";
 
     @Deployment
     public static Archive<?> createDeployment() {
@@ -58,6 +55,7 @@ public class TerminationTests {
     @Inject Event<ObjectTerminationEvent>  objectEvents;
     @Inject ExecutionTraceRecorder trace;
 
+    @RequiresNoEngine
     @Assertion(id = "AGENTICAI-TERM-001",
                section = "3.3 Decision Phase",
                strategy = "Trigger is observed in the boolean-termination agent")
@@ -67,6 +65,7 @@ public class TerminationTests {
         assertThat(trace.phases()).containsExactly(Phase.TRIGGER);
     }
 
+    @RequiresNoEngine
     @Assertion(id = "AGENTICAI-TERM-002",
                section = "3.3 Decision Phase",
                strategy = "Trigger is observed in the Result-termination agent")
@@ -76,6 +75,7 @@ public class TerminationTests {
         assertThat(trace.phases()).containsExactly(Phase.TRIGGER);
     }
 
+    @RequiresNoEngine
     @Assertion(id = "AGENTICAI-TERM-003",
                section = "3.3 Decision Phase",
                strategy = "Trigger is observed in the Object-termination agent")
@@ -85,7 +85,7 @@ public class TerminationTests {
         assertThat(trace.phases()).containsExactly(Phase.TRIGGER);
     }
 
-    @Disabled(NO_RI)
+    @RequiresEngine
     @Assertion(id = "AGENTICAI-TERM-004",
                section = "3.3 Decision Phase",
                strategy = "Boolean false from @Decision halts all downstream phases")
@@ -95,7 +95,7 @@ public class TerminationTests {
         assertThat(trace.phases()).containsExactly(Phase.TRIGGER, Phase.DECISION);
     }
 
-    @Disabled(NO_RI)
+    @RequiresEngine
     @Assertion(id = "AGENTICAI-TERM-005",
                section = "3.3 Decision Phase",
                strategy = "Result(success=false) from @Decision halts all downstream phases")
@@ -105,7 +105,7 @@ public class TerminationTests {
         assertThat(trace.phases()).containsExactly(Phase.TRIGGER, Phase.DECISION);
     }
 
-    @Disabled(NO_RI)
+    @RequiresEngine
     @Assertion(id = "AGENTICAI-TERM-006",
                section = "3.3 Decision Phase",
                strategy = "Object null from @Decision halts all downstream phases")
