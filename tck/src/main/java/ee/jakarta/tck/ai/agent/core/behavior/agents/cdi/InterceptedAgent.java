@@ -40,7 +40,7 @@ public class InterceptedAgent {
     }
 
     // Interceptor bound to the @Outcome phase too — proves interception applies
-    // to any business-method phase the RI dispatches, not only @Action.
+    // to any business-method phase the compatible implementation dispatches, not only @Action.
     @Outcome
     @AgentInterceptorBinding
     public void finish(InterceptedEvent event) {

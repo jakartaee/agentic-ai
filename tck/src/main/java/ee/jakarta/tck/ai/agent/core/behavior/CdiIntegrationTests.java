@@ -27,8 +27,8 @@ import ee.jakarta.tck.ai.agent.core.behavior.agents.cdi.SingletonCdiAgent;
 import ee.jakarta.tck.ai.agent.core.behavior.agents.cdi.SingletonCdiEvent;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Assertion;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Deployed;
-import ee.jakarta.tck.ai.agent.framework.junit.anno.RequiresEngine;
-import ee.jakarta.tck.ai.agent.framework.junit.anno.RequiresNoEngine;
+import ee.jakarta.tck.ai.agent.framework.junit.anno.RequiresImplementation;
+import ee.jakarta.tck.ai.agent.framework.junit.anno.RequiresNoImplementation;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder.Phase;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder.TraceEntry;
@@ -89,7 +89,7 @@ public class CdiIntegrationTests {
     @Inject SingletonCdiAgent               singletonAgent;
 
     // -------------------------------------------------------------------------
-    // CDI-only tests (no RI required)
+    // CDI-only tests (no compatible implementation required)
     // -------------------------------------------------------------------------
 
     @Assertion(id = "AGENTICAI-CDI-BHV-002",
@@ -124,7 +124,7 @@ public class CdiIntegrationTests {
         assertThat(singletonAgent.getClass()).isNotEqualTo(SingletonCdiAgent.class);
     }
 
-    @RequiresNoEngine
+    @RequiresNoImplementation
     @Assertion(id = "AGENTICAI-CDI-BHV-003-PRECONDITION",
                section = "CDI Integration, Lifecycle",
                strategy = "SingletonCdiAgent @Trigger fires via CDI; confirms the bean is instantiated and managed")
@@ -161,7 +161,7 @@ public class CdiIntegrationTests {
         assertThat(id1).isEqualTo(id2);
     }
 
-    @RequiresNoEngine
+    @RequiresNoImplementation
     @Assertion(id = "AGENTICAI-CDI-BHV-006-PRECONDITION",
                section = "CDI Integration, Interceptors",
                strategy = "InterceptedAgent @Trigger fires via CDI; confirms the agent and its enabled interceptor "
@@ -172,7 +172,7 @@ public class CdiIntegrationTests {
         assertThat(trace.phases()).containsExactly(Phase.TRIGGER);
     }
 
-    @RequiresNoEngine
+    @RequiresNoImplementation
     @Assertion(id = "AGENTICAI-CDI-BHV-005-PRECONDITION",
                section = "Workflow Orchestration, Parameter Injection",
                strategy = "ResolutionOrderAgent @Trigger fires via CDI; confirms the agent and its CDI-bean "
@@ -184,10 +184,10 @@ public class CdiIntegrationTests {
     }
 
     // -------------------------------------------------------------------------
-    // RI-required tests
+    // Implementation-required tests
     // -------------------------------------------------------------------------
 
-    @RequiresEngine
+    @RequiresImplementation
     @Assertion(id = "AGENTICAI-CDI-BHV-004",
                section = "CDI Integration, Scopes",
                strategy = "An @ApplicationScoped @Agent uses the same bean instance across all phases of a "
@@ -204,10 +204,10 @@ public class CdiIntegrationTests {
         assertThat(outcomeId).isEqualTo(triggerId);
     }
 
-    @RequiresEngine
+    @RequiresImplementation
     @Assertion(id = "AGENTICAI-CDI-BHV-005",
                section = "Workflow Orchestration, Parameter Injection",
-               strategy = "The RI resolves method parameters in priority order: (1) triggering event, (3) "
+               strategy = "The compatible implementation resolves method parameters in priority order: (1) triggering event, (3) "
                         + "LargeLanguageModel, (4) CDI beans — ResolutionOrderAgent @Action args are "
                         + "[0]=event, [1]=LLM, [2]=ResolutionCdiBean")
     public void parameterResolutionFollowsDefinedPriority() {
@@ -223,11 +223,11 @@ public class CdiIntegrationTests {
         assertThat(actionEntry.args()[2]).isInstanceOf(ResolutionCdiBean.class);
     }
 
-    @RequiresEngine
+    @RequiresImplementation
     @Assertion(id = "AGENTICAI-CDI-BHV-006",
                section = "CDI Integration, Interceptors",
                strategy = "A CDI interceptor bound via a custom @InterceptorBinding executes before and after the "
-                        + "method body for EVERY business-method phase the RI dispatches through the CDI proxy — "
+                        + "method body for EVERY business-method phase the compatible implementation dispatches through the CDI proxy — "
                         + "verified by binding the interceptor to both @Action (process) and @Outcome (finish) and "
                         + "asserting the interceptor wraps each. Asserts on method-name order because the interceptor "
                         + "marker uses a fixed phase label")
@@ -241,7 +241,7 @@ public class CdiIntegrationTests {
                 "interceptorBefore", "finish",   "interceptorAfter");
     }
 
-    @RequiresEngine
+    @RequiresImplementation
     @Assertion(id = "AGENTICAI-CDI-BHV-007",
                section = "Workflow Orchestration",
                strategy = "The triggering event object is available as a method parameter in @Decision, @Action, "

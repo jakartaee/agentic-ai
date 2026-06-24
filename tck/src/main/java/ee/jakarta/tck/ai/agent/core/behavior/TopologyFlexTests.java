@@ -18,8 +18,8 @@ import ee.jakarta.tck.ai.agent.core.behavior.agents.topologyflex.NoOutcomeAgent;
 import ee.jakarta.tck.ai.agent.core.behavior.agents.topologyflex.NoOutcomeEvent;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Assertion;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Deployed;
-import ee.jakarta.tck.ai.agent.framework.junit.anno.RequiresEngine;
-import ee.jakarta.tck.ai.agent.framework.junit.anno.RequiresNoEngine;
+import ee.jakarta.tck.ai.agent.framework.junit.anno.RequiresImplementation;
+import ee.jakarta.tck.ai.agent.framework.junit.anno.RequiresNoImplementation;
 import ee.jakarta.tck.ai.agent.framework.stub.LargeLanguageModelStub;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder.Phase;
@@ -51,7 +51,7 @@ public class TopologyFlexTests {
     @Inject LargeLanguageModelStub llm;
     @Inject ExecutionTraceRecorder trace;
 
-    @RequiresNoEngine
+    @RequiresNoImplementation
     @Assertion(id = "AGENTICAI-FLEX-001",
                section = "3.5 Optional Phases",
                strategy = "Agent without @Decision triggers successfully via CDI")
@@ -62,7 +62,7 @@ public class TopologyFlexTests {
         assertThat(trace.phases()).containsExactly(Phase.TRIGGER);
     }
 
-    @RequiresNoEngine
+    @RequiresNoImplementation
     @Assertion(id = "AGENTICAI-FLEX-002",
                section = "3.5 Optional Phases",
                strategy = "Agent without @Outcome triggers successfully via CDI")
@@ -73,7 +73,7 @@ public class TopologyFlexTests {
         assertThat(trace.phases()).containsExactly(Phase.TRIGGER);
     }
 
-    @RequiresEngine
+    @RequiresImplementation
     @Assertion(id = "AGENTICAI-FLEX-003",
                section = "3.5 Optional Phases",
                strategy = "Workflow without @Decision executes T→A→O without error")
@@ -84,7 +84,7 @@ public class TopologyFlexTests {
         assertThat(trace.phases()).containsExactly(Phase.TRIGGER, Phase.ACTION, Phase.OUTCOME);
     }
 
-    @RequiresEngine
+    @RequiresImplementation
     @Assertion(id = "AGENTICAI-FLEX-004",
                section = "3.5 Optional Phases",
                strategy = "Workflow without @Outcome completes gracefully after @Action")

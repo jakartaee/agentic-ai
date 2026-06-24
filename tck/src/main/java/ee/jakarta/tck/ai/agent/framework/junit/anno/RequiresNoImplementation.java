@@ -12,7 +12,7 @@
  *****************************************************************************/
 package ee.jakarta.tck.ai.agent.framework.junit.anno;
 
-import ee.jakarta.tck.ai.agent.framework.junit.extensions.EngineCondition;
+import ee.jakarta.tck.ai.agent.framework.junit.extensions.ImplementationPresentCondition;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.lang.annotation.ElementType;
@@ -22,17 +22,17 @@ import java.lang.annotation.Target;
 
 /**
  * Marks a baseline ("precondition") TCK assertion that holds only when no
- * Agentic AI engine is dispatching phases — i.e. plain CDI observes the
+ * compatible implementation is dispatching phases — i.e. plain CDI observes the
  * {@code @Trigger} and nothing else runs.
  *
- * <p>When a Reference Implementation is present (detected automatically by
- * {@link EngineCondition}) the engine also dispatches the downstream phases, so
+ * <p>When a compatible implementation is present (detected automatically by
+ * {@link ImplementationPresentCondition}) it also dispatches the downstream phases, so
  * these trigger-only assertions no longer hold and are superseded by the
- * corresponding {@link RequiresEngine} behavior tests. They are therefore
- * skipped in engine mode.</p>
+ * corresponding {@link RequiresImplementation} behavior tests. They are therefore
+ * skipped in implementation mode.</p>
  */
 @Target({ ElementType.METHOD, ElementType.TYPE })
 @Retention(RetentionPolicy.RUNTIME)
-@ExtendWith(EngineCondition.class)
-public @interface RequiresNoEngine {
+@ExtendWith(ImplementationPresentCondition.class)
+public @interface RequiresNoImplementation {
 }

@@ -16,8 +16,8 @@ import ee.jakarta.tck.ai.agent.core.behavior.agents.voidphases.VoidPhasesAgent;
 import ee.jakarta.tck.ai.agent.core.behavior.agents.voidphases.VoidPhasesEvent;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Assertion;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Deployed;
-import ee.jakarta.tck.ai.agent.framework.junit.anno.RequiresEngine;
-import ee.jakarta.tck.ai.agent.framework.junit.anno.RequiresNoEngine;
+import ee.jakarta.tck.ai.agent.framework.junit.anno.RequiresImplementation;
+import ee.jakarta.tck.ai.agent.framework.junit.anno.RequiresNoImplementation;
 import ee.jakarta.tck.ai.agent.framework.stub.LargeLanguageModelStub;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder.Phase;
@@ -52,7 +52,7 @@ public class VoidPhasesTests {
         trace.reset();
     }
 
-    @RequiresNoEngine
+    @RequiresNoImplementation
     @Assertion(id = "AGENTICAI-VOID-001",
                section = "3.2 Agent Lifecycle",
                strategy = "void @Trigger is observed and recorded without error")
@@ -61,7 +61,7 @@ public class VoidPhasesTests {
         assertThat(trace.phases()).containsExactly(Phase.TRIGGER);
     }
 
-    @RequiresEngine
+    @RequiresImplementation
     @Assertion(id = "AGENTICAI-VOID-002",
                section = "3.2 Agent Lifecycle",
                strategy = "void @Trigger does not pollute the injection context; @Decision receives only the original event")
@@ -74,7 +74,7 @@ public class VoidPhasesTests {
                 .allSatisfy(arg -> assertThat(arg).isInstanceOf(VoidPhasesEvent.class));
     }
 
-    @RequiresEngine
+    @RequiresImplementation
     @Assertion(id = "AGENTICAI-VOID-003",
                section = "3.3 Action Phase",
                strategy = "void @Action does not break the injection context for @Outcome")

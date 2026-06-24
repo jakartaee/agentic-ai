@@ -12,7 +12,7 @@
  *****************************************************************************/
 package ee.jakarta.tck.ai.agent.framework.junit.anno;
 
-import ee.jakarta.tck.ai.agent.framework.junit.extensions.EngineCondition;
+import ee.jakarta.tck.ai.agent.framework.junit.extensions.ImplementationPresentCondition;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.lang.annotation.ElementType;
@@ -21,18 +21,18 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Marks a TCK assertion that can only be satisfied when a Reference
- * Implementation of the Agentic AI engine is present to dispatch the
+ * Marks a TCK assertion that can only be satisfied when a compatible
+ * implementation of the Agentic AI specification is present to dispatch the
  * {@code @Decision}, {@code @Action} and {@code @Outcome} phases after the
  * {@code @Trigger}.
  *
- * <p>The {@link EngineCondition} detects engine presence automatically at
- * runtime (no configuration required): such tests run when a Reference
- * Implementation is deployed and are skipped against the plain-CDI baseline
- * (see {@link RequiresNoEngine}).</p>
+ * <p>The {@link ImplementationPresentCondition} detects implementation presence automatically at
+ * runtime (no configuration required): such tests run when a compatible
+ * implementation is deployed and are skipped against the plain-CDI baseline
+ * (see {@link RequiresNoImplementation}).</p>
  */
 @Target({ ElementType.METHOD, ElementType.TYPE })
 @Retention(RetentionPolicy.RUNTIME)
-@ExtendWith(EngineCondition.class)
-public @interface RequiresEngine {
+@ExtendWith(ImplementationPresentCondition.class)
+public @interface RequiresImplementation {
 }

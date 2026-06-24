@@ -19,8 +19,8 @@ import ee.jakarta.tck.ai.agent.core.behavior.agents.datapropagation.DecisionOutp
 import ee.jakarta.tck.ai.agent.core.behavior.agents.datapropagation.TriggerOutput;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Assertion;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Deployed;
-import ee.jakarta.tck.ai.agent.framework.junit.anno.RequiresEngine;
-import ee.jakarta.tck.ai.agent.framework.junit.anno.RequiresNoEngine;
+import ee.jakarta.tck.ai.agent.framework.junit.anno.RequiresImplementation;
+import ee.jakarta.tck.ai.agent.framework.junit.anno.RequiresNoImplementation;
 import ee.jakarta.tck.ai.agent.framework.stub.LargeLanguageModelStub;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder.Phase;
@@ -56,16 +56,16 @@ public class DataPropagationTests {
         trace.reset();
     }
 
-    @RequiresNoEngine
+    @RequiresNoImplementation
     @Assertion(id = "AGENTICAI-DATA-001",
                section = "3.4 Data Propagation",
-               strategy = "Trigger fires and records its phase before the engine dispatches further phases")
+               strategy = "Trigger fires and records its phase before the implementation dispatches further phases")
     public void triggerIsObserved() {
         events.fire(new DataPropagationEvent("input"));
         assertThat(trace.phases()).containsExactly(Phase.TRIGGER);
     }
 
-    @RequiresEngine
+    @RequiresImplementation
     @Assertion(id = "AGENTICAI-DATA-002",
                section = "3.4 Data Propagation",
                strategy = "TriggerOutput returned by @Trigger is injectable as a parameter in @Decision")
@@ -75,7 +75,7 @@ public class DataPropagationTests {
         assertThat(trace.entries().get(1).args()[1]).isInstanceOf(TriggerOutput.class);
     }
 
-    @RequiresEngine
+    @RequiresImplementation
     @Assertion(id = "AGENTICAI-DATA-003",
                section = "3.4 Data Propagation",
                strategy = "DecisionOutput returned by @Decision is injectable as a parameter in @Action")
@@ -85,7 +85,7 @@ public class DataPropagationTests {
         assertThat(trace.entries().get(2).args()[1]).isInstanceOf(DecisionOutput.class);
     }
 
-    @RequiresEngine
+    @RequiresImplementation
     @Assertion(id = "AGENTICAI-DATA-004",
                section = "3.4 Data Propagation",
                strategy = "@Outcome can inject objects from all preceding phases simultaneously")

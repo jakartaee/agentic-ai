@@ -30,7 +30,7 @@ import java.util.UUID;
 public class LifecycleSpyAgent {
 
     // Static so the failure-path test can configure it without injecting this
-    // @WorkflowScoped bean (no active context outside the RI). Default false keeps
+    // @WorkflowScoped bean (no active context outside the compatible implementation). Default false keeps
     // the success-path tests unchanged.
     private static volatile boolean failInAction = false;
     public static void setFailInAction(boolean value) { failInAction = value; }

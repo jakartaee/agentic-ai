@@ -16,8 +16,8 @@ import ee.jakarta.tck.ai.agent.core.behavior.agents.contextinjection.ContextInje
 import ee.jakarta.tck.ai.agent.core.behavior.agents.contextinjection.ContextInjectionEvent;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Assertion;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Deployed;
-import ee.jakarta.tck.ai.agent.framework.junit.anno.RequiresEngine;
-import ee.jakarta.tck.ai.agent.framework.junit.anno.RequiresNoEngine;
+import ee.jakarta.tck.ai.agent.framework.junit.anno.RequiresImplementation;
+import ee.jakarta.tck.ai.agent.framework.junit.anno.RequiresNoImplementation;
 import ee.jakarta.tck.ai.agent.framework.stub.LargeLanguageModelStub;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder.Phase;
@@ -47,7 +47,7 @@ public class ContextInjectionTests {
     @Inject LargeLanguageModelStub llm;
     @Inject ExecutionTraceRecorder trace;
 
-    @RequiresNoEngine
+    @RequiresNoImplementation
     @Assertion(id = "AGENTICAI-CTX-001",
                section = "3.2 Agent Lifecycle",
                strategy = "LargeLanguageModel is injectable as a direct method parameter of @Trigger")
@@ -76,7 +76,7 @@ public class ContextInjectionTests {
         assertThat(recorded.payload()).isEqualTo("my-payload");
     }
 
-    @RequiresEngine
+    @RequiresImplementation
     @Assertion(id = "AGENTICAI-CTX-003",
                section = "3.4 Data Propagation",
                strategy = "Triggering event is available for injection in @Action")
@@ -94,7 +94,7 @@ public class ContextInjectionTests {
                 .args()[0]).isInstanceOf(ContextInjectionEvent.class);
     }
 
-    @RequiresEngine
+    @RequiresImplementation
     @Assertion(id = "AGENTICAI-CTX-004",
                section = "3.4 Data Propagation",
                strategy = "LargeLanguageModel is injectable as a direct method parameter of @Action")
