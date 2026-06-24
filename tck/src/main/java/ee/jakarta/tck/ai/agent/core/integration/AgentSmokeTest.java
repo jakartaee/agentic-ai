@@ -14,8 +14,8 @@ package ee.jakarta.tck.ai.agent.core.integration;
 
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Assertion;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Deployed;
-import ee.jakarta.tck.ai.agent.framework.junit.anno.RequiresEngine;
-import ee.jakarta.tck.ai.agent.framework.junit.anno.RequiresNoEngine;
+import ee.jakarta.tck.ai.agent.framework.junit.anno.RequiresImplementation;
+import ee.jakarta.tck.ai.agent.framework.junit.anno.RequiresNoImplementation;
 import ee.jakarta.tck.ai.agent.framework.stub.LargeLanguageModelStub;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder.Phase;
@@ -39,13 +39,13 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * container picks up the agent and observes the trigger event, and that the
  * internal infrastructure (stub + trace recorder) is wired correctly.</p>
  *
- * <p><b>Scope limitation</b>: in the absence of a Reference Implementation
- * of the Agentic AI orchestration engine, only the {@code @Trigger} phase
+ * <p><b>Scope limitation</b>: in the absence of a compatible implementation
+ * of the Agentic AI specification, only the {@code @Trigger} phase
  * is invoked (it is registered as a CDI observer via {@code @Observes}).
- * The {@code @Action} and {@code @Outcome} phases require an engine that
+ * The {@code @Action} and {@code @Outcome} phases require a compatible implementation that
  * scans the agent and dispatches subsequent phases — see
- * {@link #fullLifecycleRequiresReferenceImplementation()} for the assertion
- * to be re-enabled once such an engine is available.</p>
+ * {@link #fullLifecycleRequiresCompatibleImplementation()} for the assertion
+ * to be re-enabled once such an implementation is available.</p>
  */
 @Deployed
 public class AgentSmokeTest {
@@ -72,7 +72,7 @@ public class AgentSmokeTest {
         trace.reset();
     }
 
-    @RequiresNoEngine
+    @RequiresNoImplementation
     @Assertion(id = "AGENTICAI-SMOKE-001",
                section = "3.2 Agent Lifecycle",
                strategy = "Agent Deployment -> CDI Event Trigger -> Trace records the @Trigger phase")
@@ -88,15 +88,15 @@ public class AgentSmokeTest {
     }
 
     /**
-     * Full-lifecycle assertion. Disabled until a Reference Implementation
-     * of the Agentic AI orchestration engine is available — plain CDI does
+     * Full-lifecycle assertion. Disabled until a compatible implementation
+     * of the Agentic AI specification is available — plain CDI does
      * not invoke {@code @Action} and {@code @Outcome} methods on its own.
      */
-    @RequiresEngine
+    @RequiresImplementation
     @Assertion(id = "AGENTICAI-SMOKE-002",
                section = "3.2 Agent Lifecycle",
                strategy = "Full lifecycle: @Trigger -> @Action -> @Outcome with LLM stub interaction")
-    public void fullLifecycleRequiresReferenceImplementation() {
+    public void fullLifecycleRequiresCompatibleImplementation() {
         llm.enqueueResponse("Hello from Stub!");
 
         events.fire(new GreetEvent("Jakarta AI"));

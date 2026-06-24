@@ -19,7 +19,7 @@ import ee.jakarta.tck.ai.agent.core.behavior.agents.cdi.ScopeDefaultAgent;
 import ee.jakarta.tck.ai.agent.core.behavior.agents.cdi.ScopeDefaultEvent;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Assertion;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Deployed;
-import ee.jakarta.tck.ai.agent.framework.junit.anno.RequiresEngine;
+import ee.jakarta.tck.ai.agent.framework.junit.anno.RequiresImplementation;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder.Phase;
 import jakarta.enterprise.event.Event;
@@ -27,7 +27,6 @@ import jakarta.inject.Inject;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
-import org.jboss.shrinkwrap.api.asset.EmptyAsset;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.jupiter.api.TestInstance;
@@ -41,7 +40,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class WorkflowScopeLifecycleTests {
 
     // bean-discovery-mode="all" is required so that ScopeDefaultAgent (which has no
-    // explicit CDI scope annotation) is discovered and processed by the RI extension,
+    // explicit CDI scope annotation) is discovered and processed by the implementation,
     // which adds the default @WorkflowScoped scope to it.
     private static final String BEANS_XML = """
             <?xml version="1.0" encoding="UTF-8"?>
@@ -69,7 +68,7 @@ public class WorkflowScopeLifecycleTests {
     @Inject ExecutionTraceRecorder    trace;
     @Inject LifecycleCallbackRecorder lifecycleRecorder;
 
-    @RequiresEngine
+    @RequiresImplementation
     @Assertion(id = "AGENTICAI-CDI-BHV-001",
                section = "Agent Lifecycle, @Agent",
                strategy = "An @Agent with no explicit scope behaves as @WorkflowScoped: two independent "
@@ -86,35 +85,35 @@ public class WorkflowScopeLifecycleTests {
         assertThat(ids.get(0)).isNotEqualTo(ids.get(1));
     }
 
-    @RequiresEngine
+    @RequiresImplementation
     @Assertion(id = "AGENTICAI-CDI-BHV-002",
                section = "Architecture, Convention over Configuration",
-               strategy = "When @Agent.name() is empty, the RI derives the name as the simple class name with "
+               strategy = "When @Agent.name() is empty, the compatible implementation derives the name as the simple class name with "
                         + "the first letter lowercased. ScopeDefaultAgent must be resolvable by the EL/bean name "
-                        + "\"scopeDefaultAgent\" via BeanManager.getBeans(String). Depends on the RI registering "
+                        + "\"scopeDefaultAgent\" via BeanManager.getBeans(String). Depends on the compatible implementation registering "
                         + "agents under their derived name; update once that registry API is specified.")
     public void agentDefaultNamingFollowsCamelCase() {
-        // Pseudocode for when the RI is available:
+        // Pseudocode for when a compatible implementation is available:
         //   assertThat(beanManager.getBeans("scopeDefaultAgent")).hasSize(1);
         // Kept disabled and intentionally not asserting a placeholder truth.
         assertThat(ScopeDefaultAgent.class.getSimpleName()).isEqualTo("ScopeDefaultAgent");
     }
 
-    @RequiresEngine
+    @RequiresImplementation
     @Assertion(id = "AGENTICAI-CDI-BHV-002",
                section = "Architecture, Convention over Configuration",
-               strategy = "An explicit @Agent(name = \"lifecycleSpy\") overrides the derived default; the RI must "
+               strategy = "An explicit @Agent(name = \"lifecycleSpy\") overrides the derived default; the compatible implementation must "
                         + "register the bean under that name, resolvable via BeanManager.getBeans(\"lifecycleSpy\"). "
-                        + "Depends on the RI's name-registration API; update once specified.")
+                        + "Depends on the implementation's name-registration API; update once specified.")
     public void customAgentNameIsResolvableViaBeanManager() {
-        // Pseudocode for when the RI is available:
+        // Pseudocode for when a compatible implementation is available:
         //   assertThat(beanManager.getBeans("lifecycleSpy")).hasSize(1);
         // LifecycleSpyAgent declares @Agent(name = "lifecycleSpy"); assert the source-of-truth in the interim.
         assertThat(LifecycleSpyAgent.class.getAnnotation(jakarta.ai.agent.Agent.class).name())
                 .isEqualTo("lifecycleSpy");
     }
 
-    @RequiresEngine
+    @RequiresImplementation
     @Assertion(id = "AGENTICAI-CDI-BHV-003",
                section = "CDI Integration, Lifecycle",
                strategy = "@PostConstruct is invoked exactly once per @WorkflowScoped workflow execution — "
@@ -126,7 +125,7 @@ public class WorkflowScopeLifecycleTests {
         assertThat(lifecycleRecorder.getPostConstructCount()).isEqualTo(1);
     }
 
-    @RequiresEngine
+    @RequiresImplementation
     @Assertion(id = "AGENTICAI-CDI-BHV-003",
                section = "CDI Integration, Lifecycle",
                strategy = "@PreDestroy is invoked exactly once after the @WorkflowScoped context is destroyed "
@@ -139,12 +138,12 @@ public class WorkflowScopeLifecycleTests {
         assertThat(lifecycleRecorder.getPreDestroyCount()).isEqualTo(1);
     }
 
-    @RequiresEngine
+    @RequiresImplementation
     @Assertion(id = "AGENTICAI-CDI-BHV-003",
                section = "CDI Integration, Lifecycle",
                strategy = "@PreDestroy is invoked exactly once even when the workflow FAILS (the issue requires "
                         + "cleanup 'after the workflow completes or fails'). LifecycleSpyAgent.setFailInAction(true) "
-                        + "makes @Action throw; the RI must still tear down the @WorkflowScoped context and the "
+                        + "makes @Action throw; the compatible implementation must still tear down the @WorkflowScoped context and the "
                         + "workflow must not reach @Outcome")
     public void workflowScopedAgentPreDestroyCalledAfterFailure() {
         lifecycleRecorder.reset();
@@ -162,7 +161,7 @@ public class WorkflowScopeLifecycleTests {
         assertThat(lifecycleRecorder.getPreDestroyCount()).isEqualTo(1);
     }
 
-    @RequiresEngine
+    @RequiresImplementation
     @Assertion(id = "AGENTICAI-CDI-BHV-004",
                section = "CDI Integration, Scopes",
                strategy = "@WorkflowScoped creates a distinct bean instance per workflow execution — two "

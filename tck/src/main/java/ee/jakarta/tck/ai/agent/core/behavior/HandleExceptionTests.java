@@ -30,8 +30,8 @@ import ee.jakarta.tck.ai.agent.core.behavior.agents.termination.BooleanTerminati
 import ee.jakarta.tck.ai.agent.core.behavior.agents.termination.BooleanTerminationEvent;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Assertion;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Deployed;
-import ee.jakarta.tck.ai.agent.framework.junit.anno.RequiresEngine;
-import ee.jakarta.tck.ai.agent.framework.junit.anno.RequiresNoEngine;
+import ee.jakarta.tck.ai.agent.framework.junit.anno.RequiresImplementation;
+import ee.jakarta.tck.ai.agent.framework.junit.anno.RequiresNoImplementation;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder.Phase;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder.TraceEntry;
@@ -81,49 +81,49 @@ public class HandleExceptionTests {
     @Inject ExecutionTraceRecorder        trace;
     @Inject PhaseFailureAgent             phaseFailureAgent;
 
-    // ── Smoke checks — CDI fires @Trigger without an engine ─────────────────
+    // ── Smoke checks — CDI fires @Trigger without a compatible implementation ─────────────────
 
-    @RequiresNoEngine
+    @RequiresNoImplementation
     @Assertion(id = "AGENTICAI-HANDLEEXCEPTION-BHV-001-PRECONDITION",
                section = "3.6 Exception Handling",
-               strategy = "RecoveryAgent @Trigger is observed by CDI without a runtime engine")
+               strategy = "RecoveryAgent @Trigger is observed by CDI without a compatible implementation")
     public void recoveryAgentTriggerObserved() {
         trace.reset();
         recoveryEvents.fire(new RecoveryEvent("x"));
         assertThat(trace.phases()).containsExactly(Phase.TRIGGER);
     }
 
-    @RequiresNoEngine
+    @RequiresNoImplementation
     @Assertion(id = "AGENTICAI-HANDLEEXCEPTION-BHV-002-PRECONDITION",
                section = "3.6 Exception Handling",
-               strategy = "PropagationAgent @Trigger is observed by CDI without a runtime engine")
+               strategy = "PropagationAgent @Trigger is observed by CDI without a compatible implementation")
     public void propagationAgentTriggerObserved() {
         trace.reset();
         propagationEvents.fire(new PropagationEvent("x"));
         assertThat(trace.phases()).containsExactly(Phase.TRIGGER);
     }
 
-    @RequiresNoEngine
+    @RequiresNoImplementation
     @Assertion(id = "AGENTICAI-HANDLEEXCEPTION-BHV-004-PRECONDITION",
                section = "3.6 Exception Handling",
-               strategy = "HierarchyAgent @Trigger is observed by CDI without a runtime engine")
+               strategy = "HierarchyAgent @Trigger is observed by CDI without a compatible implementation")
     public void hierarchyAgentTriggerObserved() {
         trace.reset();
         hierarchyEvents.fire(new HierarchyEvent("x"));
         assertThat(trace.phases()).containsExactly(Phase.TRIGGER);
     }
 
-    @RequiresNoEngine
+    @RequiresNoImplementation
     @Assertion(id = "AGENTICAI-HANDLEEXCEPTION-BHV-005-PRECONDITION",
                section = "3.6 Exception Handling",
-               strategy = "RecursiveGuardAgent @Trigger is observed by CDI without a runtime engine")
+               strategy = "RecursiveGuardAgent @Trigger is observed by CDI without a compatible implementation")
     public void recursiveGuardAgentTriggerObserved() {
         trace.reset();
         recursiveGuardEvents.fire(new RecursiveGuardEvent("x"));
         assertThat(trace.phases()).containsExactly(Phase.TRIGGER);
     }
 
-    @RequiresNoEngine
+    @RequiresNoImplementation
     @Assertion(id = "AGENTICAI-HANDLEEXCEPTION-BHV-006-PRECONDITION",
                section = "3.6 Exception Handling",
                strategy = "PhaseFailureAgent @Trigger is observed by CDI when no phase is configured to fail")
@@ -134,10 +134,10 @@ public class HandleExceptionTests {
         assertThat(trace.phases()).containsExactly(Phase.TRIGGER);
     }
 
-    @RequiresNoEngine
+    @RequiresNoImplementation
     @Assertion(id = "AGENTICAI-HANDLEEXCEPTION-BHV-010-PRECONDITION",
                section = "3.6 Exception Handling",
-               strategy = "NoHandlerAgent @Trigger is observed by CDI without a runtime engine")
+               strategy = "NoHandlerAgent @Trigger is observed by CDI without a compatible implementation")
     public void noHandlerAgentTriggerObserved() {
         trace.reset();
         noHandlerEvents.fire(new NoHandlerEvent("x"));
@@ -146,7 +146,7 @@ public class HandleExceptionTests {
 
     // ── Recovery flow (BHV-001–003) ─────────────────────────────────────────
 
-    @RequiresEngine
+    @RequiresImplementation
     @Assertion(id = "AGENTICAI-HANDLEEXCEPTION-BHV-001",
                section = "3.6 Exception Handling",
                strategy = "Handler completing normally allows @Outcome to run, producing the full recovery phase sequence")
@@ -157,7 +157,7 @@ public class HandleExceptionTests {
                 .containsExactly(Phase.TRIGGER, Phase.ACTION, Phase.HANDLE_EXCEPTION, Phase.OUTCOME);
     }
 
-    @RequiresEngine
+    @RequiresImplementation
     @Assertion(id = "AGENTICAI-HANDLEEXCEPTION-BHV-002",
                section = "3.6 Exception Handling",
                strategy = "HANDLE_EXCEPTION phase is recorded when @Action throws")
@@ -167,7 +167,7 @@ public class HandleExceptionTests {
         assertThat(trace.phases()).contains(Phase.HANDLE_EXCEPTION);
     }
 
-    @RequiresEngine
+    @RequiresImplementation
     @Assertion(id = "AGENTICAI-HANDLEEXCEPTION-BHV-003",
                section = "3.6 Exception Handling",
                strategy = "@Outcome runs as the final phase after a handler returns normally")
@@ -179,7 +179,7 @@ public class HandleExceptionTests {
 
     // ── Exception hierarchy (BHV-004) ───────────────────────────────────────
 
-    @RequiresEngine
+    @RequiresImplementation
     @Assertion(id = "AGENTICAI-HANDLEEXCEPTION-BHV-004",
                section = "3.6 Exception Handling",
                strategy = "The most specific handler is selected when multiple @HandleException methods exist in the same agent")
@@ -195,7 +195,7 @@ public class HandleExceptionTests {
 
     // ── Recursive prevention (BHV-005) ──────────────────────────────────────
 
-    @RequiresEngine
+    @RequiresImplementation
     @Assertion(id = "AGENTICAI-HANDLEEXCEPTION-BHV-005",
                section = "3.6 Exception Handling",
                strategy = "An exception thrown inside @HandleException propagates immediately without re-entering the handler")
@@ -213,7 +213,7 @@ public class HandleExceptionTests {
 
     // ── Cross-phase coverage (BHV-006–009) ──────────────────────────────────
 
-    @RequiresEngine
+    @RequiresImplementation
     @Assertion(id = "AGENTICAI-HANDLEEXCEPTION-BHV-006",
                section = "3.6 Exception Handling",
                strategy = "@HandleException is invoked when an exception originates in the @Trigger phase")
@@ -224,7 +224,7 @@ public class HandleExceptionTests {
         assertThat(trace.phases()).contains(Phase.TRIGGER, Phase.HANDLE_EXCEPTION);
     }
 
-    @RequiresEngine
+    @RequiresImplementation
     @Assertion(id = "AGENTICAI-HANDLEEXCEPTION-BHV-007",
                section = "3.6 Exception Handling",
                strategy = "@HandleException is invoked when an exception originates in the @Decision phase")
@@ -235,7 +235,7 @@ public class HandleExceptionTests {
         assertThat(trace.phases()).contains(Phase.TRIGGER, Phase.DECISION, Phase.HANDLE_EXCEPTION);
     }
 
-    @RequiresEngine
+    @RequiresImplementation
     @Assertion(id = "AGENTICAI-HANDLEEXCEPTION-BHV-008",
                section = "3.6 Exception Handling",
                strategy = "@HandleException is invoked when an exception originates in the @Action phase")
@@ -246,7 +246,7 @@ public class HandleExceptionTests {
         assertThat(trace.phases()).contains(Phase.TRIGGER, Phase.ACTION, Phase.HANDLE_EXCEPTION);
     }
 
-    @RequiresEngine
+    @RequiresImplementation
     @Assertion(id = "AGENTICAI-HANDLEEXCEPTION-BHV-009",
                section = "3.6 Exception Handling",
                strategy = "@HandleException is invoked when an exception originates in the @Outcome phase")
@@ -259,7 +259,7 @@ public class HandleExceptionTests {
 
     // ── Fallback, parameter identity, method contracts (BHV-010–013) ────────
 
-    @RequiresEngine
+    @RequiresImplementation
     @Assertion(id = "AGENTICAI-HANDLEEXCEPTION-BHV-010",
                section = "3.6 Exception Handling",
                strategy = "An unhandled exception propagates to the caller when no @HandleException method is present")
@@ -272,7 +272,7 @@ public class HandleExceptionTests {
         assertThat(trace.phases()).doesNotContain(Phase.OUTCOME);
     }
 
-    @RequiresEngine
+    @RequiresImplementation
     @Assertion(id = "AGENTICAI-HANDLEEXCEPTION-BHV-011",
                section = "3.6 Exception Handling",
                strategy = "The handler receives the exact exception instance that was thrown (referential identity)")
@@ -322,7 +322,7 @@ public class HandleExceptionTests {
 
     // ── Termination states (TERMINATION-BHV-001–004) ─────────────────────────
 
-    @RequiresEngine
+    @RequiresImplementation
     @Assertion(id = "AGENTICAI-TERMINATION-BHV-001",
                section = "3.7 Workflow Termination",
                strategy = "Normal workflow completion ends with @Outcome as the final recorded phase")
@@ -333,7 +333,7 @@ public class HandleExceptionTests {
         assertThat(trace.phases()).last().isEqualTo(Phase.OUTCOME);
     }
 
-    @RequiresEngine
+    @RequiresImplementation
     @Assertion(id = "AGENTICAI-TERMINATION-BHV-002",
                section = "3.7 Workflow Termination",
                strategy = "@Decision returning false halts execution before @Action and @Outcome")
@@ -343,7 +343,7 @@ public class HandleExceptionTests {
         assertThat(trace.phases()).containsExactly(Phase.TRIGGER, Phase.DECISION);
     }
 
-    @RequiresEngine
+    @RequiresImplementation
     @Assertion(id = "AGENTICAI-TERMINATION-BHV-003",
                section = "3.7 Workflow Termination",
                strategy = "An unhandled exception terminates the workflow before @Outcome runs")
@@ -356,7 +356,7 @@ public class HandleExceptionTests {
         assertThat(trace.phases()).doesNotContain(Phase.OUTCOME);
     }
 
-    @RequiresEngine
+    @RequiresImplementation
     @Assertion(id = "AGENTICAI-TERMINATION-BHV-004",
                section = "3.7 Workflow Termination",
                strategy = "An exception re-thrown from @HandleException terminates the workflow immediately without reaching @Outcome")

@@ -23,7 +23,7 @@ import jakarta.enterprise.event.Observes;
 import jakarta.inject.Inject;
 import java.util.UUID;
 
-// Intentionally NO scope annotation — the RI must default to @WorkflowScoped.
+// Intentionally NO scope annotation — the compatible implementation must default to @WorkflowScoped.
 // Under annotated discovery mode this class is NOT a CDI bean.
 @Agent
 public class ScopeDefaultAgent {

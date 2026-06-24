@@ -17,8 +17,8 @@ import ee.jakarta.tck.ai.agent.core.behavior.agents.phaseordering.PhaseOrderingE
 import ee.jakarta.tck.ai.agent.core.behavior.agents.phaseordering.TriggerOutput;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Assertion;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Deployed;
-import ee.jakarta.tck.ai.agent.framework.junit.anno.RequiresEngine;
-import ee.jakarta.tck.ai.agent.framework.junit.anno.RequiresNoEngine;
+import ee.jakarta.tck.ai.agent.framework.junit.anno.RequiresImplementation;
+import ee.jakarta.tck.ai.agent.framework.junit.anno.RequiresNoImplementation;
 import ee.jakarta.tck.ai.agent.framework.stub.LargeLanguageModelStub;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder.Phase;
@@ -53,7 +53,7 @@ public class PhaseOrderingTests {
         trace.reset();
     }
 
-    @RequiresNoEngine
+    @RequiresNoImplementation
     @Assertion(id = "AGENTICAI-ORDER-001",
                section = "3.2 Agent Lifecycle",
                strategy = "Trigger event is observed; trace records TRIGGER with method name and payload")
@@ -68,7 +68,7 @@ public class PhaseOrderingTests {
                 .isEqualTo("test-payload");
     }
 
-    @RequiresEngine
+    @RequiresImplementation
     @Assertion(id = "AGENTICAI-ORDER-002",
                section = "3.2 Agent Lifecycle",
                strategy = "Full T→D→A→O pipeline executes in strict declaration order")
@@ -80,7 +80,7 @@ public class PhaseOrderingTests {
                 .containsExactly(Phase.TRIGGER, Phase.DECISION, Phase.ACTION, Phase.OUTCOME);
     }
 
-    @RequiresEngine
+    @RequiresImplementation
     @Assertion(id = "AGENTICAI-ORDER-003",
                section = "3.2 Agent Lifecycle",
                strategy = "Trigger return value (non-void) is available for injection in Decision")

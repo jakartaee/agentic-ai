@@ -16,7 +16,7 @@ import ee.jakarta.tck.ai.agent.core.behavior.agents.llm.LlmQuerierAgent;
 import ee.jakarta.tck.ai.agent.core.behavior.agents.llm.LlmQuerierEvent;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Assertion;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Deployed;
-import ee.jakarta.tck.ai.agent.framework.junit.anno.RequiresEngine;
+import ee.jakarta.tck.ai.agent.framework.junit.anno.RequiresImplementation;
 import ee.jakarta.tck.ai.agent.framework.stub.LargeLanguageModelStub;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder.Phase;
@@ -199,7 +199,7 @@ public class LlmContractTests {
         stub.reset();
         stub.enqueueResponse("ok");
         // Explicit empty varargs array forces the varargs overload (3) so the substitution
-        // engine actually runs; the single-arg overload bypasses placeholder scanning entirely.
+        // implementation actually runs; the single-arg overload bypasses placeholder scanning entirely.
         assertThatCode(() -> llm.query("{name} and { } stay literal", new Object[0]))
                 .doesNotThrowAnyException();
         assertThat(stub.lastCall().effectivePrompt()).isEqualTo("{name} and { } stay literal");
@@ -282,10 +282,10 @@ public class LlmContractTests {
     }
 
     // -------------------------------------------------------------------------
-    // C. Disabled — requires RI / spec-open
+    // C. Disabled — requires compatible implementation / spec-open
     // -------------------------------------------------------------------------
 
-    @RequiresEngine
+    @RequiresImplementation
     @Assertion(id = "AGENTICAI-LLM-BHV-007",
                section = "Architecture, Concurrency",
                strategy = "conversational state does not leak between sequential workflow executions "
@@ -299,7 +299,7 @@ public class LlmContractTests {
         events.fire(new LlmQuerierEvent("workflow-2"));
 
         // Structural: each workflow ran its @Trigger + @Action and produced exactly one LLM call.
-        // LlmQuerierAgent has both @Trigger and @Action; the RI dispatches both phases per workflow.
+        // LlmQuerierAgent has both @Trigger and @Action; the compatible implementation dispatches both phases per workflow.
         assertThat(trace.phases()).containsExactly(Phase.TRIGGER, Phase.ACTION, Phase.TRIGGER, Phase.ACTION);
         assertThat(stub.recordedCalls()).hasSize(2);
         assertThat(stub.recordedCalls().get(0).effectivePrompt()).isEqualTo("turn for \"workflow-1\"");
@@ -307,7 +307,7 @@ public class LlmContractTests {
 
         // Isolation guarantee (BHV-007 proper): each event must materialize its own
         // @WorkflowScoped LLM context so the second call cannot observe the first
-        // workflow's conversational state. Verifiable only once the RI exposes
+        // workflow's conversational state. Verifiable only once the compatible implementation exposes
         // per-workflow conversation history — this test currently asserts only the
         // structural precondition.
     }

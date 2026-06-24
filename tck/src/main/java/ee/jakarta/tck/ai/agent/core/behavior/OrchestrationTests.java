@@ -26,8 +26,8 @@ import ee.jakarta.tck.ai.agent.core.behavior.agents.orchestration.OutcomeOnlyAge
 import ee.jakarta.tck.ai.agent.core.behavior.agents.orchestration.OutcomeOnlyEvent;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Assertion;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Deployed;
-import ee.jakarta.tck.ai.agent.framework.junit.anno.RequiresEngine;
-import ee.jakarta.tck.ai.agent.framework.junit.anno.RequiresNoEngine;
+import ee.jakarta.tck.ai.agent.framework.junit.anno.RequiresImplementation;
+import ee.jakarta.tck.ai.agent.framework.junit.anno.RequiresNoImplementation;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder.Phase;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder.TraceEntry;
@@ -72,43 +72,43 @@ public class OrchestrationTests {
     @Inject BranchingAgent          branchingAgent;
 
     // -------------------------------------------------------------------------
-    // CDI-only tests (no RI required)
+    // CDI-only tests (no compatible implementation required)
     // -------------------------------------------------------------------------
 
     @Assertion(id = "AGENTICAI-ORCHESTRATION-BHV-006",
                section = "Workflow Composition Patterns",
                strategy = "Minimalist pattern: an agent with @Trigger only is a valid complete workflow; "
-                        + "firing the event drives the trigger via CDI without any engine")
+                        + "firing the event drives the trigger via CDI without a compatible implementation")
     public void minimalistWorkflowCompletesWithTriggerOnly() {
         trace.reset();
         minimalistEvents.fire(new MinimalistEvent("test"));
         assertThat(trace.phases()).containsExactly(Phase.TRIGGER);
     }
 
-    @RequiresNoEngine
+    @RequiresNoImplementation
     @Assertion(id = "AGENTICAI-ORCHESTRATION-BHV-002-PRECONDITION",
                section = "Workflow Composition Patterns",
-               strategy = "LinearAgent @Trigger is observed by CDI without a runtime engine")
+               strategy = "LinearAgent @Trigger is observed by CDI without a compatible implementation")
     public void linearAgentTriggerObserved() {
         trace.reset();
         linearEvents.fire(new LinearEvent("test"));
         assertThat(trace.phases()).containsExactly(Phase.TRIGGER);
     }
 
-    @RequiresNoEngine
+    @RequiresNoImplementation
     @Assertion(id = "AGENTICAI-ORCHESTRATION-BHV-004-PRECONDITION",
                section = "Workflow Composition Patterns",
-               strategy = "IntermixedAgent @Trigger is observed by CDI without a runtime engine")
+               strategy = "IntermixedAgent @Trigger is observed by CDI without a compatible implementation")
     public void intermixedAgentTriggerObserved() {
         trace.reset();
         intermixedEvents.fire(new IntermixedEvent("test"));
         assertThat(trace.phases()).containsExactly(Phase.TRIGGER);
     }
 
-    @RequiresNoEngine
+    @RequiresNoImplementation
     @Assertion(id = "AGENTICAI-ORCHESTRATION-BHV-005-PRECONDITION",
                section = "Workflow Termination",
-               strategy = "BranchingAgent @Trigger is observed by CDI without a runtime engine "
+               strategy = "BranchingAgent @Trigger is observed by CDI without a compatible implementation "
                         + "regardless of which decision is configured as the termination point")
     public void branchingAgentTriggerObserved() {
         trace.reset();
@@ -117,17 +117,17 @@ public class OrchestrationTests {
         assertThat(trace.phases()).containsExactly(Phase.TRIGGER);
     }
 
-    @RequiresNoEngine
+    @RequiresNoImplementation
     @Assertion(id = "AGENTICAI-ORCHESTRATION-BHV-006-EVALUATIVE-PRECONDITION",
                section = "Workflow Composition Patterns",
-               strategy = "OutcomeOnlyAgent (Evaluative pattern) @Trigger is observed by CDI without a runtime engine")
+               strategy = "OutcomeOnlyAgent (Evaluative pattern) @Trigger is observed by CDI without a compatible implementation")
     public void outcomeOnlyAgentTriggerObserved() {
         trace.reset();
         outcomeOnlyEvents.fire(new OutcomeOnlyEvent("test"));
         assertThat(trace.phases()).containsExactly(Phase.TRIGGER);
     }
 
-    @RequiresNoEngine
+    @RequiresNoImplementation
     @Assertion(id = "AGENTICAI-ORCHESTRATION-BHV-001-PRECONDITION",
                section = "Workflow Composition Patterns",
                strategy = "AnchoredAgent @Trigger is observed by CDI even when declared at the bottom of the source file")
@@ -138,10 +138,10 @@ public class OrchestrationTests {
     }
 
     // -------------------------------------------------------------------------
-    // RI-required tests — core orchestration rules
+    // Implementation-required tests — core orchestration rules
     // -------------------------------------------------------------------------
 
-    @RequiresEngine
+    @RequiresImplementation
     @Assertion(id = "AGENTICAI-ORCHESTRATION-BHV-001",
                section = "Workflow Composition Patterns",
                strategy = "@Trigger is always the first phase invoked even when declared at the bottom "
@@ -152,11 +152,11 @@ public class OrchestrationTests {
         assertThat(trace.phases()).startsWith(Phase.TRIGGER);
     }
 
-    @RequiresEngine
+    @RequiresImplementation
     @Assertion(id = "AGENTICAI-ORCHESTRATION-BHV-002",
                section = "@Action / Cardinality and Order",
                strategy = "@Decision and @Action execute in source-file declaration order; AnchoredAgent declares "
-                        + "@Action BEFORE @Decision so an order-correct engine must invoke act() before decide()")
+                        + "@Action BEFORE @Decision so a compatible implementation must invoke act() before decide()")
     public void methodsExecuteInDeclarationOrder() {
         trace.reset();
         anchoredEvents.fire(new AnchoredEvent("test"));
@@ -166,7 +166,7 @@ public class OrchestrationTests {
         assertThat(names).containsExactly("onEvent", "act", "decide", "finish");
     }
 
-    @RequiresEngine
+    @RequiresImplementation
     @Assertion(id = "AGENTICAI-ORCHESTRATION-BHV-003",
                section = "Workflow Composition Patterns",
                strategy = "@Outcome is always the last phase invoked in a successful workflow even when declared "
@@ -177,7 +177,7 @@ public class OrchestrationTests {
         assertThat(trace.phases()).endsWith(Phase.OUTCOME);
     }
 
-    @RequiresEngine
+    @RequiresImplementation
     @Assertion(id = "AGENTICAI-ORCHESTRATION-BHV-004",
                section = "Workflow Composition Patterns",
                strategy = "Multiple alternating @Decision and @Action phases all execute in declaration order")
@@ -192,7 +192,7 @@ public class OrchestrationTests {
                 "onEvent", "firstDecide", "firstAction", "secondDecide", "secondAction", "finish");
     }
 
-    @RequiresEngine
+    @RequiresImplementation
     @Assertion(id = "AGENTICAI-ORCHESTRATION-BHV-005",
                section = "Workflow Termination",
                strategy = "false from the FIRST @Decision in a chain immediately prevents ALL subsequent phases "
@@ -204,11 +204,11 @@ public class OrchestrationTests {
         assertThat(trace.phases()).containsExactly(Phase.TRIGGER, Phase.DECISION);
     }
 
-    @RequiresEngine
+    @RequiresImplementation
     @Assertion(id = "AGENTICAI-ORCHESTRATION-BHV-005",
                section = "Workflow Termination",
                strategy = "false from a MID-CHAIN @Decision (after an upstream decision proceeded) prevents the "
-                        + "remaining @Action and the trailing @Outcome anchor — the engine must keep checking termination "
+                        + "remaining @Action and the trailing @Outcome anchor — the implementation must keep checking termination "
                         + "across the whole chain, not just at the first decision")
     public void terminationAtSecondDecisionHaltsRemainingPipeline() {
         trace.reset();
@@ -219,10 +219,10 @@ public class OrchestrationTests {
     }
 
     // -------------------------------------------------------------------------
-    // RI-required tests — composition patterns (BHV-006)
+    // Implementation-required tests — composition patterns (BHV-006)
     // -------------------------------------------------------------------------
 
-    @RequiresEngine
+    @RequiresImplementation
     @Assertion(id = "AGENTICAI-ORCHESTRATION-BHV-006",
                section = "Workflow Composition Patterns",
                strategy = "Linear pattern: multiple @Action phases execute sequentially without any @Decision")
@@ -236,7 +236,7 @@ public class OrchestrationTests {
                 "onEvent", "firstAction", "secondAction", "thirdAction", "finish");
     }
 
-    @RequiresEngine
+    @RequiresImplementation
     @Assertion(id = "AGENTICAI-ORCHESTRATION-BHV-006",
                section = "Workflow Composition Patterns",
                strategy = "Evaluative pattern: @Decision proceeds directly to @Outcome when no @Action is declared")
@@ -247,7 +247,7 @@ public class OrchestrationTests {
                 .containsExactly(Phase.TRIGGER, Phase.DECISION, Phase.OUTCOME);
     }
 
-    @RequiresEngine
+    @RequiresImplementation
     @Assertion(id = "AGENTICAI-ORCHESTRATION-BHV-006",
                section = "Workflow Composition Patterns",
                strategy = "Intermixed pattern: alternating @Decision/@Action chain executes in declaration order through @Outcome")

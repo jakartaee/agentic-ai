@@ -18,29 +18,29 @@ mvn --projects tck --also-make verify
 # Clean build of TCK and upstream
 mvn --projects tck --also-make clean install
 
-# Run a single test class
-mvn -pl tck test -Dtest=AgentAnnotationTests
+# Run a single TCK assertion class (tests are compiled from src/main/java and executed by Failsafe)
+mvn -pl tck verify -Dgroups=standalone -Dit.test=AgentAnnotationTests
 
-# Run a single integration test class (failsafe)
-mvn -pl tck verify -Dit.test=AgentSmokeTest
+# Run a single deployed integration test class (requires Arquillian container profile)
+mvn -pl tck verify -Pweld-embedded -Dit.test=AgentSmokeTest
 
 # Generate API signature files
 mvn -pl tck verify -Psignature-generation
 ```
 
-The `weld-embedded` profile must be active when running TCK integration tests locally (it provides the Arquillian container). Without it, `@Deployed` tests will fail to find a container.
+The `weld-embedded` profile must be active when you want to execute deployed TCK integration tests locally (it provides the Arquillian container). Without it, deployed-tagged tests are excluded by default in the TCK Maven configuration.
 
 ## Architecture
 
 ### API module (`api/`)
-Defines the `jakarta.ai.agent` package. All types are annotations or interfaces; there is no implementation code here.
+Defines the `jakarta.ai.agent` package. Most types are annotations or interfaces.
 
 | Type | Purpose |
 |---|---|
-| `@Agent` | CDI stereotype for an agent class. Default scope is `@WorkflowScoped`. |
-| `@Trigger` | CDI observer method that starts a workflow. Must observe a CDI event. |
-| `@Decision` | Method querying the LLM to decide workflow branching. Returns `boolean`, `Result`, or a domain object. |
-| `@Action` | Sequential step within the workflow. |
+| `@Agent` | Declares an agent class. Default scope is `@WorkflowScoped` when no scope annotation is present. |
+| `@Trigger` | Workflow entry method invoked by CDI events. Can receive the triggering event (with optional `@Observes`). |
+| `@Decision` | Method that decides whether and how the workflow should proceed. Returns `boolean`, `Result`, or a domain object. |
+| `@Action` | Step within the workflow. |
 | `@Outcome` | Terminal step; marks the end of the workflow. |
 | `@HandleException` | Exception handler within the workflow. |
 | `@WorkflowScoped` | Custom CDI normal scope — one context per workflow execution. |
@@ -52,22 +52,20 @@ Defines the `jakarta.ai.agent` package. All types are annotations or interfaces;
 
 TCK tests live in `src/main/java` (not `src/test/java`) and are compiled to classes that implementors run against their implementation. Only the internal framework unit tests live in `src/test/java`.
 
-**Test categories** (controlled by JUnit 5 tags):
+**Test categories and assertion mapping** (controlled by JUnit 5 tags and meta-annotations):
 - `@Standalone` — reflection-based structural tests; no container needed.
-- `@Deployed` — Arquillian integration tests; require a CDI container (weld-embedded in CI).
+- `@Deployed` — Arquillian integration tests; requires a full container (weld-embedded in CI).
+- `@RequiresImplementation` — skips the test when no compatible implementation is present.
+- `@RequiresNoImplementation` — skips the test when a compatible implementation is present; used for plain-CDI baseline assertions (trigger-only).
+- `@Assertion(id, section, strategy)` — wraps `@Test` and maps the test to a specification requirement ID, section, and verification strategy.
 
 **Test infrastructure classes** (not specification tests; used by implementors and integration tests):
 - `LargeLanguageModelStub` — `@ApplicationScoped` CDI bean implementing `LargeLanguageModel`. Queues scripted responses via `enqueueResponse(...)` and records all calls for assertion. Reset between tests with `reset()`.
 - `ExecutionTraceRecorder` — `@ApplicationScoped` CDI bean. Records lifecycle phase calls (`TRIGGER`, `DECISION`, `ACTION`, `OUTCOME`, `HANDLE_EXCEPTION`) for ordering assertions via `assertOrder(Phase...)`.
 
-**Test annotations:**
-- `@Assertion(id, section, strategy)` — meta-annotation wrapping `@Test`; maps each test to a spec requirement ID.
-- `@Deployed` — class-level; adds `ArquillianExtension` + `AssertionExtension`.
-- `@Standalone` — class-level; adds only `AssertionExtension`.
-
 ### Key design constraints
 
-- The `@Trigger` phase is a CDI observer — plain CDI invokes it without any agent engine. The `@Decision`, `@Action`, and `@Outcome` phases require a Reference Implementation orchestration engine to dispatch them. The `AgentSmokeTest.fullLifecycleRequiresReferenceImplementation` test is `@Disabled` for this reason.
+- In plain CDI-only execution, the `@Trigger` phase is invoked by CDI events. The `@Decision`, `@Action`, and `@Outcome` phases require a compatible implementation to dispatch them. The `AgentSmokeTest.fullLifecycleRequiresCompatibleImplementation` test is conditionally skipped unless a compatible implementation is present.
 - `LargeLanguageModel` implementations must maintain per-workflow conversational state (isolated across concurrent workflows even for `@ApplicationScoped` agents).
 - Serialization uses Jakarta JSON Binding (not Jackson or other libs).
 - Java 17 minimum; Jakarta EE 10 / CDI 4.1 minimum.
