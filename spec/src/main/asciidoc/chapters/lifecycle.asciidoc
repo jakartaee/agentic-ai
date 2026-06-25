@@ -60,8 +60,10 @@ instance may be reused across multiple workflows, but each invocation still
 has an isolated workflow context that begins with a trigger and typically
 ends with an outcome.
 
-`LargeLanguageModel` conversational state follows the same boundaries; see
-the xref:llm-integration[Large Language Model Integration] chapter.
+`LargeLanguageModel` conversational state follows the same boundaries:
+it is bound to the workflow context and remains isolated per workflow
+even when the agent is `@ApplicationScoped`. See
+xref:llm-conversational-state[Conversational State and Threading].
 
 === @Trigger
 

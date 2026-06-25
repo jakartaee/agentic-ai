@@ -21,40 +21,53 @@ APIs when needed, following the `EntityManager.unwrap()` pattern from
 Jakarta Persistence.
 
 **Evolution**:: LLM technologies evolve rapidly; the facade insulates
-applications from those changes.
-
-=== Structured Inputs and Typed Outputs
-
-The facade uses Jakarta JSON Binding for structured prompt parameters and
-typed responses. This lets domain objects flow into and out of LLM calls
-without application-specific serialization code.
-
-[source,java]
-----
-@Decision
-public FraudAnalysis analyzeFraud(BankTransaction transaction) {
-    return llm.query(
-        "Analyze this transaction for fraud patterns and return JSON",
-        FraudAnalysis.class,
-        transaction
-    );
-}
-----
-
-Benefits:
-
-- Type safety without manual JSON handling
-- Consistent serialization across implementations
-- Portability through standard Jakarta JSON Binding
-- LLM-friendly structured data exchange
+applications from those changes. The facade could be evolved into a 
+separate specification in the future.
 
 === LargeLanguageModel Interface
 
-The `jakarta.ai.agent.LargeLanguageModel` interface and its Javadoc are
-the normative contract. See the API Javadoc for the full signature and
-the behavioral requirements for each `query(...)` overload.
+The `jakarta.ai.agent.LargeLanguageModel` interface defines a focused set of
+operations:
 
-==== Exceptions
+- **`query(...)`** — send a prompt to the model. Overloads cover two
+  independent choices: whether to receive the raw `String` response or a
+  value deserialized to a caller-specified type, and whether to supply
+  positional parameters substituted into `{}` placeholders in the prompt
+  (or, when no placeholder is present, attached as a single piece of
+  structured context). Jakarta JSON Binding is used to serialize prompt
+  parameters and deserialize typed responses, letting domain objects flow
+  in and out without application-specific serialization code.
+- **`unwrap(...)`** — return the underlying vendor-specific implementation
+  so callers can reach provider APIs or features not exposed by the
+  facade.
+
+See the API Javadoc for the full method signatures, parameter semantics,
+and per-overload behavioral requirements.
+
+Implementations are provided as CDI beans and injected into agents like
+any other bean; see
+xref:llm-as-cdi-bean[LargeLanguageModel as a CDI Bean] for the injection
+contract.
+
+[[llm-conversational-state]]
+==== Conversational State and Threading
+
+`LargeLanguageModel` implementations maintain conversational state for the
+current workflow context across `query(...)` calls, so that successive
+calls within a workflow can build on prior exchanges. The lifecycle of that
+state follows the workflow context boundaries defined in
+xref:cdi-integration[CDI Integration].
+
+- **`@WorkflowScoped` agents** — conversational state is bound to the
+  workflow context and must end when the workflow context ends.
+- **`@ApplicationScoped` agents** — the `LargeLanguageModel` instance may
+  be shared across concurrent workflows, but conversational state must
+  remain isolated per workflow context and must not leak across concurrent
+  invocations.
+- **Thread safety** — implementations must be thread-safe within a single
+  workflow context.
+
+=== Exceptions
 
 All `query(...)` methods may throw:
 
@@ -62,12 +75,14 @@ All `query(...)` methods may throw:
   or parameter-count mismatches, or conversion failures (input
   parameters that cannot be converted).
 - `LLMException` — for LLM service errors or conversion failures
-  (responses that cannot be converted to the requested type). See below.
+  (responses that cannot be converted to the requested type). See below
+  for details.
 
 `unwrap()` throws `IllegalArgumentException` if the underlying
 implementation cannot be unwrapped to the requested type.
 
-=== LLMException
+[[llm-exception]]
+==== LLMException
 
 `LLMException` is a runtime exception thrown when LLM operations fail. As a
 runtime exception, it does not require explicit handling but may be caught
@@ -118,41 +133,6 @@ public boolean goodPrompt(Issue issue) {
 @Decision
 public String classifyEvent(MyEvent event) {
     return llm.query("Classify this event", event); // structured context
-}
-----
-
-==== Error Handling
-
-Handle LLM failures inline with try-catch, or workflow-wide with
-`@HandleException`.
-
-[source,java]
-----
-@Decision
-public boolean robustEvaluation(Task task) {
-    try {
-        String response = llm.query("Evaluate this task", task);
-        return parseResponse(response);
-
-    } catch (LLMException e) {
-        logger.warn("LLM service error, using fallback", e);
-        return task.getPriority() == Priority.HIGH;
-
-    } catch (IllegalArgumentException e) {
-        logger.error("Invalid parameter to LLM", e);
-        return false;
-    }
-}
-----
-
-[source,java]
-----
-@HandleException
-public void handleLLMError(LLMException e, Task task) {
-    logger.error("LLM failed for task: " + task.getId(), e);
-    task.setStatus(TaskStatus.NEEDS_MANUAL_REVIEW);
-    entityManager.merge(task);
-    // Workflow continues after this method returns
 }
 ----
 
@@ -214,6 +194,42 @@ public Priority parsePriority(Issue issue) {
     }
     logger.warn("Could not parse priority from: " + response);
     return Priority.MEDIUM;
+}
+----
+
+==== Error Handling
+
+Handle LLM failures inline with try-catch, or workflow-wide with
+`@HandleException`. See xref:error-handling[Error Handling] in
+xref:agent-lifecycle[Annotations and Lifecycle] for handler matching rules
+and the behavior when a handler returns normally vs. re-throws.
+
+[source,java]
+----
+@Decision
+public boolean robustEvaluation(Task task) {
+  try {
+    String response = llm.query("Evaluate this task", task);
+    return parseResponse(response);
+
+  } catch (LLMException e) {
+    logger.warn("LLM service error, using fallback", e);
+    return task.getPriority() == Priority.HIGH;
+  } catch (IllegalArgumentException e) {
+    logger.error("Invalid parameter to LLM", e);
+    return false;
+  }
+}
+----
+
+[source,java]
+----
+@HandleException
+public void handleLLMError(LLMException e, Task task) {
+  logger.error("LLM failed for task: " + task.getId(), e);
+  task.setStatus(TaskStatus.NEEDS_MANUAL_REVIEW);
+  entityManager.merge(task);
+  // Workflow continues after this method returns
 }
 ----
 

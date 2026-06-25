@@ -68,8 +68,9 @@ appropriate concurrency controls.
   concurrent workflows; the agent must be thread-safe (see above).
 - **`LargeLanguageModel`** — implementations must be thread-safe within
   a single workflow context and must not leak conversational state
-  across concurrent workflow contexts. See the
-  xref:llm-integration[Large Language Model Integration] chapter.
+  across concurrent workflow contexts. See
+  xref:llm-conversational-state[Conversational State and Threading] for
+  the full contract.
 
 [[cdi-events]]
 === Event Observation Rules
@@ -169,10 +170,11 @@ public class LifecycleAwareAgent {
 }
 ----
 
+[[llm-as-cdi-bean]]
 === LargeLanguageModel as a CDI Bean
 
 The `LargeLanguageModel` interface is provided as a CDI bean by the
 implementation and is injected into agents like any other bean. Its
 conversational state lifecycle aligns with workflow context boundaries; see
-the xref:llm-integration[Large Language Model Integration] chapter for the
+xref:llm-conversational-state[Conversational State and Threading] for the
 full contract.
