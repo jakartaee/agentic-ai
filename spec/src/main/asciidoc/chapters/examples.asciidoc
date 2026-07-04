@@ -102,7 +102,7 @@ public class DocumentationAgent {
     public DocumentationPlan shouldGenerateDocs(PullRequestEvent prEvent) {
         PullRequest pr = prEvent.getPullRequest();
 
-        String response = llm.query(
+        DocumentationPlan plan = llm.query(
             """
             Analyze this pull request and determine if documentation is needed.
 
@@ -113,11 +113,11 @@ public class DocumentationAgent {
             Respond with JSON:
             {"needsDocumentation": true/false, "suggestedFiles": ["file1.md"]}
             """,
+            DocumentationPlan.class,
             pr.getTitle(),
             pr.getDescription(),
             String.join(", ", pr.getChangedFiles())
         );
-        DocumentationPlan plan = parseResponse(response);
 
         if (!plan.needsDocumentation()) {
             logger.info("No documentation needed for PR #" + pr.getNumber());
