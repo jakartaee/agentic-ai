@@ -11,7 +11,7 @@ A basic agent that detects fraudulent transactions:
 
 [source,java]
 ----
-@Agent(name="FraudDetection", description="Detects bank fraud transactions.")
+@Agent(description="Detects bank fraud transactions")
 public class FraudDetectionAgent {
 
     @Inject
@@ -30,7 +30,7 @@ public class FraudDetectionAgent {
 
     @Decision
     public Result checkFraud(BankTransaction transaction) {
-        String output = model.query(
+        FraudAssessment assessment = model.query(
             """
             Analyze this transaction for fraud:
             Amount: {}
@@ -39,13 +39,16 @@ public class FraudDetectionAgent {
 
             Respond with JSON: {"isFraud": true/false, "confidence": 0.0-1.0, "reason": "..."}
             """,
+            FraudAssessment.class,
             transaction.getAmount(),
             transaction.getMerchant(),
             transaction.getLocation()
         );
-        boolean fraud = isFraud(output);
-        Fraud details = fraud ? getFraudDetails(output) : null;
-        return new Result(fraud, details);
+
+        Fraud details = assessment.isFraud()
+            ? new Fraud(assessment.confidence(), assessment.reason())
+            : null;
+        return new Result(assessment.isFraud(), details);
     }
 
     @Action
@@ -65,9 +68,9 @@ public class FraudDetectionAgent {
     }
 
     @HandleException
-    public void handleError(Exception e, BankTransaction transaction) {
-        logger.error("Fraud detection failed for transaction: " + transaction.getId(), e);
-        // Flag for manual review when detection fails
+    public void handleModelUnavailable(LLMException e, BankTransaction transaction) {
+        logger.warn("Fraud model unavailable for transaction: " + transaction.getId(), e);
+        // Compensate safely: route to manual review when model calls fail
         transaction.setStatus(TransactionStatus.NEEDS_REVIEW);
         entityManager.merge(transaction);
     }
@@ -163,13 +166,14 @@ public class DocumentationAgent {
     }
 
     @HandleException
-    public void handleError(Exception e, PullRequestEvent prEvent) {
-        logger.error("Failed to generate documentation for PR #" +
+    public void handleGenerationFailure(LLMException e, PullRequestEvent prEvent) {
+        logger.warn("Documentation generation unavailable for PR #" +
             prEvent.getNumber(), e);
 
         gitService.addComment(
             prEvent.getNumber(),
-            "Failed to generate documentation automatically. Error: " + e.getMessage()
+            "Automatic documentation is temporarily unavailable. " +
+            "Please update docs manually for this PR."
         );
     }
 }
@@ -247,13 +251,9 @@ public class CustomerSupportAgent {
     }
 
     @HandleException
-    public void handleError(Exception e, CustomerMessage message) {
-        logger.error("Support agent error", e);
-        messagingService.sendToCustomer(
-            customer.getId(),
-            "I apologize, a human agent will assist you shortly."
-        );
-        ticketService.escalate(customer.getId(), "Agent system error");
+    public void handleModelFailure(LLMException e, CustomerMessage message) {
+        logger.warn("Support response generation unavailable", e);
+        ticketService.escalate(customer.getId(), "Automated response unavailable");
     }
 }
 ----
