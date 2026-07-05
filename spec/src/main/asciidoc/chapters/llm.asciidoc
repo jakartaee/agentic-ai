@@ -84,7 +84,7 @@ implementation cannot be unwrapped to the requested type.
 [[llm-exception]]
 ==== LLMException
 
-The `LLMException` classis a runtime exception thrown when LLM operations fail. As a
+The `LLMException` class is a runtime exception thrown when LLM operations fail. As a
 runtime exception, it does not require explicit handling but may be caught
 by methods annotated with the `@HandleException` annotation in agent workflows. Common failure scenarios include:
 
