@@ -16,7 +16,7 @@ implementation.
 **Vendor flexibility**:: Implementations can integrate any LLM provider or
 underlying SDK.
 
-**Unwrapping**:: The `unwrap()` method, defined in the `Large Language Model` interface, allows access to vendor-specific
+**Unwrapping**:: The `unwrap()` method, defined in the `LargeLanguageModel` interface, allows access to vendor-specific
 APIs when needed, following the `EntityManager.unwrap()` pattern from
 Jakarta Persistence.
 
