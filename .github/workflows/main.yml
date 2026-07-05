@@ -33,17 +33,33 @@ jobs:
               run: mvn clean install -Pweld-embedded
 
             - name: License Check
+              shell: bash
               run: |
+                  set -euo pipefail
                   attempt=1
-                  max_attempts=3
-                  until mvn org.eclipse.dash:license-tool-plugin:license-check -Pdash-licenses -Ddash.summary=DEPENDENCIES -Ddash.fail=true; do
-                      if [ "$attempt" -ge "$max_attempts" ]; then
-                          echo "License check failed after $max_attempts attempts."
-                          exit 1
-                      fi
-                      echo "License check attempt $attempt failed (possible transient Eclipse/ClearlyDefined API timeout). Retrying in 30s..."
-                      attempt=$((attempt + 1))
-                      sleep 30
+                  max_attempts=6
+                  base_sleep=20
+
+                  until mvn -B \
+                    -Dmaven.wagon.http.retryHandler.count=5 \
+                    -Dmaven.wagon.httpconnectionManager.ttlSeconds=120 \
+                    org.eclipse.dash:license-tool-plugin:license-check \
+                    -Pdash-licenses \
+                    -Ddash.summary=DEPENDENCIES \
+                    -Ddash.fail=true; do
+
+                    if [ "$attempt" -ge "$max_attempts" ]; then
+                      echo "License check failed after $max_attempts attempts."
+                      exit 1
+                    fi
+
+jitter=$(( RANDOM % 10 ))
+sleep_base=$(( base_sleep * (2 ** (attempt - 1)) ))
+sleep_base=$(( sleep_base > (300 - 9) ? (300 - 9) : sleep_base ))
+sleep_for=$(( sleep_base + jitter ))
+                    echo "License check attempt $attempt/$max_attempts failed (transient upstream/API issue). Retrying in ${sleep_for}s..."
+                    attempt=$(( attempt + 1 ))
+                    sleep "$sleep_for"
                   done
 
             - name: Upload DEPENDENCIES
