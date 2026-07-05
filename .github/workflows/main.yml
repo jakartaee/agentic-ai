@@ -53,8 +53,10 @@ jobs:
                       exit 1
                     fi
 
-                    sleep_for=$(( base_sleep * (2 ** (attempt - 1)) + RANDOM % 10 ))
-                    sleep_for=$(( sleep_for > 300 ? 300 : sleep_for ))
+jitter=$(( RANDOM % 10 ))
+sleep_base=$(( base_sleep * (2 ** (attempt - 1)) ))
+sleep_base=$(( sleep_base > (300 - 9) ? (300 - 9) : sleep_base ))
+sleep_for=$(( sleep_base + jitter ))
                     echo "License check attempt $attempt/$max_attempts failed (transient upstream/API issue). Retrying in ${sleep_for}s..."
                     attempt=$(( attempt + 1 ))
                     sleep "$sleep_for"
