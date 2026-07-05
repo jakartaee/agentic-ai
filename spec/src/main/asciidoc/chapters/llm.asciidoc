@@ -16,7 +16,7 @@ implementation.
 **Vendor flexibility**:: Implementations can integrate any LLM provider or
 underlying SDK.
 
-**Unwrapping**:: The `unwrap()` method allows access to vendor-specific
+**Unwrapping**:: The `unwrap()` method, defined in the `Large Language Model` interface, allows access to vendor-specific
 APIs when needed, following the `EntityManager.unwrap()` pattern from
 Jakarta Persistence.
 
@@ -29,7 +29,7 @@ separate specification in the future.
 The `jakarta.ai.agent.LargeLanguageModel` interface defines a focused set of
 operations:
 
-- **`query(...)`** — send a prompt to the model. Overloads cover two
+- **`query(...)`** — an overloaded method that sends a prompt to the model. Overloads cover two
   independent choices: whether to receive the raw `String` response or a
   value deserialized to a caller-specified type, and whether to supply
   positional parameters substituted into `{}` placeholders in the prompt
@@ -52,15 +52,15 @@ contract.
 [[llm-conversational-state]]
 ==== Conversational State and Threading
 
-`LargeLanguageModel` implementations maintain conversational state for the
-current workflow context across `query(...)` calls, so that successive
+Implementations of the `LargeLanguageModel` interface maintain conversational state for the
+current workflow context across calls to the `query(...)` method, so that successive
 calls within a workflow can build on prior exchanges. The lifecycle of that
 state follows the workflow context boundaries defined in
 xref:cdi-integration[CDI Integration].
 
 - **`@WorkflowScoped` agents** — conversational state is bound to the
   workflow context and must end when the workflow context ends.
-- **`@ApplicationScoped` agents** — the `LargeLanguageModel` instance may
+- **`@ApplicationScoped` agents** — an instance of the `LargeLanguageModel` interface may
   be shared across concurrent workflows, but conversational state must
   remain isolated per workflow context and must not leak across concurrent
   invocations.
@@ -78,15 +78,15 @@ All `query(...)` methods may throw:
   (responses that cannot be converted to the requested type). See below
   for details.
 
-`unwrap()` throws `IllegalArgumentException` if the underlying
+`unwrap()` throws an `IllegalArgumentException` if the underlying
 implementation cannot be unwrapped to the requested type.
 
 [[llm-exception]]
 ==== LLMException
 
-`LLMException` is a runtime exception thrown when LLM operations fail. As a
+The `LLMException` classis a runtime exception thrown when LLM operations fail. As a
 runtime exception, it does not require explicit handling but may be caught
-by `@HandleException` methods in agent workflows. Common failure scenarios:
+by methods annotated with the `@HandleException` annotation in agent workflows. Common failure scenarios include:
 
 - Communication failures with the LLM service
 - Invalid or malformed responses from the LLM (truncated output, error
@@ -100,7 +100,7 @@ by `@HandleException` methods in agent workflows. Common failure scenarios:
 
 ==== Prompt Construction
 
-When using the varargs `query(...)` overloads, use the exact token `{}` for
+When using the varargs versions of the `query(...)` overloaded methods, use the exact token `{}` for
 positional substitution.
 
 - When a prompt contains one or more `{}` placeholders, the number of
@@ -235,7 +235,7 @@ public void handleLLMError(LLMException e, Task task) {
 
 ==== Vendor-Specific Access
 
-Use `unwrap()` to reach vendor-specific features when portability is not
+Use the `unwrap()` method to reach vendor-specific features when portability is not
 required:
 
 [source,java]
