@@ -15,7 +15,8 @@ jobs:
     build:
         runs-on: ubuntu-24.04
         steps:
-            - uses: actions/checkout@v4
+            - name: Checkout
+              uses: actions/checkout@v4
             - name: Setup Java
               uses: actions/setup-java@v4
               with:
@@ -33,7 +34,6 @@ jobs:
               run: mvn clean install -Pweld-embedded
 
             - name: License Check
-              shell: bash
               run: |
                   set -euo pipefail
                   attempt=1
@@ -53,10 +53,10 @@ jobs:
                       exit 1
                     fi
 
-jitter=$(( RANDOM % 10 ))
-sleep_base=$(( base_sleep * (2 ** (attempt - 1)) ))
-sleep_base=$(( sleep_base > (300 - 9) ? (300 - 9) : sleep_base ))
-sleep_for=$(( sleep_base + jitter ))
+                    jitter=$(( RANDOM % 10 ))
+                    sleep_base=$(( base_sleep * (2 ** (attempt - 1)) ))
+                    sleep_base=$(( sleep_base > (300 - 9) ? (300 - 9) : sleep_base ))
+                    sleep_for=$(( sleep_base + jitter ))
                     echo "License check attempt $attempt/$max_attempts failed (transient upstream/API issue). Retrying in ${sleep_for}s..."
                     attempt=$(( attempt + 1 ))
                     sleep "$sleep_for"
