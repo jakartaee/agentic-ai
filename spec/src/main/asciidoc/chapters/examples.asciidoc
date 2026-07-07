@@ -52,15 +52,20 @@ public class FraudDetectionAgent {
     }
 
     @Action
-    public void handleFraud(Fraud fraud, BankTransaction transaction) {
+    public void alertBankSecurity(Fraud fraud) {
         if (fraud.isSerious()) {
             alertService.alertBankSecurity(fraud);
         }
+    }
+
+    @Action
+    public void alertCustomer(Fraud fraud, BankTransaction transaction) {
         Customer customer = getCustomer(transaction);
         alertService.alertCustomer(fraud, transaction, customer);
     }
 
     @Outcome
+    @Transactional
     public void finalizeTransaction(BankTransaction transaction, Fraud fraud) {
         transaction.setStatus(TransactionStatus.SUSPECT);
         entityManager.merge(transaction);
@@ -68,6 +73,7 @@ public class FraudDetectionAgent {
     }
 
     @HandleException
+    @Transactional
     public void handleModelUnavailable(LLMException e, BankTransaction transaction) {
         logger.warn("Fraud model unavailable for transaction: " + transaction.getId(), e);
         // Compensate safely: route to manual review when model calls fail
@@ -210,7 +216,7 @@ public class CustomerSupportAgent {
         customer = customerService.getCustomer(message.getCustomerId());
     }
 
-    @Decision
+    @Action
     public SupportResponse generateResponse(CustomerMessage message) {
         List<KnowledgeArticle> articles = knowledgeBase.search(message.getText(), 5);
 
@@ -260,56 +266,60 @@ public class CustomerSupportAgent {
 
 === Parameter Validation and Error Recovery Agent
 
-An agent that validates input parameters and handles validation failures gracefully:
+An agent that validates input and recovers gracefully from validation and
+delivery failures:
 
 [source,java]
 ----
 @Agent
-public class ValidationAwareAgent {
+public class OnboardingAgent {
 
     @Inject
     private EmailService emailService;
 
+    // Constraint violations short-circuit the workflow and are recovered by
+    // @HandleException below.
     @Trigger
-    // Parameters are automatically validated with @Valid and @NotNull constraints
     public void onInvitation(@Valid @NotNull UserInvitation invitation) {
         logger.info("Processing invitation for: " + invitation.getEmail());
     }
 
     @Decision
-    // Decision method parameters are also validated
-    public boolean validateEmail(@Valid @Email String email) {
-        // Format verification has already occurred via @Email constraint
-        return emailService.isActiveEmail(email);
+    public boolean isEmailActive(UserInvitation invitation) {
+        // Format was validated by @Email on UserInvitation; here we confirm
+        // the address is actually reachable.
+        return emailService.isActiveEmail(invitation.getEmail());
     }
 
     @Action
-    // Multiple validated parameters
-    public void sendWelcomeEmail(@Valid @NotEmpty String email,
-                                 @Valid @NotNull User user) {
-        String template = "Welcome " + user.getFirstName() + "!";
-        emailService.send(email, template);
+    public void sendWelcomeEmail(UserInvitation invitation) {
+        User invitee = invitation.getInvitee();
+        emailService.send(
+            invitation.getEmail(),
+            "Welcome " + invitee.getFirstName() + "!"
+        );
     }
 
-    // Handles constraint violations specifically
+    @Outcome
+    public void markAccepted(UserInvitation invitation) {
+        invitation.setStatus(InvitationStatus.ACCEPTED);
+    }
+
     @HandleException
-    public void handleValidationError(ConstraintViolationException e,
-                                      UserInvitation invitation) {
-        logger.warn("Invalid invitation data", e);
-        // Log validation violations for audit trail
-        for (var violation : e.getConstraintViolations()) {
-            logger.debug("Violation: " + violation.getPropertyPath() + " - " +
-                        violation.getMessage());
+    public void onInvalidInvitation(ConstraintViolationException e,
+                                    UserInvitation invitation) {
+        for (var v : e.getConstraintViolations()) {
+            logger.warn("Invalid: " + v.getPropertyPath() + " - " + v.getMessage());
         }
-        // Still record attempt but mark as invalid
         invitation.setStatus(InvitationStatus.INVALID);
     }
 
-    // Handles other unexpected exceptions
+    // Compensating recovery when the mail service cannot deliver.
     @HandleException
-    public void handleGenericError(Exception e, UserInvitation invitation) {
-        logger.error("Unexpected error processing invitation", e);
-        invitation.setStatus(InvitationStatus.ERROR);
+    public void onDeliveryFailure(EmailDeliveryException e,
+                                  UserInvitation invitation) {
+        logger.error("Unable to deliver welcome email", e);
+        invitation.setStatus(InvitationStatus.DELIVERY_FAILED);
     }
 }
 ----
@@ -326,4 +336,5 @@ These examples demonstrate:
 6. **CDI Integration**: Dependency injection, transactions
 7. **Context Management**: Maintaining state across workflow phases
 8. **Parameter Validation**: Jakarta Validation constraints with failure recovery
-9. **Real-world Use Cases**: Fraud detection, documentation generation, customer support
+9. **Real-world Use Cases**: Fraud detection, documentation generation, 
+   customer support
