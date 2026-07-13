@@ -69,14 +69,6 @@
     <build>
         <pluginManagement>
             <plugins>
-                <!--
-                    Pin a maven-compiler-plugin version that honours
-                    maven.compiler.release. Without this, the build falls back
-                    to the Maven super-POM default (3.1), which predates the
-                    'release' option and compiles with source/target 1.5,
-                    failing on modern JDKs with "Source option 5 is no longer
-                    supported".
-                -->
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-compiler-plugin</artifactId>
