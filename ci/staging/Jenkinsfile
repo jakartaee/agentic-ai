@@ -92,7 +92,10 @@ pipeline {
                                 // Update version to release version
                                 sh "mvn clean versions:set -DnewVersion=${params.RELEASE_VERSION} -DgenerateBackupPoms=false"
 
-                                // Commit and tag the release version
+                                // Commit and tag the release version.
+                                // The local tag deletion makes the tag step idempotent across retries
+                                // in a persistent Jenkins workspace; the remote tag is untouched here.
+                                sh "git tag -d ${params.RELEASE_VERSION} 2>/dev/null || true"
                                 sh "git commit -a -m '[Jenkins staging job] Preparing release ${params.RELEASE_VERSION}'"
                                 sh "git tag -a -m 'Release ${params.RELEASE_VERSION}' ${params.RELEASE_VERSION}"
 
