@@ -89,6 +89,10 @@
                             <doctype>article</doctype>
                             <attributes>
                                 <imagesdir>images</imagesdir>
+                                <project-version>${project.version}</project-version>
+                                <revnumber>${spec.version}</revnumber>
+                                <revremark>${spec.status}</revremark>
+                                <revdate>${revisiondate}</revdate>
                             </attributes>
                         </configuration>
                     </execution>
