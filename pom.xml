@@ -62,7 +62,7 @@
         <spec.nonFinal>true</spec.nonFinal>
         <!-- Draft | Final Release -->
         <spec.status>Draft</spec.status>
-        <nexus.staging.repository>agentic-ai-staging</nexus.staging.repository>
+        <nexus.staging.repository>agentic-ai-maven2-staging</nexus.staging.repository>
         <project.build.outputTimestamp>2026-04-12T00:00:00Z</project.build.outputTimestamp>
     </properties>
 
