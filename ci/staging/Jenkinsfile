@@ -72,6 +72,10 @@ pipeline {
                             string(credentialsId: 'gpg-passphrase', variable: 'KEYRING_PASSPHRASE')
                         ]) {
                             withMaven(mavenLocalRepo: env.WORKSPACE_TMP + '/.m2repository') {
+                                // The Eclipse Jenkins agent home is read-only, so we cannot persist
+                                // a known_hosts file. Configure ssh via GIT_SSH_COMMAND so the git
+                                // push steps below don't fail on host-key verification.
+                                withEnv(["GIT_SSH_COMMAND=ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"]) {
                                 sh "find . -type d -exec chmod -s {} \\;"
                                 sh "find . -type d -exec chmod 0755 {} \\;"
                                 sh 'mkdir -p ~/.gnupg && chmod 700 ~/.gnupg'
@@ -86,7 +90,6 @@ pipeline {
                                 // The SCM plugin checked out via HTTPS but the sshagent block above
                                 // holds the github-bot-ssh key. Switch origin to SSH so 'git push'
                                 // uses the loaded SSH identity instead of prompting for HTTPS creds.
-                                sh 'mkdir -p ~/.ssh && chmod 700 ~/.ssh && ssh-keyscan -t rsa,ecdsa,ed25519 github.com >> ~/.ssh/known_hosts 2>/dev/null'
                                 sh 'git remote set-url origin git@github.com:jakartaee/agentic-ai.git'
 
                                 // Update version to release version
@@ -110,6 +113,7 @@ pipeline {
                                 sh "git commit -a -m '[Jenkins staging job] Preparing next development iteration'"
                                 sh "git push origin HEAD:${env.GIT_BRANCH}"
                                 sh "git push origin ${params.RELEASE_VERSION}"
+                                }
                             }
                         }
                     }
