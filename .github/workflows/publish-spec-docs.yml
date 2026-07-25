@@ -1,0 +1,53 @@
+name: Publish spec docs to GitHub Release
+
+# Fires when the Jenkins staging pipeline pushes a version tag (e.g. 1.0.0-M1,
+# 1.0.0). Builds the spec HTML/PDF and attaches them to the GitHub Release for
+# that tag. Milestone/RC tags are marked as prereleases.
+on:
+    push:
+        tags:
+            - '[0-9]+.[0-9]+.[0-9]+'
+            - '[0-9]+.[0-9]+.[0-9]+-*'
+
+permissions:
+    contents: write
+
+jobs:
+    publish:
+        runs-on: ubuntu-24.04
+        steps:
+            - name: Checkout tag
+              uses: actions/checkout@v4
+
+            - name: Setup Java
+              uses: actions/setup-java@v4
+              with:
+                  distribution: 'temurin'
+                  java-version: 17
+
+            - name: Cache Maven packages
+              uses: actions/cache@v4
+              with:
+                  path: ~/.m2/repository
+                  key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+                  restore-keys: ${{ runner.os }}-m2
+
+            - name: Build spec (HTML + PDF)
+              run: mvn --projects spec --also-make -DskipTests=true generate-resources
+
+            - name: Stage spec artifacts
+              run: |
+                  set -euo pipefail
+                  mkdir -p release-assets
+                  cp spec/target/generated-docs/index.html "release-assets/jakarta-agentic-ai-${GITHUB_REF_NAME}.html"
+                  cp spec/target/generated-docs/spec.pdf   "release-assets/jakarta-agentic-ai-${GITHUB_REF_NAME}.pdf"
+                  ls -la release-assets
+
+            - name: Create GitHub Release
+              uses: softprops/action-gh-release@v2
+              with:
+                  prerelease: false
+                  generate_release_notes: true
+                  files: |
+                      release-assets/*.html
+                      release-assets/*.pdf
