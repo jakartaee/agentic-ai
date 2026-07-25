@@ -83,6 +83,11 @@ pipeline {
                                 // Set up git
                                 sh 'git config --local user.name "agentic-ai-bot"'
                                 sh 'git config --local user.email "agentic-ai-bot@eclipse.org"'
+                                // The SCM plugin checked out via HTTPS but the sshagent block above
+                                // holds the github-bot-ssh key. Switch origin to SSH so 'git push'
+                                // uses the loaded SSH identity instead of prompting for HTTPS creds.
+                                sh 'mkdir -p ~/.ssh && chmod 700 ~/.ssh && ssh-keyscan -t rsa,ecdsa,ed25519 github.com >> ~/.ssh/known_hosts 2>/dev/null'
+                                sh 'git remote set-url origin git@github.com:jakartaee/agentic-ai.git'
 
                                 // Update version to release version
                                 sh "mvn clean versions:set -DnewVersion=${params.RELEASE_VERSION} -DgenerateBackupPoms=false"
