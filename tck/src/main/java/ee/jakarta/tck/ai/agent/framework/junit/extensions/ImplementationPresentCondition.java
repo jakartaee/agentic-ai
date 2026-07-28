@@ -14,7 +14,6 @@ package ee.jakarta.tck.ai.agent.framework.junit.extensions;
 
 import ee.jakarta.tck.ai.agent.framework.junit.anno.RequiresImplementation;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.RequiresNoImplementation;
-import jakarta.ai.agent.WorkflowScoped;
 import jakarta.enterprise.inject.spi.CDI;
 import org.junit.jupiter.api.extension.ConditionEvaluationResult;
 import org.junit.jupiter.api.extension.ExecutionCondition;
@@ -23,23 +22,40 @@ import org.junit.platform.commons.support.AnnotationSupport;
 
 /**
  * Enables or disables a test based on whether a compatible implementation of
- * the Agentic AI specification is present, with no configuration required.
+ * the Agentic AI specification is present.
  *
- * <p>Detection is performed at runtime, inside the CDI container, by checking
- * whether a {@link WorkflowScoped} {@code Context} has been registered — every
- * compatible implementation registers one, and plain CDI (no implementation)
- * does not. This works for any vendor without a system property or server JVM
- * option.</p>
+ * <p>Detection is performed at runtime, inside the CDI container, by reading
+ * the system property {@value #IMPLEMENTATION_PRESENT_PROPERTY}. Implementations
+ * running the TCK must set this property to {@code true} (for example via
+ * {@code -Djakarta.ai.agent.tck.implementation.present=true} on the Surefire
+ * / Failsafe {@code argLine}) so that the {@link RequiresImplementation}
+ * behavior assertions are exercised and the {@link RequiresNoImplementation}
+ * baseline assertions are skipped. The default (unset) means "no compatible
+ * implementation" — appropriate for a plain-CDI (Weld/OpenWebBeans) run of
+ * the standalone assertions.</p>
+ *
+ * <p>A system-property opt-in is used rather than a CDI-container probe so
+ * this detector remains portable across CDI 4.0 (Jakarta EE 10) containers,
+ * where the {@code BeanManager} does not expose a way to enumerate registered
+ * contexts.</p>
  *
  * <p>When evaluated outside a CDI container (the Arquillian client JVM, where
  * conditions are also evaluated before a test is dispatched to the container)
- * a compatible implementation's presence cannot be determined, so the test is left enabled and
- * the real decision is deferred to the in-container evaluation.</p>
+ * a compatible implementation's presence cannot be determined, so the test is
+ * left enabled and the real decision is deferred to the in-container
+ * evaluation.</p>
  *
  * @see RequiresImplementation
  * @see RequiresNoImplementation
  */
 public class ImplementationPresentCondition implements ExecutionCondition {
+
+    /**
+     * System property implementations must set to {@code true} when running
+     * the TCK against a compatible implementation.
+     */
+    public static final String IMPLEMENTATION_PRESENT_PROPERTY =
+            "jakarta.ai.agent.tck.implementation.present";
 
     @Override
     public ConditionEvaluationResult evaluateExecutionCondition(ExtensionContext context) {
@@ -75,9 +91,13 @@ public class ImplementationPresentCondition implements ExecutionCondition {
      */
     private static Boolean detectImplementation() {
         try {
-            return !CDI.current().getBeanManager().getContexts(WorkflowScoped.class).isEmpty();
+            // Ensure we are inside a CDI container. Outside one (e.g. the
+            // Arquillian client JVM), CDI.current() throws IllegalStateException
+            // and we defer the decision to the in-container evaluation.
+            CDI.current();
         } catch (Throwable outsideContainer) {
             return null;
         }
+        return Boolean.getBoolean(IMPLEMENTATION_PRESENT_PROPERTY);
     }
 }
