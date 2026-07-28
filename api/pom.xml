@@ -16,12 +16,14 @@
     <name>Jakarta Agentic AI API</name>
     <description>Vendor-neutral API for building agentic AI applications on Jakarta EE runtimes.</description>
 
+    <properties>
+        <cyclonedx.skip>false</cyclonedx.skip>
+    </properties>
+
     <dependencies>
         <dependency>
-            <groupId>jakarta.enterprise</groupId>
-            <artifactId>jakarta.enterprise.cdi-api</artifactId>
-            <version>4.1.0</version>
-            <scope>provided</scope>
+            <groupId>jakarta.platform</groupId>
+            <artifactId>jakarta.jakartaee-api</artifactId>
         </dependency>
     </dependencies>
 </project>
