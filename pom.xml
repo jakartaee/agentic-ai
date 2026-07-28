@@ -56,7 +56,14 @@
     </developers>
 
     <properties>
+        <!-- Java SE 17 baseline. This is the only place the language level is set. -->
         <maven.compiler.release>17</maven.compiler.release>
+        <!-- Jakarta EE 10 baseline. Modules depend on the platform umbrella
+             (jakarta.platform:jakarta.jakartaee-api) rather than on individual
+             Jakarta APIs, so this single version governs the whole EE surface
+             and no module can drift to a different API level. -->
+        <jakarta.ee.version>10.0.0</jakarta.ee.version>
+        <cyclonedx.skip>true</cyclonedx.skip>
         <spec.version>1.0</spec.version>
         <!-- set to false for release -->
         <spec.nonFinal>true</spec.nonFinal>
@@ -65,6 +72,20 @@
         <nexus.staging.repository>agentic-ai-maven2-staging</nexus.staging.repository>
         <project.build.outputTimestamp>2026-07-28T01:22:11Z</project.build.outputTimestamp>
     </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <!-- The Jakarta EE 10 platform. Every module that needs a Jakarta API
+                 declares this one dependency and inherits the whole EE 10 surface
+                 at a consistent level; individual Jakarta APIs are not declared. -->
+            <dependency>
+                <groupId>jakarta.platform</groupId>
+                <artifactId>jakarta.jakartaee-api</artifactId>
+                <version>${jakarta.ee.version}</version>
+                <scope>provided</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 
     <build>
         <pluginManagement>
@@ -76,5 +97,27 @@
                 </plugin>
             </plugins>
         </pluginManagement>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-enforcer-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>enforce-java-se-baseline</id>
+                        <goals>
+                            <goal>enforce</goal>
+                        </goals>
+                        <configuration>
+                            <rules>
+                                <requireJavaVersion>
+                                    <version>[17,)</version>
+                                    <message>Jakarta Agentic AI requires Java SE 17 or newer.</message>
+                                </requireJavaVersion>
+                            </rules>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
     </build>
 </project>

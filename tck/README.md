@@ -91,8 +91,8 @@ public void testAgentAnnotationExists() {
 ## Requirements
 
 - Java 17 or higher
+- Jakarta EE 10 or higher
 - Maven 3.8+
-- Jakarta CDI 4.1+ (for CDI-related tests)
 
 ## License
 
