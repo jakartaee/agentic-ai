@@ -106,8 +106,12 @@ pipeline {
                                 def nonFinalArg = params.SPEC_STATUS ? "" : "-Dspec.nonFinal=false"
                                 sh "mvn clean deploy -Pstage-release -DskipTests=true ${nonFinalArg} -Dspec.status=${params.SPEC_STATUS} -Dgpg.passphrase=\$KEYRING_PASSPHRASE"
 
-                                // Reset the version back to development
-                                sh "mvn clean versions:set -DnewVersion=${params.DEVELOPMENT_VERSION} -DgenerateBackupPoms=false"
+                                // Reset the version back to development.
+                                // Do NOT 'clean' here: the previous 'mvn clean deploy' produced
+                                // spec/target/generated-docs/{index.html,spec.pdf} which the next
+                                // stage uploads to the GitHub Release. 'versions:set' is a POM-only
+                                // goal and doesn't require a build directory.
+                                sh "mvn versions:set -DnewVersion=${params.DEVELOPMENT_VERSION} -DgenerateBackupPoms=false"
 
                                 // Commit the dev version and push
                                 sh "git commit -a -m '[Jenkins staging job] Preparing next development iteration'"
