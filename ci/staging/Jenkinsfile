@@ -69,7 +69,10 @@ pipeline {
                     sshagent(['github-bot-ssh', 'projects-storage.eclipse.org-bot-ssh']) {
                         withCredentials([
                             file(credentialsId: 'secret-subkeys.asc', variable: 'KEYRING'),
-                            string(credentialsId: 'gpg-passphrase', variable: 'KEYRING_PASSPHRASE')
+                            // maven-gpg-plugin 3.x picks up MAVEN_GPG_PASSPHRASE from the
+                            // environment automatically; using the CLI '-Dgpg.passphrase='
+                            // flag is deprecated and prints a security warning.
+                            string(credentialsId: 'gpg-passphrase', variable: 'MAVEN_GPG_PASSPHRASE')
                         ]) {
                             withMaven(mavenLocalRepo: env.WORKSPACE_TMP + '/.m2repository') {
                                 // The Eclipse Jenkins agent home is read-only, so we cannot persist
@@ -104,7 +107,7 @@ pipeline {
 
                                 // Stage API to Eclipse Nexus (only api has maven.deploy.skip=false)
                                 def nonFinalArg = params.SPEC_STATUS ? "" : "-Dspec.nonFinal=false"
-                                sh "mvn clean deploy -Pstage-release -DskipTests=true ${nonFinalArg} -Dspec.status=${params.SPEC_STATUS} -Dgpg.passphrase=\$KEYRING_PASSPHRASE"
+                                sh "mvn clean deploy -Pstage-release -DskipTests=true ${nonFinalArg} -Dspec.status=${params.SPEC_STATUS}"
 
                                 // Reset the version back to development.
                                 // Do NOT 'clean' here: the previous 'mvn clean deploy' produced
