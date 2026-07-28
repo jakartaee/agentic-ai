@@ -104,4 +104,28 @@
             </plugin>
         </plugins>
     </build>
+
+    <profiles>
+        <!--
+            The 'stage-release' profile inherited from org.eclipse.ee4j:project
+            hardcodes <skip>snapshots</skip> on maven-deploy-plugin, which beats
+            the module-level <maven.deploy.skip>true</maven.deploy.skip> property.
+            Explicitly override the plugin's <skip> here so this non-API module
+            is not staged to Eclipse Nexus (and therefore not promoted to Central).
+        -->
+        <profile>
+            <id>stage-release</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-deploy-plugin</artifactId>
+                        <configuration>
+                            <skip>true</skip>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>
