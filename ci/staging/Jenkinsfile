@@ -99,8 +99,9 @@ pipeline {
                                 sh "mvn clean versions:set -DnewVersion=${params.RELEASE_VERSION} -DgenerateBackupPoms=false"
 
                                 // Commit and tag the release version.
-                                // The local tag deletion makes the tag step idempotent across retries
-                                // in a persistent Jenkins workspace; the remote tag is untouched here.
+                                // The local tag deletion makes the tag step idempotent across
+                                // retries in a persistent Jenkins workspace; the remote tag is
+                                // moved by the force-push at the end of this stage.
                                 sh "git tag -d ${params.RELEASE_VERSION} 2>/dev/null || true"
                                 sh "git commit -a -m '[Jenkins staging job] Preparing release ${params.RELEASE_VERSION}'"
                                 sh "git tag -a -m 'Release ${params.RELEASE_VERSION}' ${params.RELEASE_VERSION}"
@@ -119,7 +120,13 @@ pipeline {
                                 // Commit the dev version and push
                                 sh "git commit -a -m '[Jenkins staging job] Preparing next development iteration'"
                                 sh "git push origin HEAD:${env.GIT_BRANCH}"
-                                sh "git push origin ${params.RELEASE_VERSION}"
+                                // Force-push the tag so a retry can move it onto the commit this
+                                // run actually staged. Without --force git rejects the push,
+                                // because the retry builds a new commit while the remote tag still
+                                // points at the previous attempt's. This is a staging job, so
+                                // republishing a version in place is expected; a final release
+                                // should be cut at a version whose tag does not exist yet.
+                                sh "git push --force origin refs/tags/${params.RELEASE_VERSION}"
                                 }
                             }
                         }
