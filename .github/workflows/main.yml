@@ -33,33 +33,72 @@ jobs:
             - name: Build
               run: mvn clean install -Pweld-embedded
 
+            # The Dash plugin exposes no timeout or retry setting, so an unresponsive
+            # Eclipse API can only be ridden out by retrying. Retry ONLY on transient
+            # signatures: the previous version retried any failure, so a genuinely
+            # restricted dependency was re-checked to exhaustion before being
+            # reported, which both delayed the real answer and hid it in a wall of
+            # retry noise.
             - name: License Check
               run: |
                   set -euo pipefail
+
                   attempt=1
-                  max_attempts=3
-                  base_sleep=15
+                  max_attempts=5
+                  base_sleep=30
+                  max_sleep=300
+                  log="$(mktemp)"
 
-                  until mvn -B \
-                    -Dmaven.wagon.http.retryHandler.count=5 \
-                    -Dmaven.wagon.httpconnectionManager.ttlSeconds=120 \
-                    org.eclipse.dash:license-tool-plugin:license-check \
-                    -Pdash-licenses \
-                    -Ddash.summary=DEPENDENCIES \
-                    -Ddash.fail=true; do
+                  # Signatures of an unreachable or slow upstream, as opposed to the
+                  # plugin reporting an actual licence problem. The observed failure
+                  # was 'java.net.http.HttpTimeoutException: request timed out'.
+                  transient_re='HttpTimeoutException|SocketTimeoutException|ConnectException|UnknownHostException|request timed out|Connection reset|connect timed out|50[234] '
 
-                    if [ "$attempt" -ge "$max_attempts" ]; then
-                      echo "License check failed after $max_attempts attempts."
-                      exit 1
-                    fi
+                  while :; do
+                      if mvn -B \
+                          -Dmaven.wagon.http.retryHandler.count=5 \
+                          -Dmaven.wagon.httpconnectionManager.ttlSeconds=120 \
+                          org.eclipse.dash:license-tool-plugin:license-check \
+                          -Pdash-licenses \
+                          -Ddash.summary=DEPENDENCIES \
+                          -Ddash.fail=true 2>&1 | tee "$log"; then
+                          echo "License check passed on attempt ${attempt}/${max_attempts}."
+                          break
+                      fi
 
-                    jitter=$(( RANDOM % 10 ))
-                    sleep_base=$(( base_sleep * (2 ** (attempt - 1)) ))
-                    sleep_base=$(( sleep_base > (60 - 9) ? (60 - 9) : sleep_base ))
-                    sleep_for=$(( sleep_base + jitter ))
-                    echo "License check attempt $attempt/$max_attempts failed (transient upstream/API issue). Retrying in ${sleep_for}s..."
-                    attempt=$(( attempt + 1 ))
-                    sleep "$sleep_for"
+                      if ! grep -qE "$transient_re" "$log"; then
+                          echo "::error title=License check failed::A dependency was rejected by the Eclipse Dash license check. This is not a transient error and was not retried."
+                          cat <<'MSG'
+                  ================================================================
+                  The license check failed for a reason that is not transient, so it
+                  was not retried. Most likely a dependency is restricted or needs
+                  Eclipse IP review.
+
+                  Look for 'restricted' or 'review' entries in the output above, then
+                  either remove the dependency or request a review:
+
+                    https://gitlab.eclipse.org/eclipsefdn/emo-team/iplab/-/issues
+
+                  Approved dependencies are listed in DEPENDENCIES.
+                  ================================================================
+                  MSG
+                          exit 1
+                      fi
+
+                      if [ "$attempt" -ge "$max_attempts" ]; then
+                          echo "::error title=License check unavailable::The Eclipse Dash API was unreachable after ${max_attempts} attempts. This is an upstream outage, not a dependency problem; re-run the job."
+                          exit 1
+                      fi
+
+                      jitter=$(( RANDOM % 10 ))
+                      sleep_base=$(( base_sleep * (2 ** (attempt - 1)) ))
+                      if [ "$sleep_base" -gt "$max_sleep" ]; then
+                          sleep_base=$max_sleep
+                      fi
+                      sleep_for=$(( sleep_base + jitter ))
+                      echo "Attempt ${attempt}/${max_attempts} hit a transient upstream error. Retrying in ${sleep_for}s..."
+                      attempt=$(( attempt + 1 ))
+                      sleep "$sleep_for"
                   done
 
             # Deliberately NOT 'if: always()'. When the Dash API times out the
