@@ -173,6 +173,27 @@
                     </execution>
                 </executions>
             </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <configuration>
+                    <!--
+                        These sources are TCK assertions and CDI fixtures rather than
+                        public API, and most carry no doc comments, which javadoc's
+                        'missing' checks report ~100 times. Disable doclint here so the
+                        release javadoc jar still builds and the staging log stays
+                        readable. This suppresses reporting only: it does not lower
+                        what is expected of the framework classes implementors
+                        actually read (LargeLanguageModelStub, ExecutionTraceRecorder,
+                        the JUnit and Arquillian extensions), which should be
+                        documented properly before 1.0 final.
+
+                        Do not replace this with <skip>true</skip>: Maven Central
+                        rejects a release without a javadoc jar.
+                    -->
+                    <doclint>none</doclint>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
 
