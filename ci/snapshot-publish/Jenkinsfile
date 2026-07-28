@@ -29,6 +29,14 @@ pipeline {
     }
     stages {
         stage('Publish API Snapshots to Maven Central') {
+            // This is a multibranch job, so without this guard every branch and
+            // pull request publishes to the shared 1.0.0-SNAPSHOT coordinate and
+            // overwrites whatever consumers are resolving. Only main may publish.
+            // 'beforeAgent' keeps non-main branches from occupying an agent.
+            when {
+                beforeAgent true
+                branch 'main'
+            }
             agent {
                 label 'basic'
             }
