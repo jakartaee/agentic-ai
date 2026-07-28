@@ -167,15 +167,25 @@ pipeline {
                         RELEASE_ID=$(echo "$RESPONSE" | python3 -c "import sys,json;print(json.load(sys.stdin)['id'])")
                         echo "Created GitHub Release id=${RELEASE_ID}"
 
-                        # Upload each staged asset
+                        # Upload each staged asset, tagging its metadata with the
+                        # appropriate MIME type. Note: GitHub always serves release
+                        # asset downloads as octet-stream/attachment regardless of
+                        # what we set here; this only affects the value reported by
+                        # the API and shown in tooling.
                         for asset in release-assets/*; do
                             name=$(basename "$asset")
-                            echo "Uploading ${name}..."
+                            case "$name" in
+                                *.html) ct="text/html; charset=utf-8" ;;
+                                *.pdf)  ct="application/pdf" ;;
+                                *.jar)  ct="application/java-archive" ;;
+                                *)      ct="application/octet-stream" ;;
+                            esac
+                            echo "Uploading ${name} (${ct})..."
                             curl -sS -X POST \\
                                 -H "Authorization: Bearer $GH_TOKEN" \\
                                 -H "Accept: application/vnd.github+json" \\
                                 -H "X-GitHub-Api-Version: 2022-11-28" \\
-                                -H "Content-Type: application/octet-stream" \\
+                                -H "Content-Type: ${ct}" \\
                                 --data-binary "@${asset}" \\
                                 "https://uploads.github.com/repos/jakartaee/agentic-ai/releases/${RELEASE_ID}/assets?name=${name}" > /dev/null
                         done
