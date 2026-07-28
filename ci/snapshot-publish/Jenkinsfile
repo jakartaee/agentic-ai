@@ -42,7 +42,10 @@ pipeline {
                     if (currentVersion.endsWith("-SNAPSHOT")) {
                         withCredentials([
                             file(credentialsId: 'secret-subkeys.asc', variable: 'KEYRING'),
-                            string(credentialsId: 'gpg-passphrase', variable: 'KEYRING_PASSPHRASE')
+                            // maven-gpg-plugin 3.x picks up MAVEN_GPG_PASSPHRASE from the
+                            // environment automatically; using the CLI '-Dgpg.passphrase='
+                            // flag is deprecated and prints a security warning.
+                            string(credentialsId: 'gpg-passphrase', variable: 'MAVEN_GPG_PASSPHRASE')
                         ]) {
                             withMaven(mavenLocalRepo: env.WORKSPACE_TMP + '/.m2repository') {
                                 sh "find . -type d -exec chmod -s {} \\;"
@@ -58,7 +61,7 @@ pipeline {
 
                                 // Deploy snapshots. Only the API module publishes; spec/tck/examples
                                 // have skipPublishing=true so they build but are skipped at upload time.
-                                sh 'mvn clean deploy -Poss-release -Psnapshots -DskipTests=true -Dgpg.passphrase=$KEYRING_PASSPHRASE'
+                                sh 'mvn clean deploy -Poss-release -Psnapshots -DskipTests=true'
                             }
                         }
                     } else {

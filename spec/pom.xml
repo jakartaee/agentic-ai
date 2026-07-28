@@ -124,6 +124,18 @@
                             <skip>true</skip>
                         </configuration>
                     </plugin>
+                    <!--
+                        The parent profile also binds maven-javadoc-plugin:jar
+                        on every module. Skip it here so we don't build (and
+                        warn about) javadoc for a module that isn't deployed.
+                    -->
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-javadoc-plugin</artifactId>
+                        <configuration>
+                            <skip>true</skip>
+                        </configuration>
+                    </plugin>
                 </plugins>
             </build>
         </profile>
