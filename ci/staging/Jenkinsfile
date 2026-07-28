@@ -139,6 +139,10 @@ pipeline {
             }
             environment {
                 RELEASE_VERSION = "${params.RELEASE_VERSION}"
+                // Any non-empty SPEC_STATUS (Milestone, Draft, Beta, RC, ...) means the
+                // artifact is not a final specification and should be flagged as a
+                // pre-release on GitHub. Empty SPEC_STATUS means a final release.
+                PRERELEASE = "${params.SPEC_STATUS ? 'true' : 'false'}"
             }
             steps {
                 // Requires a 'Secret text' credential named 'github-bot-token'
@@ -156,7 +160,7 @@ pipeline {
                             -H "Accept: application/vnd.github+json" \\
                             -H "X-GitHub-Api-Version: 2022-11-28" \\
                             https://api.github.com/repos/jakartaee/agentic-ai/releases \\
-                            -d "{\\"tag_name\\":\\"${RELEASE_VERSION}\\",\\"name\\":\\"Jakarta Agentic AI ${RELEASE_VERSION}\\",\\"generate_release_notes\\":true,\\"draft\\":false,\\"prerelease\\":false}")
+                            -d "{\\"tag_name\\":\\"${RELEASE_VERSION}\\",\\"name\\":\\"Jakarta Agentic AI ${RELEASE_VERSION}\\",\\"generate_release_notes\\":true,\\"draft\\":false,\\"prerelease\\":${PRERELEASE}}")
 
                         RELEASE_ID=$(echo "$RESPONSE" | python3 -c "import sys,json;print(json.load(sys.stdin)['id'])")
                         echo "Created GitHub Release id=${RELEASE_ID}"
