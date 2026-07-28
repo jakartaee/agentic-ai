@@ -93,6 +93,26 @@ public void testAgentAnnotationExists() {
 - Java 17 or higher
 - Jakarta EE 10 or higher
 - Maven 3.8+
+- A Jakarta JSON Binding provider on the test classpath
+
+The TCK does not ship a JSON-B provider, so that it does not impose one on
+implementations. A Jakarta EE 10 runtime already supplies one, so nothing extra
+is needed when the TCK runs inside a container. When running the tests outside a
+container, add a provider yourself, for example:
+
+```xml
+<dependency>
+    <groupId>org.eclipse</groupId>
+    <artifactId>yasson</artifactId>
+    <version>3.0.3</version>
+    <scope>test</scope>
+</dependency>
+```
+
+A provider is required because `LargeLanguageModelStub` performs the type
+conversion mandated of `LargeLanguageModel` via `JsonbBuilder.create()`, and
+`LlmContractTests` asserts JSON Binding semantics directly. Without one, those
+assertions error rather than fail informatively.
 
 ## License
 

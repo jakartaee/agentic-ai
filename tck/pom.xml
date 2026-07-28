@@ -127,7 +127,12 @@
             <groupId>org.eclipse</groupId>
             <artifactId>yasson</artifactId>
             <version>${yasson.version}</version>
-            <scope>runtime</scope>
+            <!-- 'test', not 'runtime': the published TCK must not impose a
+                 particular JSON-B provider on implementors. A Jakarta EE 10
+                 runtime supplies one, and Yasson is only needed to execute this
+                 project's own test runs. Implementors running the TCK outside a
+                 container must add a provider themselves; see tck/README.md. -->
+            <scope>test</scope>
         </dependency>
     </dependencies>
 
