@@ -153,6 +153,8 @@ pipeline {
                         mkdir -p release-assets
                         cp spec/target/generated-docs/index.html "release-assets/jakarta-agentic-ai-${RELEASE_VERSION}.html"
                         cp spec/target/generated-docs/spec.pdf   "release-assets/jakarta-agentic-ai-${RELEASE_VERSION}.pdf"
+                        cp "api/target/jakarta.agentic-ai-api-${RELEASE_VERSION}-javadoc.jar" \\
+                            "release-assets/jakarta.agentic-ai-api-${RELEASE_VERSION}-javadoc.jar"
 
                         # Create the GitHub Release for the tag pushed by the previous stage
                         RESPONSE=$(curl -sS -X POST \\
