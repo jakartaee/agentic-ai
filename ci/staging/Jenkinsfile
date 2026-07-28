@@ -152,23 +152,88 @@ pipeline {
                 // holding a PAT with 'contents: write' scope on jakartaee/agentic-ai.
                 withCredentials([string(credentialsId: 'github-bot-token', variable: 'GH_TOKEN')]) {
                     sh '''
-                        set -e
+                        # Note: no 'pipefail' below. Jenkins runs sh with /bin/sh,
+                        # which is dash on the Eclipse agents and does not support it.
+                        set -eu
+
+                        API="https://api.github.com/repos/jakartaee/agentic-ai"
+                        UPLOADS="https://uploads.github.com/repos/jakartaee/agentic-ai"
+                        BODY="$(mktemp)"
+
+                        # Issue a GitHub API request, writing the response body to
+                        # $BODY and echoing the HTTP status. Status is checked at every
+                        # call site instead of relying on curl's --fail: --fail discards
+                        # the response body, and the body is exactly what we need both
+                        # to distinguish "release already exists" from a real error and
+                        # to make failures diagnosable from the build log.
+                        gh_api() {
+                            _method="$1"
+                            _url="$2"
+                            _data="${3:-}"
+                            if [ -n "$_data" ]; then
+                                curl -sS -o "$BODY" -w '%{http_code}' -X "$_method" \\
+                                    -H "Authorization: Bearer $GH_TOKEN" \\
+                                    -H "Accept: application/vnd.github+json" \\
+                                    -H "X-GitHub-Api-Version: 2022-11-28" \\
+                                    --data-binary "@$_data" "$_url"
+                            else
+                                curl -sS -o "$BODY" -w '%{http_code}' -X "$_method" \\
+                                    -H "Authorization: Bearer $GH_TOKEN" \\
+                                    -H "Accept: application/vnd.github+json" \\
+                                    -H "X-GitHub-Api-Version: 2022-11-28" \\
+                                    "$_url"
+                            fi
+                        }
+
+                        fail() {
+                            echo "ERROR: $1 (HTTP $2). Response body:"
+                            cat "$BODY"
+                            echo
+                            exit 1
+                        }
+
                         mkdir -p release-assets
                         cp spec/target/generated-docs/index.html "release-assets/jakarta-agentic-ai-${RELEASE_VERSION}.html"
                         cp spec/target/generated-docs/spec.pdf   "release-assets/jakarta-agentic-ai-${RELEASE_VERSION}.pdf"
                         cp "api/target/jakarta.agentic-ai-api-${RELEASE_VERSION}-javadoc.jar" \\
                             "release-assets/jakarta.agentic-ai-api-${RELEASE_VERSION}-javadoc.jar"
 
-                        # Create the GitHub Release for the tag pushed by the previous stage
-                        RESPONSE=$(curl -sS -X POST \\
-                            -H "Authorization: Bearer $GH_TOKEN" \\
-                            -H "Accept: application/vnd.github+json" \\
-                            -H "X-GitHub-Api-Version: 2022-11-28" \\
-                            https://api.github.com/repos/jakartaee/agentic-ai/releases \\
-                            -d "{\\"tag_name\\":\\"${RELEASE_VERSION}\\",\\"name\\":\\"Jakarta Agentic AI ${RELEASE_VERSION}\\",\\"generate_release_notes\\":true,\\"draft\\":false,\\"prerelease\\":${PRERELEASE}}")
+                        # Build the request body with python rather than inline JSON so
+                        # the quoting survives Groovy, the shell and curl unmangled.
+                        python3 - > release-request.json <<'PY'
+import json, os
+version = os.environ['RELEASE_VERSION']
+print(json.dumps({
+    'tag_name': version,
+    'name': 'Jakarta Agentic AI ' + version,
+    'generate_release_notes': True,
+    'draft': False,
+    'prerelease': os.environ['PRERELEASE'] == 'true',
+}))
+PY
 
-                        RELEASE_ID=$(echo "$RESPONSE" | python3 -c "import sys,json;print(json.load(sys.stdin)['id'])")
-                        echo "Created GitHub Release id=${RELEASE_ID}"
+                        # Create the GitHub Release for the tag pushed by the previous
+                        # stage. On a retry the release already exists and GitHub answers
+                        # 422; reuse it rather than failing, so the stage is idempotent.
+                        STATUS="$(gh_api POST "$API/releases" release-request.json)"
+                        if [ "$STATUS" = "201" ]; then
+                            RELEASE_ID="$(python3 -c "import json,sys;print(json.load(open(sys.argv[1]))['id'])" "$BODY")"
+                            echo "Created GitHub Release ${RELEASE_VERSION} (id=${RELEASE_ID})"
+                        elif [ "$STATUS" = "422" ]; then
+                            echo "Release ${RELEASE_VERSION} already exists; reusing it."
+                            STATUS="$(gh_api GET "$API/releases/tags/${RELEASE_VERSION}")"
+                            [ "$STATUS" = "200" ] || fail "could not look up existing release ${RELEASE_VERSION}" "$STATUS"
+                            RELEASE_ID="$(python3 -c "import json,sys;print(json.load(open(sys.argv[1]))['id'])" "$BODY")"
+                            echo "Reusing GitHub Release ${RELEASE_VERSION} (id=${RELEASE_ID})"
+                        else
+                            fail "could not create release ${RELEASE_VERSION}" "$STATUS"
+                        fi
+
+                        # Existing assets, so a retry replaces them instead of colliding
+                        # on the asset name (which GitHub also reports as a 422).
+                        STATUS="$(gh_api GET "$API/releases/${RELEASE_ID}/assets?per_page=100")"
+                        [ "$STATUS" = "200" ] || fail "could not list assets of release ${RELEASE_ID}" "$STATUS"
+                        cp "$BODY" existing-assets.json
 
                         # Upload each staged asset, tagging its metadata with the
                         # appropriate MIME type. Note: GitHub always serves release
@@ -176,22 +241,44 @@ pipeline {
                         # what we set here; this only affects the value reported by
                         # the API and shown in tooling.
                         for asset in release-assets/*; do
-                            name=$(basename "$asset")
+                            name="$(basename "$asset")"
                             case "$name" in
                                 *.html) ct="text/html; charset=utf-8" ;;
                                 *.pdf)  ct="application/pdf" ;;
                                 *.jar)  ct="application/java-archive" ;;
                                 *)      ct="application/octet-stream" ;;
                             esac
+
+                            existing_id="$(python3 -c "
+import json, sys
+for a in json.load(open(sys.argv[1])):
+    if a['name'] == sys.argv[2]:
+        print(a['id'])
+        break
+" existing-assets.json "$name")"
+
+                            if [ -n "$existing_id" ]; then
+                                echo "Deleting existing asset ${name} (id=${existing_id})..."
+                                STATUS="$(gh_api DELETE "$API/releases/assets/${existing_id}")"
+                                [ "$STATUS" = "204" ] || fail "could not delete existing asset ${name}" "$STATUS"
+                            fi
+
                             echo "Uploading ${name} (${ct})..."
-                            curl -sS -X POST \\
+                            STATUS="$(curl -sS -o "$BODY" -w '%{http_code}' -X POST \\
                                 -H "Authorization: Bearer $GH_TOKEN" \\
                                 -H "Accept: application/vnd.github+json" \\
                                 -H "X-GitHub-Api-Version: 2022-11-28" \\
                                 -H "Content-Type: ${ct}" \\
                                 --data-binary "@${asset}" \\
-                                "https://uploads.github.com/repos/jakartaee/agentic-ai/releases/${RELEASE_ID}/assets?name=${name}" > /dev/null
+                                "${UPLOADS}/releases/${RELEASE_ID}/assets?name=${name}")"
+                            [ "$STATUS" = "201" ] || fail "could not upload asset ${name}" "$STATUS"
+
+                            state="$(python3 -c "import json,sys;print(json.load(open(sys.argv[1])).get('state',''))" "$BODY")"
+                            [ "$state" = "uploaded" ] || fail "asset ${name} finished in state '${state}' rather than 'uploaded'" "$STATUS"
+                            echo "  ${name} uploaded."
                         done
+
+                        echo "GitHub Release ${RELEASE_VERSION} published with all assets."
                     '''
                 }
             }
