@@ -24,3 +24,6 @@ Thumbs.db
 /.claude/settings.local.json
 /.claude/issue.txt
 /.claude/steps.md
+
+# Release assets staged locally when publishing GitHub Releases
+/release-assets/
