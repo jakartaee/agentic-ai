@@ -23,8 +23,12 @@
         <sigtest.version>2.6</sigtest.version>
         <assertj.version>3.27.7</assertj.version>
         <yasson.version>3.0.4</yasson.version>
-        <maven.deploy.skip>true</maven.deploy.skip>
-        <skipPublishing>true</skipPublishing>
+        <!-- The TCK is published so implementors can consume it as an ordinary
+             Maven dependency, which is what other Jakarta specifications do
+             (jakarta.data:jakarta.data-tck, jakarta.enterprise:cdi-tck-*).
+             It therefore does not set maven.deploy.skip or skipPublishing, and
+             it carries an SBOM like the api module does. -->
+        <cyclonedx.skip>false</cyclonedx.skip>
     </properties>
 
     <dependencyManagement>
@@ -173,27 +177,12 @@
     </build>
 
     <profiles>
-        <profile>
-            <id>stage-release</id>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-deploy-plugin</artifactId>
-                        <configuration>
-                            <skip>true</skip>
-                        </configuration>
-                    </plugin>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-javadoc-plugin</artifactId>
-                        <configuration>
-                            <skip>true</skip>
-                        </configuration>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
+        <!--
+            No 'stage-release' override here: the TCK is a published artifact, so
+            it takes the parent profile's source, javadoc, GPG and deploy bindings
+            as-is. Maven Central rejects a release without a javadoc jar, so the
+            javadoc skip that used to live here cannot come back.
+        -->
         <profile>
             <id>weld-embedded</id>
             <dependencies>
