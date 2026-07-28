@@ -88,6 +88,27 @@ public void testAgentAnnotationExists() {
 - NormalScope compliance
 - Literal class implementation
 
+## API signature baseline
+
+`src/main/resources/ee/jakarta/tck/ai/agent/framework/signature/jakarta.ai.agent.sig_1.0`
+records the exact public signature of the `jakarta.ai.agent` package. It ships
+inside the TCK jar, so implementors receive the baseline they are verified
+against.
+
+Every build compares the API to it via `sigtest-maven-plugin` in `strictcheck`
+mode, which is bidirectional: removing, changing **or adding** a public member
+fails the build. A one-way check would let additions through as
+backward-compatible, which is not what a specification wants.
+
+When an API change is intended, regenerate the baseline and commit it:
+
+```bash
+mvn -pl tck verify -Psignature-generation
+```
+
+Review the diff before committing — it is the record of what the specification
+promises.
+
 ## Requirements
 
 - Java 17 or higher

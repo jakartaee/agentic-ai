@@ -31,6 +31,12 @@
         <arquillian.jakarta.version>10.0.0.Final</arquillian.jakarta.version>
         <shrinkwrap.version>1.2.6</shrinkwrap.version>
         <sigtest.version>2.6</sigtest.version>
+        <!-- Committed baseline of the jakarta.ai.agent signature, keyed to the
+             specification version rather than the artifact version so it spans
+             milestones and patch releases of the same spec. It ships inside the
+             TCK jar so implementors receive the baseline they are verified
+             against. Regenerate with the signature-generation profile. -->
+        <api.signature.file>${project.basedir}/src/main/resources/ee/jakarta/tck/ai/agent/framework/signature/jakarta.ai.agent.sig_${spec.version}</api.signature.file>
         <assertj.version>3.27.7</assertj.version>
         <!-- Yasson supplies the JSON-B implementation the TCK's own tests need
              (LargeLanguageModelStub calls JsonbBuilder.create()). Pinned to 3.0.3
@@ -195,6 +201,44 @@
                 </executions>
             </plugin>
             <plugin>
+                <groupId>jakarta.tck</groupId>
+                <artifactId>sigtest-maven-plugin</artifactId>
+                <version>${sigtest.version}</version>
+                <configuration>
+                    <sigfile>${api.signature.file}</sigfile>
+                    <packages>jakarta.ai.agent</packages>
+                    <!--
+                        'strictcheck', not the default one-way check. The default
+                        only verifies that everything in the baseline still exists,
+                        so ADDING a public member passes as backward-compatible.
+                        For a specification API an unintended addition matters as
+                        much as a removal, and an implementation must expose exactly
+                        the specified surface, so compare in both directions.
+
+                        'failOnError' must be set explicitly: its default is the
+                        unset ${sigtest.fail} property, and without it the goal
+                        neither fails the build nor reports a comparison at all.
+                    -->
+                    <action>strictcheck</action>
+                    <failOnError>true</failOnError>
+                </configuration>
+                <executions>
+                    <!--
+                        Verifies the API against the committed signature baseline on
+                        every build, so an unintended change to the published API
+                        surface fails here rather than reaching a release. When a
+                        change IS intended, regenerate the baseline with the
+                        signature-generation profile and commit the result.
+                    -->
+                    <execution>
+                        <id>check-api-signature</id>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
                 <configuration>
@@ -259,7 +303,17 @@
                 </plugins>
             </build>
         </profile>
-        <!-- Profile for generating API signature files -->
+        <!--
+            Regenerates the committed API signature baseline. This rewrites a file
+            under src/main/resources, so it is a deliberate maintainer action, run
+            only when the API surface is intended to change:
+
+                mvn -pl tck verify -Psignature-generation
+
+            The regenerated file must then be reviewed and committed. Every
+            ordinary build checks the API against it; see the sigtest 'check'
+            execution in <build> above.
+        -->
         <profile>
             <id>signature-generation</id>
             <build>
@@ -269,7 +323,7 @@
                         <artifactId>sigtest-maven-plugin</artifactId>
                         <version>${sigtest.version}</version>
                         <configuration>
-                            <sigfile>${project.build.directory}/jakarta.ai.agent.sig_${project.version}</sigfile>
+                            <sigfile>${api.signature.file}</sigfile>
                             <packages>jakarta.ai.agent</packages>
                         </configuration>
                         <executions>
