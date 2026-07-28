@@ -76,7 +76,11 @@
         <!-- Draft | Final Release -->
         <spec.status>Draft</spec.status>
         <nexus.staging.repository>agentic-ai-maven2-staging</nexus.staging.repository>
-        <project.build.outputTimestamp>2026-07-28T01:22:11Z</project.build.outputTimestamp>
+        <!-- Fixed timestamp for reproducible builds; it must be a constant, not a
+             build-time value, so identical sources always yield identical
+             artifacts. Set to the 1.0.0-M1 release date. Bump it with each
+             release so the value reflects the release being cut. -->
+        <project.build.outputTimestamp>2026-07-29T00:00:00Z</project.build.outputTimestamp>
     </properties>
 
     <dependencyManagement>
