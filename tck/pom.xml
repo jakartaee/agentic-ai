@@ -15,6 +15,16 @@
     <name>Jakarta Agentic AI TCK</name>
     <description>Technology Compatibility Kit for Jakarta Agentic AI 1.0</description>
 
+    <!-- Declared explicitly for the same reason as in api/pom.xml: the parent's
+         <licenses> is not copied into the published pom. -->
+    <licenses>
+        <license>
+            <name>Eclipse Public License 2.0</name>
+            <url>https://www.eclipse.org/legal/epl-2.0</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
     <properties>
         <junit.version>5.11.0</junit.version>
         <arquillian.version>1.10.0.Final</arquillian.version>

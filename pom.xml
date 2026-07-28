@@ -27,10 +27,16 @@
         <module>examples</module>
     </modules>
 
+    <!--
+        The published code artifacts (api, tck) are EPL-2.0, matching the LICENSE
+        and NOTICE files at the root of the repository and the SPDX headers on
+        every source file. The Eclipse Foundation Specification License covers the
+        specification document instead, and is declared by the spec module.
+    -->
     <licenses>
         <license>
-            <name>Eclipse Foundation Specification License (EFSL)</name>
-            <url>https://www.eclipse.org/legal/efsl.php</url>
+            <name>Eclipse Public License 2.0</name>
+            <url>https://www.eclipse.org/legal/epl-2.0</url>
             <distribution>repo</distribution>
         </license>
     </licenses>

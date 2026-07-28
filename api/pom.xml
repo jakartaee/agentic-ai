@@ -16,6 +16,19 @@
     <name>Jakarta Agentic AI API</name>
     <description>Vendor-neutral API for building agentic AI applications on Jakarta EE runtimes.</description>
 
+    <!--
+        Declared explicitly rather than inherited. Maven does not copy the parent's
+        <licenses> into the published pom, so an inherited license is only visible
+        to tools that walk the parent chain, and many license scanners do not.
+    -->
+    <licenses>
+        <license>
+            <name>Eclipse Public License 2.0</name>
+            <url>https://www.eclipse.org/legal/epl-2.0</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
     <properties>
         <cyclonedx.skip>false</cyclonedx.skip>
     </properties>
