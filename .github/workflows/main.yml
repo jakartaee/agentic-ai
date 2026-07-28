@@ -62,6 +62,73 @@ jobs:
                     sleep "$sleep_for"
                   done
 
+            # Deliberately NOT 'if: always()'. When the Dash API times out the
+            # plugin leaves DEPENDENCIES truncated, so running this after a failed
+            # License Check would report the whole file as deleted. Default step
+            # behaviour skips it when an earlier step failed, which is what we want:
+            # this only ever compares against a manifest the check produced in full.
+            - name: Verify DEPENDENCIES is up to date
+              run: |
+                  set -euo pipefail
+
+                  if git diff --quiet -- DEPENDENCIES; then
+                      echo "DEPENDENCIES matches the generated manifest."
+                      exit 0
+                  fi
+
+                  RUN_URL="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+
+                  cat <<MSG
+                  ================================================================
+                  DEPENDENCIES is out of date.
+
+                  The Eclipse Dash license check regenerated it and the result
+                  differs from the copy committed to this repository. The committed
+                  file is the manifest that IP review reads, so it needs updating.
+
+                  Fix it either way:
+
+                  1. Download the generated file from this run and commit it:
+                       ${RUN_URL}
+                     It is the artifact named "DEPENDENCIES". Or with the gh CLI:
+                       gh run download ${GITHUB_RUN_ID} --repo ${GITHUB_REPOSITORY} \\
+                         --name DEPENDENCIES --dir .
+
+                  2. Or regenerate it locally and commit it:
+                       mvn -B org.eclipse.dash:license-tool-plugin:license-check \\
+                         -Pdash-licenses -Ddash.summary=DEPENDENCIES
+
+                     Note: if the Dash API times out, the plugin leaves
+                     DEPENDENCIES truncated. Recover with:
+                       git checkout -- DEPENDENCIES
+
+                  The diff below is committed (-) versus generated (+).
+                  ================================================================
+                  MSG
+
+                  git --no-pager diff -- DEPENDENCIES
+
+                  {
+                      echo "### DEPENDENCIES is out of date"
+                      echo
+                      echo "Download the [generated manifest from this run](${RUN_URL}) (artifact \`DEPENDENCIES\`) and commit it, or regenerate locally:"
+                      echo
+                      echo '```'
+                      echo 'mvn -B org.eclipse.dash:license-tool-plugin:license-check -Pdash-licenses -Ddash.summary=DEPENDENCIES'
+                      echo '```'
+                      echo
+                      echo '<details><summary>Diff (committed → generated)</summary>'
+                      echo
+                      echo '```diff'
+                      git --no-pager diff -- DEPENDENCIES
+                      echo '```'
+                      echo
+                      echo '</details>'
+                  } >> "$GITHUB_STEP_SUMMARY"
+
+                  echo "::error title=DEPENDENCIES is out of date::Commit the regenerated manifest. See this step's log and the run summary for the diff and instructions."
+                  exit 1
+
             - name: Upload DEPENDENCIES
               uses: actions/upload-artifact@v4
               if: always()
