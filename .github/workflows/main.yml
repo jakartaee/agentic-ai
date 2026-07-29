@@ -33,12 +33,6 @@ jobs:
             - name: Build
               run: mvn clean install -Pweld-embedded
 
-            # The Dash plugin exposes no timeout or retry setting, so an unresponsive
-            # Eclipse API can only be ridden out by retrying. Retry ONLY on transient
-            # signatures: the previous version retried any failure, so a genuinely
-            # restricted dependency was re-checked to exhaustion before being
-            # reported, which both delayed the real answer and hid it in a wall of
-            # retry noise.
             - name: License Check
               run: |
                   set -euo pipefail
@@ -49,9 +43,6 @@ jobs:
                   max_sleep=300
                   log="$(mktemp)"
 
-                  # Signatures of an unreachable or slow upstream, as opposed to the
-                  # plugin reporting an actual licence problem. The observed failure
-                  # was 'java.net.http.HttpTimeoutException: request timed out'.
                   transient_re='HttpTimeoutException|SocketTimeoutException|ConnectException|UnknownHostException|request timed out|Connection reset|connect timed out|50[234] '
 
                   while :; do
@@ -101,11 +92,6 @@ jobs:
                       sleep "$sleep_for"
                   done
 
-            # Deliberately NOT 'if: always()'. When the Dash API times out the
-            # plugin leaves DEPENDENCIES truncated, so running this after a failed
-            # License Check would report the whole file as deleted. Default step
-            # behaviour skips it when an earlier step failed, which is what we want:
-            # this only ever compares against a manifest the check produced in full.
             - name: Verify DEPENDENCIES is up to date
               run: |
                   set -euo pipefail
