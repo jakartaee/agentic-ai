@@ -13,7 +13,6 @@
 
 @Library('releng-pipeline') _
 
-// Avoid running the pipeline on branch indexing
 if (currentBuild.getBuildCauses().toString().contains('BranchIndexingCause')) {
     print "INFO: Build skipped due to trigger being Branch Indexing"
     currentBuild.result = 'NOT_BUILT'
@@ -23,19 +22,13 @@ if (currentBuild.getBuildCauses().toString().contains('BranchIndexingCause')) {
 pipeline {
     agent none
     options {
-        // Wait for 1h before publishing snapshots, in case there are more commits
         quietPeriod 3600
-        // Never publish snapshots more than once per hour
         rateLimitBuilds(throttle: [count: 1, durationName: 'hour', userBoost: true])
         buildDiscarder(logRotator(numToKeepStr: '3', artifactNumToKeepStr: '3'))
         disableConcurrentBuilds(abortPrevious: false)
     }
     stages {
         stage('Publish API Snapshots to Maven Central') {
-            // This is a multibranch job, so without this guard every branch and
-            // pull request publishes to the shared 1.0.0-SNAPSHOT coordinate and
-            // overwrites whatever consumers are resolving. Only main may publish.
-            // 'beforeAgent' keeps non-main branches from occupying an agent.
             when {
                 beforeAgent true
                 branch 'main'
@@ -53,9 +46,6 @@ pipeline {
                     if (currentVersion.endsWith("-SNAPSHOT")) {
                         withCredentials([
                             file(credentialsId: 'secret-subkeys.asc', variable: 'KEYRING'),
-                            // maven-gpg-plugin 3.x picks up MAVEN_GPG_PASSPHRASE from the
-                            // environment automatically; using the CLI '-Dgpg.passphrase='
-                            // flag is deprecated and prints a security warning.
                             string(credentialsId: 'gpg-passphrase', variable: 'MAVEN_GPG_PASSPHRASE')
                         ]) {
                             withMaven(mavenLocalRepo: env.WORKSPACE_TMP + '/.m2repository') {
@@ -67,11 +57,8 @@ pipeline {
                                 sh 'gpg --batch --import "${KEYRING}"'
                                 sh 'for fpr in $(gpg --list-keys --with-colons  | awk -F: \'/fpr:/ {print $10}\' | sort -u); do echo -e "5\\ny\\n" |  gpg --batch --command-fd 0 --expert --edit-key ${fpr} trust; done'
 
-                                // Reload gpg-agent to pick up allow-loopback-pinentry
                                 sh 'gpg-connect-agent reloadagent /bye'
 
-                                // Deploy snapshots. Only the API module publishes; spec/tck/examples
-                                // have skipPublishing=true so they build but are skipped at upload time.
                                 sh 'mvn clean deploy -Poss-release -Psnapshots -DskipTests=true'
                             }
                         }
