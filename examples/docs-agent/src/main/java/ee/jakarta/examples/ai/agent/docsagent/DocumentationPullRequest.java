@@ -20,7 +20,11 @@ import java.util.List;
  */
 public class DocumentationPullRequest extends PullRequest {
 
+    private static final long serialVersionUID = 1L;
+
     private String linkedCodePullRequestId;
+
+    @SuppressWarnings("serial")
     private List<String> documentedTopics;
     private DocumentationAnalysis analysis;
 

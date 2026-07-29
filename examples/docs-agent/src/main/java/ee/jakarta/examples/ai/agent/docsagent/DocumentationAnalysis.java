@@ -24,9 +24,15 @@ import java.util.List;
  */
 public class DocumentationAnalysis implements Serializable {
 
+    private static final long serialVersionUID = 1L;
+
     private final boolean requiresDocumentation;
     private final String reason;
+
+    @SuppressWarnings("serial")
     private final List<String> affectedFiles;
+
+    @SuppressWarnings("serial")
     private final List<String> suggestedTopics;
     private final String priority; // "high", "medium", "low"
 
