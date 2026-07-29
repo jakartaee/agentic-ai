@@ -13,5 +13,8 @@
 package ee.jakarta.tck.ai.agent.core.behavior.agents.errorhandling;
 
 public class SpecificDomainException extends AgentDomainException {
+
+    private static final long serialVersionUID = 1L;
+
     public SpecificDomainException(String message) { super(message); }
 }

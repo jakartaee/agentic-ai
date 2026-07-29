@@ -13,6 +13,9 @@
 package ee.jakarta.tck.ai.agent.core.behavior.agents.errorhandling;
 
 public class AgentDomainException extends RuntimeException {
+
+    private static final long serialVersionUID = 1L;
+
     public AgentDomainException(String message) {
         super(message);
     }

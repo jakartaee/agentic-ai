@@ -21,10 +21,14 @@ import java.util.List;
  */
 public class PullRequest implements Serializable {
 
+    private static final long serialVersionUID = 1L;
+
     private String id;
     private String title;
     private String description;
     private String author;
+
+    @SuppressWarnings("serial")
     private List<String> changedFiles;
     private String diff;
     private String targetBranch;
