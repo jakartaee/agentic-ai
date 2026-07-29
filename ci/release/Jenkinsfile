@@ -1,16 +1,18 @@
 /*
  * Copyright (c) 2026 Contributors to the Eclipse Foundation
  *
- * Licensed under the Eclipse Foundation Specification License (EFSL).
- * See the NOTICE file distributed with this work for additional information
- * regarding copyright ownership.
+ * See the NOTICE file(s) distributed with this work for additional
+ * information regarding copyright ownership.
  *
- * SPDX-License-Identifier: EFSL-1.0
+ * This program and the accompanying materials are made available under the
+ * terms of the Eclipse Public License v. 2.0 which is available at
+ * https://www.eclipse.org/legal/epl-2.0.
+ *
+ * SPDX-License-Identifier: EPL-2.0
  */
 
 @Library('releng-pipeline') _
 
-// Avoid running the pipeline on branch indexing
 if (currentBuild.getBuildCauses().toString().contains('BranchIndexingCause')) {
     print "INFO: Build skipped due to trigger being Branch Indexing"
     currentBuild.result = 'NOT_BUILT'
@@ -33,7 +35,6 @@ pipeline {
         stage('Promote Staged API to Maven Central') {
             when {
                 beforeAgent true
-                // Promotion must be triggered explicitly
                 triggeredBy cause: "UserIdCause"
             }
             steps {
@@ -42,9 +43,6 @@ pipeline {
 
                     withCredentials([
                         file(credentialsId: 'secret-subkeys.asc', variable: 'KEYRING'),
-                        // maven-gpg-plugin 3.x picks up MAVEN_GPG_PASSPHRASE from the
-                        // environment automatically; using the CLI '-Dgpg.passphrase='
-                        // flag is deprecated and prints a security warning.
                         string(credentialsId: 'gpg-passphrase', variable: 'MAVEN_GPG_PASSPHRASE')
                     ]) {
                         withMaven(mavenLocalRepo: env.WORKSPACE_TMP + '/.m2repository') {
@@ -56,7 +54,6 @@ pipeline {
                             sh 'gpg --batch --import "${KEYRING}"'
                             sh 'for fpr in $(gpg --list-keys --with-colons  | awk -F: \'/fpr:/ {print $10}\' | sort -u); do echo -e "5\\ny\\n" |  gpg --batch --command-fd 0 --expert --edit-key ${fpr} trust; done'
 
-                            // Promote from Eclipse Nexus staging to Maven Central
                             sh 'mvn deploy -Ppromote-stage'
                         }
                     }
