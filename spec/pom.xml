@@ -15,13 +15,6 @@
     <name>Jakarta Agentic AI Specification</name>
     <description>Specification for Jakarta Agentic AI.</description>
 
-    <!--
-        Overrides the parent's EPL-2.0: this module builds the specification
-        document, which is licensed under the Eclipse Foundation Specification
-        License (see src/main/asciidoc/license-efsl.adoc). The module is not
-        published, so this is a statement of record rather than repository
-        metadata.
-    -->
     <licenses>
         <license>
             <name>Eclipse Foundation Specification License (EFSL)</name>
@@ -121,13 +114,6 @@
     </build>
 
     <profiles>
-        <!--
-            The 'stage-release' profile inherited from org.eclipse.ee4j:project
-            hardcodes <skip>snapshots</skip> on maven-deploy-plugin, which beats
-            the module-level <maven.deploy.skip>true</maven.deploy.skip> property.
-            Explicitly override the plugin's <skip> here so this non-API module
-            is not staged to Eclipse Nexus (and therefore not promoted to Central).
-        -->
         <profile>
             <id>stage-release</id>
             <build>
@@ -139,11 +125,6 @@
                             <skip>true</skip>
                         </configuration>
                     </plugin>
-                    <!--
-                        The parent profile also binds maven-javadoc-plugin:jar
-                        on every module. Skip it here so we don't build (and
-                        warn about) javadoc for a module that isn't deployed.
-                    -->
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-javadoc-plugin</artifactId>
