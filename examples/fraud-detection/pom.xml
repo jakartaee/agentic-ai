@@ -18,8 +18,8 @@
 
     <licenses>
         <license>
-            <name>Eclipse Foundation Specification License (EFSL)</name>
-            <url>https://www.eclipse.org/legal/efsl.php</url>
+            <name>Eclipse Public License 2.0</name>
+            <url>https://www.eclipse.org/legal/epl-2.0</url>
             <distribution>repo</distribution>
         </license>
     </licenses>
