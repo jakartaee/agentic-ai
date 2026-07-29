@@ -4,7 +4,7 @@ The Jakarta Agentic AI project provides a set of vendor-neutral APIs that make i
 
 ## Jakarta Agentic AI Specification
 
-This module contains the AsciiDoc sources and configuration to generate the Jakarta Agentic AI specification documentation in HTML and PDF formats under the EFSL license.
+This module contains the AsciiDoc sources and configuration to generate the Jakarta Agentic AI specification documentation in HTML and PDF formats under the Eclipse Foundation Specification License (EFSL) v2.0.
 
 ## Building Documentation
 
