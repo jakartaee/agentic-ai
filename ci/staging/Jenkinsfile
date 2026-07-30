@@ -183,7 +183,6 @@ print(json.dumps({
     'tag_name': version,
     'name': 'Jakarta Agentic AI ' + version,
     'generate_release_notes': True,
-    'draft': False,
     'prerelease': os.environ['PRERELEASE'] == 'true',
 }))
 PY
