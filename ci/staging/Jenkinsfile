@@ -46,8 +46,8 @@ pipeline {
         )
         string(
                 name: 'SPEC_STATUS',
-                defaultValue: '',
-                description: 'The specification status, e.g. DRAFT, BETA, etc., or blank for final.',
+                defaultValue: 'Draft',
+                description: 'The status stamped on the specification document, e.g. Draft or Final Release.',
                 trim: true
         )
     }
@@ -64,6 +64,9 @@ pipeline {
                     }
                     if (!params.DEVELOPMENT_VERSION) {
                         throw new IllegalArgumentException("Missing value for parameter DEVELOPMENT_VERSION.")
+                    }
+                    if (!params.SPEC_STATUS) {
+                        throw new IllegalArgumentException("Missing value for parameter SPEC_STATUS. Use 'Final Release' for a final release.")
                     }
                     echo "Staging release for version ${params.RELEASE_VERSION}"
 
@@ -92,8 +95,7 @@ pipeline {
                                 sh "git commit -a -m '[Jenkins staging job] Preparing release ${params.RELEASE_VERSION}'"
                                 sh "git tag -a -m 'Release ${params.RELEASE_VERSION}' ${params.RELEASE_VERSION}"
 
-                                def nonFinalArg = params.SPEC_STATUS ? "" : "-Dspec.nonFinal=false"
-                                sh "mvn clean deploy -Pstage-release -DskipTests=true ${nonFinalArg} -Dspec.status=${params.SPEC_STATUS}"
+                                sh "mvn clean deploy -Pstage-release -DskipTests=true -Dspec.status='${params.SPEC_STATUS}'"
 
                                 sh "mvn versions:set -DnewVersion=${params.DEVELOPMENT_VERSION} -DgenerateBackupPoms=false"
 
