@@ -13,7 +13,7 @@
 
     <groupId>jakarta.agentic-ai</groupId>
     <artifactId>jakarta.agentic-ai-parent</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
+    <version>1.0.0-M1</version>
     <packaging>pom</packaging>
 
     <name>Jakarta Agentic AI Parent</name>
@@ -63,7 +63,7 @@
         <!-- Draft | Final Release -->
         <spec.status>Draft</spec.status>
         <nexus.staging.repository>agentic-ai-maven2-staging</nexus.staging.repository>
-        <project.build.outputTimestamp>2026-07-29T00:00:00Z</project.build.outputTimestamp>
+        <project.build.outputTimestamp>2026-07-30T01:10:52Z</project.build.outputTimestamp>
     </properties>
 
     <dependencyManagement>
