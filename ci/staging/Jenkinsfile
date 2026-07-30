@@ -123,7 +123,7 @@ pipeline {
             }
             environment {
                 RELEASE_VERSION = "${params.RELEASE_VERSION}"
-                PRERELEASE = "${params.SPEC_STATUS ? 'true' : 'false'}"
+                PRERELEASE = "${params.SPEC_STATUS == 'Final Release' ? 'false' : 'true'}"
             }
             steps {
                 withCredentials([string(credentialsId: 'github-bot-token', variable: 'GH_TOKEN')]) {
