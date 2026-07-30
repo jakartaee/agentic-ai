@@ -27,9 +27,8 @@ The TCK contains two kinds of assertions:
   baseline (`@Trigger` observation only) and must be skipped when a
   compatible implementation is present.
 
-Because the CDI 4.0 `BeanManager` does not expose a portable way to
-enumerate registered contexts, the TCK detects implementation presence
-via a system property. Implementations running the TCK must set:
+The TCK detects implementation presence via a system property.
+Implementations running the TCK must set:
 
 ```
 -Djakarta.ai.agent.tck.implementation.present=true
