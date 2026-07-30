@@ -31,6 +31,14 @@ pipeline {
         buildDiscarder logRotator(daysToKeepStr: '30', numToKeepStr: '10')
         disableConcurrentBuilds(abortPrevious: false)
     }
+    parameters {
+        string(
+                name: 'RELEASE_VERSION',
+                defaultValue: '',
+                description: 'The staged version to promote to Maven Central, e.g. 1.0.0-M1.',
+                trim: true
+        )
+    }
     stages {
         stage('Promote Staged API to Maven Central') {
             when {
@@ -39,7 +47,18 @@ pipeline {
             }
             steps {
                 script {
-                    echo "Promoting staged artifacts from Eclipse Nexus to Maven Central"
+                    if (!params.RELEASE_VERSION) {
+                        throw new IllegalArgumentException("Missing value for parameter RELEASE_VERSION.")
+                    }
+                    echo "Promoting staged artifacts for ${params.RELEASE_VERSION} from Eclipse Nexus to Maven Central"
+
+                    sh "git fetch origin +refs/tags/${params.RELEASE_VERSION}:refs/tags/${params.RELEASE_VERSION}"
+                    sh "git checkout --detach refs/tags/${params.RELEASE_VERSION}"
+
+                    def stagedVersion = sh(script: 'mvn help:evaluate -Dexpression=project.version -q -DforceStdout', returnStdout: true).trim()
+                    if (stagedVersion != params.RELEASE_VERSION) {
+                        throw new IllegalStateException("Tag ${params.RELEASE_VERSION} builds version ${stagedVersion}; refusing to promote.")
+                    }
 
                     withCredentials([
                         file(credentialsId: 'secret-subkeys.asc', variable: 'KEYRING'),
