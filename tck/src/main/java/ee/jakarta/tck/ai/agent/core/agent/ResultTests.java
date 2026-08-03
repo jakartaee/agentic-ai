@@ -76,10 +76,10 @@ public class ResultTests {
                section = "API Types / Result",
                strategy = "Verify records with equal components are equal and share a hash code")
     public void testValueEquality() {
-        String details = "context";
-        Result a = new Result(true, details);
-        Result b = new Result(true, details);
-
+        String detailsA = new StringBuilder("context").toString();
+        String detailsB = new StringBuilder("context").toString();
+        Result a = new Result(true, detailsA);
+        Result b = new Result(true, detailsB);
         assertEquals(a, b,
                 "Results with equal components must be equal");
         assertEquals(a.hashCode(), b.hashCode(),
