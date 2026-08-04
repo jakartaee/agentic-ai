@@ -20,6 +20,8 @@ import org.junit.jupiter.api.extension.ExecutionCondition;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.platform.commons.support.AnnotationSupport;
 
+import java.util.Locale;
+
 /**
  * Enables or disables a test based on whether a compatible implementation of
  * the Agentic AI specification is present.
@@ -115,7 +117,7 @@ public class ImplementationPresentCondition implements ExecutionCondition {
         if (mode == null || mode.isBlank()) {
             return;
         }
-        String normalized = mode.trim().toLowerCase();
+        String normalized = mode.trim().toLowerCase(Locale.ROOT);
         switch (normalized) {
             case "implementation":
                 if (!implementationPresent) {
