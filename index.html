@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Jakarta Agentic AI</title>
+<meta name="description" content="Vendor-neutral Jakarta EE APIs to build, deploy, and run AI agents.">
+<meta property="og:title" content="Jakarta Agentic AI">
+<meta property="og:description" content="Vendor-neutral Jakarta EE APIs to build, deploy, and run AI agents.">
+<meta property="og:type" content="website">
+<link rel="icon" href="assets/img/jakarta-ee-logo.png">
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="masthead">
+  <div class="wrap masthead-inner">
+    <a class="brand" href="./">
+      <img src="assets/img/jakarta-ee-logo.png" alt="" width="40" height="40">
+      <span>Jakarta <strong>Agentic AI</strong></span>
+    </a>
+    <nav class="nav" aria-label="Primary">
+      <a href="#concepts">Concepts</a>
+      <a href="#example">Example</a>
+      <a href="#downloads">Downloads</a>
+      <a href="#community">Community</a>
+      <a class="ghost" href="https://github.com/jakartaee/agentic-ai">GitHub</a>
+    </nav>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="wrap">
+    <p class="eyebrow">Jakarta EE Specification &middot; Version 1.0 in development</p>
+    <h1>Build AI agents the Jakarta&nbsp;EE way.</h1>
+    <p class="lede">
+      Jakarta Agentic AI provides a set of vendor-neutral APIs that make it easy, consistent, and
+      reliable to build, deploy, and run AI agents on Jakarta EE runtimes.
+    </p>
+    <div class="cta">
+      <a class="btn" href="#example">See the API</a>
+      <a class="btn btn-quiet" href="https://jakarta.ee/specifications/agentic-ai/1.0/">Specification page</a>
+    </div>
+    <p class="hero-note">
+      <span class="pill">1.0.0-M1</span>
+      Milestone 1 is on Maven Central &mdash; a non-final, draft-status release published for early
+      community feedback.
+    </p>
+  </div>
+</section>
+
+<main id="main">
+
+<section class="band" id="why">
+  <div class="wrap">
+    <h2>Why a standard for agents?</h2>
+    <div class="prose">
+      <p>
+        It is certainly possible to write script-like agent code that invokes LLMs directly. The problem
+        is that for any reasonably complex agent, you will probably end up with code that is hard to
+        maintain &mdash; especially for someone who did not write it.
+      </p>
+      <p>
+        This API gives your agents a long-term, predictable structure that fits the general patterns of
+        agentic systems. It also helps you think an implementation through: the paradigms should feel
+        familiar to a Jakarta EE developer, even though the domain is new.
+      </p>
+      <p>
+        The API shines when agents must adapt their behaviour at runtime. Keep the building blocks of
+        your domain logic simple, and change how they are composed dynamically &mdash; possibly in
+        response to LLM interactions. Think of those blocks as the elements of a flow chart that can
+        update itself.
+      </p>
+    </div>
+  </div>
+</section>
+
+<section class="band alt" id="concepts">
+  <div class="wrap">
+    <h2>The agent workflow</h2>
+    <p class="section-lede">
+      An agent is a CDI bean. Its workflow is a sequence of annotated methods, and domain objects flow
+      between them through the workflow context.
+    </p>
+
+    <ol class="flow" aria-label="Agent workflow phases">
+      <li><span class="phase">@Trigger</span><span class="desc">A CDI event starts the workflow</span></li>
+      <li><span class="phase">@Decision</span><span class="desc">Decide whether and how to proceed</span></li>
+      <li><span class="phase">@Action</span><span class="desc">Carry out a step</span></li>
+      <li><span class="phase">@Outcome</span><span class="desc">Mark the end of the workflow</span></li>
+    </ol>
+    <p class="flow-aside"><span class="phase small">@HandleException</span> handles failures in any phase.</p>
+
+    <table class="api">
+      <caption>The 1.0 API surface</caption>
+      <thead>
+        <tr><th scope="col">Type</th><th scope="col">Purpose</th></tr>
+      </thead>
+      <tbody>
+        <tr><th scope="row"><code>@Agent</code></th><td>Declares an agent class. Scope defaults to the workflow.</td></tr>
+        <tr><th scope="row"><code>@Trigger</code></th><td>Workflow entry point, invoked by CDI events.</td></tr>
+        <tr><th scope="row"><code>@Decision</code></th><td>Decides whether and how the workflow proceeds.</td></tr>
+        <tr><th scope="row"><code>@Action</code></th><td>A step within the workflow.</td></tr>
+        <tr><th scope="row"><code>@Outcome</code></th><td>Terminal step; marks the end of the workflow.</td></tr>
+        <tr><th scope="row"><code>@HandleException</code></th><td>Exception handler within the workflow.</td></tr>
+        <tr><th scope="row"><code>@WorkflowScoped</code></th><td>CDI normal scope &mdash; one context per workflow execution.</td></tr>
+        <tr><th scope="row"><code>LargeLanguageModel</code></th><td>Injectable LLM facade with automatic type conversion.</td></tr>
+        <tr><th scope="row"><code>Result</code></th><td>Built-in record returning a boolean plus detail from a decision.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="band" id="example">
+  <div class="wrap">
+    <h2>An agent, annotated</h2>
+    <p class="section-lede">
+      A fraud detection agent. It does not block a transaction &mdash; it marks it suspect and sends
+      notifications.
+    </p>
+<pre class="code"><code class="java">/*
+ * Simple agent for bank fraud detection.
+ * Doesn't actually block a transaction but marks it suspect and sends notifications.
+ */
+// Infers agent type and name by default.
+// Default scope is agent workflow, but agents can have application scope.
+// Just a CDI bean annotated with @Agent.
+@Agent
+public class FraudDetectionAgent {
+
+    // Injects default LLM in the implementation, but can be configured to inject specific ones.
+    @Inject private LargeLanguageModel model;
+    // Regular CDI features just work.
+    @Inject private EntityManager entityManager;
+
+    // Initiates the agent workflow. For this initial release, the workflow can only be triggered by
+    // CDI events.
+    // In the future, there could be many other types of triggers such as Jakarta Messaging,
+    // REST POST, or direct invocation from a programmatic life cycle API.
+    @Trigger
+    // Return type can be void or a domain object stored in the workflow and accessible in
+    // the context.
+    // Parameters are automatically added to the workflow context.
+    private void handleTransaction(@Valid BankTransaction transaction) {
+        // Simple check to see if this is a type of transaction that makes sense to check for
+        // fraud detection.
+        // Could add a bit more data, likely looked up from a database, and return an enhanced
+        // version of the transaction or return another domain object entirely.
+    }
+
+    // Can return boolean, a built-in Result record type, or any domain object.
+    // In this initial release, workflows will automatically end with a negative result.
+    // In subsequent releases, more robust decision flows should be possible, either with
+    // annotations/EL and/or the programmatic workflow API.
+    @Decision
+    private Result checkFraud(BankTransaction transaction) {
+        /*
+         * One of the value propositions of the LLM facade is automatic type conversion in Java,
+         * both for parameters and return types.
+         *
+         * If nothing is specified, it's all strings.
+         * Probably only JSON and string are supported initially for conversion.
+         * Queries can be parameterized similar to Jakarta Persistence.
+         */
+        String output = model.query(
+            "Is this a fraudulent transaction? If so, how serious is it?", transaction);
+
+        boolean fraud = isFraud(output); // Does some simple custom text parsing.
+        Fraud details = null;
+
+        if (fraud) {
+            details = getFraudDetails(output); // Does some simple custom text parsing,
+                                               // possibly involving database queries.
+        }
+
+        return new Result(fraud, details);
+    }
+
+    // Only one action here, but there could be multiple actions and/or decisions in sequence.
+    // In the initial version, it's just one linear flow.
+    // In subsequent releases, the workflow API can define complex flows, including
+    // pre-conditions for actions defined via annotation/EL.
+    @Action
+    // Notice that we are automatically injecting domain objects from the workflow context.
+    private void handleFraud(Fraud fraud, BankTransaction transaction) {
+        /*
+         * IMPORTANT FUNDAMENTAL CONCEPT:
+         * This is an example of hard-coded logic, which would still be possible if desired.
+         *
+         * The power of a programmatic/structured workflow, instead, is that this could change
+         * entirely at runtime, driven by further LLM queries.
+         * Even for simple, static workflows, the API helps developers think through how agents
+         * operate fundamentally - introducing a common vocabulary/patterns.
+         *
+         * Dynamically altered workflows could possibly be serialized into persistent storage.
+         */
+        if (fraud.isSerious()) {
+            alertBankSecurity(fraud);
+        }
+
+        Customer customer = getCustomer(transaction);
+        alertCustomer(fraud, transaction, customer);
+    }
+
+    // In this initial release, outcomes are essentially the same as actions, but specifically
+    // mark the end of the workflow.
+    // In subsequent releases, outcomes can do more powerful things such as pass a domain
+    // object to a subsequent workflow or agent.
+    // This is probably also where it best makes sense to dynamically alter a workflow using
+    // a programmatic API.
+    @Outcome
+    private void markTransaction(BankTransaction transaction) {
+        // Mark a transaction suspect, probably in the database.
+    }
+}</code></pre>
+  </div>
+</section>
+
+<section class="band alt" id="downloads">
+  <div class="wrap">
+    <h2>Get it</h2>
+    <p class="section-lede">
+      Milestone 1 is published to Maven Central. It is a draft-status release and has not undergone the
+      release review required to ratify a final specification.
+    </p>
+
+    <h3>Maven</h3>
+<pre class="code"><code class="xml">&lt;dependency&gt;
+    &lt;groupId&gt;jakarta.agentic-ai&lt;/groupId&gt;
+    &lt;artifactId&gt;jakarta.agentic-ai-api&lt;/artifactId&gt;
+    &lt;version&gt;1.0.0-M1&lt;/version&gt;
+    &lt;scope&gt;provided&lt;/scope&gt;
+&lt;/dependency&gt;</code></pre>
+
+    <div class="cards">
+      <a class="card" href="https://jakarta.ee/specifications/agentic-ai/1.0/jakarta-agentic-ai-1.0.0-M1.html">
+        <h3>Specification</h3>
+        <p>The 1.0.0-M1 specification document, in HTML and PDF.</p>
+      </a>
+      <a class="card" href="https://jakarta.ee/specifications/agentic-ai/1.0/apidocs/">
+        <h3>Javadoc</h3>
+        <p>API documentation for the <code>jakarta.ai.agent</code> package.</p>
+      </a>
+      <a class="card" href="https://central.sonatype.com/artifact/jakarta.agentic-ai/jakarta.agentic-ai-tck/1.0.0-M1/jar">
+        <h3>TCK</h3>
+        <p>The Technology Compatibility Kit for implementors.</p>
+      </a>
+      <a class="card" href="https://jakarta.ee/specifications/agentic-ai/1.0/">
+        <h3>Specification page</h3>
+        <p>The official Jakarta EE page, including ballot records.</p>
+      </a>
+    </div>
+
+    <h3 class="req-heading">Requirements</h3>
+    <ul class="reqs">
+      <li>Java SE 17 or higher</li>
+      <li>Jakarta EE 10 or higher</li>
+    </ul>
+  </div>
+</section>
+
+<section class="band" id="community">
+  <div class="wrap">
+    <h2>Get involved</h2>
+    <p class="section-lede">
+      The project aims for the broadest industry consensus possible, engaging subject matter experts and
+      API consumers from within the Java and Jakarta EE ecosystem as well as outside it. The 1.0 release
+      is intentionally minimal, and we want to iterate quickly on feedback.
+    </p>
+    <div class="cards">
+      <a class="card" href="https://github.com/jakartaee/agentic-ai">
+        <h3>Source &amp; issues</h3>
+        <p>The API, specification, TCK, and examples all live in one repository.</p>
+      </a>
+      <a class="card" href="https://accounts.eclipse.org/mailing-list/agentic-ai-dev">
+        <h3>Mailing list</h3>
+        <p><code>agentic-ai-dev@eclipse.org</code> &mdash; the project's main discussion venue.</p>
+      </a>
+      <a class="card" href="https://projects.eclipse.org/projects/ee4j.agentic-ai">
+        <h3>Project page</h3>
+        <p>Governance, committers, and Eclipse Foundation project metadata.</p>
+      </a>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer class="foot">
+  <div class="wrap">
+    <p class="foot-lead">
+      Jakarta Agentic AI is an <a href="https://www.eclipse.org/">Eclipse Foundation</a> project,
+      developed under the
+      <a href="https://www.eclipse.org/projects/efsp/">Eclipse Foundation Specification Process</a>.
+    </p>
+    <nav class="foot-links" aria-label="Legal">
+      <a href="https://www.eclipse.org/legal/copyright/">Copyright</a>
+      <a href="https://www.eclipse.org/legal/">Legal Resources</a>
+      <a href="https://www.eclipse.org/legal/privacy/">Privacy Policy</a>
+      <a href="https://www.eclipse.org/legal/terms-of-use/">Terms of Use</a>
+      <a href="https://www.eclipse.org/security/">Report a Vulnerability</a>
+    </nav>
+    <p class="foot-fine">
+      Copyright &copy; Eclipse Foundation AISBL. Content licensed under the
+      <a href="https://www.eclipse.org/legal/epl-2.0/">Eclipse Public License 2.0</a>.
+    </p>
+  </div>
+</footer>
+
+<script src="assets/js/highlight.js"></script>
+</body>
+</html>
