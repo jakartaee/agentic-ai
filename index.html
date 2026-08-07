@@ -1,125 +1,378 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Jakarta Agentic AI</title>
-<meta name="description" content="Vendor-neutral Jakarta EE APIs to build, deploy, and run AI agents.">
-<meta property="og:title" content="Jakarta Agentic AI">
-<meta property="og:description" content="Vendor-neutral Jakarta EE APIs to build, deploy, and run AI agents.">
-<meta property="og:type" content="website">
-<link rel="icon" href="assets/img/jakarta-ee-logo.png">
-<link rel="stylesheet" href="assets/css/style.css">
-</head>
-<body>
-
-<a class="skip" href="#main">Skip to content</a>
-
-<header class="masthead">
-  <div class="wrap masthead-inner">
-    <a class="brand" href="./">
-      <img src="assets/img/jakarta-ee-logo.png" alt="" width="40" height="40">
-      <span>Jakarta <strong>Agentic AI</strong></span>
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" href="assets/img/favicon.png" type="image/png">
+    <!-- Links and stylesheets -->
+    <link rel="stylesheet" href="https://jakarta.ee/css/styles.css">
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300;0,400;0,600;0,700;1,400&display=swap" rel="stylesheet" type="text/css"/>
+    <title>Jakarta Agentic AI</title>
+    <meta name="description" content="Jakarta Agentic AI provides a set of vendor-neutral APIs that make it easy, consistent, and reliable to build, deploy, and run AI agents on Jakarta EE runtimes.">
+    <meta property="og:title" content="Jakarta Agentic AI">
+    <meta property="og:description" content="Jakarta Agentic AI provides a set of vendor-neutral APIs that make it easy, consistent, and reliable to build, deploy, and run AI agents on Jakarta EE runtimes.">
+    <meta property="og:type" content="website">
+  </head>
+  <body>
+    <a class="sr-only" href="#content">Skip to main content</a>
+<div class="clearfix toolbar-container-wrapper">
+  <div class="container">
+    <div class="text-right toolbar-row row hidden-print">
+      <div class="col-md-24 row-toolbar-col">
+        <ul class="list-inline">
+          <ul class="list-inline">
+  <li><a href="https://accounts.eclipse.org/user/edit" class="" data-tab-destination="tab-profile">Edit my account</a></li>
+  <li><a class="toolbar-link toolbar-manage-cookies dropdown-toggle">Manage Cookies</a></li>
+  <li class="language-selector dropdown">
+    <a href="#" data-toggle="dropdown" class="dropdown-toggle">
+      <span> English</span>
+      <b class="caret"></b>
     </a>
-    <nav class="nav" aria-label="Primary">
-      <a href="#concepts">Concepts</a>
-      <a href="#example">Example</a>
-      <a href="#downloads">Downloads</a>
-      <a href="#community">Community</a>
-      <a class="ghost" href="https://github.com/jakartaee/agentic-ai">GitHub</a>
-    </nav>
+    <ul class="dropdown-menu">
+      <li><a href="https://jakarta.ee/">English</a></li>
+      <li><a href="https://jakarta.ee/zh/">简体中文</a></li>
+    </ul>
+  </li>
+  <li class="dropdown eclipse-more hidden-xs">
+    <a data-toggle="dropdown" class="dropdown-toggle" role="button"><i class="fa fa-search"></i> <b class="caret"></b></a>
+    <ul class="dropdown-menu">
+      <li>
+        <!-- Content container to add padding -->
+        <div class="yamm-content">
+          <div class="row">
+            <div class="col-sm-24">
+              <p>
+                <strong>Search</strong>
+              </p>
+              <form action="https://www.eclipse.org/home/search" method="get">
+                <div class="form-group">
+                  <input class="form-control margin-bottom-10" type="textfield" name="q" placeholder="Search">
+                  <input class="btn btn-primary" type="submit" value="Submit">
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </li>
+    </ul>
+  </li>
+</ul>
+
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="container">
+  <div class="row" id="header-row">
+    <div class="col-sm-5" id="header-left">
+      <div class="wrapper-logo-default">
+        <a title="Jakarta® EE: The New Home of Cloud Native Java" href="https://jakarta.ee/">
+          <img width="200" class="logo-eclipse-default img-responsive hidden-xs" src="https://jakarta.ee/images/jakarta/jakarta-ee-logo-color.svg" alt="Jakarta® EE: The New Home of Cloud Native Java">
+        </a>
+      </div>
+    </div>
+    <div class="col-sm-19 margin-top-20" id="main-menu-wrapper">
+      <div class="float-right hidden-xs" id="btn-call-for-action">
+        <div id="btn-call-for-action"><a href="https://jakarta.ee/compatibility/download/" class="btn btn-warning btn-call-for-action"><i class="fa "></i> Download</a></div>
+      </div>
+      <div class="navbar float-sm-right yamm" id="main-menu">
+        <div class="navbar-collapse collapse reset float-right" id="navbar-main-menu">
+          <ul class="nav navbar-nav">
+            
+<li class="dropdown eclipse-more">
+  <a href="#" data-toggle="dropdown" class="dropdown-toggle">
+    <span>About</span>
+    <b class="caret"></b>
+  </a>
+  <ul class="dropdown-menu" style="">
+    <li style="">
+      <div class="yamm-content" style="">
+        <div class="row" style="">
+          <div class="col-sm-12 padding-right-0" style="">
+            <div class="dropdown-menu-left-panel" style="">
+              <ul class="list-unstyled menu-tabs match-height-dropdown-menu-item" role="tablist" style="height: 250.844px;">
+                <li role="presentation" class="active">
+                  <i class="hidden-xs fa fa-caret-right" aria-hidden="true"></i>
+                  <a class="hidden-xs" data-target="#jakarta-ee-tab" aria-controls="jakarta-ee-tab" role="tab" data-toggle="tab">
+                    Jakarta EE
+                  </a>
+                  <a class="visible-xs" role="button" data-toggle="collapse" href="#jakarta-ee-collapse" aria-expanded="false" aria-controls="jakarta-ee-collapse">
+                    Jakarta EE
+                    <b class="caret"></b>
+                  </a>
+                  <div class="dropdown-collapse collapse" id="jakarta-ee-collapse">
+                    <ul class="list-unstyled">
+                        <li><a href="//jakarta.ee/about/jakarta-ee">About Jakarta EE</a></li>
+                        <li><a href="//jakarta.ee/about/faq/">Frequently Asked Questions</a></li>
+                        <li><a href="//jakarta.ee/release/">Releases</a></li>
+                    </ul>
+                  </div>
+                </li>
+                <li role="presentation">
+                  <i class="hidden-xs fa fa-caret-right" aria-hidden="true"></i>
+                  <a class="hidden-xs" data-target="#jakarta-ee-working-group-tab" aria-controls="jakarta-ee-working-group-tab" role="tab" data-toggle="tab">
+                    Jakarta EE Working Group
+                  </a>
+                  <a class="visible-xs" role="button" data-toggle="collapse" href="#jakarta-ee-working-group-collapse" aria-expanded="false" aria-controls="jakarta-ee-working-group-collapse">
+                    Jakarta EE Working Group
+                    <b class="caret"></b>
+                  </a>
+                  <div class="dropdown-collapse collapse" id="jakarta-ee-working-group-collapse">
+                    <ul class="list-unstyled">
+                        <li><a href="//jakarta.ee/about/working-group">About Working Group</a></li>
+                        <li><a href="https://eclipse.org/org/workinggroups/jakarta_ee_charter.php">Charter</a></li>
+                        <li><a href="//jakarta.ee/legal/trademark_guidelines/">Trademark Guidelines</a></li>
+                        <li><a href="https://www.eclipse.org/ee4j/direction.php">Technical Direction</a></li>
+                        <li><a href="//jakarta.ee/committees">Committees</a></li>
+                        <li><a href="//jakarta.ee/meeting_minutes/">Committees Meeting Minutes</a></li>
+                    </ul>
+                  </div>
+                </li>
+                <li><a href="//jakarta.ee/news/">News</a></li>
+              </ul>
+            </div>
+          </div>
+          <div class="col-sm-12 padding-left-0 hidden-xs" style="">
+            <div class="dropdown-menu-right-panel" style="">
+              <div class="tab-content" style="">
+                <div role="tabpanel" class="match-height-dropdown-menu-item tab-pane active" id="jakarta-ee-tab" style="height: 250.844px;">
+                  <ul class="list-unstyled">
+                    <li><a href="//jakarta.ee/about/jakarta-ee"><strong>About Jakarta EE</strong></a></li>
+                    <li><a href="//jakarta.ee/about/faq/"><strong>Frequently Asked Questions</strong></a></li>
+                    <li><a href="//jakarta.ee/release/"><strong>Releases</strong></a></li>
+                </ul>
+                </div>
+                <div role="tabpanel" class="match-height-dropdown-menu-item tab-pane fade" id="jakarta-ee-working-group-tab" style="height: 250.844px;">
+                  <ul class="list-unstyled">
+                    <li><a href="//jakarta.ee/about/working-group"><strong>About Working Group</strong></a></li>
+                    <li><a href="https://eclipse.org/org/workinggroups/jakarta_ee_charter.php"><strong>Charter</strong></a></li>
+                    <li><a href="//jakarta.ee/legal/trademark_guidelines/"><strong>Trademark Guidelines</strong></a></li>
+                    <li><a href="https://www.eclipse.org/ee4j/direction.php"><strong>Technical Direction</strong></a></li>
+                    <li><a href="//jakarta.ee/committees"><strong>Committees</strong></a></li>
+                    <li><a href="//jakarta.ee/meeting_minutes/"><strong>Committees Meeting Minutes</strong></a></li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </li>
+  </ul>
+</li>
+
+<li class="dropdown">
+  <a href="#" data-toggle="dropdown" class="dropdown-toggle">
+    <span>Specifications</span>
+    <b class="caret"></b>
+  </a>
+  <ul class="dropdown-menu">
+    <li><a href="//jakarta.ee/specifications/">Browse Specifications</a> </li>
+    <li><a href="//jakarta.ee/about/jesp/">Specification Process</a> </li>
+    <li><a href="//jakarta.ee/committees/specification/guide/">JESP guide</a> </li>
+    <li><a href="https://projects.eclipse.org/list-of-projects?combine=jakarta&amp;field_project_techology_types_tid=1102&amp;field_state_value_2=All">Specification Projects</a> </li>
+  </ul>
+</li>
+
+<li class="dropdown">
+  <a href="#" data-toggle="dropdown" class="dropdown-toggle">
+    <span>Compatible Products</span>
+    <b class="caret"></b>
+  </a>
+  <ul class="dropdown-menu">
+    <li><a href="//jakarta.ee/compatibility/">Jakarta EE Compatible Products</a> </li>
+    <li><a href="//jakarta.ee/compatibility/get-listed/">Get Listed</a> </li>
+  </ul>
+</li>
+
+<li class="dropdown">
+  <a href="#" data-toggle="dropdown" class="dropdown-toggle">
+    <span>Community</span>
+    <b class="caret"></b>
+  </a>
+  <ul class="dropdown-menu">
+    <li><a href="//jakarta.ee/community/">Overview</a> </li>
+    <li><a href="//jakarta.ee/community/adopt-a-spec/">Adopt A Spec</a> </li>
+    <li><a href="//jakarta.ee/blogs">Blog</a> </li>
+    <li><a href="//jakarta.ee/community/events/">Events</a> </li>
+    <li><a href="//jakarta.ee/community/get-involved">Get Involved</a> </li>
+    <li><a href="https://jakartaone.org">JakartaOne Livestream</a> </li>
+    <li><a href="//jakarta.ee/connect/">Stay Connected</a> </li>
+    <li><a href="//jakarta.ee/community/#meetups">Tech Talk Meet-ups</a> </li>
+    <li><a href="//jakarta.ee/community/videos">Videos</a> </li>
+  </ul>
+</li>
+
+<li class="dropdown">
+  <a href="#" data-toggle="dropdown" class="dropdown-toggle">
+    <span>Membership</span>
+    <b class="caret"></b>
+  </a>
+  <ul class="dropdown-menu">
+    <li><a href="//jakarta.ee/membership">Join</a> </li>
+    <li><a href="//jakarta.ee/membership/members/">Members</a> </li>
+  </ul>
+</li>
+<li class="dropdown">
+  <a href="#" data-toggle="dropdown" class="dropdown-toggle">
+    <span>Resources</span>
+    <b class="caret"></b>
+  </a>
+  <ul class="dropdown-menu">
+    <li><a href="//jakarta.ee/resources">Overview</a> </li>
+    <li><a href="//jakarta.ee/resources#datasheets">Datasheets</a> </li>
+    <li><a href="//jakarta.ee/resources#documentation">Documentation</a> </li>
+    <li><a href="//jakarta.ee/resources#presentations">Presentations</a> </li>
+    <li><a href="//jakarta.ee/resources#surveys">Surveys</a> </li>
+    <li><a href="//jakarta.ee/resources/#ebooks">eBooks</a> </li>
+    <li><a href="//jakarta.ee/resources/#white-papers">White Papers</a> </li>
+    <li><a href="//jakarta.ee/resources/#cases-studies">Case Studies</a> </li>
+    <li><a href="https://start.jakarta.ee/">Starter for Jakarta EE</a> </li>
+  </ul>
+</li>
+<li class="visible-xs"><a href="https://jakarta.ee/release/">Releases</a></li>
+
+          </ul>
+        </div>
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar-main-menu">
+          <span class="sr-only">Toggle navigation</span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          </button>
+          <div class="wrapper-logo-mobile">
+            <a class="navbar-brand visible-xs" title="Jakarta EE: The New Home of Cloud Native Java" href="https://jakarta.ee/">
+              <img width="140" class="logo-eclipse-default-mobile img-responsive" src="https://jakarta.ee/images/jakarta/jakarta-ee-logo-color.svg" alt="Jakarta EE: The New Home of Cloud Native Java" />
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<header class="header-wrapper header-default-bg-img" id="header-wrapper">
+  <div class="jumbotron featured-jumbotron featured-jumbotron-default margin-bottom-0">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-24 col-sm-18 ">
+          <h1>Jakarta Agentic AI</h1>
+          <h2>Jakarta Agentic AI provides a set of vendor-neutral APIs that make it easy, consistent, and reliable to build, deploy, and run AI agents on Jakarta EE runtimes.</h2>
+        </div>
+      </div>
+    </div>
   </div>
 </header>
 
-<section class="hero">
-  <div class="wrap">
-    <p class="eyebrow">Jakarta EE Specification &middot; Version 1.0 in development</p>
-    <h1>Build AI agents the Jakarta&nbsp;EE way.</h1>
-    <p class="lede">
-      Jakarta Agentic AI provides a set of vendor-neutral APIs that make it easy, consistent, and
-      reliable to build, deploy, and run AI agents on Jakarta EE runtimes.
-    </p>
-    <div class="cta">
-      <a class="btn" href="#example">See the API</a>
-      <a class="btn btn-quiet" href="https://jakarta.ee/specifications/agentic-ai/1.0/">Specification page</a>
-    </div>
-    <p class="hero-note">
-      <span class="pill">1.0.0-M1</span>
-      Milestone 1 is on Maven Central &mdash; a non-final, draft-status release published for early
-      community feedback.
-    </p>
-  </div>
-</section>
-
-<main id="main">
-
-<section class="band" id="why">
-  <div class="wrap">
-    <h2>Why a standard for agents?</h2>
-    <div class="prose">
-      <p>
-        It is certainly possible to write script-like agent code that invokes LLMs directly. The problem
-        is that for any reasonably complex agent, you will probably end up with code that is hard to
-        maintain &mdash; especially for someone who did not write it.
-      </p>
-      <p>
-        This API gives your agents a long-term, predictable structure that fits the general patterns of
-        agentic systems. It also helps you think an implementation through: the paradigms should feel
-        familiar to a Jakarta EE developer, even though the domain is new.
-      </p>
-      <p>
-        The API shines when agents must adapt their behaviour at runtime. Keep the building blocks of
-        your domain logic simple, and change how they are composed dynamically &mdash; possibly in
-        response to LLM interactions. Think of those blocks as the elements of a flow chart that can
-        update itself.
-      </p>
+    <section class="default-breadcrumbs hidden-print" id="breadcrumb">
+  <div class="container">
+  <h3 class="sr-only">Breadcrumbs</h3>
+  <div class="row">
+    <div class="col-sm-24">
+      <ol class="breadcrumb">
+        <li>
+          <a href="https://jakarta.ee/">Home</a>
+        </li>
+        <li class="active">
+          <a href="https://jakartaee.github.io/agentic-ai/">Jakarta Agentic AI</a>
+        </li>
+      </ol>
     </div>
   </div>
 </section>
 
-<section class="band alt" id="concepts">
-  <div class="wrap">
-    <h2>The agent workflow</h2>
-    <p class="section-lede">
-      An agent is a CDI bean. Its workflow is a sequence of annotated methods, and domain objects flow
-      between them through the workflow context.
-    </p>
+    <main id="content">
+      <div class="container">
+        <div class="row">
+          <div class="col-md-18 padding-bottom-30">
+<div class="milestone-banner">
+  <span class="label label-primary">1.0.0-M1</span>
+  Milestone 1 is available on Maven Central. It is a non-final, draft-status release published for
+  early community feedback, and has not undergone the release review required to ratify a final
+  specification.
+</div>
 
-    <ol class="flow" aria-label="Agent workflow phases">
-      <li><span class="phase">@Trigger</span><span class="desc">A CDI event starts the workflow</span></li>
-      <li><span class="phase">@Decision</span><span class="desc">Decide whether and how to proceed</span></li>
-      <li><span class="phase">@Action</span><span class="desc">Carry out a step</span></li>
-      <li><span class="phase">@Outcome</span><span class="desc">Mark the end of the workflow</span></li>
-    </ol>
-    <p class="flow-aside"><span class="phase small">@HandleException</span> handles failures in any phase.</p>
+<h2 id="about">About</h2>
 
-    <table class="api">
-      <caption>The 1.0 API surface</caption>
-      <thead>
-        <tr><th scope="col">Type</th><th scope="col">Purpose</th></tr>
-      </thead>
-      <tbody>
-        <tr><th scope="row"><code>@Agent</code></th><td>Declares an agent class. Scope defaults to the workflow.</td></tr>
-        <tr><th scope="row"><code>@Trigger</code></th><td>Workflow entry point, invoked by CDI events.</td></tr>
-        <tr><th scope="row"><code>@Decision</code></th><td>Decides whether and how the workflow proceeds.</td></tr>
-        <tr><th scope="row"><code>@Action</code></th><td>A step within the workflow.</td></tr>
-        <tr><th scope="row"><code>@Outcome</code></th><td>Terminal step; marks the end of the workflow.</td></tr>
-        <tr><th scope="row"><code>@HandleException</code></th><td>Exception handler within the workflow.</td></tr>
-        <tr><th scope="row"><code>@WorkflowScoped</code></th><td>CDI normal scope &mdash; one context per workflow execution.</td></tr>
-        <tr><th scope="row"><code>LargeLanguageModel</code></th><td>Injectable LLM facade with automatic type conversion.</td></tr>
-        <tr><th scope="row"><code>Result</code></th><td>Built-in record returning a boolean plus detail from a decision.</td></tr>
-      </tbody>
-    </table>
-  </div>
-</section>
+<p>
+  Artificial Intelligence agents are one of the most prominent developments in enterprise and cloud
+  native computing in decades. They detect events, gather data, generate self-correcting plans,
+  execute actions, process results, and evolve subsequent decisions.
+</p>
 
-<section class="band" id="example">
-  <div class="wrap">
-    <h2>An agent, annotated</h2>
-    <p class="section-lede">
-      A fraud detection agent. It does not block a transaction &mdash; it marks it suspect and sends
-      notifications.
-    </p>
+<p>
+  Jakarta Agentic AI aims to do for developing AI agents what Jakarta Servlet did for HTTP
+  processing, Jakarta REST did for RESTful web services, or perhaps most appropriately, Jakarta
+  Batch did for batch processing.
+</p>
+
+<h3>Why would I want this?</h3>
+
+<p>
+  It is certainly possible to write script-like agent code that invokes LLMs directly. The problem is
+  that for any reasonably complex agent, you will probably end up with code that is hard to maintain,
+  especially for someone who did not write it. This API gives your agents a long-term, predictable
+  structure that fits the general patterns of agentic systems.
+</p>
+
+<p>
+  The API shines when agents must adapt their behaviour at runtime. Keep the building blocks of your
+  domain logic simple, and change how they are composed dynamically, possibly in response to LLM
+  interactions. Think of those blocks as the elements of a flow chart that can update itself.
+</p>
+
+<h3>Is this an LLM API like Spring AI or LangChain4j?</h3>
+
+<p>
+  No. It is an API that helps you write better AI agents using Jakarta EE. In your agent code you very
+  likely will be using LLMs, so we provide a very simple facade. Implementations will likely use Spring
+  AI or LangChain4j under the hood, and the facade also lets you reach those directly when you need to.
+</p>
+
+<h2 id="workflow">The agent workflow</h2>
+
+<p>
+  An agent is a CDI bean. Its workflow is a sequence of annotated methods, and domain objects flow
+  between them through the workflow context.
+</p>
+
+<ol class="agent-flow">
+  <li><code>@Trigger</code><span>A CDI event starts the workflow</span></li>
+  <li><code>@Decision</code><span>Decide whether and how to proceed</span></li>
+  <li><code>@Action</code><span>Carry out a step</span></li>
+  <li><code>@Outcome</code><span>Mark the end of the workflow</span></li>
+</ol>
+
+<p class="text-muted"><code>@HandleException</code> handles failures arising in any phase.</p>
+
+<table class="table table-striped api-table">
+  <thead>
+    <tr><th>Type</th><th>Purpose</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><code>@Agent</code></td><td>Declares an agent class. Scope defaults to the workflow.</td></tr>
+    <tr><td><code>@Trigger</code></td><td>Workflow entry point, invoked by CDI events.</td></tr>
+    <tr><td><code>@Decision</code></td><td>Decides whether and how the workflow proceeds.</td></tr>
+    <tr><td><code>@Action</code></td><td>A step within the workflow.</td></tr>
+    <tr><td><code>@Outcome</code></td><td>Terminal step; marks the end of the workflow.</td></tr>
+    <tr><td><code>@HandleException</code></td><td>Exception handler within the workflow.</td></tr>
+    <tr><td><code>@WorkflowScoped</code></td><td>CDI normal scope, one context per workflow execution.</td></tr>
+    <tr><td><code>LargeLanguageModel</code></td><td>Injectable LLM facade with automatic type conversion.</td></tr>
+    <tr><td><code>Result</code></td><td>Built-in record returning a boolean plus detail from a decision.</td></tr>
+  </tbody>
+</table>
+
+<h2 id="example">An agent, annotated</h2>
+
+<p>
+  A fraud detection agent. It does not block a transaction &mdash; it marks it suspect and sends
+  notifications.
+</p>
+
 <pre class="code"><code class="java">/*
  * Simple agent for bank fraud detection.
  * Doesn't actually block a transaction but marks it suspect and sends notifications.
@@ -215,18 +468,9 @@ public class FraudDetectionAgent {
         // Mark a transaction suspect, probably in the database.
     }
 }</code></pre>
-  </div>
-</section>
 
-<section class="band alt" id="downloads">
-  <div class="wrap">
-    <h2>Get it</h2>
-    <p class="section-lede">
-      Milestone 1 is published to Maven Central. It is a draft-status release and has not undergone the
-      release review required to ratify a final specification.
-    </p>
+<h2 id="get-it">Get it</h2>
 
-    <h3>Maven</h3>
 <pre class="code"><code class="xml">&lt;dependency&gt;
     &lt;groupId&gt;jakarta.agentic-ai&lt;/groupId&gt;
     &lt;artifactId&gt;jakarta.agentic-ai-api&lt;/artifactId&gt;
@@ -234,81 +478,215 @@ public class FraudDetectionAgent {
     &lt;scope&gt;provided&lt;/scope&gt;
 &lt;/dependency&gt;</code></pre>
 
-    <div class="cards">
-      <a class="card" href="https://jakarta.ee/specifications/agentic-ai/1.0/jakarta-agentic-ai-1.0.0-M1.html">
-        <h3>Specification</h3>
-        <p>The 1.0.0-M1 specification document, in HTML and PDF.</p>
-      </a>
-      <a class="card" href="https://jakarta.ee/specifications/agentic-ai/1.0/apidocs/">
-        <h3>Javadoc</h3>
-        <p>API documentation for the <code>jakarta.ai.agent</code> package.</p>
-      </a>
-      <a class="card" href="https://central.sonatype.com/artifact/jakarta.agentic-ai/jakarta.agentic-ai-tck/1.0.0-M1/jar">
-        <h3>TCK</h3>
-        <p>The Technology Compatibility Kit for implementors.</p>
-      </a>
-      <a class="card" href="https://jakarta.ee/specifications/agentic-ai/1.0/">
-        <h3>Specification page</h3>
-        <p>The official Jakarta EE page, including ballot records.</p>
-      </a>
+<ul class="download-list">
+  <li>
+    <a href="https://jakarta.ee/specifications/agentic-ai/1.0/jakarta-agentic-ai-1.0.0-M1.html">Specification document</a>
+    (<a href="https://jakarta.ee/specifications/agentic-ai/1.0/jakarta-agentic-ai-1.0.0-M1.pdf">PDF</a>)
+  </li>
+  <li><a href="https://jakarta.ee/specifications/agentic-ai/1.0/apidocs/">Javadoc</a> for the <code>jakarta.ai.agent</code> package</li>
+  <li><a href="https://central.sonatype.com/artifact/jakarta.agentic-ai/jakarta.agentic-ai-tck/1.0.0-M1/jar">Technology Compatibility Kit</a> for implementors</li>
+  <li><a href="https://jakarta.ee/specifications/agentic-ai/1.0/">Specification page</a>, including Specification Committee ballot records</li>
+</ul>
+
+<h3>Requirements</h3>
+
+<ul>
+  <li>Java SE 17 or higher</li>
+  <li>Jakarta EE 10 or higher</li>
+</ul>
+
+<h2 id="community">Get involved</h2>
+
+<p>
+  The project aims for the broadest industry consensus possible, engaging subject matter experts and
+  API consumers from within the Java and Jakarta EE ecosystem as well as outside it. Version 1.0 is
+  intentionally minimal, and we aim to iterate quickly based on evolving industry knowledge and user
+  feedback.
+</p>
+
+<ul class="download-list">
+  <li>Mailing list: <a href="https://accounts.eclipse.org/mailing-list/agentic-ai-dev">agentic-ai-dev@eclipse.org</a></li>
+  <li>Source, issues, and contribution guidelines: <a href="https://github.com/jakartaee/agentic-ai">jakartaee/agentic-ai</a></li>
+  <li>Governance and committers: <a href="https://projects.eclipse.org/projects/ee4j.agentic-ai">Eclipse project page</a></li>
+</ul>
+
+<h3>Standalone specification</h3>
+
+<p>
+  The project does not initially seek inclusion into the Jakarta EE Platform or any profile. Rather, it
+  provides a usable standalone API under the Jakarta EE umbrella that vendors may choose to adopt. In
+  the future it may make sense to define a Jakarta EE profile for AI in general, to which this project
+  could be added.
+</p>
+
+          </div>
+          <div class="col-md-6  padding-bottom-30">
+            <!-- nav -->
+<aside id="main-sidebar">
+  <ul id="leftnav" class="ul-left-nav fa-ul hidden-print">
+    <li class="separator">
+      <a class="separator" href="https://jakartaee.github.io/agentic-ai/">Project Resources</a>
+    </li>
+    <li>
+      <i class="fa fa-caret-right fa-fw"></i>
+      <a target="_self" href="https://github.com/jakartaee/agentic-ai">Sources</a>
+    </li>
+    <li>
+      <i class="fa fa-caret-right fa-fw"></i>
+      <a target="_self" href="https://jakarta.ee/specifications/agentic-ai/1.0/apidocs/">APIs</a>
+    </li>
+    <li>
+      <i class="fa fa-caret-right fa-fw"></i>
+      <a target="_self" href="https://jakarta.ee/specifications/agentic-ai/1.0/jakarta-agentic-ai-1.0.0-M1.html">Documentation</a>
+    </li>
+    <li>
+      <i class="fa fa-caret-right fa-fw"></i>
+      <a target="_self" href="https://github.com/jakartaee/agentic-ai/releases">Download</a>
+    </li>
+    <li>
+      <i class="fa fa-caret-right fa-fw"></i>
+      <a target="_self" href="https://github.com/jakartaee/agentic-ai/issues">Issue Tracker</a>
+    </li>
+    <li>
+      <i class="fa fa-caret-right fa-fw"></i>
+      <a target="_self" href="https://accounts.eclipse.org/mailing-list/agentic-ai-dev">Mailing list</a>
+    </li>
+    <li>
+      <i class="fa fa-caret-right fa-fw"></i>
+      <a target="_self" href="https://projects.eclipse.org/projects/ee4j.agentic-ai">Project page</a>
+    </li>
+  </ul>
+  </aside>
+
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <div class="featured-footer featured-mailing-list text-center" id="social-media">
+  <div class="container">
+    <div class="row">
+      <div class="col-sm-24">
+        <ul class="list-inline">
+          <li><a class="btn btn-primary margin-right-15" href="https://accounts.eclipse.org/mailing-list/jakarta.ee-wg">Sign up now</a></li>
+          <li>
+            <a class="social-icon" href="https://www.facebook.com/JakartaEE/">
+              <i class="fa fa-facebook-official" aria-label="Facebook page for Jakarta EE"></i><span class="sr-only">Facebook account</span>
+            </a>
+          </li>
+          <li>
+            <a class="social-icon" href="https://ca.linkedin.com/showcase/jakartaee">
+              <i class="fa fa-linkedin-square" aria-label="Linkedin profile for Jakarta EE"></i><span class="sr-only">Linkedin account</span>
+            </a>
+          </li>
+          <li>
+            <a class="social-icon" href="https://twitter.com/JakartaEE">
+              <i class="fa fa-twitter" aria-label="Twitter profile for Jakarta EE"></i><span class="sr-only">Twitter account</span>
+            </a>
+          </li>
+          <li>
+            <a class="social-icon" href="https://www.youtube.com/c/JakartaEE">
+              <i class="fa fa-youtube-play" aria-label="Youtube channel for Jakarta EE"></i><span class="sr-only">Youtube account</span>
+            </a>
+          </li>
+        </ul>
+      </div>
     </div>
-
-    <h3 class="req-heading">Requirements</h3>
-    <ul class="reqs">
-      <li>Java SE 17 or higher</li>
-      <li>Jakarta EE 10 or higher</li>
-    </ul>
   </div>
-</section>
+</div>
 
-<section class="band" id="community">
-  <div class="wrap">
-    <h2>Get involved</h2>
-    <p class="section-lede">
-      The project aims for the broadest industry consensus possible, engaging subject matter experts and
-      API consumers from within the Java and Jakarta EE ecosystem as well as outside it. The 1.0 release
-      is intentionally minimal, and we want to iterate quickly on feedback.
-    </p>
-    <div class="cards">
-      <a class="card" href="https://github.com/jakartaee/agentic-ai">
-        <h3>Source &amp; issues</h3>
-        <p>The API, specification, TCK, and examples all live in one repository.</p>
-      </a>
-      <a class="card" href="https://accounts.eclipse.org/mailing-list/agentic-ai-dev">
-        <h3>Mailing list</h3>
-        <p><code>agentic-ai-dev@eclipse.org</code> &mdash; the project's main discussion venue.</p>
-      </a>
-      <a class="card" href="https://projects.eclipse.org/projects/ee4j.agentic-ai">
-        <h3>Project page</h3>
-        <p>Governance, committers, and Eclipse Foundation project metadata.</p>
-      </a>
+    <p id="back-to-top">
+  <a class="visible-xs" href="#top">Back to the top</a>
+</p>
+<footer id="solstice-footer">
+  <div class="container">
+    <div class="row">
+      <section class="col-sm-5th footer-section-socials" id="footer-socials">
+        <h2 class="section-title"><img class="img-responsive" src="https://jakarta.ee/images/jakarta/jakarta-ee-logo-white.svg" alt="Jakarta EE logo"></h2>
+        <ul class="list-inline margin-top-20">
+          <li>
+            <a class="social-icon" href="https://www.facebook.com/JakartaEE/">
+              <i class="fa fa-facebook-official" aria-label="Facebook page for Jakarta EE"></i>
+            </a>
+          </li>
+          <li>
+            <a class="social-icon" href="https://ca.linkedin.com/showcase/jakartaee">
+              <i class="fa fa-linkedin-square" aria-label="Linkedin profile for Jakarta EE"></i>
+            </a>
+          </li>
+          <li>
+            <a class="social-icon" href="https://twitter.com/JakartaEE">
+              <i class="fa fa-twitter" aria-label="Twitter profile for Jakarta EE"></i>
+            </a>
+          </li>
+          <li>
+            <a class="social-icon" href="https://www.youtube.com/c/JakartaEE">
+              <i class="fa fa-youtube-play" aria-label="Youtube channel for Jakarta EE"></i>
+            </a>
+          </li>
+        </ul>
+      </section>
+      <section class="col-sm-5th padding-top-20" id="footer-eclipse-foundation">
+        <h2 class="section-title">Eclipse Foundation</h2>
+        <ul class="nav">
+          <li><a href="https://www.eclipse.org/org/">About Us</a></li>
+          <li><a href="https://www.eclipse.org/org/foundation/contact.php">Contact Us</a></li>
+          <li><a href="https://www.eclipse.org/donate">Donate</a></li>
+          <li><a href="https://www.eclipse.org/membership">Members</a></li>
+          <li><a href="https://www.eclipse.org/org/documents/">Governance</a></li>
+          <li><a href="https://www.eclipse.org/org/documents/Community_Code_of_Conduct.php">Code of Conduct</a></li>
+          <li><a href="https://www.eclipse.org/artwork/">Logo and Artwork</a></li>
+          <li><a href="https://www.eclipse.org/org/foundation/directors.php">Board of Directors</a></li>
+        </ul>
+      </section>
+      <section class="col-sm-5th padding-top-20" id="footer-legal">
+        <h2 class="section-title">Legal</h2>
+        <ul class="nav">
+          <li><a href="https://www.eclipse.org/legal/privacy.php">Privacy Policy</a></li>
+          <li><a href="https://www.eclipse.org/legal/termsofuse.php">Terms of Use</a></li>
+          <li><a href="https://www.eclipse.org/legal/copyright.php">Copyright Agent</a></li>
+          <li><a href="https://www.eclipse.org/legal/epl-2.0/">Eclipse Public License</a></li>
+          <li><a href="https://www.eclipse.org/legal/">Legal Resources </a></li>
+        </ul>
+      </section>
+      <section class="col-sm-5th padding-top-20" id="footer-useful-links">
+        <h2 class="section-title">Useful Links</h2>
+        <ul class="nav">
+          <li><a href="https://github.com/jakartaee/jakarta.ee">Report a Bug</a></li>
+          <li><a href="//jakarta.ee/resources/">Documentation</a></li>
+          <li><a href="//jakarta.ee/community/get-involved/">How to Contribute</a></li>
+          <li><a href="//jakarta.ee/connect/mailing-lists/">Mailing Lists</a></li>
+          <li><a href="//jakarta.ee/connect/">Stay Connected</a></li>
+          <li><a href="//jakarta.ee/compatibility/">Compatible Products</a></li>
+        </ul>
+      </section>
+      <section class="col-sm-5th padding-top-20" id="footer-other">
+        <h2 class="section-title">Other</h2>
+        <ul class="nav">
+          <li><a href="https://www.eclipse.org/ide/">IDE and Tools</a></li>
+          <li><a href="https://www.eclipse.org/projects">Projects</a></li>
+          <li><a href="https://www.eclipse.org/org/workinggroups/">Working Groups</a></li>
+          <li><a href="https://www.eclipse.org/org/research/">Research@Eclipse</a></li>
+          <li><a href="https://www.eclipse.org/security/">Report a Vulnerability</a></li>
+          <li><a href="https://status.eclipse.org">Service Status</a></li>
+        </ul>
+      </section>
+      <a href="#" class="scrollup" style="display: inline;">Back to the top</a>
     </div>
   </div>
-</section>
-
-</main>
-
-<footer class="foot">
-  <div class="wrap">
-    <p class="foot-lead">
-      Jakarta Agentic AI is an <a href="https://www.eclipse.org/">Eclipse Foundation</a> project,
-      developed under the
-      <a href="https://www.eclipse.org/projects/efsp/">Eclipse Foundation Specification Process</a>.
-    </p>
-    <nav class="foot-links" aria-label="Legal">
-      <a href="https://www.eclipse.org/legal/copyright/">Copyright</a>
-      <a href="https://www.eclipse.org/legal/">Legal Resources</a>
-      <a href="https://www.eclipse.org/legal/privacy/">Privacy Policy</a>
-      <a href="https://www.eclipse.org/legal/terms-of-use/">Terms of Use</a>
-      <a href="https://www.eclipse.org/security/">Report a Vulnerability</a>
-    </nav>
-    <p class="foot-fine">
-      Copyright &copy; Eclipse Foundation AISBL. Content licensed under the
-      <a href="https://www.eclipse.org/legal/epl-2.0/">Eclipse Public License 2.0</a>.
-    </p>
+<div class="footer-copyright">
+  <div class="container">
+    <div class="col-sm-24 margin-top-20">
+      <div class="row">
+        <div id="copyright" class="col-md-16">
+          <p id="copyright-text">Copyright © Eclipse Foundation. All Rights Reserved.</p>
+        </div>
+      </div>
+    </div>
   </div>
+</div>
 </footer>
-
+<script src="https://jakarta.ee/js/solstice.js"></script>
 <script src="assets/js/highlight.js"></script>
-</body>
+  </body>
 </html>
