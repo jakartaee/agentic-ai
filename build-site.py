@@ -81,7 +81,7 @@ page = f"""<!DOCTYPE html>
       <div class="top">
         <div class="container">
           <div class="row">
-            <span class="eyebrow">Jakarta EE Specification</span>
+            <span class="eyebrow">Jakarta Agentic AI</span>
             <h1>Build <span class="text-primary-orange">AI agents</span><br>the Jakarta EE way</h1>
             <h2>Vendor-neutral APIs that make it easy, consistent, and reliable<br/>
                 to build, deploy, and run AI agents on Jakarta EE runtimes</h2>
