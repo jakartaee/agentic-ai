@@ -75,30 +75,36 @@ page = f"""<!DOCTYPE html>
 </head>
 <body>
 {chrome_header}
-<header class="header-wrapper header-default-bg-img" id="header-wrapper">
+<header class="header-wrapper header-home header-secondary-bg-img" id="header-wrapper">
+  <div class="jumbotron featured-jumbotron featured-jumbotron-default margin-bottom-0">
+    <div class="text-center">
+      <div class="top">
+        <div class="container">
+          <div class="row">
+            <span class="eyebrow">Jakarta EE Specification</span>
+            <h1>Build <span class="text-primary-orange">AI agents</span><br>the Jakarta EE way</h1>
+            <h2>Vendor-neutral APIs that make it easy, consistent, and reliable<br/>
+                to build, deploy, and run AI agents on Jakarta EE runtimes</h2>
+            <ul class="jumbotron-links list-inline">
+              <li>
+                <a class="btn btn-outline-primary" href="https://jakarta.ee/specifications/agentic-ai/1.0/"
+                  >Specification<i class="fa fa-chevron-right"></i></a>
+              </li>
+              <li>
+                <a class="btn btn-primary" href="https://github.com/jakartaee/agentic-ai"
+                  >Get involved<i class="fa fa-chevron-right"></i></a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 </header>
 
 <main>
   <div class="container">
-    <div class="row">
-      <div class="col-md-18 padding-bottom-30">
 {CONTENT.read_text(encoding='utf-8')}
-      </div>
-      <div class="col-md-6 padding-bottom-30">
-        <aside id="main-sidebar">
-          <ul id="leftnav" class="ul-left-nav fa-ul hidden-print">
-            <li class="separator"><a class="separator" href="./">Project Resources</a></li>
-            <li><i class="fa fa-caret-right fa-fw"></i> <a href="https://github.com/jakartaee/agentic-ai">Sources</a></li>
-            <li><i class="fa fa-caret-right fa-fw"></i> <a href="https://jakarta.ee/specifications/agentic-ai/1.0/apidocs/">Javadoc</a></li>
-            <li><i class="fa fa-caret-right fa-fw"></i> <a href="https://jakarta.ee/specifications/agentic-ai/1.0/">Specification</a></li>
-            <li><i class="fa fa-caret-right fa-fw"></i> <a href="https://github.com/jakartaee/agentic-ai/releases">Downloads</a></li>
-            <li><i class="fa fa-caret-right fa-fw"></i> <a href="https://github.com/jakartaee/agentic-ai/issues">Issue Tracker</a></li>
-            <li><i class="fa fa-caret-right fa-fw"></i> <a href="https://accounts.eclipse.org/mailing-list/agentic-ai-dev">Mailing List</a></li>
-            <li><i class="fa fa-caret-right fa-fw"></i> <a href="https://projects.eclipse.org/projects/ee4j.agentic-ai">Project Page</a></li>
-          </ul>
-        </aside>
-      </div>
-    </div>
   </div>
 </main>
 
