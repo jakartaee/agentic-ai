@@ -1,9 +1,9 @@
 /*
  * Jakarta Agentic AI project site.
  *
- * Layers on top of the Jakarta EE Solstice stylesheet (https://jakarta.ee/css/styles.css),
- * which supplies the toolbar, global navigation, grid, typography, and footer. Only the
- * page-specific pieces live here.
+ * Layers on top of https://jakarta.ee/css/styles.v2.css, which supplies the toolbar,
+ * navigation, grid, typography, tables, code highlighting, and footer. Only the two
+ * components that stylesheet has no equivalent for live here.
  */
 
 /* ---------- milestone banner ---------- */
@@ -13,13 +13,11 @@
   padding: 15px 20px;
   background: #f7f8f9;
   border-left: 4px solid #f7941e;
-  font-size: 15px;
   line-height: 1.6;
 }
 .milestone-banner .label {
   margin-right: 8px;
   font-family: Menlo, Consolas, "Liberation Mono", monospace;
-  font-weight: 600;
   vertical-align: baseline;
 }
 
@@ -32,11 +30,9 @@
   gap: 10px;
   margin: 0 0 15px;
   padding: 0;
-  counter-reset: phase;
 }
 .agent-flow li {
   flex: 1 1 170px;
-  position: relative;
   padding: 14px 16px;
   background: #fff;
   border: 1px solid #dfe3e6;
@@ -48,9 +44,7 @@
   padding: 0;
   background: none;
   border: 0;
-  color: #1b1b1b;
   font-weight: 600;
-  font-size: 14px;
 }
 .agent-flow li span {
   display: block;
@@ -60,69 +54,13 @@
   color: #6c757d;
 }
 
-/* ---------- API table ---------- */
+/* ---------- tweaks ---------- */
 
-.api-table {
-  margin-bottom: 30px;
-  font-size: 15px;
-}
-.api-table td:first-child {
-  white-space: nowrap;
-}
-.api-table code {
-  background: none;
-  padding: 0;
-  border: 0;
-  color: #1b1b1b;
-}
+.api-table td:first-child { white-space: nowrap; }
+.api-table code { background: none; padding: 0; border: 0; }
 
-/* ---------- code blocks ---------- */
-
-pre.code {
-  background: #1b2129;
-  color: #dbe4ec;
-  border: 0;
-  border-radius: 4px;
-  padding: 18px 20px;
-  margin-bottom: 30px;
-  overflow-x: auto;
-  font-size: 13px;
-  line-height: 1.6;
-  -webkit-overflow-scrolling: touch;
-}
-pre.code code {
-  background: none;
-  padding: 0;
-  border: 0;
-  color: inherit;
-  font-size: inherit;
-  white-space: pre;
-}
-.tok-comment { color: #8b9bab; font-style: italic; }
-.tok-string  { color: #b9d99a; }
-.tok-ann     { color: #f0ac63; font-weight: 600; }
-.tok-key     { color: #85b5e0; }
-.tok-tag     { color: #85b5e0; }
-
-/* ---------- lists ---------- */
-
-.download-list {
-  padding-left: 20px;
-  margin-bottom: 30px;
-  line-height: 1.9;
-}
-
-/* ---------- headings ---------- */
-
-main h2 {
-  margin-top: 40px;
-  padding-bottom: 8px;
-  border-bottom: 1px solid #e6e9ec;
-}
-main h2:first-of-type { margin-top: 10px; }
-main h3 { margin-top: 28px; }
+.download-list { line-height: 1.9; }
 
 @media (max-width: 767px) {
   .agent-flow li { flex-basis: 100%; }
-  pre.code { font-size: 12px; }
 }

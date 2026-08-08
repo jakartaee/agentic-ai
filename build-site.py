@@ -1,13 +1,19 @@
 #!/usr/bin/env python3
 """
-Assemble the Jakarta Agentic AI project site from the Solstice shell that the
-sibling Jakarta specification sites (REST, JSON-B) use.
+Assemble the Jakarta Agentic AI project site from the current jakarta.ee shell.
 
-The chrome -- Eclipse toolbar, Jakarta EE global nav, and the Solstice footer --
-is lifted verbatim from https://jakartaee.github.io/rest/ so the page matches its
-peers. Only the parts that identify the project are substituted. Google Tag
-Manager is deliberately dropped: it loads the Foundation's analytics container,
-which is not ours to fire.
+The chrome -- Eclipse toolbar, Jakarta EE mega-menu navigation, and the Solstice
+footer -- is lifted from a saved copy of a live jakarta.ee page so the site matches
+the current design rather than an older revision of it. Only the parts that identify
+the project are substituted.
+
+Refresh the shell by re-saving the reference page and re-running this script:
+
+    curl -s -L https://jakarta.ee/specifications/agentic-ai/1.0/ -o ref-specpage.html
+    python3 build-site.py ref-specpage.html site/index.html content.html
+
+Google Tag Manager is deliberately dropped: it loads the Foundation's analytics
+container, which is not ours to fire.
 """
 import re, sys, pathlib
 
@@ -15,144 +21,95 @@ REF = pathlib.Path(sys.argv[1])
 OUT = pathlib.Path(sys.argv[2])
 CONTENT = pathlib.Path(sys.argv[3])
 
-ref = REF.read_text(encoding="utf-8")
-lines = ref.split("\n")
+lines = REF.read_text(encoding="utf-8").split("\n")
 
 
-def slice_between(start_pat, end_pat, after=0):
-    """Return the inclusive slice of lines from the first line matching
-    start_pat (at or after `after`) to the first subsequent line matching
-    end_pat."""
-    start = next(i for i, l in enumerate(lines) if i >= after and re.search(start_pat, l))
-    end = next(i for i, l in enumerate(lines) if i > start and re.search(end_pat, l))
-    return start, end
+def find(pattern, after=0):
+    return next(i for i, l in enumerate(lines) if i >= after and re.search(pattern, l))
 
 
-# Chrome: everything from the skip link through the end of the global nav,
-# i.e. up to the line immediately before <header class="header-wrapper">.
-skip = next(i for i, l in enumerate(lines) if 'class="sr-only" href="#content"' in l)
-hdr = next(i for i, l in enumerate(lines) if 'class="header-wrapper' in l)
+# Chrome header: the skip link through the end of the navigation, i.e. everything
+# before the page's own <header class="header-wrapper">.
+skip = find(r'class="sr-only" href="#content"')
+hdr = find(r'<header class="header-wrapper')
 chrome_header = "\n".join(lines[skip:hdr])
 
-# The shell was copied from the REST site, so a handful of links in it still point
-# at that project or resolve against this site's root rather than jakarta.ee.
-FIXUPS = [
-    ("https://jakartaee.github.io/rest/", "https://jakarta.ee/"),
-    ('href="/compatibility/download/"', 'href="https://jakarta.ee/compatibility/download/"'),
-    ('href="/release/"', 'href="https://jakarta.ee/release/"'),
-]
+# Chrome footer: <footer id="solstice-footer"> through </footer>.
+foot = find(r'id="solstice-footer"') - 1
+foot_end = find(r"^</footer>", foot)
+chrome_footer = "\n".join(lines[foot:foot_end + 1])
 
-# Footer: the social-media band through </footer> plus the solstice script.
-soc = next(i for i, l in enumerate(lines) if 'id="social-media"' in l)
-foot_end = next(i for i, l in enumerate(lines) if l.strip() == "</footer>")
-chrome_footer = "\n".join(lines[soc:foot_end + 1])
 
-for old, new in FIXUPS:
-    chrome_header = chrome_header.replace(old, new)
-    chrome_footer = chrome_footer.replace(old, new)
+def absolutize(markup):
+    """The shell is written for jakarta.ee, where root-relative URLs resolve against
+    that host. Served from jakartaee.github.io they would resolve against this site,
+    so point them back at jakarta.ee."""
+    markup = re.sub(r'(href|src|action)="/(?!/)', r'\1="https://jakarta.ee/', markup)
+    markup = re.sub(r'(href|src)="//', r'\1="https://', markup)
+    return markup
+
+
+chrome_header = absolutize(chrome_header)
+chrome_footer = absolutize(chrome_footer)
 
 TITLE = "Jakarta Agentic AI"
 SUMMARY = ("Jakarta Agentic AI provides a set of vendor-neutral APIs that make it easy, "
            "consistent, and reliable to build, deploy, and run AI agents on Jakarta EE runtimes.")
-HOME = "https://jakartaee.github.io/agentic-ai/"
-
-SIDEBAR_LINKS = [
-    ("Sources", "https://github.com/jakartaee/agentic-ai"),
-    ("APIs", "https://jakarta.ee/specifications/agentic-ai/1.0/apidocs/"),
-    ("Documentation", "https://jakarta.ee/specifications/agentic-ai/1.0/jakarta-agentic-ai-1.0.0-M1.html"),
-    ("Download", "https://github.com/jakartaee/agentic-ai/releases"),
-    ("Issue Tracker", "https://github.com/jakartaee/agentic-ai/issues"),
-    ("Mailing list", "https://accounts.eclipse.org/mailing-list/agentic-ai-dev"),
-    ("Project page", "https://projects.eclipse.org/projects/ee4j.agentic-ai"),
-]
-
-sidebar_items = "\n".join(
-    f"""    <li>
-      <i class="fa fa-caret-right fa-fw"></i>
-      <a target="_self" href="{href}">{label}</a>
-    </li>"""
-    for label, href in SIDEBAR_LINKS
-)
 
 page = f"""<!DOCTYPE html>
 <html lang="en-US">
-  <head>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="icon" href="assets/img/favicon.png" type="image/png">
-    <!-- Links and stylesheets -->
-    <link rel="stylesheet" href="https://jakarta.ee/css/styles.css">
-    <link rel="stylesheet" href="assets/css/style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300;0,400;0,600;0,700;1,400&display=swap" rel="stylesheet" type="text/css"/>
-    <title>{TITLE}</title>
-    <meta name="description" content="{SUMMARY}">
-    <meta property="og:title" content="{TITLE}">
-    <meta property="og:description" content="{SUMMARY}">
-    <meta property="og:type" content="website">
-  </head>
-  <body>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{TITLE}</title>
+<meta name="description" content="{SUMMARY}">
+<meta property="og:title" content="{TITLE}">
+<meta property="og:description" content="{SUMMARY}">
+<meta property="og:type" content="website">
+<link href="https://jakarta.ee/images/jakarta/favicon.ico" rel="icon" type="image/x-icon"/>
+<link rel="stylesheet" href="https://jakarta.ee/css/styles.v2.css">
+<link rel="stylesheet" href="assets/css/style.css">
+<link href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300;0,400;0,600;0,700;1,400&display=swap" rel="stylesheet" type="text/css"/>
+<link href="https://fonts.googleapis.com/css2?family=Exo:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
 {chrome_header}
 <header class="header-wrapper header-default-bg-img" id="header-wrapper">
-  <div class="jumbotron featured-jumbotron featured-jumbotron-default margin-bottom-0">
-    <div class="container">
-      <div class="row">
-        <div class="col-md-24 col-sm-18 ">
-          <h1>{TITLE}</h1>
-          <h2>{SUMMARY}</h2>
-        </div>
-      </div>
-    </div>
-  </div>
 </header>
 
-    <section class="default-breadcrumbs hidden-print" id="breadcrumb">
+<main>
   <div class="container">
-  <h3 class="sr-only">Breadcrumbs</h3>
-  <div class="row">
-    <div class="col-sm-24">
-      <ol class="breadcrumb">
-        <li>
-          <a href="https://jakarta.ee/">Home</a>
-        </li>
-        <li class="active">
-          <a href="{HOME}">{TITLE}</a>
-        </li>
-      </ol>
+    <div class="row">
+      <div class="col-md-18 padding-bottom-30">
+{CONTENT.read_text(encoding='utf-8')}
+      </div>
+      <div class="col-md-6 padding-bottom-30">
+        <aside id="main-sidebar">
+          <ul id="leftnav" class="ul-left-nav fa-ul hidden-print">
+            <li class="separator"><a class="separator" href="./">Project Resources</a></li>
+            <li><i class="fa fa-caret-right fa-fw"></i> <a href="https://github.com/jakartaee/agentic-ai">Sources</a></li>
+            <li><i class="fa fa-caret-right fa-fw"></i> <a href="https://jakarta.ee/specifications/agentic-ai/1.0/apidocs/">Javadoc</a></li>
+            <li><i class="fa fa-caret-right fa-fw"></i> <a href="https://jakarta.ee/specifications/agentic-ai/1.0/">Specification</a></li>
+            <li><i class="fa fa-caret-right fa-fw"></i> <a href="https://github.com/jakartaee/agentic-ai/releases">Downloads</a></li>
+            <li><i class="fa fa-caret-right fa-fw"></i> <a href="https://github.com/jakartaee/agentic-ai/issues">Issue Tracker</a></li>
+            <li><i class="fa fa-caret-right fa-fw"></i> <a href="https://accounts.eclipse.org/mailing-list/agentic-ai-dev">Mailing List</a></li>
+            <li><i class="fa fa-caret-right fa-fw"></i> <a href="https://projects.eclipse.org/projects/ee4j.agentic-ai">Project Page</a></li>
+          </ul>
+        </aside>
+      </div>
     </div>
   </div>
-</section>
-
-    <main id="content">
-      <div class="container">
-        <div class="row">
-          <div class="col-md-18 padding-bottom-30">
-{CONTENT.read_text(encoding='utf-8')}
-          </div>
-          <div class="col-md-6  padding-bottom-30">
-            <!-- nav -->
-<aside id="main-sidebar">
-  <ul id="leftnav" class="ul-left-nav fa-ul hidden-print">
-    <li class="separator">
-      <a class="separator" href="{HOME}">Project Resources</a>
-    </li>
-{sidebar_items}
-  </ul>
-  </aside>
-
-          </div>
-        </div>
-      </div>
-    </main>
+</main>
 
 {chrome_footer}
-<script src="https://jakarta.ee/js/solstice.js"></script>
+<script src="https://jakarta.ee/js/solstice.v2.js"></script>
 <script src="assets/js/highlight.js"></script>
-  </body>
+</body>
 </html>
 """
 
 OUT.write_text(page, encoding="utf-8")
-print(f"wrote {OUT} ({len(page)} bytes)")
-print(f"  chrome header: lines {skip}-{hdr - 1}")
-print(f"  chrome footer: lines {soc}-{foot_end}")
+print(f"wrote {OUT} ({len(page):,} bytes)")
+print(f"  chrome header: reference lines {skip}-{hdr - 1}")
+print(f"  chrome footer: reference lines {foot}-{foot_end}")
