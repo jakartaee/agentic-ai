@@ -1,10 +1,43 @@
-<h1 class="big-text">Jakarta Agentic AI</h1>
-
 <div class="milestone-banner">
   <span class="label label-primary">1.0.0-M1</span>
   Milestone 1 is available on Maven Central. It is a non-final, draft-status release published for
   early community feedback, and has not undergone the release review required to ratify a final
   specification.
+</div>
+
+<div class="grid xs:grid-cols-2 gap-2 text-primary margin-top-30">
+  <div class="card featured glow">
+    <div class="icon text-secondary"><i class="fa fa-sitemap fa-2x" aria-hidden="true"></i></div>
+    <div>
+      <h3>Structure instead of spaghetti</h3>
+      <p>A predictable shape for agent code &mdash; trigger, decision, action, outcome &mdash; that
+         still makes sense to whoever reads it next.</p>
+    </div>
+  </div>
+  <div class="card featured glow">
+    <div class="icon text-secondary"><i class="fa fa-random fa-2x" aria-hidden="true"></i></div>
+    <div>
+      <h3>Adapts at runtime</h3>
+      <p>Keep the building blocks of your domain logic simple and recompose them dynamically,
+         possibly in response to LLM interactions.</p>
+    </div>
+  </div>
+  <div class="card featured glow">
+    <div class="icon text-secondary"><i class="fa fa-plug fa-2x" aria-hidden="true"></i></div>
+    <div>
+      <h3>Pluggable LLM access</h3>
+      <p>A minimal facade over the LLM libraries you already use, with automatic type conversion
+         and a way through to the underlying API.</p>
+    </div>
+  </div>
+  <div class="card featured glow">
+    <div class="icon text-secondary"><i class="fa fa-cubes fa-2x" aria-hidden="true"></i></div>
+    <div>
+      <h3>Familiar Jakarta EE</h3>
+      <p>An agent is a CDI bean. Injection, validation, persistence, and the rest of the platform
+         work exactly as you expect.</p>
+    </div>
+  </div>
 </div>
 
 <h2 id="about">About</h2>
@@ -189,15 +222,43 @@ public class FraudDetectionAgent {
     &lt;scope&gt;provided&lt;/scope&gt;
 &lt;/dependency&gt;</code></pre></div>
 
-<ul class="download-list">
-  <li>
-    <a href="https://jakarta.ee/specifications/agentic-ai/1.0/jakarta-agentic-ai-1.0.0-M1.html">Specification document</a>
-    (<a href="https://jakarta.ee/specifications/agentic-ai/1.0/jakarta-agentic-ai-1.0.0-M1.pdf">PDF</a>)
-  </li>
-  <li><a href="https://jakarta.ee/specifications/agentic-ai/1.0/apidocs/">Javadoc</a> for the <code>jakarta.ai.agent</code> package</li>
-  <li><a href="https://central.sonatype.com/artifact/jakarta.agentic-ai/jakarta.agentic-ai-tck/1.0.0-M1/jar">Technology Compatibility Kit</a> for implementors</li>
-  <li><a href="https://jakarta.ee/specifications/agentic-ai/1.0/">Specification page</a>, including Specification Committee ballot records</li>
-</ul>
+<div class="grid xs:grid-cols-2 gap-2 text-primary">
+  <a class="card glow" href="https://jakarta.ee/specifications/agentic-ai/1.0/jakarta-agentic-ai-1.0.0-M1.html">
+    <div class="icon text-secondary"><i class="fa fa-file-text-o fa-2x" aria-hidden="true"></i></div>
+    <div>
+      <h3>Specification document</h3>
+      <p>The 1.0.0-M1 specification, rendered as HTML.</p>
+    </div>
+  </a>
+  <a class="card glow" href="https://jakarta.ee/specifications/agentic-ai/1.0/jakarta-agentic-ai-1.0.0-M1.pdf">
+    <div class="icon text-secondary"><i class="fa fa-file-pdf-o fa-2x" aria-hidden="true"></i></div>
+    <div>
+      <h3>Specification (PDF)</h3>
+      <p>The same document, typeset for printing and offline reading.</p>
+    </div>
+  </a>
+  <a class="card glow" href="https://jakarta.ee/specifications/agentic-ai/1.0/apidocs/">
+    <div class="icon text-secondary"><i class="fa fa-code fa-2x" aria-hidden="true"></i></div>
+    <div>
+      <h3>Javadoc</h3>
+      <p>API documentation for the <code>jakarta.ai.agent</code> package.</p>
+    </div>
+  </a>
+  <a class="card glow" href="https://central.sonatype.com/artifact/jakarta.agentic-ai/jakarta.agentic-ai-tck/1.0.0-M1/jar">
+    <div class="icon text-secondary"><i class="fa fa-check-square-o fa-2x" aria-hidden="true"></i></div>
+    <div>
+      <h3>Compatibility Kit</h3>
+      <p>The TCK, for implementors verifying compatibility.</p>
+    </div>
+  </a>
+  <a class="card glow" href="https://jakarta.ee/specifications/agentic-ai/1.0/">
+    <div class="icon text-secondary"><i class="fa fa-bookmark-o fa-2x" aria-hidden="true"></i></div>
+    <div>
+      <h3>Specification page</h3>
+      <p>The official Jakarta EE page, including ballot records.</p>
+    </div>
+  </a>
+</div>
 
 <h3>Requirements</h3>
 
@@ -215,11 +276,29 @@ public class FraudDetectionAgent {
   feedback.
 </p>
 
-<ul class="download-list">
-  <li>Mailing list: <a href="https://accounts.eclipse.org/mailing-list/agentic-ai-dev">agentic-ai-dev@eclipse.org</a></li>
-  <li>Source, issues, and contribution guidelines: <a href="https://github.com/jakartaee/agentic-ai">jakartaee/agentic-ai</a></li>
-  <li>Governance and committers: <a href="https://projects.eclipse.org/projects/ee4j.agentic-ai">Eclipse project page</a></li>
-</ul>
+<div class="grid xs:grid-cols-2 gap-2 text-primary">
+  <a class="card glow" href="https://accounts.eclipse.org/mailing-list/agentic-ai-dev">
+    <div class="icon text-secondary"><i class="fa fa-envelope-o fa-2x" aria-hidden="true"></i></div>
+    <div>
+      <h3>Mailing list</h3>
+      <p><code>agentic-ai-dev@eclipse.org</code> is where the project's discussion happens.</p>
+    </div>
+  </a>
+  <a class="card glow" href="https://github.com/jakartaee/agentic-ai">
+    <div class="icon text-secondary"><i class="fa fa-github fa-2x" aria-hidden="true"></i></div>
+    <div>
+      <h3>Source and issues</h3>
+      <p>The API, specification, TCK, and examples all live in one repository.</p>
+    </div>
+  </a>
+  <a class="card glow" href="https://projects.eclipse.org/projects/ee4j.agentic-ai">
+    <div class="icon text-secondary"><i class="fa fa-users fa-2x" aria-hidden="true"></i></div>
+    <div>
+      <h3>Project page</h3>
+      <p>Governance, committers, and Eclipse Foundation project metadata.</p>
+    </div>
+  </a>
+</div>
 
 <h3>Standalone specification</h3>
 
