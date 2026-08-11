@@ -67,6 +67,7 @@ body{margin:0;font-family:var(--sans);color:var(--body);background:var(--light);
 .chapter code{font-family:var(--mono);font-size:.86em;background:#eceff1;color:#0a3a52;padding:2px 6px;border-radius:5px}
 .chapter pre{background:var(--navy-2);border-radius:12px;padding:20px 22px;overflow-x:auto;margin:18px 0;box-shadow:0 4px 18px rgba(0,19,27,.18);border:1px solid var(--navy-soft)}
 .chapter pre code{background:none;color:#dce7ec;padding:0;font-size:13.6px;line-height:1.62;display:block}
+.chapter pre code.diagram{font-family:"Courier New",Courier,monospace}
 .tok-kw{color:#7fc8ef;font-weight:500}
 .tok-ann{color:var(--orange);font-weight:600}
 .tok-str{color:#a8d977}
@@ -204,7 +205,7 @@ configuration detail. The two samples in chapter 8 prove this live: their agents
 are written the same way, one running on local Ollama and the other on Claude, and
 the only difference between them is <code>microprofile-config.properties</code>.</p>
 <h2>The mental model: a workflow of phases</h2>
-<pre><code>   CDI event
+<pre><code class="diagram">   CDI event
        │
        ▼
   ┌─────────┐    ┌───────────┐    ┌─────────┐    ┌──────────┐
