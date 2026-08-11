@@ -91,6 +91,10 @@ page = f"""<!DOCTYPE html>
                   >Specification<i class="fa fa-chevron-right"></i></a>
               </li>
               <li>
+                <a class="btn btn-outline-primary" href="tutorial/"
+                  >Tutorial<i class="fa fa-chevron-right"></i></a>
+              </li>
+              <li>
                 <a class="btn btn-primary" href="https://github.com/jakartaee/agentic-ai"
                   >Get involved<i class="fa fa-chevron-right"></i></a>
               </li>
