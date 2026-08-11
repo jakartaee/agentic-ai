@@ -206,13 +206,13 @@ are written the same way, one running on local Ollama and the other on Claude, a
 the only difference between them is <code>microprofile-config.properties</code>.</p>
 <h2>The mental model: a workflow of phases</h2>
 <pre><code class="diagram">   CDI event
-       │
-       ▼
-  ┌─────────┐    ┌───────────┐    ┌─────────┐    ┌──────────┐
-  │ @Trigger │──▶│ @Decision │──▶│ @Action │──▶│ @Outcome │
-  └─────────┘    └───────────┘    └─────────┘    └──────────┘
-   (required,     (0..N, may       (0..N)         (0..1, void,
-    exactly 1)     stop the flow)                  ends the context)
+       |
+       v
+  +----------+     +-----------+     +---------+     +----------+
+  | @Trigger | --> | @Decision | --> | @Action | --> | @Outcome |
+  +----------+     +-----------+     +---------+     +----------+
+   (required,       (0..N, may        (0..N)          (0..1, void,
+    exactly 1)       stop the flow)                    ends the context)
 
               @HandleException (0..N) catches exceptions from ANY phase
 </code></pre>
