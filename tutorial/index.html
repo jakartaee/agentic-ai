@@ -136,6 +136,11 @@ EclipseLink implement it), Jakarta Agentic AI standardizes agent construction �
 you program against annotations and the <code>LargeLanguageModel</code> interface, and the
 application server (Payara, in our case) provides the orchestration engine and the
 LLM provider integration.</p>
+<p>📖 This tutorial gives you orientation, Payara usage and runnable samples. The
+<strong>single source of truth</strong> for the programming model is the specification itself,
+which is short and meant to be read:
+<a href="https://jakarta.ee/specifications/agentic-ai/1.0/jakarta-agentic-ai-1.0.0-M1.html" target="_blank" rel="noopener">read the Jakarta Agentic AI 1.0 specification →</a>.
+Throughout, &quot;Read the spec →&quot; links take you to the exact section.</p>
 <h2>Why a spec for agents?</h2>
 <p>Today every AI framework in Java (LangChain4j, Spring AI, etc.) has its own
 programming model. Problems the spec attacks:</p>
@@ -201,7 +206,7 @@ payara.agentic.llm.model=gemma3:4b         payara.agentic.llm.model=claude-opus-
 <p>Zero code changes, zero <code>pom.xml</code> changes (the provider&#39;s HTTP backend lives in
 the <strong>server</strong>, not in the WAR), zero recompilation — at most a redeploy. It is the
 same leap Jakarta Persistence made over hand-rolled JDBC: the provider became a
-configuration detail. The two samples in chapter 8 prove this live: their agents
+configuration detail. The two samples in the samples chapter prove this live: their agents
 are written the same way, one running on local Ollama and the other on Claude, and
 the only difference between them is <code>microprofile-config.properties</code>.</p>
 <h2>The mental model: a workflow of phases</h2>
@@ -231,1387 +236,109 @@ destroys the workflow context.</li>
 available as a parameter of later phases (type-based injection, no manual
 parameter passing).</li>
 </ul>
-<h2>The spec repository architecture</h2>
-<p>The project is a multi-module Maven build with four modules:</p>
-<table>
-<thead>
-<tr>
-<th>Module</th>
-<th>Contents</th>
-</tr>
-</thead>
-<tbody><tr>
-<td><code>api/</code></td>
-<td>The <code>jakarta.ai.agent</code> package: 7 annotations, 1 interface (<code>LargeLanguageModel</code>), 1 record (<code>Result</code>), 1 exception (<code>LLMException</code>). <strong>No implementation code.</strong></td>
-</tr>
-<tr>
-<td><code>spec/</code></td>
-<td>The specification document in AsciiDoc (<code>jakarta-agentic-ai.adoc</code>).</td>
-</tr>
-<tr>
-<td><code>tck/</code></td>
-<td>The Technology Compatibility Kit — the tests any implementation must pass to claim compatibility (chapter 4).</td>
-</tr>
-<tr>
-<td><code>examples/</code></td>
-<td>Usage examples.</td>
-</tr>
-</tbody></table>
-<h2>Fundamental design decisions</h2>
-<p>These are the decisions that generate the most questions — here is the rationale:</p>
-<ol>
-<li><strong>CDI-first.</strong> The agent is a CDI bean; the trigger fires on CDI events
-(<code>Event.fire(...)</code>). Future versions may add other sources (Jakarta Messaging,
-REST, programmatic invocation), but 1.0 is pure CDI. This gives you for free:
-injection, interceptors, events, scopes.</li>
-<li><strong>Jakarta JSON Binding (JSON-B) for serialization</strong> — not Jackson. Reason:
-<strong>portable, consistent</strong> behavior across implementations; JSON-B is already part
-of the Jakarta EE platform.</li>
-<li><strong>Baseline: Java 17, Jakarta EE 10, CDI 4.1.</strong></li>
-<li><strong>The <code>LargeLanguageModel</code> facade is minimalist on purpose.</strong> In 1.0 each
-implementation chooses how to configure the provider. Future versions will
-standardize provider selection and common settings (temperature, max tokens) —
-the same evolutionary path Jakarta Persistence took with its providers.</li>
-<li><strong>Conversational state per workflow.</strong> Even with an <code>@ApplicationScoped</code> agent,
-the LLM conversation is isolated per workflow execution — two concurrent
-executions never mix history.</li>
-</ol>
-<h2>Split of responsibilities: spec × implementation</h2>
-<p>An important subtlety (it shows up in the TCK): <strong>plain CDI can invoke the
-<code>@Trigger</code></strong> (it is just an event observer), but the <code>@Decision</code>, <code>@Action</code> and
-<code>@Outcome</code> phases require an <strong>orchestration engine</strong> — which is what the Payara
-implementation (<code>agentic-ai-core</code>) provides. The TCK uses the
-<code>@RequiresImplementation</code> / <code>@RequiresNoImplementation</code> conditions to separate what
-is testable with plain CDI from what needs a compatible implementation.</p>
+<p>The next chapter tours these concepts and links each one to its exact section in
+the spec, where the full rules live.</p>
 </section>
 <section class="chapter" id="ch-2" data-num="2">
-<h1>Chapter 2 — The programming model (the annotations)</h1>
-<p>This chapter covers every type in the <code>jakarta.ai.agent</code> package with the exact
-rules of the spec — including the subtleties that tend to trip people up.</p>
-<h2><code>@Agent</code> — declaring the agent</h2>
-<pre><code class="language-java">@Agent(name = &quot;QuestionAgent&quot;, description = &quot;Answers a question using the configured LLM.&quot;)
-public class QuestionAgent { /* ... */ }
-</code></pre>
-<ul>
-<li>A <strong>class-level</strong> annotation (<code>@Target(TYPE)</code>), runtime retention.</li>
-<li><code>name</code> default: the simple class name with the first letter lowercased
-(<code>MyAgent</code> → <code>myAgent</code>).</li>
-<li><code>description</code>: for documentation and discovery.</li>
-<li><strong>Supported scopes: only two</strong> — <code>@WorkflowScoped</code> and <code>@ApplicationScoped</code>.
-If none is declared, <strong>the default is <code>@WorkflowScoped</code></strong> (in Payara, the CDI
-extension adds the annotation in <code>ProcessAnnotatedType</code>).</li>
-</ul>
-<h3>The two scopes side by side</h3>
-<table>
-<thead>
-<tr>
-<th>Aspect</th>
-<th><code>@WorkflowScoped</code> (default)</th>
-<th><code>@ApplicationScoped</code></th>
-</tr>
-</thead>
-<tbody><tr>
-<td>Agent instance</td>
-<td><strong>A new one per workflow execution</strong>; born at the trigger, dies after the outcome (or failure)</td>
-<td><strong>A single one</strong> shared by all executions, for the application&#39;s lifetime</td>
-</tr>
-<tr>
-<td>Instance fields</td>
-<td>Private to that execution — accumulate workflow state freely</td>
-<td>Shared across concurrent workflows — must be <strong>thread-safe</strong> and must not hold state of a specific execution</td>
-</tr>
-<tr>
-<td>Generic CDI observers (<code>@Observes</code> without <code>@Trigger</code>)</td>
-<td><strong>Forbidden</strong> (deployment error)</td>
-<td>Allowed</td>
-</tr>
-<tr>
-<td>Typical use</td>
-<td>Agent with per-execution state (the common case)</td>
-<td>Stateless agent, expensive-to-initialize resources, or an agent that also needs to be a conventional CDI observer</td>
-</tr>
-</tbody></table>
-<p>And the fine detail that makes them equal: even when the agent is
-<code>@ApplicationScoped</code>, <strong>a workflow context is created for every execution</strong>. The
-conversational state of the injected <code>LargeLanguageModel</code> follows the lifecycle of
-<strong>that context</strong>, not the bean&#39;s — two concurrent executions of a singleton agent
-still have isolated conversations. In other words: the agent&#39;s scope decides where
-<strong>the agent&#39;s fields</strong> live; the LLM conversation is always per workflow.</p>
-<p>Why does the generic-<code>@Observes</code> restriction apply only to <code>@WorkflowScoped</code>? A
-regular observer is invoked by the container <strong>outside</strong> a workflow — and with no
-active workflow there is no context in which to create/resolve the
-<code>@WorkflowScoped</code> agent instance. With <code>@ApplicationScoped</code> the instance exists
-independently of any workflow, so the regular observer just works.</p>
-<h3>Example 1 — <code>@WorkflowScoped</code>: fraud analysis with accumulated state</h3>
-<p>The classic case for the default scope: the agent <strong>accumulates state in instance
-fields across the phases</strong> — each execution gets its own fresh instance, so the
-fields are a private scratchpad of the workflow, with no concurrency risk.</p>
-<pre><code class="language-java">@Agent(description = &quot;Analyzes suspicious transactions and builds a fraud dossier.&quot;)
-public class FraudAnalysisAgent {          // no scope declared ⇒ @WorkflowScoped
+<h1>Chapter 2 — The spec in brief</h1>
+<p>This chapter is a fast tour of the programming model — just enough to read the
+samples and know what to look for. It deliberately does <strong>not</strong> restate the rules,
+cardinalities or ordering cases: the specification already does that, clearly and
+concisely, and it is the single source of truth. Each concept below ends with a
+<strong>&quot;Read the spec →&quot;</strong> link to the exact section.</p>
+
+<h2>An agent, at a glance</h2>
+<p>An agent is a CDI bean annotated with <code>@Agent</code>. Its behavior is expressed as a
+small set of annotated methods (the <em>phases</em>). A complete agent can fit in one
+class:</p>
+<pre><code class="language-java">@Agent
+public class QuestionAgent {
 
     @Inject
-    LargeLanguageModel llm;
-
-    // State PRIVATE to this execution — born at the trigger, dies after the outcome.
-    private final List&lt;String&gt; findings = new ArrayList&lt;&gt;();  // no synchronization!
-    private int riskScore;
+    LargeLanguageModel model;
 
     @Trigger
-    void onTransaction(BankTransaction tx) {
-        riskScore = tx.amount() &gt; 10_000 ? 20 : 0;            // first hint
+    Question receive(@Observes Question question) {   // a CDI event starts the workflow
+        return question;
     }
 
     @Decision
-    boolean isSuspicious(BankTransaction tx) {
-        String verdict = llm.query(&quot;Is this transaction suspicious? {}&quot;, tx);
-        if (verdict.contains(&quot;yes&quot;)) {
-            findings.add(verdict);                             // accumulate in the field
-            riskScore += 50;
-        }
-        return riskScore &gt; 40;                                 // otherwise, terminate
+    boolean isAnswerable(Question question) {          // may stop the workflow
+        return question.text() != null &amp;&amp; !question.text().isBlank();
     }
 
     @Action
-    void investigate(BankTransaction tx) {
-        findings.add(llm.query(&quot;List the fraud indicators in: {}&quot;, tx));
-        riskScore += findings.size() * 5;                      // refine the score
+    Answer answer(Question question) {                 // does the work
+        return new Answer(model.query(&quot;Answer concisely: {}&quot;, question.text()));
     }
 
     @Outcome
-    void fileReport(BankTransaction tx, CaseService cases) {
-        cases.open(tx, riskScore, findings);   // consolidates ALL accumulated state
+    void store(Answer answer, AnswerStore answers) {   // ends the workflow
+        answers.add(answer);
     }
-}
-</code></pre>
-<p>Why <code>@WorkflowScoped</code> is the right call here: <code>findings</code> and <code>riskScore</code> grow phase
-by phase and only make sense <strong>for this transaction</strong>. If this agent were
-<code>@ApplicationScoped</code>, two simultaneous transactions would mix each other&#39;s
-dossiers. And notice there is no <code>synchronized</code> and no concurrent collections —
-none needed: nobody else can see this instance.</p>
-<h3>Example 2 — <code>@ApplicationScoped</code>: triage with a shared expensive resource</h3>
-<p>The application scope pays off when the agent carries an <strong>expensive resource that
-should be initialized once</strong> and/or also needs to be a <strong>regular CDI observer</strong> —
-the two capabilities <code>@WorkflowScoped</code> does not give you:</p>
-<pre><code class="language-java">@Agent(description = &quot;Classifies support tickets against the knowledge base.&quot;)
-@ApplicationScoped                          // ONE instance for the whole application
-public class TicketTriageAgent {
+}</code></pre>
+<p>The container discovers the bean, wires the phases into a workflow and passes data
+between them by type. <a href="https://jakarta.ee/specifications/agentic-ai/1.0/jakarta-agentic-ai-1.0.0-M1.html#programming-model" target="_blank" rel="noopener">Read the spec → the programming model</a>.</p>
 
-    @Inject
-    LargeLanguageModel llm;
-
-    // Expensive resource: loaded ONCE, reused by every workflow.
-    private volatile KnowledgeBase kb;
-    // Shared state requires thread-safe types:
-    private final AtomicLong triaged = new AtomicLong();
-
-    @PostConstruct
-    void init() {
-        kb = KnowledgeBase.loadFromDisk();   // minutes of loading — startup only
-    }
-
-    // REGULAR CDI observer (no @Trigger): allowed because it is @ApplicationScoped.
-    // Runs OUTSIDE any workflow — e.g. a knowledge-base reload published by an admin.
-    void onKnowledgeBaseUpdated(@Observes KbUpdatedEvent event) {
-        kb = KnowledgeBase.loadFromDisk();
-    }
-
-    @Trigger
-    void onTicket(SupportTicket ticket) {
-        triaged.incrementAndGet();           // global metric — AtomicLong
-    }
-
-    @Decision
-    Result classify(SupportTicket ticket) {
-        String category = llm.query(
-            &quot;Classify this ticket using these categories: {}\nTicket: {}&quot;,
-            kb.categories(), ticket);
-        return new Result(!&quot;spam&quot;.equals(category), category);
-    }
-
-    @Action
-    void route(SupportTicket ticket, String category, QueueService queues) {
-        queues.dispatch(category, ticket);
-    }
-}
-</code></pre>
-<p>Why <code>@ApplicationScoped</code> is the right call here: the <code>KnowledgeBase</code> is expensive
-to load and is <strong>read-only during the workflows</strong> — reloading it for every ticket
-(which is what <code>@WorkflowScoped</code> would do, via a per-execution <code>@PostConstruct</code>)
-would be prohibitive. The <code>onKnowledgeBaseUpdated</code> observer is the scope&#39;s
-exclusive bonus: an administrative event that <strong>starts no workflow at all</strong>, it
-just refreshes the resource. The price is visible in the code: <code>volatile</code>,
-<code>AtomicLong</code> — every field is shared and the concurrency discipline is yours. And
-remember: even here, each ticket gets <strong>its own workflow context</strong> — the <code>llm</code>
-conversation in one ticket&#39;s <code>classify</code> never contaminates another&#39;s.</p>
-<p><strong>Rule of thumb:</strong> <em>in-flight case</em> state in fields →
-<code>@WorkflowScoped</code> (the default exists for this); <em>expensive, shared</em> resources +
-the need for regular observers → <code>@ApplicationScoped</code>, with thread safety on you.</p>
-<h3>Why only two scopes?</h3>
-<p>The spec does not support <code>@RequestScoped</code>, <code>@SessionScoped</code>,
-<code>@ConversationScoped</code> or <code>@Dependent</code> for agents, and the rationale is sound:</p>
-<ol>
-<li><strong>The agent&#39;s natural lifecycle is the workflow, not the request.</strong> A trigger
-can fire from anywhere — a timer, a batch job, a message, another agent — where
-an HTTP request/session <strong>does not even exist</strong>. Tying the agent to web scopes
-would make its behavior depend on who fired the event.</li>
-<li><strong><code>@Dependent</code> makes no sense for something that is never injected.</strong> The
-dependent scope follows the lifecycle of whoever injects the bean — but agents
-are injected by no one: they are <strong>event-driven</strong> by the engine. There is no
-&quot;owner&quot; for the dependent to follow.</li>
-<li><strong>The two scopes cover the only two answers to the question that matters:</strong>
-is the agent&#39;s field state <em>per execution</em> (<code>@WorkflowScoped</code>) or <em>shared</em>
-(<code>@ApplicationScoped</code>)? Any other scope would be a confusing answer to that
-question.</li>
-<li><strong>1.0 simplicity.</strong> Fewer combinations = leaner spec, smaller TCK, easier to
-verify implementations. If real use cases for other scopes appear, adding later
-is easier than removing.</li>
-</ol>
-<h2><code>@Trigger</code> — the entry point</h2>
-<pre><code class="language-java">@Trigger
-void onQuestion(@Valid Question question) {
-    logger.info(&quot;workflow started for: &quot; + question.text());
-}
-</code></pre>
-<p>Rules:</p>
+<h2>The phases</h2>
+<p>The lifecycle is <code>Trigger → Decision* → Action* → Outcome</code>, with
+<code>HandleException</code> cutting across every phase:</p>
 <ul>
-<li><strong>Exactly one</strong> <code>@Trigger</code> per agent (in 1.0).</li>
-<li>Invoked when a <strong>CDI event</strong> compatible with the parameter is fired. The
-<code>@Observes</code> on the parameter is <strong>optional</strong> — the container understands the
-intent from <code>@Trigger</code> alone.</li>
-<li>The triggering event is automatically added to the <strong>workflow context</strong>, so
-later phases can receive it as a parameter.</li>
-<li><strong>Important scope restriction:</strong> <code>@WorkflowScoped</code> agents can only observe
-events via <code>@Trigger</code>. A &quot;loose&quot; <code>@Observes</code> method (without <code>@Trigger</code>) on a
-<code>@WorkflowScoped</code> agent is a <strong>deployment error</strong>. <code>@ApplicationScoped</code> agents
-can have both (triggers and regular CDI observers).</li>
-<li>Accepted parameters: the event, <code>LargeLanguageModel</code>, and any injectable CDI
-dependency. They may carry Bean Validation constraints (<code>@Valid</code>, <code>@NotNull</code>…) —
-validation happens <strong>before</strong> invocation and a violation becomes a
-<code>ConstraintViolationException</code>, handleable by <code>@HandleException</code>.</li>
-<li>Return: <code>void</code> (side effects only) <strong>or</strong> a domain object, which enters the
-workflow context and becomes injectable into later phases.</li>
+<li><code>@Trigger</code> — the single entry point; a CDI event observer that starts the workflow.</li>
+<li><code>@Decision</code> — optional gate(s); returning <code>false</code>/<code>null</code>/<code>Result(false, …)</code> ends the workflow early.</li>
+<li><code>@Action</code> — optional step(s) that do the work (usually the LLM call).</li>
+<li><code>@Outcome</code> — the successful end; afterwards the container destroys the workflow context.</li>
+<li><code>@HandleException</code> — recovery: return normally to continue, rethrow to stop.</li>
 </ul>
-<h3>A trigger that returns a domain object — enriching the context</h3>
-<p>The example above is the <code>void</code> pattern. The second return pattern makes the
-trigger <strong>produce data</strong> for the rest of the workflow — typically a pre-analysis
-of the event, often already using the LLM:</p>
-<pre><code class="language-java">@Agent
-public class ClaimAgent {
+<p>Decisions and actions may be intermixed, and data flows between phases by return
+type — no manual parameter passing.
+<a href="https://jakarta.ee/specifications/agentic-ai/1.0/jakarta-agentic-ai-1.0.0-M1.html#agent-lifecycle" target="_blank" rel="noopener">Read the spec → the agent lifecycle</a>
+and <a href="https://jakarta.ee/specifications/agentic-ai/1.0/jakarta-agentic-ai-1.0.0-M1.html#_execution_order" target="_blank" rel="noopener">execution order</a>.</p>
 
-    @Trigger
-    ClaimAnalysis analyzeClaim(InsuranceClaim claim, LargeLanguageModel llm) {
-        // Pre-analysis at the entry point: classify the claim right in the trigger.
-        // The (non-void) return value enters the workflow context.
-        return llm.query(
-            &quot;Classify this insurance claim (severity, category) as JSON: {}&quot;,
-            ClaimAnalysis.class, claim);
-    }
+<h2>Scopes</h2>
+<p>Two scopes matter. <code>@WorkflowScoped</code> beans live for exactly one workflow
+execution — ideal for state shared across phases without leaking between concurrent
+runs. <code>@ApplicationScoped</code> agents are shared, but their LLM conversation is still
+isolated per workflow, so two concurrent executions never mix history.
+<a href="https://jakarta.ee/specifications/agentic-ai/1.0/jakarta-agentic-ai-1.0.0-M1.html#_workflowscoped" target="_blank" rel="noopener">Read the spec → scopes</a>.</p>
 
-    @Decision
-    boolean needsAdjuster(ClaimAnalysis analysis) {      // ← the trigger&#39;s return
-        return analysis.severity() &gt; 3;
-    }
+<h2>The LargeLanguageModel facade</h2>
+<p><code>LargeLanguageModel</code> is the vendor-neutral interface an agent injects to talk to an
+LLM. <code>query(...)</code> takes a prompt with <code>{}</code> placeholders and returns text; an
+overload maps the response to a typed object via JSON-B. The agent never names a
+provider — that is server configuration (see the next chapter). If the facade does
+not expose something you need, <code>unwrap()</code> reaches the underlying implementation.
+<a href="https://jakarta.ee/specifications/agentic-ai/1.0/jakarta-agentic-ai-1.0.0-M1.html#llm-integration" target="_blank" rel="noopener">Read the spec → LLM integration</a>.
+Conversation history is kept per workflow:
+<a href="https://jakarta.ee/specifications/agentic-ai/1.0/jakarta-agentic-ai-1.0.0-M1.html#llm-conversational-state" target="_blank" rel="noopener">read the spec → conversational state</a>.</p>
 
-    @Action
-    void assign(ClaimAnalysis analysis, InsuranceClaim claim, AdjusterPool pool) {
-        pool.assign(claim, analysis.category());  // event AND analysis, by type
-    }
-}
-</code></pre>
-<p>What the engine does behind the scenes (this is chapter 6&#39;s <code>WorkflowContext</code>):
-after the trigger, the context holds <strong>two</strong> objects —</p>
-<pre><code>WorkflowContext
-├── InsuranceClaim   ← the CDI event (added automatically, always)
-└── ClaimAnalysis    ← the trigger&#39;s RETURN value (added because it is not void/null)
-</code></pre>
-<p>— and every later phase declares in its parameters <strong>whichever of the two it
-wants</strong>, by type: <code>needsAdjuster</code> asks only for the analysis; <code>assign</code> asks for
-both. No parameter is passed manually — resolution is the container&#39;s job. It is
-the same mechanism that later receives the returns of <code>@Decision</code> (the <code>Result</code>&#39;s
-<code>details()</code>) and of <code>@Action</code>, each stacking onto the context for later phases.</p>
-<p>When to use each pattern: <code>void</code> when the trigger only initializes/logs (the event
-itself is enough for the next phases); a domain return when there is a
-<strong>transformation or analysis of the event</strong> that later phases will consume — it
-avoids repeating the analysis in every phase and keeps the trigger as the single
-place that &quot;translates&quot; the raw event.</p>
-<h2><code>@Decision</code> — decision points</h2>
-<pre><code class="language-java">@Decision
-Result hasContent(Question question) {
-    boolean proceed = question.text() != null &amp;&amp; !question.text().isBlank();
-    return new Result(proceed, question);
-}
-</code></pre>
-<ul>
-<li>0..N per agent; they can be <strong>intermixed with actions</strong>.</li>
-<li>Typically query the LLM to decide the workflow&#39;s direction.</li>
-<li><strong>Three return patterns</strong> (memorize this):</li>
-</ul>
-<table>
-<thead>
-<tr>
-<th>Return</th>
-<th>Proceeds if...</th>
-<th>Data propagated</th>
-</tr>
-</thead>
-<tbody><tr>
-<td><code>boolean</code></td>
-<td><code>true</code></td>
-<td>nothing</td>
-</tr>
-<tr>
-<td><code>Result</code></td>
-<td><code>result.success() == true</code></td>
-<td>the <code>details()</code> enters the context</td>
-</tr>
-<tr>
-<td>Domain object</td>
-<td>non-null</td>
-<td>the object itself enters the context</td>
-</tr>
-</tbody></table>
-<ul>
-<li>Returning <code>false</code>, <code>Result(false, ...)</code> or <code>null</code> <strong>ends the workflow</strong> without
-running the remaining phases or the <code>@Outcome</code>.</li>
-</ul>
-<h3>Multiple decisions in the same workflow — how they talk</h3>
-<p>Multiple decisions form a <strong>chain of serial gates</strong> (a logical AND): each one must
-approve for the next phase to run, and they communicate <strong>through the workflow
-context</strong> — the data one publishes becomes a parameter of the next. A credit
-pipeline shows the three return patterns cooperating:</p>
-<pre><code class="language-java">@Agent
-public class LoanAgent {
+<h2>Errors</h2>
+<p>Service failures surface as <code>LLMException</code> (unchecked). A typed <code>query</code> that
+cannot be mapped to the requested type also raises <code>LLMException</code> rather than
+returning corrupted data. Catch these in an <code>@HandleException</code> method with clear
+semantics: return normally to continue the workflow, rethrow to stop it.
+<a href="https://jakarta.ee/specifications/agentic-ai/1.0/jakarta-agentic-ai-1.0.0-M1.html#_exceptions" target="_blank" rel="noopener">Read the spec → exceptions</a>.</p>
 
-    // GATE 1 — cheap, no LLM: cut early what does not even deserve analysis.
-    // Result(true, policy) publishes the PolicyCheck into the context.
-    @Decision
-    Result withinPolicy(LoanApplication app, PolicyService policies) {
-        PolicyCheck policy = policies.check(app);
-        return new Result(policy.approved(), policy);
-    }
-
-    // GATE 2 — expensive, with LLM. CONSUMES the PolicyCheck published by gate 1.
-    // Object return: non-null ⇒ proceed (and publish); null ⇒ stop.
-    @Decision
-    RiskAssessment assessRisk(LoanApplication app, PolicyCheck policy,
-                              LargeLanguageModel llm) {
-        RiskAssessment risk = llm.query(
-            &quot;Assess the risk of this application: {} given policy limits: {}&quot;,
-            RiskAssessment.class, app, policy);
-        return risk.score() &lt; 700 ? null : risk;
-    }
-
-    // An action between decisions: builds the offer from the risk analysis.
-    @Action
-    LoanOffer prepareOffer(RiskAssessment risk, LoanApplication app) {
-        return new LoanOffer(app, risk.suggestedRate());
-    }
-
-    // GATE 3 — AFTER an action: validates what the action produced.
-    // Boolean: only decides, publishes nothing.
-    @Decision
-    boolean offerViable(LoanOffer offer) {
-        return offer.rate() &lt; MAX_LEGAL_RATE;
-    }
-
-    @Outcome
-    void send(LoanOffer offer, NotificationService mail) {
-        mail.sendOffer(offer);
-    }
-}
-</code></pre>
-<p>The data flow through the context, gate by gate:</p>
-<pre><code>Trigger                     ctx: [LoanApplication]
-withinPolicy  ✔ Result ──►  ctx: [LoanApplication, PolicyCheck]
-assessRisk    ✔ object ──►  ctx: [LoanApplication, PolicyCheck, RiskAssessment]
-prepareOffer  (action) ──►  ctx: [..., LoanOffer]
-offerViable   ✔ boolean ─►  ctx unchanged (a Boolean publishes no data)
-send          (outcome)     consumes LoanOffer
-</code></pre>
-<p>The rules of the &quot;conversation&quot;:</p>
-<ol>
-<li><strong>Order matters</strong> — here it is declaration order; with <code>@Priority</code>/<code>order</code> the
-chain can be rearranged without moving code (respecting the consistency
-requirement).</li>
-<li><strong>Communication is always via the context, by type</strong> — <code>assessRisk</code> receives
-the <code>PolicyCheck</code> because gate 1 published it via <code>Result.details()</code>. There is
-no direct call between decisions and no mandatory shared variable (although a
-<code>@WorkflowScoped</code> agent may also use fields, like <code>FraudAnalysisAgent</code> does).</li>
-<li><strong>Each gate cuts off the rest of the workflow</strong> — if <code>assessRisk</code> returns
-<code>null</code>, then <code>prepareOffer</code>, <code>offerViable</code> and <code>send</code> do not run. There is no
-&quot;else&quot;: in 1.0, branching is a <strong>serial filter</strong>, not an if/else tree.
-Alternative branches are modeled with the gate + action-conditioned-on-published-
-data pattern (or with another agent listening to another event).</li>
-<li><strong>A decision after an action is valid and useful</strong> — <code>offerViable</code> validates
-the <em>product</em> of <code>prepareOffer</code>. This is the &quot;intermixed&quot; pattern the TCK covers
-with the <code>IntermixedAgent</code>/<code>BranchingAgent</code> fixtures.</li>
-<li><strong>Pick the return type by what you need to communicate</strong>: <code>boolean</code> for a pure
-gate, an object when the verdict <em>is</em> the data, <code>Result</code> when you want to
-separate the verdict (<code>success</code>) from the data (<code>details</code>) — including
-publishing data on a negative verdict handled through another path.</li>
-</ol>
-<p>⚠️ Nuance: early termination <strong>does not undo side effects</strong> of phases that
-already ran. If <code>prepareOffer</code> had persisted the offer and <code>offerViable</code> returned
-<code>false</code>, the database row would still be there — the workflow stops, it does not
-roll back (unless you integrate it with a transaction of your own). How to do that
-is the next topic.</p>
-<h4>Undoing side effects with Jakarta Transactions</h4>
-<p>First, the honest disclaimer: <strong>the 1.0 spec does not define transactional
-semantics for workflows</strong>. But two facts we have already seen make the integration
-natural: the workflow runs <strong>synchronously on the thread that called
-<code>Event.fire</code></strong>, and synchronous CDI observers execute, by default, <strong>inside the
-caller&#39;s transactional context</strong>. Therefore a <code>@Transactional</code> on the caller wraps
-the whole workflow:</p>
-<pre><code class="language-java">@Path(&quot;loans&quot;)
-@RequestScoped
-public class LoanResource {
-
-    @Inject Event&lt;LoanApplication&gt; trigger;
-
-    @POST
-    @Transactional              // JTA: ONE transaction wraps the ENTIRE workflow
-    public Response apply(LoanApplication app) {
-        trigger.fire(app);      // trigger→decisions→actions→outcome, in this transaction
-        return Response.ok().build();
-    }
-}
-</code></pre>
-<p>But there is a central catch: <strong>early termination is normal completion</strong> — the
-decision returns <code>false</code>, <code>fire</code> returns without error, and the transaction
-<strong>commits</strong>, <code>prepareOffer</code>&#39;s persistence included. Rollback in JTA requires an
-<strong>exception</strong>. So the gate that must undo what came before needs to <strong>throw</strong>
-instead of returning <code>false</code>:</p>
-<pre><code class="language-java">@Decision
-boolean offerViable(LoanOffer offer) {
-    if (offer.rate() &gt;= MAX_LEGAL_RATE) {
-        // NOT &quot;return false&quot;: that would end the workflow and the transaction would COMMIT.
-        throw new OfferRejectedException(offer);   // ⇒ rollback of EVERYTHING
-    }
-    return true;
-}
-</code></pre>
-<p>The exception path closes the loop with what we have already studied: with no
-matching <code>@HandleException</code> (or with a handler that <strong>rethrows</strong>), it crosses the
-engine, exits through <code>fire()</code> and blows up inside the <code>@Transactional</code> method →
-the transaction is marked for rollback → <code>prepareOffer</code>&#39;s <code>INSERT</code> is undone with
-it. Three consequences to get right:</p>
-<ol>
-<li><strong>A <code>@HandleException</code> that recovers, commits.</strong> If a handler catches the
-<code>OfferRejectedException</code> and returns normally, the exception never reaches the
-transaction — recovery means &quot;the workflow succeeded&quot;, and whatever was
-persisted stays. Handler and transaction must be designed <strong>together</strong>:
-recover = keep effects; rethrow = undo.</li>
-<li><strong><code>@Transactional</code> on a single phase has a different effect</strong>: annotating only
-<code>prepareOffer</code> creates a transaction that commits <strong>when the phase returns</strong> —
-a later gate failing no longer undoes it. It buys atomicity <em>inside</em> the phase,
-not protection for the chain.</li>
-<li><strong>A redesign often beats the transaction</strong>: if the validation does not depend
-on the side effect, move the gate to run <strong>before</strong> the action (<code>offerViable</code>
-checking the rate <em>before</em> persisting) or leave persistence to the <code>@Outcome</code>,
-which only runs once every gate has approved. The transaction is the tool for
-when the effect and the validation are inseparable (e.g. you must insert to get
-an ID the validation uses).</li>
-</ol>
-<h2><code>@Action</code> — the real work</h2>
-<pre><code class="language-java">@Action
-void generate(Question question) {
-    String answer = model.query(&quot;Answer concisely: {}&quot;, question.text());
-    answers.put(question.text(), answer);
-}
-</code></pre>
-<ul>
-<li>0..N per agent; they perform operations (persisting, calling services, updating
-state).</li>
-<li>Return: <code>void</code> or a domain object (which enters the context for later phases).</li>
-<li>They receive as parameters: earlier decision results, the trigger event,
-<code>LargeLanguageModel</code>, CDI beans.</li>
-</ul>
-<h2>Execution order of <code>@Decision</code>/<code>@Action</code></h2>
-<p>Precedence, applied in this order:</p>
-<ol>
-<li><strong><code>@Priority</code> on the method</strong> — lower values run first; it <strong>beats</strong> <code>order()</code>.</li>
-<li><strong>The annotation&#39;s own <code>order()</code> attribute</strong> — used when there is no
-<code>@Priority</code>.</li>
-<li><strong>Source-code declaration order</strong> — used when <strong>no</strong> method declares explicit
-ordering. Careful: Java SE reflection does <strong>not</strong> guarantee declaration order,
-though mainstream JVMs preserve it in practice; portable applications that need
-strict ordering must use <code>@Priority</code>/<code>order</code>.</li>
-</ol>
-<p><strong>Consistency requirement:</strong> if <strong>any</strong> <code>@Decision</code>/<code>@Action</code> in the agent
-declares an explicit <code>order</code> or <code>@Priority</code>, <strong>all</strong> the others must too. Mixing
-ordered and unordered methods is a <strong>deployment error</strong>.</p>
-<p>Before the examples, two reminders: ordering applies <strong>only to the
-<code>@Decision</code>/<code>@Action</code> chain</strong> (<code>@Trigger</code> always opens and <code>@Outcome</code> always
-closes, outside the contest), and decisions and actions are ordered <strong>together, in
-a single queue</strong> — not as two separate lists.</p>
-<h3>Case 1 — No ordering: declaration order rules</h3>
-<pre><code class="language-java">@Agent
-public class ReportAgent {
-
-    @Trigger  void onRequest(ReportRequest req) { }
-
-    @Decision boolean hasData(ReportRequest req)   { /* ... */ }   // 1st
-    @Action   Draft   buildDraft(ReportRequest req){ /* ... */ }   // 2nd
-    @Decision boolean draftOk(Draft draft)         { /* ... */ }   // 3rd
-    @Action   void    publish(Draft draft)         { /* ... */ }   // 4th
-
-    @Outcome  void done(Draft draft) { }
-}
-</code></pre>
-<p>Execution: <code>hasData → buildDraft → draftOk → publish</code> — exactly the order they
-appear in the source. Simple and readable... until someone <strong>reorders the methods
-in a refactor</strong> and silently changes the behavior: no compiler warns you that the
-method order was semantic. That risk (besides the missing formal guarantee from
-reflection) is what explicit ordering eliminates.</p>
-<h3>Case 2 — <code>order()</code>: the position leaves the text and becomes a contract</h3>
-<p>The same agent, with the order declared — the methods can now sit at <strong>any position
-in the file</strong> (here, deliberately shuffled) without affecting execution:</p>
-<pre><code class="language-java">@Agent
-public class ReportAgent {
-
-    @Trigger  void onRequest(ReportRequest req) { }
-
-    @Action(order = 40)   void    publish(Draft draft)          { /* ... */ }  // 4th
-    @Decision(order = 10) boolean hasData(ReportRequest req)    { /* ... */ }  // 1st
-    @Decision(order = 30) boolean draftOk(Draft draft)          { /* ... */ }  // 3rd
-    @Action(order = 20)   Draft   buildDraft(ReportRequest req) { /* ... */ }  // 2nd
-
-    @Outcome  void done(Draft draft) { }
-}
-</code></pre>
-<p>Execution: <code>hasData(10) → buildDraft(20) → draftOk(30) → publish(40)</code>. Practical
-tips: use <strong>increments of 10</strong> (inserting a new step between 20 and 30 becomes
-<code>order = 25</code>, with no renumbering) and <strong>avoid <code>order = 0</code></strong> — zero is the
-annotation&#39;s default value, so it does not count as explicit ordering; use positive
-values.</p>
-<h3>Case 3 — <code>@Priority</code> beats <code>order()</code> on the same method</h3>
-<pre><code class="language-java">@Agent
-public class MixedAgent {
-
-    @Trigger void on(StartEvent e) { }
-
-    @Priority(1)
-    @Action(order = 99)          // order is IGNORED: @Priority is present on the method
-    void runsFirst() { /* ... */ }     // sort key = 1
-
-    @Action(order = 2)
-    void runsSecond() { /* ... */ }    // no @Priority ⇒ order = 2 applies
-}
-</code></pre>
-<p>Execution: <code>runsFirst (key 1) → runsSecond (key 2)</code> — despite the <code>order = 99</code>.
-The rule is <strong>per method</strong>: on each one, <code>@Priority</code> (if present) supplies the sort
-key; otherwise <code>order()</code> does. The resulting keys are then compared across every
-method in the chain. It pays to pick <strong>one</strong> style per agent (<code>@Priority</code> OR
-<code>order</code>) and mix only during migrations.</p>
-<h3>Case 4 — Invalid mix: deployment error</h3>
-<pre><code class="language-java">@Agent
-public class BrokenAgent {
-
-    @Trigger void on(StartEvent e) { }
-
-    @Decision(order = 10) boolean gate(StartEvent e) { /* ... */ }  // explicit
-    @Action               void step1() { /* ... */ }                // ✘ implicit!
-}
-</code></pre>
-<p>Deployment fails (in Payara: <code>DefinitionException: Inconsistent order at @Agent ... all @Decision/@Action should declare @Priority or order or nothing.</code>). The
-reasoning behind the rule: if <code>step1</code> had no order, what would its position be
-relative to <code>gate(10)</code>? Any answer (before? after? declaration order just for it?)
-would be an obscure convention — the spec prefers forcing explicit intent over
-guessing.</p>
-<h2><code>@Outcome</code> — the terminal phase</h2>
-<ul>
-<li><strong>0 or 1</strong> per agent (two is a deployment error); optional.</li>
-<li>Runs after the other phases complete <strong>successfully</strong>.</li>
-<li><strong>Must return <code>void</code></strong> in 1.0 (finalization and side effects, not data
-production).</li>
-<li>After it completes, <strong>the container destroys the workflow context</strong>.</li>
-</ul>
-<h2><code>@HandleException</code> — error recovery</h2>
-<pre><code class="language-java">@HandleException
-void handleLlmFailure(LLMException ex, Question question) {
-    logger.warn(&quot;LLM unavailable, using fallback&quot;, ex);
-    // normal return ⇒ the workflow CONTINUES
-}
-</code></pre>
-<p>Semantics (the richest in the spec — study it well):</p>
-<ul>
-<li>0..N per agent; they catch exceptions from <strong>any phase</strong> (trigger, decision,
-action, or outcome).</li>
-<li><strong>Handler selection:</strong> the one with the <strong>most specific</strong> exception type
-compatible with the thrown exception (follows the Java hierarchy). The exception
-parameter is required.</li>
-<li><strong>Workflow control:</strong><ul>
-<li>Handler <strong>returns normally</strong> ⇒ successful recovery, the workflow continues.</li>
-<li>Handler <strong>rethrows or throws a new exception</strong> ⇒ the workflow stops; the
-exception propagates to the container.</li>
-</ul>
-</li>
-<li>No matching handler ⇒ the exception propagates to the container.</li>
-<li><strong>No recursive handling:</strong> an exception thrown by a handler is not redirected to
-another handler — it goes straight to the container.</li>
-<li>Return <strong>must be <code>void</code></strong>.</li>
-</ul>
-<h3>The scenarios, one by one</h3>
-<p>A single payment agent illustrates every possible path. The exception hierarchy
-used: <code>PaymentException</code> (base) ← <code>GatewayTimeoutException</code> (derived).</p>
-<pre><code class="language-java">@Agent
-public class PaymentAgent {
-
-    @Trigger
-    void onPayment(PaymentRequest req) { /* ... */ }
-
-    @Decision
-    boolean authorized(PaymentRequest req, LargeLanguageModel llm) { /* ... */ }
-
-    @Action
-    void charge(PaymentRequest req, GatewayClient gateway) {
-        gateway.charge(req);   // may throw GatewayTimeoutException, LLMException...
-    }
-
-    @Outcome
-    void confirm(PaymentRequest req, Receipts receipts) { /* ... */ }
-
-    // ── SCENARIO 1: recovery — returns normally, the workflow &quot;succeeds&quot; ──
-    // Note: receives the exception AND workflow state (req comes from the context).
-    @HandleException
-    void onTimeout(GatewayTimeoutException ex, PaymentRequest req,
-                   RetryQueue retries) {
-        retries.enqueue(req);              // recovery: reprocess later
-        // normal return ⇒ the engine considers the workflow RECOVERED
-        // and still runs the @Outcome confirm() as closure
-    }
-
-    // ── SCENARIO 2: fatal — rethrows, the workflow stops ──
-    @HandleException
-    void onPaymentError(PaymentException ex, PaymentRequest req, AuditLog audit) {
-        audit.paymentFailed(req, ex);      // record BEFORE giving up
-        throw ex;                          // propagates to the container; @Outcome does NOT run
-    }
-
-    // ── SCENARIO 3: conditional recovery — decides at runtime ──
-    @HandleException
-    void onLlmFailure(LLMException ex, PaymentRequest req) {
-        if (req.amount() &lt; 100) {
-            return;                        // low amount: approve without LLM, continue
-        }
-        throw new ManualReviewException(req, ex);   // high amount: stop and escalate
-    }
-
-    // ── SCENARIO 4: safety net — the most generic type ──
-    @HandleException
-    void onAnyError(Exception ex, AlertService alerts) {
-        alerts.notifyOps(ex);
-        throw new IllegalStateException(&quot;Unexpected payment failure&quot;, ex);
-    }
-}
-</code></pre>
-<p>Now, what happens in each situation:</p>
-<table>
-<thead>
-<tr>
-<th><code>charge</code> throws...</th>
-<th>Handler chosen</th>
-<th>Why</th>
-<th>Outcome</th>
-</tr>
-</thead>
-<tbody><tr>
-<td><code>GatewayTimeoutException</code></td>
-<td><code>onTimeout</code></td>
-<td>The <strong>most specific</strong> match wins — <code>onPaymentError(PaymentException)</code> would also match, but it is more generic</td>
-<td>Returns normally ⇒ workflow recovered, <code>confirm()</code> (<code>@Outcome</code>) <strong>runs</strong></td>
-</tr>
-<tr>
-<td><code>PaymentException</code> (other than a timeout)</td>
-<td><code>onPaymentError</code></td>
-<td>The only specific match</td>
-<td>Rethrows ⇒ workflow <strong>stops</strong>, <code>confirm()</code> does not run, the exception reaches the container (and the caller&#39;s <code>@Transactional</code>, if any)</td>
-</tr>
-<tr>
-<td><code>LLMException</code></td>
-<td><code>onLlmFailure</code></td>
-<td>Exact match</td>
-<td>Depends on the amount: returns (continue + outcome) <strong>or</strong> throws <code>ManualReviewException</code> — which is <strong>not</strong> re-handled by the other handlers (no recursion): it goes straight to the container</td>
-</tr>
-<tr>
-<td><code>NullPointerException</code></td>
-<td><code>onAnyError</code></td>
-<td>Only the generic <code>Exception</code> matches</td>
-<td>Alerts and rethrows wrapped ⇒ workflow stops</td>
-</tr>
-<tr>
-<td>An <code>Error</code> (e.g. <code>OutOfMemoryError</code>)</td>
-<td>none</td>
-<td>An <code>Error</code> is not an <code>Exception</code> — no parameter matches</td>
-<td>Propagates straight to the container</td>
-</tr>
-</tbody></table>
-<p>Four fine details hidden in the example:</p>
-<ol>
-<li><strong>Selection follows the hierarchy, not declaration order</strong> — <code>onAnyError</code> being
-last in the file does not matter; it is only chosen when no more specific type
-matches (Payara pre-sorts the handlers most-specific-first at deployment).</li>
-<li><strong>Handlers receive workflow state</strong> — <code>onTimeout</code> declares <code>PaymentRequest</code> and
-<code>RetryQueue</code> besides the exception: parameter resolution is the same as in the
-other phases (in-flight exception → context → CDI).</li>
-<li><strong>Recovering runs the <code>@Outcome</code></strong> — scenario 1 ends with <code>confirm()</code> running
-(an engine rule, chapter 6: the outcome as the recovery&#39;s closure phase —
-except when the outcome itself was what failed).</li>
-<li><strong>Scenario 3&#39;s <code>ManualReviewException</code> does not fall back to the safety net</strong> —
-that is the &quot;no recursive handling&quot; rule: an exception thrown <em>by a handler</em> is
-never dispatched to another handler, even if the agent has a generic
-<code>Exception</code> one. Without this, a buggy handler could create an infinite handling
-loop.</li>
-</ol>
-<p>And the link with the previous section: if the caller wrapped the <code>fire</code> in a
-<code>@Transactional</code>, <strong>scenario 1 commits</strong> (recovery = success) and <strong>scenarios 2 and
-4 roll back</strong> (the exception crosses) — the handler&#39;s design decides the
-transaction&#39;s fate.</p>
-<h2><code>@WorkflowScoped</code> — the workflow scope</h2>
-<ul>
-<li>A CDI <strong>normal scope</strong> (<code>@NormalScope</code>): one context per workflow execution,
-spanning trigger → outcome. Beans are born when the workflow starts and die when
-it ends.</li>
-<li>Typical use: sharing state between phases without passing parameters (e.g. an
-analysis cache).</li>
-<li>Ships a <code>Literal</code> (<code>WorkflowScoped.Literal.INSTANCE</code>) for inline instantiation —
-it is what the Payara extension uses to apply the default scope
-programmatically.</li>
-</ul>
-<h2><code>Result</code> and data propagation</h2>
-<pre><code class="language-java">public record Result(boolean success, Object details) {}
-</code></pre>
-<p>The general mechanism of <strong>type-based data propagation</strong>:</p>
-<ol>
-<li>The trigger event enters the context.</li>
-<li>Every non-null phase return enters the context (for a <code>Result</code>, the <code>details()</code>
-goes in; a decision&#39;s <code>Boolean</code> carries no data).</li>
-<li>When invoking a phase, each parameter is resolved <strong>by type</strong>, preferring the
-<strong>most recently</strong> produced value (if two phases produced the same type, the
-latest wins).</li>
-<li>Whatever is not in the context is resolved as a CDI bean.</li>
-</ol>
+<p>That is the whole model. For the complete, authoritative rules — annotations,
+return patterns, ordering, cardinalities — and for more worked examples, go to the
+spec:
+<a href="https://jakarta.ee/specifications/agentic-ai/1.0/jakarta-agentic-ai-1.0.0-M1.html#examples" target="_blank" rel="noopener">read the spec → examples</a>.</p>
 </section>
 <section class="chapter" id="ch-3" data-num="3">
-<h1>Chapter 3 — <code>LargeLanguageModel</code> and error handling</h1>
-<h2>The facade</h2>
-<p><code>LargeLanguageModel</code> is the <strong>only functional interface in the API</strong> — a
-minimalist, CDI-injectable facade for talking to the model:</p>
-<pre><code class="language-java">public interface LargeLanguageModel {
-    String query(String prompt);
-    &lt;T&gt; T query(String prompt, Class&lt;T&gt; resultType);
-    String query(String prompt, Object... parameters);
-    &lt;T&gt; T query(String prompt, Class&lt;T&gt; resultType, Object... parameters);
-    &lt;T&gt; T unwrap(Class&lt;T&gt; implClass);
-}
-</code></pre>
-<p>Four <code>query</code> variations covering the two axes: <strong>with/without positional
-parameters</strong> × <strong>String/typed response</strong>. Plus <code>unwrap</code>, following the
-<code>EntityManager.unwrap()</code> pattern from Jakarta Persistence, to access
-vendor-specific APIs without breaking the portability of the rest of your code.</p>
-<h2>The <code>{}</code> placeholder rules</h2>
-<p>The prompt accepts the exact token <code>{}</code> as a <strong>positional</strong> marker (inspired by
-SLF4J). The exact rules — verified by the TCK:</p>
-<ol>
-<li>Parameters are substituted <strong>in declaration order</strong>, each serialized with
-<strong>Jakarta JSON Binding</strong>.</li>
-<li>If the prompt has N placeholders, exactly N parameters <strong>must</strong> be supplied.
-A mismatch ⇒ <code>IllegalArgumentException</code>.</li>
-<li><strong>The exception to the rule:</strong> a prompt with <strong>no</strong> placeholder may receive
-<strong>at most one</strong> parameter — it is sent to the model as <strong>structured context</strong>
-(Payara appends it as JSON on a new line after the prompt).</li>
-<li>Only the exact token <code>{}</code> is a placeholder; any other use of braces
-(<code>{name}</code>, <code>{ }</code>) is literal prompt text.</li>
-</ol>
-<pre><code class="language-java">llm.query(&quot;Classify this event: {}&quot;, event);   // 1 placeholder, 1 parameter ✔
-llm.query(&quot;Classify this event&quot;, event);       // 0 placeholders, 1 context ✔
-llm.query(&quot;Compare {} with {}&quot;, a);            // ✘ IllegalArgumentException
-</code></pre>
-<h2>Typed responses</h2>
-<pre><code class="language-java">Sentiment s = llm.query(&quot;Return JSON {\&quot;score\&quot;: ..., \&quot;label\&quot;: ...} for: {}&quot;,
-                        Sentiment.class, review);
-</code></pre>
-<p>The LLM response (expected to be JSON) is <strong>deserialized with JSON-B</strong> into the
-requested type. If deserialization fails (the model returned loose text, truncated
-JSON...), the error becomes an <strong><code>LLMException</code></strong> — not <code>IllegalArgumentException</code>,
-because the fault lies with the service&#39;s response, not the caller&#39;s arguments.</p>
-<h2>Conversational state — the most important rule</h2>
-<blockquote>
-<p>Implementations <strong>must maintain conversational state for the current workflow
-context</strong> across <code>query</code> calls.</p>
-</blockquote>
-<p>That is: within the same workflow, the second <code>query(...)</code> call &quot;remembers&quot; the
-first — the history is accumulated and re-sent to the model. And the boundaries:</p>
-<ul>
-<li><strong><code>@WorkflowScoped</code> agent:</strong> the conversation is bound to the workflow context
-and <strong>ends with it</strong>.</li>
-<li><strong><code>@ApplicationScoped</code> agent:</strong> the bean is a single one, but the conversation
-must remain <strong>isolated per workflow context</strong> — concurrent executions cannot
-leak history into each other.</li>
-<li>Implementations must be <strong>thread-safe within a single workflow</strong>.</li>
-</ul>
-<h3>Scenario 1 — memory across phases of the same workflow</h3>
-<p>The second <code>query</code> does not need to resend what was already said: the
-accumulated history travels along.</p>
-<pre><code class="language-java">@Agent
-public class TriageAgent {
+<h1>Chapter 3 — Running agents on Payara</h1>
+<p>Payara is a compatible implementation of the spec. When you deploy your
+application on it, Payara supplies the <strong>orchestration engine</strong> that runs the phases
+and the <strong><code>@WorkflowScoped</code></strong> context — you write the agent, the server runs the
+workflow. It also implements the <code>LargeLanguageModel</code> facade once and plugs a
+provider-specific backend behind it (Ollama, Anthropic, Vertex), so your agent code
+stays free of any provider. This chapter is about the one thing you configure as an
+app author: <strong>which LLM backend to use</strong>.</p>
 
-    @Inject
-    private LargeLanguageModel llm;
-
-    @Decision
-    public boolean isRelevant(Ticket ticket) {
-        // 1st turn: the ticket enters the conversation here
-        String category = llm.query(&quot;Classify this ticket: {}&quot;, ticket);
-        return !&quot;SPAM&quot;.equals(category);
-    }
-
-    @Action
-    public String draftReply(Ticket ticket) {
-        // 2nd turn: the model &quot;remembers&quot; the ticket classified above —
-        // note the prompt does not even repeat the ticket&#39;s content.
-        return llm.query(
-            &quot;Write an initial reply for the ticket you just classified.&quot;);
-    }
-}
-</code></pre>
-<h3>Scenario 2 — <code>@WorkflowScoped</code>: the conversation dies with the workflow</h3>
-<p>Each event fired creates a new workflow context — and a fresh conversation.
-There is no memory <em>across</em> workflows:</p>
-<pre><code class="language-java">tickets.fire(new Ticket(&quot;A&quot;));  // workflow 1: its own conversation, discarded at the end
-tickets.fire(new Ticket(&quot;B&quot;));  // workflow 2: starts from scratch — no memory of ticket A
-</code></pre>
-<p>If the second prompt were <code>&quot;Compare with the previous ticket&quot;</code>, the model would
-have no way to answer: workflow 1&#39;s history no longer exists.</p>
-<h3>Scenario 3 — <code>@ApplicationScoped</code>: a singleton, but isolated conversations</h3>
-<p>The bean is one for the whole application; the conversational state is not — it
-is <strong>per workflow context</strong>, even under concurrency:</p>
-<pre><code class="language-java">@Agent
-@ApplicationScoped
-public class SupportAgent {
-
-    @Inject
-    private LargeLanguageModel llm;   // injected once into the singleton...
-
-    @Decision
-    public boolean needsHuman(CustomerMessage msg) {
-        String mood = llm.query(&quot;What is this customer&#39;s mood? {}&quot;, msg);
-        return &quot;ANGRY&quot;.equals(mood);
-    }
-
-    @Action
-    public String reply(CustomerMessage msg) {
-        // ...but each workflow sees ONLY its own history: if customers X
-        // and Y are being served in parallel, the mood detected for X
-        // never shows up in the prompt of Y&#39;s workflow.
-        return llm.query(&quot;Reply in a tone that fits the mood you detected.&quot;);
-    }
-}
-</code></pre>
-<p>This is exactly the scenario of quiz question 3 — and what the TCK enforces
-when it requires per-workflow isolation even for <code>@ApplicationScoped</code> agents.</p>
-<p>In the Payara implementation this falls out of the architecture &quot;for free&quot;:
-<code>LargeLanguageModelImpl</code> keeps the conversation as a list of turns
-(<code>user</code>/<code>assistant</code>) and is registered as a <strong><code>@Dependent</code></strong> bean — each injection
-point/resolution inside the workflow gets its own instance, and the engine resolves
-one LLM per workflow execution (details in chapter 6). One elegant detail: if the
-backend call fails, the user turn is <strong>removed</strong> from the conversation (a
-rollback), so the history is never left with a question and no answer.</p>
-<h2>The error hierarchy</h2>
-<p>Two failure kinds, with different culprits:</p>
-<table>
-<thead>
-<tr>
-<th>Exception</th>
-<th>When</th>
-<th>Culprit</th>
-</tr>
-</thead>
-<tbody><tr>
-<td><code>IllegalArgumentException</code></td>
-<td>null prompt, null <code>resultType</code>, wrong placeholder count, parameter not serializable to JSON</td>
-<td>the <strong>caller</strong></td>
-</tr>
-<tr>
-<td><code>LLMException</code> (unchecked, extends <code>RuntimeException</code>)</td>
-<td>communication failure, rate limiting, timeout, model unavailable, malformed response, <strong>de</strong>serialization failure of the response</td>
-<td>the <strong>LLM service</strong></td>
-</tr>
-</tbody></table>
-<p><code>LLMException</code> is unchecked on purpose: it does not force a try-catch around every
-query, and it can be caught centrally by an agent&#39;s <code>@HandleException</code> method —
-that is the idiomatic resilience pattern:</p>
-<pre><code class="language-java">@HandleException
-void llmDown(LLMException ex, Question q) {
-    answers.put(q.text(), &quot;Service unavailable, please try again later.&quot;);
-    // returns normally ⇒ the workflow proceeds to the @Outcome
-}
-</code></pre>
-<h2>What 1.0 does NOT standardize (and why)</h2>
-<ul>
-<li><strong>Provider selection and configuration</strong> (temperature, max tokens...) are
-implementation-specific in 1.0. Payara uses MicroProfile Config with the
-<code>payara.agentic.llm.*</code> prefix (chapter 7).</li>
-<li>The plan declared in the Javadoc: future versions will standardize provider
-selection and a common set of properties — <strong>the same model as Jakarta
-Persistence</strong> (pluggable providers + common properties + <code>unwrap</code> for the rest).</li>
-<li>Streaming, tools/function calling, embeddings: out of scope for 1.0.</li>
-</ul>
-</section>
-<section class="chapter" id="ch-4" data-num="4">
-<h1>Chapter 4 — The TCK (Technology Compatibility Kit)</h1>
-<h2>What it is for</h2>
-<p>The TCK is the test suite an implementation must pass to claim it is
-<strong>compatible</strong> with the spec. It is the executable contract: every test is tied to
-a specification requirement via <code>@Assertion(id, section, strategy)</code>.</p>
-<p>A structural peculiarity: <strong>the TCK tests live in <code>src/main/java</code></strong>, not in
-<code>src/test/java</code>. Reason: they are <strong>compiled and packaged</strong> so implementors can run
-them against their own implementation. Only the TCK&#39;s internal framework unit tests
-live in <code>src/test/java</code>.</p>
-<h2>The test-framework annotations</h2>
-<table>
-<thead>
-<tr>
-<th>Annotation</th>
-<th>Level</th>
-<th>Effect</th>
-</tr>
-</thead>
-<tbody><tr>
-<td><code>@Standalone</code></td>
-<td>class</td>
-<td>Reflection-based structural tests; <strong>no container needed</strong>. Adds only the <code>AssertionExtension</code>.</td>
-</tr>
-<tr>
-<td><code>@Deployed</code></td>
-<td>class</td>
-<td><strong>Arquillian</strong> integration tests; require a full CDI container (weld-embedded in CI). Adds <code>ArquillianExtension</code> + <code>AssertionExtension</code>.</td>
-</tr>
-<tr>
-<td><code>@Assertion(id, section, strategy)</code></td>
-<td>method</td>
-<td>Meta-annotation embedding <code>@Test</code> that maps the test to a spec requirement (e.g. <code>id = &quot;AGENTICAI-ORCHESTRATION-BHV-002&quot;</code>).</td>
-</tr>
-<tr>
-<td><code>@RequiresImplementation</code></td>
-<td>method/class</td>
-<td>Skips the test when <strong>no</strong> compatible implementation is present.</td>
-</tr>
-<tr>
-<td><code>@RequiresNoImplementation</code></td>
-<td>method/class</td>
-<td>Skips the test when an implementation <strong>is</strong> present — used for &quot;plain CDI&quot; baseline assertions (trigger only).</td>
-</tr>
-</tbody></table>
-<h2>Implementation detection — the elegant trick</h2>
-<p>How does the TCK know whether it is running on a compatible implementation
-(Payara) or on plain CDI (Weld without the engine)? The
-<code>ImplementationPresentCondition</code> (a JUnit 5 <code>ExecutionCondition</code>) checks <strong>at
-runtime, inside the container</strong>:</p>
-<pre><code class="language-java">!CDI.current().getBeanManager().getContexts(WorkflowScoped.class).isEmpty()
-</code></pre>
-<p><strong>Every compatible implementation registers a <code>Context</code> for <code>@WorkflowScoped</code>;
-plain CDI does not.</strong> So the presence of that context is the implementation&#39;s
-fingerprint — no system property, JVM flag or vendor configuration required.</p>
-<p>A subtle detail: with Arquillian, conditions are evaluated <strong>twice</strong> — on the
-client JVM (outside the container) and inside the container. Outside the container
-there is no way to know; the condition then <strong>leaves the test enabled and defers</strong>
-the real decision to the in-container evaluation (the detector returns <code>null</code> and
-the condition answers &quot;enabled&quot; with a &quot;deferring&quot; reason).</p>
-<p>This replaced the old <code>@Disabled</code> on <code>AgentSmokeTest</code>: instead of a permanently
-switched-off test, <code>fullLifecycleRequiresCompatibleImplementation</code> runs
-automatically when an implementation is present and is skipped (with a clear
-reason) when it is not.</p>
-<h2>Test infrastructure (for implementors)</h2>
-<p>Two <code>@ApplicationScoped</code> classes that are not tests, but tools:</p>
-<ul>
-<li><strong><code>LargeLanguageModelStub</code></strong> — implements <code>LargeLanguageModel</code> with scripted
-responses: the test calls <code>enqueueResponse(&quot;...&quot;)</code> before firing the workflow,
-and the stub returns the responses in order, recording every call for
-assertions. <code>reset()</code> clears it between tests. It is also the proof that the
-<strong>application&#39;s LLM beats the runtime&#39;s default</strong> (Payara self-vetoes its
-default LLM when the application provides one — chapter 5).</li>
-<li><strong><code>ExecutionTraceRecorder</code></strong> — records the executed phases
-(<code>TRIGGER</code>, <code>DECISION</code>, <code>ACTION</code>, <code>OUTCOME</code>, <code>HANDLE_EXCEPTION</code>) and enables
-ordering assertions: <code>trace.assertOrder(TRIGGER, DECISION, ACTION, OUTCOME)</code>.
-⚠️ Known pitfall: in <code>@Deployed</code> tests, <code>@BeforeEach</code> does not run between
-methods the way you expect — call <code>trace.reset()</code> inline at the start of the
-test.</li>
-</ul>
-<h2>What the TCK covers (package map)</h2>
-<ul>
-<li><code>core/agent</code> — structure of the <code>@Agent</code> annotations, the <code>LargeLanguageModel</code>
-contract, <code>LLMException</code> (standalone/reflection).</li>
-<li><code>core/lifecycle</code> — structure of <code>@Trigger</code>, <code>@Decision</code>, <code>@Action</code>, <code>@Outcome</code>,
-<code>@HandleException</code>.</li>
-<li><code>core/cdi</code> — CDI metadata of the agent and of <code>@WorkflowScoped</code>.</li>
-<li><code>core/behavior</code> — the deployed behavioral tests, each with its own set of
-fixture agents:<ul>
-<li><code>orchestration</code> — topologies: minimalist, linear, intermixed, branching,
-outcome-only, anchored;</li>
-<li><code>termination</code> — the three decision termination patterns (boolean, <code>Result</code>,
-object/null);</li>
-<li><code>datapropagation</code> — type-based propagation across phases;</li>
-<li><code>phaseordering</code> — <code>@Priority</code>/<code>order</code>/declaration order;</li>
-<li><code>errorhandling</code> — recovery, propagation, handler hierarchy, recursion guard,
-missing handler;</li>
-<li><code>cdi</code> — interceptors, constructor injection, lifecycle callbacks, default
-scope, singleton agents;</li>
-<li><code>voidphases</code>, <code>topologyflex</code>, <code>llm</code> — void phases, optional phases, the LLM
-contract inside a real workflow.</li>
-</ul>
-</li>
-<li><code>framework/signature</code> — API signature tests (binary compatibility).</li>
-</ul>
-<h2>Concrete examples</h2>
-<p>To put a face on each bucket, four real samples from the TCK — one per test &quot;flavor&quot;.</p>
-<h3>Standalone / reflection (<code>core/agent</code>)</h3>
-<p>Verifies the <strong>shape</strong> of the annotation without booting a container. Cheap, runs on any JVM.</p>
-<pre><code class="language-java">@Standalone
-public class AgentAnnotationTests {
-
-    @Assertion(id = &quot;AGENTICAI-AGENT-003&quot;,
-               strategy = &quot;Verify @Agent annotation targets TYPE elements&quot;)
-    public void testAgentAnnotationTarget() {
-        Target target = Agent.class.getAnnotation(Target.class);
-        assertNotNull(target, &quot;@Agent must have @Target annotation&quot;);
-        ElementType[] targets = target.value();
-        assertEquals(1, targets.length);
-        assertEquals(ElementType.TYPE, targets[0]);
-    }
-}
-</code></pre>
-<h3>Orchestration (<code>core/behavior/orchestration</code>)</h3>
-<p>The classic: fire an event, check the <strong>phase sequence</strong> recorded by <code>ExecutionTraceRecorder</code>. The <code>AnchoredAgent</code> proves that execution order comes from <strong>source declaration order</strong>, not from the position of <code>@Trigger</code>/<code>@Outcome</code>.</p>
-<pre><code class="language-java">@RequiresImplementation
-@Assertion(id = &quot;AGENTICAI-ORCHESTRATION-BHV-002&quot;,
-           strategy = &quot;@Decision and @Action execute in source-file declaration order; AnchoredAgent &quot;
-                    + &quot;declares @Action BEFORE @Decision so the impl must invoke act() before decide()&quot;)
-public void methodsExecuteInDeclarationOrder() {
-    trace.reset();
-    anchoredEvents.fire(new AnchoredEvent(&quot;test&quot;));
-    assertThat(trace.phases())
-            .containsExactly(Phase.TRIGGER, Phase.ACTION, Phase.DECISION, Phase.OUTCOME);
-}
-</code></pre>
-<h3>Termination (<code>core/behavior/termination</code>)</h3>
-<p>The three <code>@Decision</code> termination patterns — each one becomes a test with the <strong>same shape</strong> and the same assertion (<code>TRIGGER, DECISION</code> — the pipeline stops there):</p>
-<pre><code class="language-java">@RequiresImplementation
-@Assertion(id = &quot;AGENTICAI-TERM-004&quot;,
-           strategy = &quot;Boolean false from @Decision halts all downstream phases&quot;)
-public void booleanFalseTerminatesWorkflow() {
-    trace.reset();
-    booleanEvents.fire(new BooleanTerminationEvent(&quot;x&quot;));
-    assertThat(trace.phases()).containsExactly(Phase.TRIGGER, Phase.DECISION);
-}
-// same for Result(success=false) and for returning a null object
-</code></pre>
-<h3>Data propagation (<code>core/behavior/datapropagation</code>)</h3>
-<p>Checks that the value returned by one phase arrives as a <strong>typed parameter</strong> in the next. <code>trace.entries()</code> stores the arguments each method received:</p>
-<pre><code class="language-java">@RequiresImplementation
-@Assertion(id = &quot;AGENTICAI-DATA-002&quot;,
-           strategy = &quot;TriggerOutput returned by @Trigger is injectable as a parameter in @Decision&quot;)
-public void triggerOutputIsInjectableInDecision() {
-    llm.enqueueResponse(&quot;ok&quot;);
-    events.fire(new DataPropagationEvent(&quot;input&quot;));
-    assertThat(trace.entries().get(1).args()[1]).isInstanceOf(TriggerOutput.class);
-}
-</code></pre>
-<h3>LLM contract (<code>core/behavior/llm</code>)</h3>
-<p>Covers the <code>LargeLanguageModel</code> <strong>error contract</strong> — argument validation, <code>{}</code> placeholder mapping, JSON-B serialization, and the guarantee of <strong>per-workflow isolation</strong> (conversational state does not leak between executions). A typical example:</p>
-<pre><code class="language-java">@Assertion(strategy = &quot;more parameters than placeholders must throw IllegalArgumentException&quot;)
-public void tooManyParamsFailsFast() {
-    assertThrows(IllegalArgumentException.class,
-        () -&gt; llm.chat(&quot;Hello {}&quot;, &quot;world&quot;, &quot;extra&quot;));
-}
-</code></pre>
-<h2>Build commands</h2>
-<pre><code class="language-bash"># Full build (CI) — activates the weld-embedded Arquillian container
-mvn clean install -Pweld-embedded
-
-# Only the TCK and upstream modules
-mvn --projects tck --also-make verify
-
-# A specific standalone class (Failsafe, tests in src/main/java)
-mvn -pl tck verify -Dgroups=standalone -Dit.test=AgentAnnotationTests
-
-# A deployed class (requires the container profile)
-mvn -pl tck verify -Pweld-embedded -Dit.test=AgentSmokeTest
-
-# Generate the API signature files
-mvn -pl tck verify -Psignature-generation
-</code></pre>
-<p>Without the <code>weld-embedded</code> profile, <code>@Deployed</code> tests are <strong>excluded by default</strong>
-in the TCK&#39;s Maven configuration.</p>
-</section>
-<section class="chapter" id="ch-5" data-num="5">
-<h1>Chapter 5 — Payara implementation: the CDI extension</h1>
-<p>From here on we leave the spec and enter the Payara runtime
-(<code>fish.payara.ai.agent.*</code>, the <code>agentic-ai-core</code> module). The entry gate is the
-<strong>portable CDI extension</strong> <code>AgenticAIExtension</code> — it turns <code>@Agent</code> classes into
-executable workflows using only standard CDI mechanisms (the extension SPI).</p>
-<h2>Boot pipeline overview</h2>
-<pre><code>Application deployment
-  │
-  ├─ ProcessAnnotatedType (per class) ──► processAgent()
-  │     • applies the default @WorkflowScoped when no scope is present
-  │     • REMOVES @Observes from the @Trigger method
-  │     • collects the agent class
-  │
-  ├─ ProcessManagedBean (per bean) ──► watchForLlm()
-  │     • flags whether the application supplies its own LargeLanguageModel
-  │
-  └─ AfterBeanDiscovery ──► afterBeanDiscovery()
-        • registers the WorkflowScopeContext (the @WorkflowScoped Context)
-        • creates the WorkflowEngine
-        • per agent: validates metadata + registers a SYNTHETIC OBSERVER
-        • if the app brought no LLM: registers the default LLM (backend via config)
-</code></pre>
-<h2><code>processAgent</code> — preparing each agent</h2>
-<p>For each type annotated with <code>@Agent</code>:</p>
-<ol>
-<li><strong>Default scope.</strong> If the class has neither <code>@WorkflowScoped</code> nor
-<code>@ApplicationScoped</code>, the extension adds <code>WorkflowScoped.Literal.INSTANCE</code> via
-<code>configureAnnotatedType()</code> — this is how the spec&#39;s &quot;default is WorkflowScoped&quot;
-is implemented in practice.</li>
-<li><strong>Removing <code>@Observes</code> from the trigger.</strong> This is the implementation&#39;s central
-trick: if the developer wrote <code>@Trigger void on(@Observes MyEvent e)</code>, CDI would
-invoke the method <strong>directly</strong> as a regular observer — outside the engine, with
-no active workflow context and without the following phases. The extension
-<strong>removes the <code>@Observes</code> annotation</strong> from the parameter, and the <strong>synthetic
-observer</strong> registered later becomes the single entry point. This prevents the
-trigger&#39;s <strong>double invocation</strong> and guarantees the workflow context wraps the
-entire run.</li>
-</ol>
-<h2><code>watchForLlm</code> — the self-vetoing default LLM</h2>
-<p>The extension observes every <code>ProcessManagedBean</code> and raises the <code>appProvidesLlm</code>
-flag if any <strong>application</strong> bean has <code>LargeLanguageModel</code> among its types.</p>
-<p>In <code>afterBeanDiscovery</code>, <strong>only if the application brought no LLM of its own</strong>, the
-runtime registers its default: a <code>@Dependent</code> bean created with
-<code>new LargeLanguageModelImpl(backend)</code>, where the backend comes from
-<code>LlmBackendFactory.create(config)</code> (chapter 7).</p>
-<p>Why this dance? If the runtime registered its LLM unconditionally and the
-application also supplied one (the TCK stub, or a real LangChain4j-backed bean),
-injecting <code>LargeLanguageModel</code> would raise an <strong><code>AmbiguousResolutionException</code></strong>.
-The self-vetoing guarantees: <strong>the application&#39;s LLM always wins; the runtime&#39;s is
-only a fallback</strong>. Note that synthetic beans do not go through
-<code>ProcessManagedBean</code>, so the default LLM itself cannot fool the detection.</p>
-<h2><code>afterBeanDiscovery</code> — context, engine and synthetic observers</h2>
-<pre><code class="language-java">afterBeanDiscovery.addContext(workflowScopeContext);            // registers @WorkflowScoped
-// ...
-afterBeanDiscovery.addObserverMethod()
-        .beanClass(agentClass)
-        .observedType(eventType)                                 // the @Trigger&#39;s event type
-        .notifyWith(ctx -&gt; workflowEngine.execute(agentMetadata, ctx.getEvent()));
-</code></pre>
-<p>For each agent, <strong>one synthetic observer</strong> is registered for the trigger&#39;s event
-type. When someone calls <code>event.fire(new Question(...))</code>, this observer receives
-it — and delegates to <code>WorkflowEngine.execute(...)</code>, which runs the whole workflow.
-Agents whose trigger declares no event type are skipped (reserved for future
-programmatic triggering).</p>
-<p>The <strong>event type</strong> is extracted from the trigger with this precedence: a parameter
-explicitly annotated with <code>@Observes</code> (even though the annotation will be removed,
-it declares the intent); otherwise, the first parameter that is <strong>not</strong> a
-<code>LargeLanguageModel</code>.</p>
-<h2><code>buildMetadata</code> — deploy-time validation</h2>
-<p>Each agent&#39;s metadata (<code>AgentMetadata</code>) is built via reflection and <strong>validated at
-deployment</strong> — the philosophy is fail-fast: a structural error kills the deployment
-with a <code>DefinitionException</code> instead of blowing up at runtime. Cases:</p>
-<table>
-<thead>
-<tr>
-<th>Violation</th>
-<th>Result</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>More than one <code>@Trigger</code></td>
-<td><code>DefinitionException</code></td>
-</tr>
-<tr>
-<td>No <code>@Trigger</code> at all</td>
-<td><code>DefinitionException</code></td>
-</tr>
-<tr>
-<td>More than one <code>@Outcome</code></td>
-<td><code>DefinitionException</code></td>
-</tr>
-<tr>
-<td>A <code>@WorkflowScoped</code> agent with <code>@Observes</code> outside the <code>@Trigger</code></td>
-<td><code>DefinitionException</code></td>
-</tr>
-<tr>
-<td>Mixing phases with and without explicit ordering</td>
-<td><code>DefinitionException</code> (&quot;Inconsistent order&quot;)</td>
-</tr>
-</tbody></table>
-<p>After validation:</p>
-<ul>
-<li><strong>Phases sorted:</strong> if any phase carries explicit ordering (<code>@Priority</code> or
-<code>order != 0</code> — encapsulated in <code>PhaseMethod.isExplicitlyOrdered()</code>), sort by
-<code>sortKey</code>; otherwise sort by <strong>source declaration order</strong>, obtained via
-<code>ClassMethodOrder</code>, which reads the <strong>methods table of the <code>.class</code> file</strong> —
-more reliable than <code>getDeclaredMethods()</code>, whose order the JVM does not
-guarantee.</li>
-<li><strong>Handlers sorted most-specific-first</strong> (comparison via <code>isAssignableFrom</code>
-between the exception types of the parameters), preparing the engine&#39;s handler
-selection.</li>
-</ul>
-<h2>Optional Bean Validation</h2>
-<p>The extension tries to build an <code>ExecutableValidator</code>
-(<code>Validation.buildDefaultValidatorFactory()</code>); if no Bean Validation provider is on
-the classpath, it returns <code>null</code> and the engine simply <strong>skips</strong> parameter
-validation — graceful integration, not mandatory.</p>
-</section>
-<section class="chapter" id="ch-6" data-num="6">
-<h1>Chapter 6 — Payara implementation: WorkflowEngine and the workflow scope</h1>
-<h2><code>WorkflowEngine.execute</code> — the backbone</h2>
-<p>A single <code>execute(agentMetadata, triggerEvent)</code> call runs the complete workflow for
-one event. The flow, with the details that matter:</p>
-<pre><code class="language-java">workflowScopeManager.activate();                    // 1. activates @WorkflowScoped on the thread
-WorkflowContext ctx = new WorkflowContext();
-ctx.add(triggerEvent);                              // 2. seeds the event into the context
-try {
-    agentInstance = resolveBean(agentClass);        // 3. resolves the agent bean
-    llm = resolveBean(LargeLanguageModel.class);    //    and the LLM (one per workflow)
-
-    Object r = invokePhase(triggerMethod, ...);     // 4. @Trigger
-    ctx.add(r);                                     //    return enters the context
-
-    for (PhaseMethod phase : sortedPhases) {        // 5. pre-sorted @Decision/@Action
-        Object result = invokePhase(phase, ...);
-        if (phase is DECISION) {
-            if (!shouldContinue(result)) return;    //    early termination
-            addDecisionResultToContext(result);     //    publishes Result.details()
-        } else {
-            ctx.add(result);
-        }
-    }
-
-    invokePhase(outcomeMethod, ...);                // 6. @Outcome (if present)
-} catch (Exception e) {
-    // 7. dispatch to @HandleException (see below)
-} finally {
-    workflowScopeManager.deactivate();              // 8. ALWAYS destroys the context
-}
-</code></pre>
-<p>Points worth highlighting:</p>
-<ul>
-<li><strong>The workflow runs on the caller&#39;s thread</strong> — <code>Event.fire()</code> is synchronous, so
-whoever made the REST POST waits for the workflow to finish (that is why the
-samples can return the LLM&#39;s answer in the same HTTP response).</li>
-<li>The context is destroyed <strong>always</strong> (<code>finally</code>) — success, early termination or
-failure.</li>
-<li>The LLM is resolved <strong>once per execution</strong> — since the bean is <code>@Dependent</code>,
-each workflow gets its own instance, and that is where the conversational
-isolation required by the spec comes from.</li>
-</ul>
-<h2>Termination semantics (<code>shouldContinue</code>)</h2>
-<pre><code class="language-java">return switch (result) {
-    case null      -&gt; false;   // null object ⇒ stop
-    case Boolean b -&gt; b;       // false ⇒ stop
-    case Result r  -&gt; r.success();
-    default        -&gt; true;    // any non-null object ⇒ proceed
-};
-</code></pre>
-<p>And the decision data publication: for a <code>Result</code>, the <code>details()</code> enters the
-context; a <code>Boolean</code> carries no data; any other object enters as-is.</p>
-<h2><code>WorkflowContext</code> — type-based data propagation</h2>
-<p>A simple list of the produced values, in production order. <code>add(null)</code> is ignored
-(void phases contribute nothing). <code>getByType(Class)</code> walks <strong>from newest to
-oldest</strong> — if two phases produced the same type, the next phase receives the
-<strong>freshest</strong> value.</p>
-<h2><code>ParameterResolver</code> — the parameter resolution order</h2>
-<p>For each parameter of a phase method, in this order:</p>
-<ol>
-<li>A type assignable to <code>LargeLanguageModel</code> → the workflow&#39;s LLM instance;</li>
-<li>(only for <code>@HandleException</code>) the in-flight exception, if the parameter type
-matches;</li>
-<li>A value from the <code>WorkflowContext</code> by type (most recent first);</li>
-<li>A CDI bean resolved via the <code>BeanManager</code>;</li>
-<li>Nothing found → <code>null</code>.</li>
-</ol>
-<p>This is what enables signatures like
-<code>@Action void handle(Fraud fraud, BankTransaction tx, AuditService audit)</code> — two
-objects coming from earlier phases plus a CDI bean, all resolved transparently.</p>
-<h2>Exception dispatch — the less obvious path</h2>
-<p>When any phase throws:</p>
-<ol>
-<li>The exception is <strong>unwrapped</strong> from the reflective
-<code>InvocationTargetException</code> (the handler sees the original cause, not the
-wrapper).</li>
-<li><code>dispatchException</code> looks, among the handlers whose exception parameter is
-compatible (<code>isInstance</code>), for the <strong>most specific</strong> (most derived) type.</li>
-<li><strong>No handler</strong> → the exception is rethrown to the container (a
-RuntimeException directly; a checked one wrapped in a RuntimeException).</li>
-<li><strong>The handler throws</strong> → that exception propagates to the container — <strong>no
-recursive handling</strong> (a handler never handles another handler&#39;s failure).</li>
-<li><strong>The handler returns normally</strong> → recovery. And here is the fine detail: the
-engine then runs the <code>@Outcome</code> as the <strong>recovery&#39;s closure phase</strong> — but
-<strong>only if the <code>@Outcome</code> was not the phase that threw the original exception</strong>
-(the <code>outcomeAttempted</code> flag prevents re-invoking an outcome that just failed).</li>
-</ol>
-<h2>Bean Validation on phases</h2>
-<p>Before invoking any phase, the engine validates the resolved arguments with the
-<code>ExecutableValidator</code> (when available): constraints like <code>@Valid</code> and <code>@NotNull</code>
-on phase method parameters. A violation ⇒ <code>ConstraintViolationException</code>, which is
-routed to the <code>@HandleException</code> methods <strong>like any other failure</strong>.</p>
-<h2><code>WorkflowScopeContext</code> — <code>@WorkflowScoped</code> from the inside</h2>
-<p>Implements <code>AlterableContext</code> with <strong><code>ThreadLocal</code></strong> storage:</p>
-<pre><code class="language-java">private static final ThreadLocal&lt;Map&lt;Contextual&lt;?&gt;, BeanInstance&lt;?&gt;&gt;&gt; STORE = ...;
-</code></pre>
-<ul>
-<li><code>activate()</code> puts an empty map on the thread → context active;</li>
-<li><code>get(contextual, creationalContext)</code> creates the bean instance on first access
-and memoizes it (one instance per bean per workflow);</li>
-<li><code>deactivate()</code> <strong>destroys every bean</strong> (firing <code>@PreDestroy</code>) and removes the
-<code>ThreadLocal</code>;</li>
-<li>access with an inactive context ⇒ <code>ContextNotActiveException</code>.</li>
-</ul>
-<p>Since each workflow runs on the <code>Event.fire()</code> thread, the <code>ThreadLocal</code> provides
-<strong>isolation between concurrent workflows</strong> for free: two simultaneous REST requests
-activate independent contexts on different threads.</p>
-<p>It is the <strong>registration of this <code>Context</code></strong> that the TCK uses as the fingerprint
-to detect a compatible implementation (chapter 4) — a neat full-circle moment
-between spec and implementation.</p>
-</section>
-<section class="chapter" id="ch-7" data-num="7">
-<h1>Chapter 7 — LLM backends and configuration</h1>
-<h2>The two-layer architecture</h2>
-<p>Payara&#39;s LLM separates the <strong>spec contract</strong> from the <strong>provider transport</strong>:</p>
-<pre><code>LargeLanguageModel (spec)
-        ▲
-        │ implements
-LargeLanguageModelImpl ── {} placeholders, JSON-B, conversational history
-        │ delegates
-        ▼
-LlmBackend (internal SPI)  ──  chat(systemPrompt, List&lt;Turn&gt;) → String
-   ├── NoOpLlmBackend        (default; no provider configured)
-   ├── OllamaLlmBackend      (local models, e.g. gemma3)
-   ├── AnthropicLlmBackend   (Claude via the Messages API)
-   └── VertexLlmBackend      (Claude via Google Vertex AI)
-</code></pre>
-<p><code>LlmBackend</code> is a minimal interface: it receives the system prompt and the
-conversation (a list of <code>Turn(role, content)</code>) and returns the response text. All
-the spec logic (placeholders, serialization, state) lives in
-<code>LargeLanguageModelImpl</code>, written <strong>once</strong> for every provider.</p>
-<h2><code>LargeLanguageModelImpl</code> — what is worth highlighting</h2>
-<ul>
-<li><strong>Placeholders:</strong> the <code>\{\}</code> regex; it counts the placeholders and validates
-against the number of parameters (the exact rules from chapter 3, including the
-&quot;0 placeholders + 1 context&quot; case, which appends the JSON on a new line after
-the prompt).</li>
-<li><strong>Serialization:</strong> a <code>String</code> passes through as-is; any other object becomes
-JSON via JSON-B; a serialization failure ⇒ <code>IllegalArgumentException</code>.</li>
-<li><strong>Conversation:</strong> each <code>query</code> appends a <code>user</code> turn, calls the backend with an
-<strong>immutable copy</strong> of the whole conversation, and appends the <code>assistant</code> turn
-with the response. If the backend fails, the <code>user</code> turn is <strong>removed</strong> (a
-rollback) — the history is never left with an orphaned question.</li>
-<li><strong><code>unwrap</code>:</strong> exposes the concrete backend (e.g.
-<code>llm.unwrap(AnthropicLlmBackend.class)</code>).</li>
-</ul>
-<h2><code>LlmBackendFactory</code> — selection via MicroProfile Config</h2>
-<p>All keys live under the <strong><code>payara.agentic.llm.</code></strong> prefix:</p>
+<h2>Selecting a backend with MicroProfile Config</h2>
+<p>Configuration is MicroProfile Config, so it can come from the application&#39;s
+<code>META-INF/microprofile-config.properties</code>, from system properties, or from
+environment variables — which is how each sample picks its provider without any code
+change. All keys live under the <strong><code>payara.agentic.llm.</code></strong> prefix:</p>
 <table>
 <thead>
 <tr>
@@ -1621,7 +348,7 @@ rollback) — the history is never left with an orphaned question.</li>
 </thead>
 <tbody><tr>
 <td><code>provider</code></td>
-<td><code>none</code> (default → NoOp), <code>ollama</code>, <code>anthropic</code> (alias <code>claude</code>), <code>vertex</code></td>
+<td><code>none</code> (default → no-op), <code>ollama</code>, <code>anthropic</code> (alias <code>claude</code>), <code>vertex</code></td>
 </tr>
 <tr>
 <td><code>model</code></td>
@@ -1656,48 +383,37 @@ rollback) — the history is never left with an orphaned question.</li>
 <td>optional system prompt (also used as the cache prefix)</td>
 </tr>
 </tbody></table>
-<p>Robustness decisions:</p>
+<p>Two behaviors worth knowing:</p>
 <ul>
-<li><strong>Unknown provider → NoOp</strong>, never a failed deployment: the container always
-resolves a <code>LargeLanguageModel</code> without ambiguity.</li>
-<li><strong>Anthropic without an API key → <code>IllegalStateException</code></strong> with a message that
-says exactly which key/env var to set (fail fast with a diagnosis).</li>
-<li>Since it is MicroProfile Config, the configuration can come from the
-application&#39;s <code>META-INF/microprofile-config.properties</code>, from system properties
-or from environment variables — that is how <strong>each sample picks its provider
-without code</strong>.</li>
+<li><strong>Unknown or absent provider → no-op</strong>, never a failed deployment: injecting
+<code>LargeLanguageModel</code> always resolves, even with nothing configured.</li>
+<li><strong>Anthropic without an API key → <code>IllegalStateException</code></strong> at startup, with a
+message naming exactly which key/env var to set — fail fast with a diagnosis.</li>
 </ul>
-<h2><code>AnthropicLlmBackend</code> — the details that draw questions</h2>
+
+<h2>The backends</h2>
 <ul>
-<li><strong>No SDK</strong>: raw <code>java.net.http.HttpClient</code> + JSON-B. Reason: avoiding
-<strong>dependency conflicts in the server&#39;s OSGi</strong> (the Payara runtime is an OSGi
-module; dragging an SDK with its transitive dependencies into the module is
-asking for classloader clashes).</li>
-<li>Speaks the <strong>Messages API</strong> (<code>POST /v1/messages</code>, header <code>anthropic-version: 2023-06-01</code>, <code>x-api-key</code> authentication).</li>
-<li><strong>Prompt caching:</strong> when a system prompt is present, it is sent as a single text
-block with <code>cache_control: {&quot;type&quot;: &quot;ephemeral&quot;}</code> — the stable prefix is reused
-across the workflow&#39;s phases (each phase re-sends the conversation; the cached
-system prompt reduces cost/latency). An honest nuance: Claude only
-caches prefixes above a minimum size (~4096 tokens on Opus); shorter prompts
-simply do not cache — <strong>silently</strong>, it is not an error.</li>
-<li><strong>Non-streaming</strong>, appropriate for the modest <code>max_tokens</code> of agent phases; very
-large <code>max_tokens</code> would require streaming to avoid the HTTP timeout (120 s).</li>
-<li>A <strong>per-call</strong> system prompt (if any) takes precedence over the configured
-default.</li>
+<li><strong>Ollama</strong> — local models over HTTP; the <strong>no-API-key, zero-cost</strong> option for
+offline demos (the quickstart uses <code>gemma3:4b</code>). Set <code>provider=ollama</code> and, if
+needed, <code>ollama.base-url</code>.</li>
+<li><strong>Anthropic</strong> — Claude via the Messages API. Provide the API key via
+<code>anthropic.api-key</code> or the <code>ANTHROPIC_API_KEY</code> env var (export it in the same
+shell that starts the domain — the server inherits its environment). When a
+<code>system</code> prompt is configured, Payara sends it with prompt caching so the stable
+prefix is reused across the workflow&#39;s phases, cutting cost and latency; note that
+Claude only caches prefixes above a minimum size, so short system prompts simply
+do not cache (silently — it is not an error).</li>
+<li><strong>Vertex</strong> — Claude served by Google Vertex AI: same model family, GCP
+authentication and billing (<code>vertex.project-id</code> + <code>vertex.region</code> instead of an
+API key).</li>
+<li><strong>none</strong> (default) — an inert backend that returns a fixed response; it lets you
+deploy and exercise the workflow before wiring a real provider.</li>
 </ul>
-<h2>The other backends</h2>
-<ul>
-<li><strong><code>NoOpLlmBackend</code></strong> — returns a fixed/inert response; guarantees that injecting
-<code>LargeLanguageModel</code> works even without a configured provider (and is what the
-quickstart shows when it answers &quot;(no answer — ... LLM provider is &#39;none&#39;)&quot;).</li>
-<li><strong><code>OllamaLlmBackend</code></strong> — HTTP to the local Ollama server; the <strong>no-API-key,
-zero-cost</strong> option for offline demos (the quickstart uses <code>gemma3:4b</code>).</li>
-<li><strong><code>VertexLlmBackend</code></strong> — Claude served by Google Vertex AI: same model family,
-GCP authentication/billing (project-id + region instead of an API key).</li>
-</ul>
+<p>If you ever need something the facade does not expose, <code>llm.unwrap(...)</code> reaches
+the concrete backend.</p>
 </section>
-<section class="chapter" id="ch-8" data-num="8">
-<h1>Chapter 8 — The samples</h1>
+<section class="chapter" id="ch-4" data-num="4">
+<h1>Chapter 4 — The samples</h1>
 <p>Three samples, three levels: the <strong>quickstart</strong> teaches the
 programming model in 5 classes; the <strong>tutorial generator</strong> shows a real use case
 with a chat refinement loop; and the <strong>Course Content Studio</strong> raises the bar to
@@ -1771,9 +487,9 @@ the JAR into <code>glassfish/modules/</code> + restart clearing the OSGi cache);
 </ol>
 <h3>Integration test</h3>
 <p><code>AgenticQuickstartIT</code> (Arquillian) <strong>needs no live LLM</strong>: the deployment includes
-<code>StubLargeLanguageModel</code> and, by the <strong>self-vetoing LLM</strong> rule (chapter 5), the
-application&#39;s LLM beats the runtime&#39;s default. The test asserts the scripted
-answer and the early termination on a blank question.</p>
+<code>StubLargeLanguageModel</code>, and because Payara&#39;s default LLM defers to an
+application-provided one, the deployment&#39;s stub beats the runtime&#39;s default. The
+test asserts the scripted answer and the early termination on a blank question.</p>
 <hr>
 <h2>Sample 2 — <code>agentic-ai</code> (Tutorial Generator)</h2>
 <p><strong>A real use case:</strong> an agent writes a <strong>field-by-field guide</strong> for a web form (a
@@ -1826,7 +542,7 @@ payara.agentic.llm.max-tokens=8192
 payara.agentic.llm.system=You are a senior technical writer...
 </code></pre>
 <p>The system prompt comes from <strong>configuration</strong> (not code) and becomes the <strong>prompt
-caching prefix</strong> (chapter 7). To run fully local: switch to
+caching prefix</strong> (see the &quot;Running agents on Payara&quot; chapter). To run fully local: switch to
 <code>provider=ollama</code> / <code>model=gemma3:12b</code> (a 12B-class model is recommended for HTML
 quality).</p>
 <p>⚠️ <strong>Operational gotcha:</strong> <code>ANTHROPIC_API_KEY</code> must be in the environment
@@ -1837,7 +553,7 @@ the deployment, no live LLM. It asserts the form is exposed, the guide is
 generated, and a chat refinement produces a different result.</p>
 <hr>
 <h2>Sample 3 — <code>course-content-studio</code> (education domain)</h2>
-<p>📦 Repository: <a href="https://github.com/luieufrasio/course-content-studio">https://github.com/luieufrasio/course-content-studio</a></p>
+<p>📦 Repository: <a href="https://github.com/luiseufrasio/course-content-studio" target="_blank" rel="noopener">https://github.com/luiseufrasio/course-content-studio</a></p>
 <p><strong>An advanced use case:</strong> the teacher pastes a chapter&#39;s content and picks a
 subject (mathematics, physics, English); an agent generates an <strong>introduction, a
 quiz and a conclusion</strong>; the teacher <strong>refines</strong> by section and, on <strong>approval</strong>, a
@@ -1862,8 +578,8 @@ is no orchestrator: the <strong>human approval</strong> is the gate between them
 has its own workflow and its own LLM conversation.</li>
 <li><strong>Truly ordered phases.</strong> The phases carry an explicit <code>order</code>
 (<code>@Decision(order=5)</code>, <code>@Action(order=10/20/30)</code>), guaranteeing intro → quiz →
-conclusion. Reminder from ch. 5: if <strong>one</strong> phase is ordered, <strong>all</strong> must be,
-otherwise the deploy fails with &quot;Inconsistent order&quot;.</li>
+conclusion. Note: if <strong>one</strong> phase is ordered, <strong>all</strong> must be, otherwise the
+deploy fails with &quot;Inconsistent order&quot;.</li>
 <li><strong>Per-workflow state in the agent itself.</strong> No scope annotation → the runtime
 applies <code>@WorkflowScoped</code>, so the <code>draft</code> instance field accumulates the packet
 across phases safely (one instance per execution).</li>
@@ -1937,8 +653,8 @@ narrative.</li>
 <li>Everything is single-author (single-slot stores), consistent with a live demo.</li>
 </ul>
 </section>
-<section class="chapter" id="ch-9" data-num="9">
-<h1>Chapter 9 — Wrap-up: running the samples and FAQ</h1>
+<section class="chapter" id="ch-5" data-num="5">
+<h1>Chapter 5 — Wrap-up and FAQ</h1>
 <h2>Recap: the whole story, end to end</h2>
 <p>The pieces you have seen fit together like this:</p>
 <ol>
@@ -1946,19 +662,16 @@ narrative.</li>
 proprietary model. The guiding question: &quot;what would the <em>Jakarta Persistence</em>
 of agents look like?&quot;</li>
 <li><strong>The spec.</strong> The phase model (<code>Trigger → Decision* → Action* → Outcome</code> +
-<code>HandleException</code>); a complete agent fits in one class (the <code>QuestionAgent</code>); the
-three <code>@Decision</code> return patterns; the <code>LargeLanguageModel</code> facade with <code>{}</code>
-placeholders; <code>@WorkflowScoped</code>.</li>
+<code>HandleException</code>); a complete agent fits in one class; the <code>LargeLanguageModel</code>
+facade with <code>{}</code> placeholders; <code>@WorkflowScoped</code> — with the specification as the
+authoritative reference for the rules.</li>
+<li><strong>Running on Payara.</strong> Deploy the app and Payara runs the workflow; choosing an
+LLM backend (Ollama, Anthropic, Vertex) is MicroProfile Config, no code change.</li>
 <li><strong>The quickstart.</strong> POST a real question → <code>[TRIGGER] → [DECISION] → [ACTION] → [OUTCOME]</code> in <code>server.log</code>; POST an empty question → early termination. It runs
 on <strong>local Ollama</strong> (no network, no cost).</li>
-<li><strong>Inside the implementation.</strong> The CDI extension pipeline (the <code>@Observes</code>
-removal + synthetic observer is the key insight); the <code>WorkflowEngine</code>; the
-<code>ThreadLocal</code> scope; the self-vetoing LLM (which enables stub-based testing).</li>
-<li><strong>The tutorial generator.</strong> Generate a form guide with Claude; refine it via
-chat; refine a single field. Switching Ollama↔Claude is <strong>one properties file</strong>.</li>
-<li><strong>The TCK and the road ahead.</strong> How compatibility is proven; detecting the
-implementation via the <code>@WorkflowScoped</code> context; what may come next (multiple
-triggers, other event sources, standardized LLM config).</li>
+<li><strong>The tutorial generator and the studio.</strong> A guide generated with Claude and
+refined via chat; then two agents chained by CDI events with a human approval gate.
+Switching Ollama↔Claude↔Vertex is <strong>one properties file</strong>.</li>
 </ol>
 <h2>Running the samples — checklist</h2>
 <ul>
@@ -1982,22 +695,20 @@ valid POST, the empty POST and the refines.</li>
 <h2>Frequently asked questions</h2>
 <p><strong>&quot;How does this compare with LangChain4j / Spring AI?&quot;</strong>
 It does not compete — it standardizes. LangChain4j is an (excellent) single-vendor
-library; Jakarta Agentic AI is a <strong>specification</strong> with a TCK: you program against
+library; Jakarta Agentic AI is a <strong>specification</strong>: you program against
 <code>jakarta.ai.agent</code> and switch implementations/providers without rewriting. An
 implementation may even use LangChain4j underneath — and <code>unwrap()</code> exists exactly
 to reach what the facade does not expose.</p>
 <p><strong>&quot;What if the LLM hallucinates/fails mid-workflow?&quot;</strong>
-Two layers: <code>LLMException</code> (unchecked) for service failures, catchable by
-<code>@HandleException</code> with clear recovery semantics (returned normally = continue;
-rethrew = stop); and typed responses via JSON-B — if the model does not return the
-expected JSON, you get an <code>LLMException</code>, not silently corrupted data. The tutorial
+Service failures surface as <code>LLMException</code>, catchable by <code>@HandleException</code> (return
+normally to continue, rethrow to stop); typed responses go through JSON-B, so a
+malformed reply raises <code>LLMException</code> rather than corrupting data. The tutorial
 generator also shows applied defenses (code-fence stripping, per-field merge).</p>
 <p><strong>&quot;Is this asynchronous? Does it scale?&quot;</strong>
 In 1.0 the workflow runs synchronously on the <code>Event.fire</code> thread — which keeps
 the programming model simple and makes the result available in the same request.
 Nothing stops the caller from firing the event from an executor/virtual thread.
-Isolation is per workflow context (a ThreadLocal in Payara). Asynchronous
-orchestration is a candidate for future versions.</p>
+Asynchronous orchestration is a candidate for future versions.</p>
 <p><strong>&quot;Why CDI events as the trigger, and not a method I call directly?&quot;</strong>
 Decoupling (the firer does not know the agent), it is infrastructure every Jakarta
 EE server already has, and it allows natural fan-out (one event, several agents).
@@ -2005,13 +716,8 @@ The spec already foresees other sources in the future (Messaging, REST,
 programmatic).</p>
 <p><strong>&quot;Can multiple agents collaborate?&quot;</strong>
 Yes, via events: one agent&#39;s <code>@Action</code>/<code>@Outcome</code> can inject an <code>Event&lt;X&gt;</code> and fire
-another agent&#39;s trigger. First-class multi-agent orchestration is a topic for
-future versions.</p>
-<p><strong>&quot;When does it ship? Is it official?&quot;</strong>
-It is a specification proposal under development in the Jakarta EE ecosystem, with
-an API, a spec document, a TCK and a working implementation in Payara. The roadmap
-(multiple triggers, standardized LLM config) is already documented in the API
-Javadocs.</p>
+another agent&#39;s trigger (the studio sample does exactly this). First-class
+multi-agent orchestration is a topic for future versions.</p>
 <p><strong>&quot;Does it run locally? How much does it cost?&quot;</strong>
 Quickstart: Ollama + gemma3:4b, zero cost, zero network. Tutorial generator:
 Claude for HTML quality, with prompt caching to cut cost — but it runs on Ollama
@@ -2025,9 +731,8 @@ validation and error handling.</li>
 <li><strong>Real vendor neutrality</strong> — the agent&#39;s code does not know which LLM serves
 it; switching Ollama↔Claude↔Vertex is configuration (MicroProfile Config in
 Payara).</li>
-<li><strong>A real spec</strong> — with an executable TCK (every test tied to a requirement via
-<code>@Assertion</code>) and a complete implementation inside a production server (a
-portable CDI extension + engine), not a paper.</li>
+<li><strong>A real spec with a working implementation</strong> — read the spec for the rules, run
+the samples on Payara to see them in action.</li>
 </ol>
 <hr>
 <p>🏁 End of the tutorial. Now run the samples yourself and explore the source.</p>
@@ -2035,7 +740,7 @@ portable CDI extension + engine), not a paper.</li>
 </div></div>
 
 <script>
-const CHAPTERS = [{"n":1,"t":"Overview & Motivation"},{"n":2,"t":"The Programming Model"},{"n":3,"t":"LargeLanguageModel & Errors"},{"n":4,"t":"The TCK"},{"n":5,"t":"Payara Impl: CDI Extension"},{"n":6,"t":"Payara Impl: WorkflowEngine"},{"n":7,"t":"LLM Backends & Config"},{"n":8,"t":"The Samples"},{"n":9,"t":"Wrap-up & FAQ"}];
+const CHAPTERS = [{"n":1,"t":"Overview & Motivation"},{"n":2,"t":"The Spec in Brief"},{"n":3,"t":"Running on Payara"},{"n":4,"t":"The Samples"},{"n":5,"t":"Wrap-up & FAQ"}];
 const store = {
   get(k, d){ try { return JSON.parse(localStorage.getItem('jaai.'+k)) ?? d; } catch(e){ return d; } },
   set(k, v){ try { localStorage.setItem('jaai.'+k, JSON.stringify(v)); } catch(e){} }
