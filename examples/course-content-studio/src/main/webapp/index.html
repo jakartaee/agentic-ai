@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Course Content Studio — Jakarta Agentic AI</title>
+    <script>
+        window.MathJax = {
+            tex: {inlineMath: [['$', '$'], ['\\(', '\\)']], displayMath: [['$$', '$$'], ['\\[', '\\]']]},
+            svg: {fontCache: 'global'}
+        };
+    </script>
+    <script src="vendor/mathjax/tex-svg.js" async></script>
+    <style>
+        :root {
+            --steel-1: #0b1f33; --steel-2: #12314f; --steel-3: #1c4a75;
+            --sheen: #5fa8e6; --sheen-hi: #a9d4ff; --silver: #c9d6e5;
+            --text: #eaf2fb; --muted: #9db4cc; --border: #2b5480;
+            --good: #34d399; --good-deep: #0f7a54;
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0; color: var(--text); line-height: 1.55;
+            font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+            background:
+                radial-gradient(1200px 600px at 20% -10%, #1b4b78 0%, transparent 60%),
+                radial-gradient(1000px 500px at 100% 0%, #0f3a63 0%, transparent 55%),
+                linear-gradient(160deg, #081726 0%, #0b2138 45%, #0a1c30 100%);
+            min-height: 100vh;
+        }
+        .metal {
+            background: linear-gradient(180deg, var(--steel-2) 0%, var(--steel-1) 100%);
+            border: 1px solid var(--border);
+            box-shadow: inset 0 1px 0 rgba(169,212,255,.15), 0 8px 24px rgba(0,0,0,.35);
+        }
+        header {
+            padding: 18px 30px; display: flex; align-items: center; gap: 16px;
+            background: linear-gradient(180deg, #17436e 0%, #0d2a45 100%);
+            border-bottom: 1px solid var(--border);
+            box-shadow: inset 0 1px 0 rgba(169,212,255,.25);
+        }
+        .logo {
+            width: 42px; height: 42px; border-radius: 10px; flex: none;
+            background: linear-gradient(145deg, var(--sheen-hi), var(--sheen) 40%, #1c4a75 100%);
+            box-shadow: inset 0 1px 2px rgba(255,255,255,.6), 0 2px 6px rgba(0,0,0,.4);
+            display: grid; place-items: center; font-size: 22px;
+        }
+        header h1 { margin: 0; font-size: 20px; letter-spacing: .3px;
+            background: linear-gradient(180deg, #ffffff, #bcd8f4);
+            -webkit-background-clip: text; background-clip: text; color: transparent; }
+        header p { margin: 3px 0 0; color: var(--muted); font-size: 13px; }
+        .badge { display: inline-block; font-size: 11px; padding: 3px 10px; border-radius: 999px;
+            margin-left: 10px; vertical-align: middle;
+            background: linear-gradient(180deg, var(--good), var(--good-deep)); color: #04241a;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,.5); }
+
+        .layout { display: grid; grid-template-columns: 400px 1fr; gap: 22px; padding: 22px; }
+        .col { padding: 22px 24px; border-radius: 14px; }
+
+        label { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: .06em;
+            color: var(--muted); margin: 16px 0 6px; }
+        select, input, textarea {
+            width: 100%; color: var(--text); font-family: inherit; font-size: 14px;
+            background: linear-gradient(180deg, #0c2135, #0a1a2b);
+            border: 1px solid var(--border); border-radius: 9px; padding: 11px 13px;
+            box-shadow: inset 0 2px 5px rgba(0,0,0,.35);
+        }
+        select:focus, input:focus, textarea:focus { outline: none; border-color: var(--sheen);
+            box-shadow: 0 0 0 3px rgba(95,168,230,.25), inset 0 2px 5px rgba(0,0,0,.35); }
+        /* Make the native dropdown list readable (dark list, light text). */
+        select { color: #f2f7fd; }
+        select option { background: #0c2135; color: #f2f7fd; }
+        textarea { resize: vertical; min-height: 190px; }
+
+        button {
+            border: 1px solid #1a4f83; border-radius: 10px; padding: 11px 18px;
+            font-size: 14px; font-weight: 650; cursor: pointer; margin-top: 16px; color: #04263f;
+            background: linear-gradient(180deg, var(--sheen-hi) 0%, var(--sheen) 45%, #2f7cc0 100%);
+            box-shadow: inset 0 1px 0 rgba(255,255,255,.65), 0 3px 8px rgba(0,0,0,.35);
+        }
+        button:hover { filter: brightness(1.06); }
+        button:active { transform: translateY(1px); }
+        button.secondary { color: var(--text);
+            background: linear-gradient(180deg, #1d456e, #123152); border-color: var(--border);
+            box-shadow: inset 0 1px 0 rgba(169,212,255,.2); }
+        button.approve { color: #04241a;
+            background: linear-gradient(180deg, #8ff0cf, var(--good) 45%, var(--good-deep)); border-color: #0f7a54; }
+        button:disabled { opacity: .55; cursor: not-allowed; }
+
+        .card { border-radius: 12px; padding: 18px 20px; margin-bottom: 18px;
+            background: linear-gradient(180deg, #103052, #0c2237); border: 1px solid var(--border);
+            box-shadow: inset 0 1px 0 rgba(169,212,255,.12); }
+        .card h2 { margin: 0 0 10px; font-size: 14px; letter-spacing: .04em; text-transform: uppercase;
+            color: var(--sheen-hi); }
+        .prose { white-space: pre-wrap; }
+
+        .q { margin-bottom: 16px; }
+        .q .prompt { font-weight: 650; margin-bottom: 6px; }
+        .q ul { list-style: none; padding: 0; margin: 0; }
+        .q li { padding: 7px 11px; border: 1px solid var(--border); border-radius: 7px; margin: 5px 0;
+            background: rgba(9,26,43,.5); }
+        .q li.correct { border-color: var(--good); background: rgba(52,211,153,.16); }
+        .q .exp { color: var(--muted); font-size: 13px; margin-top: 6px; }
+        .q .tag { font-size: 10px; text-transform: uppercase; letter-spacing: .06em; padding: 2px 8px;
+            border-radius: 999px; margin-left: 8px; vertical-align: middle; color: #04263f;
+            background: linear-gradient(180deg, var(--sheen-hi), var(--sheen)); }
+        .q textarea[disabled] { min-height: 0; opacity: .7; margin-top: 6px; }
+
+        .refine { display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap; }
+        .refine > div { margin: 0; }
+        .refine select { width: 160px; }
+        .refine input { flex: 1; min-width: 220px; }
+        .refine button { margin-top: 0; }
+        .status { font-size: 13px; color: var(--muted); margin-top: 12px; min-height: 18px; }
+        .empty { color: var(--muted); text-align: center; margin-top: 70px; font-size: 15px; }
+
+        /* Progress popup */
+        .overlay { position: fixed; inset: 0; background: rgba(4,12,22,.6); backdrop-filter: blur(3px);
+            display: none; align-items: center; justify-content: center; z-index: 50; }
+        .overlay.show { display: flex; }
+        .popup { width: 440px; max-width: 92vw; border-radius: 16px; padding: 22px 24px;
+            background: linear-gradient(180deg, #143a60, #0c2338); border: 1px solid var(--sheen);
+            box-shadow: inset 0 1px 0 rgba(169,212,255,.3), 0 18px 50px rgba(0,0,0,.55); }
+        .popup h3 { margin: 0 0 4px; font-size: 16px; }
+        .popup .sub { color: var(--muted); font-size: 12px; margin-bottom: 16px; }
+        .steps { list-style: none; margin: 0; padding: 0; }
+        .steps li { display: flex; align-items: center; gap: 11px; padding: 8px 0;
+            color: var(--muted); font-size: 14px; }
+        .steps li.active { color: var(--text); }
+        .steps li.done { color: var(--text); }
+        .dot { width: 18px; height: 18px; border-radius: 50%; flex: none; position: relative;
+            border: 2px solid var(--border); }
+        li.active .dot { border-color: var(--sheen-hi);
+            box-shadow: 0 0 0 0 rgba(169,212,255,.6); animation: pulse 1.1s infinite; }
+        li.done .dot { border-color: var(--good); background: var(--good); }
+        li.done .dot::after { content: "✓"; position: absolute; inset: -3px 0 0 0; text-align: center;
+            font-size: 12px; color: #04241a; font-weight: 800; }
+        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(169,212,255,.5); }
+            70% { box-shadow: 0 0 0 8px rgba(169,212,255,0); } 100% { box-shadow: 0 0 0 0 rgba(169,212,255,0); } }
+    </style>
+</head>
+<body>
+<header>
+    <div class="logo">🎓</div>
+    <div>
+        <h1>Course Content Studio <span id="approvedBadge" class="badge" style="display:none">approved</span></h1>
+        <p>An agent writes the intro, quiz and conclusion for a chapter — you review, approve or refine.</p>
+    </div>
+</header>
+
+<div class="layout">
+    <!-- LEFT: chapter input -->
+    <div class="col left metal">
+        <label for="subject">Subject</label>
+        <select id="subject"></select>
+
+        <label for="title">Chapter title</label>
+        <input id="title" placeholder="e.g. Newton's Second Law"/>
+
+        <label for="body">Chapter content</label>
+        <textarea id="body" placeholder="Paste the chapter text here (at least a couple of paragraphs)…"></textarea>
+
+        <button id="generateBtn">Generate packet</button>
+        <div id="leftStatus" class="status"></div>
+    </div>
+
+    <!-- RIGHT: generated packet -->
+    <div class="col right metal">
+        <div id="empty" class="empty">No packet yet. Fill in a chapter and click <b>Generate packet</b>.</div>
+
+        <div id="packet" style="display:none">
+            <div class="card">
+                <h2>Introduction</h2>
+                <div id="intro" class="prose"></div>
+            </div>
+            <div class="card">
+                <h2>Quiz</h2>
+                <div id="quiz"></div>
+            </div>
+            <div class="card">
+                <h2>Conclusion</h2>
+                <div id="conclusion" class="prose"></div>
+            </div>
+            <div class="card">
+                <h2>Review</h2>
+                <div class="refine">
+                    <div>
+                        <label for="section">Refine</label>
+                        <select id="section">
+                            <option value="all">Whole packet</option>
+                            <option value="intro">Introduction</option>
+                            <option value="quiz">Quiz</option>
+                            <option value="conclusion">Conclusion</option>
+                        </select>
+                    </div>
+                    <input id="instruction" placeholder="e.g. make the quiz harder and add a real-world question"/>
+                    <button id="refineBtn" class="secondary">Refine</button>
+                    <button id="approveBtn" class="approve">Approve &amp; publish</button>
+                    <a id="viewBtn" href="student.html" target="_blank" rel="noopener"
+                       style="display:none"><button type="button" class="secondary">View published lesson ↗</button></a>
+                </div>
+                <div id="rightStatus" class="status"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Progress popup -->
+<div id="overlay" class="overlay">
+    <div class="popup">
+        <h3 id="popupTitle">Agent working…</h3>
+        <div class="sub">The workflow runs synchronously; steps stream live from the server.</div>
+        <ul id="steps" class="steps"></ul>
+    </div>
+</div>
+
+<script>
+    const $ = id => document.getElementById(id);
+
+    async function loadSubjects() {
+        const res = await fetch('api/subjects');
+        $('subject').innerHTML = (await res.json()).map(s => `<option>${s}</option>`).join('');
+    }
+
+    const escapeHtml = s => (s ?? '').replace(/[&<>]/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;'}[c]));
+    const typeset = () => { if (window.MathJax && MathJax.typesetPromise) MathJax.typesetPromise(); };
+
+    function renderPacket(p) {
+        $('empty').style.display = 'none';
+        $('packet').style.display = 'block';
+        $('intro').textContent = p.intro ?? '';
+        $('conclusion').textContent = p.conclusion ?? '';
+        $('approvedBadge').style.display = p.approved ? 'inline-block' : 'none';
+        const questions = (p.quiz && p.quiz.questions) || [];
+        $('quiz').innerHTML = questions.map((q, i) => {
+            if (q.type === 'open') {
+                return `<div class="q"><div class="prompt">${i + 1}. ${escapeHtml(q.prompt)}
+                        <span class="tag">open response</span></div>
+                        <textarea rows="2" disabled placeholder="Student answers in free text…"></textarea>
+                        <div class="exp"><b>Model answer:</b> ${escapeHtml(q.sampleAnswer)}</div></div>`;
+            }
+            const opts = (q.options || []).map((o, j) =>
+                `<li class="${j === q.correctIndex ? 'correct' : ''}">${escapeHtml(o)}</li>`).join('');
+            return `<div class="q"><div class="prompt">${i + 1}. ${escapeHtml(q.prompt)}</div>
+                    <ul>${opts}</ul><div class="exp">${escapeHtml(q.explanation)}</div></div>`;
+        }).join('') || '<div class="exp">No questions.</div>';
+        typeset();
+    }
+
+    // --- progress popup driven by the SSE stream ---
+    function markLastDone() {
+        const items = $('steps').querySelectorAll('li');
+        if (items.length) { items[items.length - 1].classList.remove('active'); items[items.length - 1].classList.add('done'); }
+    }
+    function addStep(text) {
+        markLastDone();
+        const li = document.createElement('li');
+        li.className = 'active';
+        li.innerHTML = `<span class="dot"></span><span>${escapeHtml(text)}</span>`;
+        $('steps').appendChild(li);
+    }
+    function openPopup(title) {
+        $('popupTitle').textContent = title;
+        $('steps').innerHTML = '';
+        $('overlay').classList.add('show');
+    }
+    function closePopup() { markLastDone(); setTimeout(() => $('overlay').classList.remove('show'), 500); }
+
+    // Opens the SSE stream, fires the workflow, streams live steps into the popup.
+    async function runWithProgress(title, url, body, statusEl, btn) {
+        const runId = (crypto.randomUUID && crypto.randomUUID()) || String(Date.now() + Math.random());
+        openPopup(title);
+        const es = new EventSource('api/progress/' + runId);
+        es.addEventListener('step', e => addStep(e.data));
+        es.addEventListener('done', () => es.close());
+        // Give the SSE connection a moment to register before firing the workflow.
+        await new Promise(r => { es.onopen = r; setTimeout(r, 700); });
+
+        const original = btn.textContent;
+        btn.disabled = true; btn.textContent = 'Working…'; statusEl.textContent = '';
+        try {
+            const res = await fetch(url, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({...body, runId})
+            });
+            const data = await res.json();
+            statusEl.textContent = res.ok ? 'Done.' : (data.message || ('Error ' + res.status));
+            return res.ok ? data : null;
+        } catch (e) {
+            statusEl.textContent = 'Request failed: ' + e;
+            return null;
+        } finally {
+            es.close(); closePopup();
+            btn.disabled = false; btn.textContent = original;
+        }
+    }
+
+    $('generateBtn').onclick = async () => {
+        const packet = await runWithProgress('Generating packet…', 'api/packet/generate', {
+            subject: $('subject').value, chapterTitle: $('title').value, chapterBody: $('body').value
+        }, $('leftStatus'), $('generateBtn'));
+        if (packet) renderPacket(packet);
+    };
+
+    $('refineBtn').onclick = async () => {
+        const packet = await runWithProgress('Refining…', 'api/packet/refine-section', {
+            section: $('section').value, instruction: $('instruction').value
+        }, $('rightStatus'), $('refineBtn'));
+        if (packet) { renderPacket(packet); $('instruction').value = ''; }
+    };
+
+    $('approveBtn').onclick = async () => {
+        const packet = await runWithProgress('Approving & publishing…', 'api/packet/approve', {},
+            $('rightStatus'), $('approveBtn'));
+        if (packet) {
+            renderPacket(packet);
+            $('viewBtn').style.display = 'inline-block';
+            $('rightStatus').textContent = 'Approved and published.';
+        }
+    };
+
+    loadSubjects();
+</script>
+</body>
+</html>
