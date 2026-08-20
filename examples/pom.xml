@@ -24,6 +24,7 @@
     <modules>
         <module>fraud-detection</module>
         <module>docs-agent</module>
+        <module>course-content-studio</module>
     </modules>
 
     <profiles>
