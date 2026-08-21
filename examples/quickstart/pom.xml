@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>jakarta.agentic-ai</groupId>
+        <artifactId>jakarta.agentic-ai-examples</artifactId>
+        <version>1.0.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>jakarta.agentic-ai-examples.quickstart</artifactId>
+    <packaging>war</packaging>
+
+    <name>Quickstart Example</name>
+    <description>
+        The smallest Jakarta Agentic AI sample: a single @Agent that answers a
+        question, exercising the four specification phases (@Trigger, @Decision,
+        @Action, @Outcome) over a synchronous REST call.
+    </description>
+
+    <licenses>
+        <license>
+            <name>Eclipse Public License 2.0</name>
+            <url>https://www.eclipse.org/legal/epl-2.0</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <properties>
+        <failOnMissingWebXml>false</failOnMissingWebXml>
+    </properties>
+
+    <dependencies>
+        <!-- Jakarta Agentic AI API — provided by the target runtime. -->
+        <dependency>
+            <groupId>jakarta.agentic-ai</groupId>
+            <artifactId>jakarta.agentic-ai-api</artifactId>
+            <version>${project.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- Jakarta EE 10 umbrella API — provided by the target runtime. -->
+        <dependency>
+            <groupId>jakarta.platform</groupId>
+            <artifactId>jakarta.jakartaee-api</artifactId>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <!-- War name -> default context root: /quickstart -->
+        <finalName>quickstart</finalName>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-war-plugin</artifactId>
+                <version>3.4.0</version>
+            </plugin>
+        </plugins>
+    </build>
+</project>
