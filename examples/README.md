@@ -4,6 +4,21 @@ This module contains example applications and usage patterns for Jakarta Agentic
 
 ## Included Examples
 
+### Quickstart
+
+Located in `quickstart/`, the smallest possible sample: a single `@Agent` that
+answers a question, exercising all four phases (`@Trigger`, `@Decision`,
+`@Action`, `@Outcome`) over a synchronous REST call. Runs on a small local
+Ollama model, so it needs no API key. Start here. See its
+[README](quickstart/README.md).
+
+### Tutorial Generator
+
+Located in `tutorial-generator/`, a deployable web application where an agent
+writes a field-by-field guide for a web form and refines it through chat,
+editing the stored artifact each turn. See its
+[README](tutorial-generator/README.md).
+
 ### Fraud Detection Agent
 
 Located in `fraud-detection/`, this example demonstrates:
