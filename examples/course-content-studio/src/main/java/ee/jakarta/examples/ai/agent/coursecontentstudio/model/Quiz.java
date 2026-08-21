@@ -10,14 +10,16 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  *****************************************************************************/
-package ai.agentic.samples.course;
+package ee.jakarta.examples.ai.agent.coursecontentstudio.model;
 
-import jakarta.ws.rs.ApplicationPath;
-import jakarta.ws.rs.core.Application;
+import java.util.List;
 
 /**
- * Activates JAX-RS under {@code /api}.
+ * A quiz: the typed result of an LLM query. Using a record (instead of parsing
+ * a raw String) lets the agent ask for {@code Quiz.class} and receive structured
+ * data straight from Jakarta JSON Binding.
+ *
+ * @param questions the quiz questions
  */
-@ApplicationPath("/api")
-public class RestApplication extends Application {
+public record Quiz(List<QuizQuestion> questions) {
 }
