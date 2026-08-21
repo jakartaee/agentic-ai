@@ -419,46 +419,20 @@ programming model in 5 classes; the <strong>tutorial generator</strong> shows a 
 with a chat refinement loop; and the <strong>Course Content Studio</strong> raises the bar to
 <strong>two agents chained by CDI events</strong>, with a human approval gate in the middle and
 a final student-facing view.</p>
+<p>All three live in the <a href="https://github.com/jakartaee/agentic-ai/tree/main/examples" target="_blank" rel="noopener"><code>examples/</code></a>
+directory of the Jakarta Agentic AI repository — the single place they are
+maintained. This chapter explains what each one teaches and the design ideas
+behind it; for the full source, configuration and run instructions, follow the
+<strong>Source</strong> link on each sample.</p>
 <hr>
-<h2>Sample 1 — <code>agentic-ai-quickstart</code></h2>
+<h2>Sample 1 — Quickstart</h2>
+<p>📦 Source: <a href="https://github.com/jakartaee/agentic-ai/tree/main/examples/quickstart" target="_blank" rel="noopener">examples/quickstart</a></p>
 <p><strong>The smallest possible agent that exercises the four phases.</strong> A REST POST fires
-a CDI event; the agent answers the question with the configured LLM.</p>
-<pre><code>POST /agentic-ai-quickstart/api/ask  { &quot;question&quot;: &quot;...&quot; }  →  { &quot;question&quot;, &quot;answer&quot; }
-</code></pre>
-<h3>The complete flow, class by class</h3>
-<p><strong><code>Question</code></strong> — a simple record, the <strong>CDI event</strong> that triggers the workflow.
-<em>Deliberately without validation constraints</em>, so a blank question reaches the
-<code>@Decision</code> and demonstrates early termination.</p>
-<p><strong><code>AskResource</code></strong> (JAX-RS, <code>@RequestScoped</code>):</p>
-<pre><code class="language-java">@Inject Event&lt;Question&gt; trigger;
-@Inject AnswerStore answers;
-
-trigger.fire(question);            // runs the ENTIRE workflow synchronously
-String answer = answers.get(text); // reads the result produced by the @Action
-</code></pre>
-<p>The code comment is the soul of the demo: <code>Event.fire</code> is synchronous, so the
-complete workflow (including the LLM call) finishes <strong>before</strong> <code>fire</code> returns.</p>
-<p><strong><code>QuestionAgent</code></strong> — the four phases, each logging its prefix so <code>server.log</code>
-tells the story:</p>
-<pre><code class="language-java">@Agent(name = &quot;QuestionAgent&quot;, description = &quot;Answers a question using the configured LLM backend.&quot;)
-public class QuestionAgent {
-    @Inject LargeLanguageModel model;
-    @Inject AnswerStore answers;
-
-    @Trigger  void onQuestion(@Valid Question question) { /* ... */ }   // [TRIGGER]
-    @Decision Result hasContent(Question question) {                    // [DECISION]
-        boolean proceed = question.text() != null &amp;&amp; !question.text().isBlank();
-        return new Result(proceed, question);
-    }
-    @Action   void generate(Question question) {                        // [ACTION]
-        String answer = model.query(&quot;Answer concisely in one short paragraph: {}&quot;,
-                                    question.text());
-        answers.put(question.text(), answer);
-    }
-    @Outcome  void complete(Question question) { /* ... */ }            // [OUTCOME]
-}
-</code></pre>
-<p>Note the didactic details:</p>
+a CDI event; the agent answers the question with the configured LLM. Because
+<code>Event.fire</code> is synchronous, the complete workflow (including the LLM call)
+finishes <strong>before</strong> <code>fire</code> returns, and the resource reads the answer back from an
+<code>@ApplicationScoped</code> store.</p>
+<h3>What it teaches</h3>
 <ul>
 <li><strong>No scope annotation</strong> → the runtime applies <code>@WorkflowScoped</code> (the spec&#39;s
 default, via the extension).</li>
@@ -468,40 +442,15 @@ termination demo).</li>
 <li>The <code>@Action</code> uses a <strong><code>{}</code> placeholder</strong> with a positional parameter.</li>
 <li><strong><code>AnswerStore</code></strong> is <code>@ApplicationScoped</code> with a <code>ConcurrentHashMap</code> — the
 bridge between the agent and the synchronous HTTP response.</li>
+<li>Runs on a small local <strong>Ollama</strong> model — no API key, no cost.</li>
 </ul>
-<h3>Configuration (local Ollama — zero-cost demo)</h3>
-<pre><code class="language-properties">payara.agentic.llm.provider=ollama
-payara.agentic.llm.model=gemma3:4b
-payara.agentic.llm.ollama.base-url=http://localhost:11434
-</code></pre>
-<h3>Manual run script</h3>
-<ol>
-<li><code>winget install Ollama.Ollama</code> and <code>ollama pull gemma3:4b</code>;</li>
-<li>Make sure the distribution has the current <code>agentic-ai-core</code> (package + copy
-the JAR into <code>glassfish/modules/</code> + restart clearing the OSGi cache);</li>
-<li><code>mvn package</code> the sample and <code>asadmin deploy .../agentic-ai-quickstart.war</code>;</li>
-<li>POST to <code>/agentic-ai-quickstart/api/ask</code> and watch
-<code>[TRIGGER] → [DECISION] → [ACTION] → [OUTCOME]</code> in <code>server.log</code>;</li>
-<li>Repeat with an empty <code>question</code> → <code>[DECISION] proceed=false</code> and the answer
-&quot;(no answer — workflow terminated...)&quot;.</li>
-</ol>
-<h3>Integration test</h3>
-<p><code>AgenticQuickstartIT</code> (Arquillian) <strong>needs no live LLM</strong>: the deployment includes
-<code>StubLargeLanguageModel</code>, and because Payara&#39;s default LLM defers to an
-application-provided one, the deployment&#39;s stub beats the runtime&#39;s default. The
-test asserts the scripted answer and the early termination on a blank question.</p>
 <hr>
-<h2>Sample 2 — <code>agentic-ai</code> (Tutorial Generator)</h2>
+<h2>Sample 2 — Tutorial Generator</h2>
+<p>📦 Source: <a href="https://github.com/jakartaee/agentic-ai/tree/main/examples/tutorial-generator" target="_blank" rel="noopener">examples/tutorial-generator</a></p>
 <p><strong>A real use case:</strong> an agent writes a <strong>field-by-field guide</strong> for a web form (a
-customer registration form to contract Azul Payara Server) and allows <strong>refining
-the guide via chat</strong>. The page shows the form on the left, the generated guide on
-the right, and a refinement chat box below.</p>
-<pre><code>GET  /agentic-ai/                           the side-by-side UI
-GET  /agentic-ai/api/form                   the form metadata (FormSpec)
-POST /agentic-ai/api/tutorial/generate      generate a fresh guide
-POST /agentic-ai/api/tutorial/refine        { &quot;instruction&quot;: &quot;...&quot; } refine the whole guide
-POST /agentic-ai/api/tutorial/refine-field  refine ONE field and merge it back
-</code></pre>
+customer registration form) and allows <strong>refining the guide via chat</strong>. The page
+shows the form on the left, the generated guide on the right, and a refinement
+chat box below.</p>
 <h3>The strong design ideas</h3>
 <ol>
 <li><strong>Single source of truth:</strong> <code>CustomerFormSpec</code> defines the form; the page
@@ -518,57 +467,19 @@ agent-engineering pattern worth remembering.)</li>
 field&#39;s description (JSON-P), runs the workflow over that fragment, and
 <strong>merges</strong> the result back into the full guide — preserving the other fields
 and saving tokens.</li>
-<li><strong>LLM robustness:</strong> <code>stripCodeFences</code> removes the ``` fences that models
+<li><strong>LLM robustness:</strong> <code>stripCodeFences</code> removes the code fences that models
 sometimes insist on adding — an honest reminder that LLM output requires
 defensive post-processing.</li>
 </ol>
-<h3>The agent</h3>
-<pre><code class="language-java">@Trigger  void onRequest(TutorialRequest request)      // logs generate|refine
-@Decision Result hasFields(TutorialRequest request)    // any fields? if not, stop
-@Action   void render(TutorialRequest request) {
-    if (generate)  content = model.query(&quot;Generate the field-guide JSON ... : {}&quot;, request.formSpec());
-    else           content = model.query(&quot;Current field-guide JSON:\n{}\n\nApply this change...: {}\n\n...&quot;,
-                                         request.currentHtml(), request.instruction());
-    store.put(stripCodeFences(content));
-}
-@Outcome  void complete(TutorialRequest request)       // logs the guide&#39;s size
-</code></pre>
-<p>Note: the refinement prompt uses <strong>two <code>{}</code> placeholders</strong> — the current guide and
-the instruction, substituted positionally.</p>
-<h3>Configuration (Anthropic/Claude — HTML quality)</h3>
-<pre><code class="language-properties">payara.agentic.llm.provider=anthropic
-payara.agentic.llm.model=claude-opus-4-8
-payara.agentic.llm.max-tokens=8192
-payara.agentic.llm.system=You are a senior technical writer...
-</code></pre>
-<p>The system prompt comes from <strong>configuration</strong> (not code) and becomes the <strong>prompt
-caching prefix</strong> (see the &quot;Running agents on Payara&quot; chapter). To run fully local: switch to
-<code>provider=ollama</code> / <code>model=gemma3:12b</code> (a 12B-class model is recommended for HTML
-quality).</p>
-<p>⚠️ <strong>Operational gotcha:</strong> <code>ANTHROPIC_API_KEY</code> must be in the environment
-<strong>before</strong> <code>asadmin restart-domain</code>, so the server process inherits it.</p>
-<h3>Integration test</h3>
-<p><code>AgenticTutorialIT</code> — same pattern as the quickstart: <code>StubLargeLanguageModel</code> in
-the deployment, no live LLM. It asserts the form is exposed, the guide is
-generated, and a chat refinement produces a different result.</p>
 <hr>
-<h2>Sample 3 — <code>course-content-studio</code> (education domain)</h2>
-<p>📦 Source: <a href="https://github.com/jakartaee/agentic-ai/tree/main/examples/course-content-studio" target="_blank" rel="noopener">examples/course-content-studio</a> in <a href="https://github.com/jakartaee/agentic-ai" target="_blank" rel="noopener">https://github.com/jakartaee/agentic-ai</a></p>
+<h2>Sample 3 — Course Content Studio</h2>
+<p>📦 Source: <a href="https://github.com/jakartaee/agentic-ai/tree/main/examples/course-content-studio" target="_blank" rel="noopener">examples/course-content-studio</a></p>
 <p><strong>An advanced use case:</strong> the teacher pastes a chapter&#39;s content and picks a
 subject (mathematics, physics, English); an agent generates an <strong>introduction, a
 quiz and a conclusion</strong>; the teacher <strong>refines</strong> by section and, on <strong>approval</strong>, a
 <strong>second agent</strong> builds the <strong>published lesson</strong> that the student sees. It is the
 sample that exercises almost the whole spec and shows the architectural
 differentiator: <strong>agent composition through CDI events</strong>.</p>
-<pre><code>GET  /course/                           the studio (chapter left, packet right, refine chat)
-GET  /course/student.html               the published lesson, as a student sees it
-POST /course/api/packet/generate        generate intro + quiz + conclusion
-POST /course/api/packet/refine-section  { section: intro|quiz|conclusion|all, instruction }
-POST /course/api/packet/approve         approve + trigger the PublishAgent
-GET  /course/api/lesson                 the published (student-facing) lesson
-POST /course/api/quiz/grade             grade an open answer via the LLM (similarity)
-GET  /course/api/progress/{runId}       live phase progress (Server-Sent Events)
-</code></pre>
 <h3>The strong design ideas</h3>
 <ol>
 <li><strong>Two agents, chained only by CDI events.</strong> <code>CourseContentAgent</code> generates/
@@ -587,8 +498,8 @@ across phases safely (one instance per execution).</li>
 chapter: it relies on the earlier turns (intro and quiz) of the same workflow
 conversation.</li>
 <li><strong>Typed result via JSON-B, with defensive parsing.</strong> The quiz becomes a <code>Quiz</code>
-record. Because small models wrap JSON in ``` fences, <code>parseQuiz</code> <strong>strips the
-fences and extracts the <code>{…}</code></strong> before binding, with a placeholder quiz as a
+record. Because small models wrap JSON in code fences, <code>parseQuiz</code> <strong>strips the
+fences and extracts the object</strong> before binding, with a placeholder quiz as a
 last resort — the workflow never aborts on bad JSON.</li>
 <li><strong>Per-section HITL.</strong> The event carries the mode (<code>currentDraftJson</code> blank →
 generate; filled → refine) and the <code>section</code>, so <code>refine-section</code> rewrites
@@ -598,58 +509,19 @@ to a <code>ProgressTracker</code> that streams over Server-Sent Events; the brow
 evolves with the agent&#39;s real steps.</li>
 <li><strong>Polymorphic quiz + LLM grading.</strong> <code>QuizQuestion</code> has a <code>type</code>
 (<code>multiple_choice</code> | <code>open</code>). For an <strong>open</strong> question the student answers in a
-<code>&lt;textarea&gt;</code> and the <code>quiz/grade</code> endpoint asks the LLM for a <strong>0–100
-semantic-similarity</strong> score against the <code>sampleAnswer</code>, mapped on the server to
-a verdict (≥70 correct, 50–69 partial, &lt;50 incorrect). A spec detail worth
-citing: this endpoint <strong>injects the <code>LargeLanguageModel</code> directly</strong> into a
-<code>@RequestScoped</code> resource — it works because the runtime&#39;s LLM is <code>@Dependent</code>
-(it needs no active workflow), so not every use of the model must be inside an
-agent.</li>
+<code>&lt;textarea&gt;</code> and the <code>quiz/grade</code> endpoint asks the LLM for a semantic-similarity
+score against the <code>sampleAnswer</code>, mapped on the server to a verdict. A spec
+detail worth citing: this endpoint <strong>injects the <code>LargeLanguageModel</code> directly</strong>
+into a <code>@RequestScoped</code> resource — it works because the runtime&#39;s LLM is
+<code>@Dependent</code> (it needs no active workflow), so not every use of the model must be
+inside an agent.</li>
 </ol>
-<h3>The two agents</h3>
-<pre><code class="language-java">// Agent 1 — authoring (ordered, workflow memory, defensive parsing)
-@Agent(name = &quot;CourseContentAgent&quot;)
-class CourseContentAgent {
-    private CoursePacket draft;                                   // @WorkflowScoped state
-    @Trigger  void onRequest(@Valid CoursePacketRequest r)        // generate | refine
-    @Decision(order = 5)  boolean hasTeachableContent(...)        // gate
-    @Action(order = 10)   void writeIntro(...)                    // prose (per-subject rubric)
-    @Action(order = 20)   void writeQuiz(...)  { draft.setQuiz(parseQuiz(model.query(...))); }
-    @Action(order = 30)   void writeConclusion(...)               // uses workflow memory
-    @Outcome  void publish(...)                                   // writes to PacketStore
-    @HandleException void onLlmFailure(LLMException e)            // resilience
-}
-
-// Agent 2 — publishing, triggered by LessonApproved (event chaining)
-@Agent(name = &quot;PublishAgent&quot;)
-class PublishAgent {
-    @Trigger  void onApproved(LessonApproved e)                  // receives the approved packet
-    @Decision boolean hasApprovedContent(...)
-    @Action   void writeObjectives(...)                          // LLM: &quot;what you&#39;ll learn&quot;
-    @Outcome  void publish(...)                                  // writes to PublishedLessonStore
-}
-</code></pre>
-<h3>Configuration (Vertex/Claude — cloud, demo-proof)</h3>
-<pre><code class="language-properties">payara.agentic.llm.provider=vertex
-payara.agentic.llm.model=claude-sonnet-4-6
-payara.agentic.llm.max-tokens=8192
-payara.agentic.llm.system=You are an expert curriculum designer and teacher...
-</code></pre>
-<p>Vertex authenticates via ADC (<code>gcloud auth application-default login</code>) or
-<code>GOOGLE_ACCESS_TOKEN</code>; project and region come from <code>ANTHROPIC_VERTEX_PROJECT_ID</code> /
-<code>CLOUD_ML_REGION</code>. <strong>Why Vertex rather than Ollama here:</strong> the Ollama backend has a
-<strong>120 s per-call timeout</strong>; a 12B model on a laptop takes ~2 min per call and the
-quiz step blows the limit. On the cloud it answers in seconds.</p>
-<p>⚠️ Maths/physics formulas are rendered with <strong>self-hosted MathJax</strong>
-(<code>webapp/vendor/mathjax/tex-svg.js</code>) — the rubric asks for LaTeX (<code>$...$</code>,
-<code>$$...$$</code>) and rendering works <strong>offline</strong>.</p>
 <h3>Details worth highlighting</h3>
 <ul>
 <li>The student view (<code>student.html</code>) shows the lesson with an <strong>interactive quiz</strong>
-(answer and <em>Check answers</em> marks correct/incorrect + explanation for MCQ; for
-the open question it grades by LLM similarity and reveals the model answer) —
-the &quot;final product&quot; that closes the generate → review → <strong>publish</strong> → consume
-narrative.</li>
+that closes the generate → review → <strong>publish</strong> → consume narrative.</li>
+<li>Maths/physics formulas are rendered with <strong>self-hosted MathJax</strong>, so rendering
+works <strong>offline</strong>.</li>
 <li>Everything is single-author (single-slot stores), consistent with a live demo.</li>
 </ul>
 </section>
