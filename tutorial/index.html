@@ -591,7 +591,7 @@ works <strong>offline</strong>.</li>
 </ul>
 </section>
 <section class="chapter" id="ch-5" data-num="5">
-<h1>Chapter 5 — Wrap-up and FAQ</h1>
+<h1>Chapter 5 — Wrap-up</h1>
 <h2>Recap: the whole story, end to end</h2>
 <p>The pieces you have seen fit together like this:</p>
 <ol>
@@ -629,36 +629,10 @@ first).</li>
 <li><input disabled="" type="checkbox"> Requests ready (no typing JSON by hand): a script/<code>.http</code> file with the
 valid POST, the empty POST and the refines.</li>
 </ul>
-<h2>Frequently asked questions</h2>
-<p><strong>&quot;How does this compare with LangChain4j / Spring AI?&quot;</strong>
-It does not compete — it standardizes. LangChain4j is an (excellent) single-vendor
-library; Jakarta Agentic AI is a <strong>specification</strong>: you program against
-<code>jakarta.ai.agent</code> and switch implementations/providers without rewriting. An
-implementation may even use LangChain4j underneath — and <code>unwrap()</code> exists exactly
-to reach what the facade does not expose.</p>
-<p><strong>&quot;What if the LLM hallucinates/fails mid-workflow?&quot;</strong>
-Service failures surface as <code>LLMException</code>, catchable by <code>@HandleException</code> (return
-normally to continue, rethrow to stop); typed responses go through JSON-B, so a
-malformed reply raises <code>LLMException</code> rather than corrupting data. The tutorial
-generator also shows applied defenses (code-fence stripping, per-field merge).</p>
-<p><strong>&quot;Is this asynchronous? Does it scale?&quot;</strong>
-In 1.0 the workflow runs synchronously on the <code>Event.fire</code> thread — which keeps
-the programming model simple and makes the result available in the same request.
-Nothing stops the caller from firing the event from an executor/virtual thread.
-Asynchronous orchestration is a candidate for future versions.</p>
-<p><strong>&quot;Why CDI events as the trigger, and not a method I call directly?&quot;</strong>
-Decoupling (the firer does not know the agent), it is infrastructure every Jakarta
-EE server already has, and it allows natural fan-out (one event, several agents).
-The spec already foresees other sources in the future (Messaging, REST,
-programmatic).</p>
-<p><strong>&quot;Can multiple agents collaborate?&quot;</strong>
-Yes, via events: one agent&#39;s <code>@Action</code>/<code>@Outcome</code> can inject an <code>Event&lt;X&gt;</code> and fire
-another agent&#39;s trigger (the studio sample does exactly this). First-class
-multi-agent orchestration is a topic for future versions.</p>
-<p><strong>&quot;Does it run locally? How much does it cost?&quot;</strong>
-Quickstart: Ollama + gemma3:4b, zero cost, zero network. Tutorial generator:
-Claude for HTML quality, with prompt caching to cut cost — but it runs on Ollama
-too.</p>
+<p>Common questions — how this compares with LangChain4j / Spring AI, error
+handling, asynchrony, why CDI events, multi-agent collaboration and running
+costs — are answered in the
+<a href="https://github.com/jakartaee/agentic-ai#frequently-asked-questions" target="_blank" rel="noopener">project README FAQ</a>.</p>
 <h2>Key takeaways</h2>
 <ol>
 <li><strong>Agents as CDI beans</strong> — the phase model
@@ -677,7 +651,7 @@ the samples on Payara to see them in action.</li>
 </div></div>
 
 <script>
-const CHAPTERS = [{"n":1,"t":"Overview & Motivation"},{"n":2,"t":"The Spec in Brief"},{"n":3,"t":"Running on Payara"},{"n":4,"t":"The Samples"},{"n":5,"t":"Wrap-up & FAQ"}];
+const CHAPTERS = [{"n":1,"t":"Overview & Motivation"},{"n":2,"t":"The Spec in Brief"},{"n":3,"t":"Running on Payara"},{"n":4,"t":"The Samples"},{"n":5,"t":"Wrap-up"}];
 const store = {
   get(k, d){ try { return JSON.parse(localStorage.getItem('jaai.'+k)) ?? d; } catch(e){ return d; } },
   set(k, v){ try { localStorage.setItem('jaai.'+k, JSON.stringify(v)); } catch(e){} }
