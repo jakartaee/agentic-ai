@@ -10,7 +10,7 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  *****************************************************************************/
-package ai.agentic.samples.course.model;
+package ee.jakarta.examples.ai.agent.coursecontentstudio.model;
 
 /**
  * The generated learning packet for one chapter: an introduction, a quiz and a

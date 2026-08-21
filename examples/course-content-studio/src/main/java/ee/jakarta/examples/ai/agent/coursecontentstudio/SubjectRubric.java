@@ -10,7 +10,7 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  *****************************************************************************/
-package ai.agentic.samples.course;
+package ee.jakarta.examples.ai.agent.coursecontentstudio;
 
 import jakarta.enterprise.context.ApplicationScoped;
 

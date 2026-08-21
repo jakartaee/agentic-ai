@@ -10,11 +10,11 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  *****************************************************************************/
-package ai.agentic.samples.course;
+package ee.jakarta.examples.ai.agent.coursecontentstudio;
 
-import ai.agentic.samples.course.model.CoursePacket;
-import ai.agentic.samples.course.model.LessonApproved;
-import ai.agentic.samples.course.model.PublishedLesson;
+import ee.jakarta.examples.ai.agent.coursecontentstudio.model.CoursePacket;
+import ee.jakarta.examples.ai.agent.coursecontentstudio.model.LessonApproved;
+import ee.jakarta.examples.ai.agent.coursecontentstudio.model.PublishedLesson;
 import jakarta.ai.agent.Action;
 import jakarta.ai.agent.Agent;
 import jakarta.ai.agent.Decision;
