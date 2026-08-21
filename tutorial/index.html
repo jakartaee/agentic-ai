@@ -432,6 +432,32 @@ a CDI event; the agent answers the question with the configured LLM. Because
 <code>Event.fire</code> is synchronous, the complete workflow (including the LLM call)
 finishes <strong>before</strong> <code>fire</code> returns, and the resource reads the answer back from an
 <code>@ApplicationScoped</code> store.</p>
+<p>The whole agent — the four phases — fits in one class; the excerpt below is the
+heart of it (full source at the <strong>Source</strong> link above):</p>
+<pre><code class="language-java">@Agent(name = &quot;QuestionAgent&quot;, description = &quot;Answers a question using the configured LLM backend.&quot;)
+public class QuestionAgent {
+    @Inject LargeLanguageModel model;
+    @Inject AnswerStore answers;
+
+    @Trigger  void onQuestion(@Valid Question question) { /* ... */ }   // [TRIGGER]
+    @Decision Result hasContent(Question question) {                    // [DECISION]
+        boolean proceed = question.text() != null &amp;&amp; !question.text().isBlank();
+        return new Result(proceed, question);                          // false → stop here
+    }
+    @Action   void generate(Question question) {                        // [ACTION]
+        String answer = model.query(&quot;Answer concisely in one short paragraph: {}&quot;,
+                                    question.text());                    // {} positional placeholder
+        answers.put(question.text(), answer);
+    }
+    @Outcome  void complete(Question question) { /* ... */ }            // [OUTCOME]
+}
+</code></pre>
+<p>Choosing the LLM backend is configuration, not code — this sample runs fully local
+on Ollama at zero cost:</p>
+<pre><code class="language-properties">payara.agentic.llm.provider=ollama
+payara.agentic.llm.model=gemma3:4b
+payara.agentic.llm.ollama.base-url=http://localhost:11434
+</code></pre>
 <h3>What it teaches</h3>
 <ul>
 <li><strong>No scope annotation</strong> → the runtime applies <code>@WorkflowScoped</code> (the spec&#39;s
@@ -451,6 +477,26 @@ bridge between the agent and the synchronous HTTP response.</li>
 customer registration form) and allows <strong>refining the guide via chat</strong>. The page
 shows the form on the left, the generated guide on the right, and a refinement
 chat box below.</p>
+<p>One agent covers both behaviors — the same <code>@Action</code> generates from scratch or
+refines an existing guide, decided by whether the request already carries one
+(full source at the <strong>Source</strong> link above):</p>
+<pre><code class="language-java">@Trigger  void onRequest(TutorialRequest request)      // logs generate|refine
+@Decision Result hasFields(TutorialRequest request)    // any fields? if not, stop
+@Action   void render(TutorialRequest request) {
+    if (generate)  content = model.query(&quot;Generate the field-guide JSON ... : {}&quot;, request.formSpec());
+    else           content = model.query(&quot;Current field-guide JSON:\n{}\n\nApply this change...: {}&quot;,
+                                         request.currentHtml(), request.instruction());  // two {} placeholders
+    store.put(stripCodeFences(content));                // LLM output needs defensive post-processing
+}
+@Outcome  void complete(TutorialRequest request)       // logs the guide&#39;s size
+</code></pre>
+<p>The LLM backend and even the system prompt are configuration — here Claude for
+HTML quality, switchable to local Ollama without touching code:</p>
+<pre><code class="language-properties">payara.agentic.llm.provider=anthropic
+payara.agentic.llm.model=claude-opus-4-8
+payara.agentic.llm.max-tokens=8192
+payara.agentic.llm.system=You are a senior technical writer...
+</code></pre>
 <h3>The strong design ideas</h3>
 <ol>
 <li><strong>Single source of truth:</strong> <code>CustomerFormSpec</code> defines the form; the page
@@ -480,6 +526,25 @@ quiz and a conclusion</strong>; the teacher <strong>refines</strong> by section 
 <strong>second agent</strong> builds the <strong>published lesson</strong> that the student sees. It is the
 sample that exercises almost the whole spec and shows the architectural
 differentiator: <strong>agent composition through CDI events</strong>.</p>
+<p>The authoring agent shows ordered phases, per-workflow state, workflow memory,
+defensive JSON-B parsing and an exception handler — all in one class (full source
+at the <strong>Source</strong> link above):</p>
+<pre><code class="language-java">// Agent 1 — authoring (ordered, workflow memory, defensive parsing)
+@Agent(name = &quot;CourseContentAgent&quot;)
+class CourseContentAgent {
+    private CoursePacket draft;                                   // @WorkflowScoped state
+    @Trigger  void onRequest(@Valid CoursePacketRequest r)        // generate | refine
+    @Decision(order = 5)  boolean hasTeachableContent(...)        // gate
+    @Action(order = 10)   void writeIntro(...)                    // prose (per-subject rubric)
+    @Action(order = 20)   void writeQuiz(...)  { draft.setQuiz(parseQuiz(model.query(...))); }
+    @Action(order = 30)   void writeConclusion(...)               // uses workflow memory
+    @Outcome  void publish(...)                                   // writes to PacketStore
+    @HandleException void onLlmFailure(LLMException e)            // resilience
+}
+</code></pre>
+<p>On approval the REST layer fires a <code>LessonApproved</code> event, which is the
+<code>@Trigger</code> of a <strong>second</strong> agent (<code>PublishAgent</code>) — the two are composed purely
+through CDI events, with the human approval as the gate between them.</p>
 <h3>The strong design ideas</h3>
 <ol>
 <li><strong>Two agents, chained only by CDI events.</strong> <code>CourseContentAgent</code> generates/
