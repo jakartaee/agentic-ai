@@ -13,6 +13,44 @@
  *****************************************************************************/
 package ee.jakarta.examples.ai.agent.frauddetection;
 
+import javax.money.MonetaryAmount;
+
 public class BankTransaction {
-    // Add fields and methods as needed
+
+    private String id;
+    private MonetaryAmount amount;
+    private String merchant;
+    private String location;
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public MonetaryAmount getAmount() {
+        return amount;
+    }
+
+    public void setAmount(MonetaryAmount amount) {
+        this.amount = amount;
+    }
+
+    public String getMerchant() {
+        return merchant;
+    }
+
+    public void setMerchant(String merchant) {
+        this.merchant = merchant;
+    }
+
+    public String getLocation() {
+        return location;
+    }
+
+    public void setLocation(String location) {
+        this.location = location;
+    }
 }
