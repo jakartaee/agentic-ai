@@ -184,3 +184,20 @@ The project aims to do for AI agent developers what Jakarta REST did for REST se
 
 ### Is this an LLM API like Spring AI and LangChain4j?
 This is not an LLM API. It is an API that will help you write better AI agents using Jakarta EE. In your agent code you very likely will be using LLMs. For that reason, we provide a very simple LLM facade. Implementations will likely use Spring AI and LangChain4j under the hood of that facade. The facade also let's you easily access Spring AI, LangChain4j, etc directly when you need it. That said, a separate full-fledged Jakarta LLM API is also conceivable in the future.
+
+Put another way, this does not compete with LangChain4j or Spring AI — it standardizes. Those are excellent single-vendor libraries; Jakarta Agentic AI is a *specification*: you program against `jakarta.ai.agent` and switch implementations or providers without rewriting. An implementation may even use LangChain4j or Spring AI underneath, and `unwrap()` exists precisely to reach what the facade does not expose.
+
+### What if the LLM hallucinates or fails mid-workflow?
+Service failures surface as `LLMException`, which is catchable by an `@HandleException` method (return normally to continue the workflow, or rethrow to stop it). Typed responses go through Jakarta JSON Binding, so a malformed reply raises `LLMException` rather than silently corrupting data. The examples also show applied defenses such as stripping code fences from model output and merging refinements field by field.
+
+### Is this asynchronous? Does it scale?
+In 1.0 the workflow runs synchronously on the `Event.fire` thread, which keeps the programming model simple and makes the result available within the same request. Nothing stops the caller from firing the triggering event from a managed executor or a virtual thread. Broader asynchronous orchestration is a candidate for future versions.
+
+### Why CDI events as the trigger, and not a method I call directly?
+Decoupling — the firer does not need to know the agent — and it is infrastructure that every Jakarta EE runtime already provides. It also enables natural fan-out: one event can trigger several agents. The specification already anticipates other trigger sources in the future, such as Jakarta Messaging, REST endpoints, and programmatic invocation.
+
+### Can multiple agents collaborate?
+Yes, through events. One agent's `@Action` or `@Outcome` can inject an `Event<X>` and fire another agent's trigger. First-class multi-agent orchestration is a topic for future versions.
+
+### Can I run it locally, and what does it cost?
+Yes. Some [examples](examples/) run entirely on a local Ollama model — no API key, no network, no cost. Others use a hosted model such as Claude for higher output quality (with prompt caching to reduce cost) but can also fall back to Ollama. The choice of LLM backend is configuration, not code.

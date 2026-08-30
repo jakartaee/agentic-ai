@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lesson — Course Content Studio</title>
+    <script>
+        window.MathJax = {
+            tex: {inlineMath: [['$', '$'], ['\\(', '\\)']], displayMath: [['$$', '$$'], ['\\[', '\\]']]},
+            svg: {fontCache: 'global'}
+        };
+    </script>
+    <script src="vendor/mathjax/tex-svg.js" async></script>
+    <style>
+        :root { --ink: #16324d; --muted: #5a728c; --line: #dce6f1; --accent: #1c6fb8;
+            --good: #16a34a; --good-bg: #e7f7ee; --bad: #dc2626; --bad-bg: #fdeaea; }
+        * { box-sizing: border-box; }
+        body { margin: 0; color: var(--ink); background: #eef3f9;
+            font-family: Georgia, "Times New Roman", serif; line-height: 1.7; }
+        .top { background: linear-gradient(180deg, #1c6fb8, #12466f); color: #fff;
+            padding: 26px 20px; text-align: center; }
+        .top .subject { text-transform: uppercase; letter-spacing: .12em; font-size: 12px;
+            opacity: .85; font-family: system-ui, sans-serif; }
+        .top h1 { margin: 6px 0 0; font-size: 28px; }
+        .top .meta { font-size: 12px; opacity: .8; margin-top: 8px; font-family: system-ui, sans-serif; }
+        .sheet { max-width: 760px; margin: -18px auto 40px; background: #fff; border-radius: 14px;
+            box-shadow: 0 10px 30px rgba(20,50,80,.12); padding: 34px 40px; }
+        h2 { font-family: system-ui, sans-serif; font-size: 16px; text-transform: uppercase;
+            letter-spacing: .05em; color: var(--accent); border-bottom: 2px solid var(--line);
+            padding-bottom: 6px; margin: 30px 0 14px; }
+        .objectives { list-style: none; padding: 0; margin: 0; }
+        .objectives li { padding: 6px 0 6px 28px; position: relative; }
+        .objectives li::before { content: "✓"; position: absolute; left: 4px; color: var(--good);
+            font-weight: 700; }
+        .prose { white-space: pre-wrap; }
+        .q { margin: 18px 0; padding: 16px 18px; border: 1px solid var(--line); border-radius: 10px;
+            background: #fbfdff; }
+        .q .prompt { font-weight: 700; margin-bottom: 10px; }
+        .opt { display: block; padding: 9px 12px; border: 1px solid var(--line); border-radius: 8px;
+            margin: 6px 0; cursor: pointer; font-family: system-ui, sans-serif; background: #fff; }
+        .opt:hover { border-color: var(--accent); }
+        .opt input { margin-right: 9px; }
+        .opt.correct { border-color: var(--good); background: var(--good-bg); }
+        .opt.wrong { border-color: var(--bad); background: var(--bad-bg); }
+        .exp { display: none; margin-top: 10px; font-size: 14px; color: var(--muted);
+            font-family: system-ui, sans-serif; }
+        .exp.show { display: block; }
+        .tag { font-size: 10px; text-transform: uppercase; letter-spacing: .06em; padding: 2px 8px;
+            border-radius: 999px; margin-left: 8px; vertical-align: middle; background: #e6eff8;
+            color: var(--accent); font-family: system-ui, sans-serif; }
+        .answer { width: 100%; font-family: system-ui, sans-serif; font-size: 14px; padding: 10px 12px;
+            border: 1px solid var(--line); border-radius: 8px; resize: vertical; min-height: 72px;
+            margin-top: 4px; }
+        .verdict { font-family: system-ui, sans-serif; font-size: 14px; font-weight: 600; margin-top: 10px; }
+        .verdict.correct { color: var(--good); }
+        .verdict.partial { color: #b45309; }
+        .verdict.incorrect { color: var(--bad); }
+        button { font-family: system-ui, sans-serif; font-size: 14px; font-weight: 600; cursor: pointer;
+            border: none; border-radius: 9px; padding: 11px 20px; color: #fff; margin-top: 8px;
+            background: linear-gradient(180deg, #2b8fe0, var(--accent)); }
+        button:hover { filter: brightness(1.05); }
+        .empty { max-width: 760px; margin: 60px auto; text-align: center; color: var(--muted);
+            font-family: system-ui, sans-serif; }
+        a.back { display: inline-block; margin-top: 20px; font-family: system-ui, sans-serif;
+            font-size: 13px; color: var(--accent); text-decoration: none; }
+    </style>
+</head>
+<body>
+<div id="content"></div>
+
+<script>
+    const $ = id => document.getElementById(id);
+    const escapeHtml = s => (s ?? '').replace(/[&<>]/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;'}[c]));
+    const typeset = () => { if (window.MathJax && MathJax.typesetPromise) MathJax.typesetPromise(); };
+
+    async function load() {
+        let lesson;
+        try {
+            const res = await fetch('api/lesson');
+            if (!res.ok) throw new Error('not published');
+            lesson = await res.json();
+        } catch (e) {
+            $('content').innerHTML = '<div class="empty">No lesson has been published yet.<br>' +
+                'Approve a packet in the studio first.<br>' +
+                '<a class="back" href="index.html">← Back to the studio</a></div>';
+            return;
+        }
+        render(lesson);
+    }
+
+    function render(l) {
+        const objectives = (l.objectives || []).map(o => `<li>${escapeHtml(o)}</li>`).join('');
+        const questions = (l.quiz && l.quiz.questions) || [];
+        const quiz = questions.map((q, i) => {
+            if (q.type === 'open') {
+                return `<div class="q"><div class="prompt">${i + 1}. ${escapeHtml(q.prompt)}
+                        <span class="tag">open response</span></div>
+                        <textarea class="answer" id="ans${i}" placeholder="Type your answer…"></textarea>
+                        <div class="verdict" id="verdict${i}"></div>
+                        <div class="exp" id="exp${i}"><b>Model answer:</b> ${escapeHtml(q.sampleAnswer)}</div></div>`;
+            }
+            const opts = (q.options || []).map((o, j) =>
+                `<label class="opt" data-q="${i}" data-o="${j}">
+                    <input type="radio" name="q${i}" value="${j}">${escapeHtml(o)}</label>`).join('');
+            return `<div class="q"><div class="prompt">${i + 1}. ${escapeHtml(q.prompt)}</div>
+                    ${opts}<div class="exp" id="exp${i}">${escapeHtml(q.explanation)}</div></div>`;
+        }).join('');
+
+        const when = l.publishedAt ? new Date(l.publishedAt).toLocaleString() : '';
+        $('content').innerHTML = `
+            <div class="top">
+                <div class="subject">${escapeHtml(l.subject)}</div>
+                <h1>${escapeHtml(l.chapterTitle)}</h1>
+                <div class="meta">Published ${escapeHtml(when)}</div>
+            </div>
+            <div class="sheet">
+                ${objectives ? `<h2>What you'll learn</h2><ul class="objectives">${objectives}</ul>` : ''}
+                <h2>Introduction</h2>
+                <div class="prose">${escapeHtml(l.intro)}</div>
+                ${questions.length ? `<h2>Quiz</h2>${quiz}
+                    <button id="check">Check answers</button>` : ''}
+                <h2>Conclusion</h2>
+                <div class="prose">${escapeHtml(l.conclusion)}</div>
+                <a class="back" href="index.html">← Back to the studio</a>
+            </div>`;
+
+        const checkBtn = $('check');
+        if (checkBtn) {
+            checkBtn.onclick = async () => {
+                const original = checkBtn.textContent;
+                checkBtn.disabled = true; checkBtn.textContent = 'Checking…';
+                for (let i = 0; i < questions.length; i++) {
+                    const q = questions[i];
+                    if (q.type === 'open') {
+                        const answer = ($('ans' + i) && $('ans' + i).value) || '';
+                        const v = $('verdict' + i);
+                        v.className = 'verdict'; v.textContent = 'Grading…';
+                        try {
+                            const res = await fetch('api/quiz/grade', {
+                                method: 'POST',
+                                headers: {'Content-Type': 'application/json'},
+                                body: JSON.stringify({questionIndex: i, studentAnswer: answer})
+                            });
+                            const data = await res.json();
+                            if (res.ok) {
+                                const label = data.verdict === 'correct' ? 'Correct'
+                                    : data.verdict === 'partial' ? 'Partially correct' : 'Incorrect';
+                                v.textContent = `${label} — ${data.similarity}% match`;
+                                v.classList.add(data.verdict);
+                            } else {
+                                v.textContent = data.message || 'Could not grade.';
+                            }
+                        } catch (e) {
+                            v.textContent = 'Grading failed.';
+                        }
+                        $('exp' + i).classList.add('show');
+                    } else {
+                        const chosen = document.querySelector(`input[name="q${i}"]:checked`);
+                        document.querySelectorAll(`.opt[data-q="${i}"]`).forEach(el => {
+                            const o = Number(el.dataset.o);
+                            el.classList.remove('correct', 'wrong');
+                            if (o === q.correctIndex) el.classList.add('correct');
+                            else if (chosen && Number(chosen.value) === o) el.classList.add('wrong');
+                        });
+                        $('exp' + i).classList.add('show');
+                    }
+                }
+                checkBtn.disabled = false; checkBtn.textContent = original;
+                typeset();
+            };
+        }
+        typeset();
+    }
+
+    load();
+</script>
+</body>
+</html>
