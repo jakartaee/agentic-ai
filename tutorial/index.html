@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jakarta Agentic AI — Interactive Tutorial</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300;0,400;0,600;0,700;1,400&display=swap" rel="stylesheet" type="text/css"/>
+<link href="https://fonts.googleapis.com/css2?family=Exo:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --orange:#f7941e; --orange-dark:#d97e0a; --orange-subtle:#fdf0dd; --orange-border:#f8d6ac;
+  --navy:#001b27; --navy-2:#00131b; --navy-3:#0a2a3a; --navy-soft:#12384c;
+  --light:#f9fafb; --subtle:#f4f4f4; --line:#e3e6e8; --body:#121212; --muted:#5b6770;
+  --ok:#198754; --bad:#dc3545;
+  --sidebar-w:300px; --content-w:880px;
+  --sans:"Open Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --head:"Exo",var(--sans);
+  --mono:Menlo,Consolas,"Liberation Mono",monospace;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;font-family:var(--sans);color:var(--body);background:var(--light);font-size:16.5px;line-height:1.65}
+
+/* ── Top progress bar ─────────────────────────────── */
+#progressbar{position:fixed;top:0;left:0;height:4px;background:linear-gradient(90deg,var(--orange),#ffbf69);width:0;z-index:60;transition:width .15s ease}
+
+/* ── Sidebar ──────────────────────────────────────── */
+#sidebar{position:fixed;top:0;left:0;bottom:0;width:var(--sidebar-w);background:#fff;color:var(--body);border-right:1px solid var(--line);overflow-y:auto;z-index:50;display:flex;flex-direction:column}
+#sidebar .brand{padding:26px 22px 20px;border-bottom:1px solid var(--line)}
+#sidebar .brand .logo{display:block;margin-bottom:14px}
+#sidebar .brand .logo img{display:block;width:150px;height:auto}
+#sidebar .brand h1{font-family:var(--head);font-size:17px;font-weight:700;margin:0;line-height:1.3;letter-spacing:.2px;color:var(--navy)}
+#sidebar .brand h1 em{color:var(--orange-dark);font-style:normal}
+#sidebar .brand p{margin:8px 0 0;font-size:12.5px;color:var(--muted);line-height:1.45}
+#sidebar nav{padding:14px 12px;flex:1}
+#sidebar nav a{display:flex;align-items:center;gap:11px;padding:9px 11px;margin:2px 0;border-radius:9px;color:#3a4a52;text-decoration:none;font-size:13.8px;font-weight:500;line-height:1.35;transition:background .15s,color .15s;border:1px solid transparent}
+#sidebar nav a:hover{background:rgba(0,0,0,.04);color:var(--navy)}
+#sidebar nav a.active{background:var(--orange-subtle);color:var(--navy);border-color:var(--orange-border)}
+#sidebar nav a .num{flex:none;width:26px;height:26px;border-radius:8px;background:#eceff1;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;font-family:var(--mono)}
+#sidebar nav a.active .num{background:var(--orange);color:var(--navy)}
+
+/* ── Content ──────────────────────────────────────── */
+#main{margin-left:var(--sidebar-w);min-height:100vh}
+#content{max-width:var(--content-w);margin:0 auto;padding:52px 48px 40px}
+.chapter{display:none;animation:fadein .25s ease}
+.chapter.visible{display:block}
+@keyframes fadein{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+/* typography */
+.chapter h1{font-size:31px;line-height:1.25;margin:0 0 22px;color:var(--navy);font-weight:700;letter-spacing:-.3px;padding-bottom:16px;border-bottom:3px solid var(--orange)}
+.chapter h2{font-size:22.5px;margin:44px 0 14px;color:var(--navy);font-weight:700;letter-spacing:-.2px}
+.chapter h3{font-size:18px;margin:34px 0 12px;color:var(--navy);font-weight:600}
+.chapter h4{font-size:16px;margin:28px 0 10px;color:var(--navy);font-weight:600}
+.chapter h1,.chapter h2,.chapter h3,.chapter h4{font-family:var(--head)}
+.chapter p{margin:0 0 15px}
+.chapter a{color:var(--orange-dark);font-weight:500}
+.chapter strong{color:#000;font-weight:600}
+.chapter ul,.chapter ol{padding-left:26px;margin:0 0 16px}
+.chapter li{margin:6px 0}
+.chapter li::marker{color:var(--orange);font-weight:700}
+.chapter blockquote{margin:18px 0;padding:14px 20px;border-left:4px solid var(--orange);background:var(--orange-subtle);border-radius:0 10px 10px 0;color:#5f3d13}
+.chapter blockquote p{margin:0}
+.chapter hr{border:none;border-top:1px solid var(--line);margin:38px 0}
+
+/* code */
+.chapter code{font-family:var(--mono);font-size:.86em;background:#eceff1;color:#0a3a52;padding:2px 6px;border-radius:5px}
+.chapter pre{background:var(--navy-2);border-radius:12px;padding:20px 22px;overflow-x:auto;margin:18px 0;box-shadow:0 4px 18px rgba(0,19,27,.18);border:1px solid var(--navy-soft)}
+.chapter pre code{background:none;color:#dce7ec;padding:0;font-size:13.6px;line-height:1.62;display:block}
+.tok-kw{color:#7fc8ef;font-weight:500}
+.tok-ann{color:var(--orange);font-weight:600}
+.tok-str{color:#a8d977}
+.tok-cmt{color:#6d8794;font-style:italic}
+.tok-num{color:#f2b8d0}
+.tok-key{color:#7fc8ef}
+.tok-val{color:#a8d977}
+
+/* tables */
+.chapter table{width:100%;border-collapse:separate;border-spacing:0;margin:20px 0;font-size:14.6px;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.chapter th{background:var(--navy);color:#fff;text-align:left;padding:11px 15px;font-weight:600;font-size:13.4px;letter-spacing:.2px}
+.chapter td{padding:11px 15px;border-top:1px solid var(--line);vertical-align:top}
+.chapter tbody tr:nth-child(even){background:#fbfbfc}
+.chapter td code,.chapter th code{white-space:nowrap}
+
+
+/* ── chapter nav footer ───────────────────────────── */
+.chnav{display:flex;justify-content:space-between;gap:14px;margin:46px 0 10px;padding-top:26px;border-top:1px solid var(--line)}
+.chnav a{flex:1;max-width:48%;text-decoration:none;border:1.5px solid var(--line);border-radius:13px;padding:14px 18px;color:var(--body);transition:border-color .15s,box-shadow .15s;background:#fff}
+.chnav a:hover{border-color:var(--orange);box-shadow:0 3px 12px rgba(238,153,47,.18)}
+.chnav a .dir{font-size:11.5px;font-weight:600;letter-spacing:.8px;color:var(--muted);text-transform:uppercase}
+.chnav a .ttl{display:block;font-weight:600;color:var(--navy);margin-top:3px;font-size:14.5px}
+.chnav a.next{text-align:right;margin-left:auto}
+.chnav a.hidden{visibility:hidden}
+
+/* mobile */
+#menu-btn{display:none;position:fixed;top:14px;left:14px;z-index:70;background:var(--navy);color:#fff;border:none;border-radius:10px;width:42px;height:42px;font-size:19px;cursor:pointer}
+@media(max-width:1024px){
+  #sidebar{transform:translateX(-100%);transition:transform .25s ease}
+  #sidebar.open{transform:none;box-shadow:0 0 60px rgba(0,0,0,.4)}
+  #main{margin-left:0}
+  #content{padding:70px 22px 30px}
+  #menu-btn{display:block}
+  .chnav{flex-direction:column}.chnav a{max-width:100%}
+}
+::selection{background:var(--orange-subtle)}
+.chapter pre code::selection,.chapter pre ::selection{background:var(--orange-subtle);color:var(--navy)}
+</style>
+</head>
+<body>
+<div id="progressbar"></div>
+<button id="menu-btn" aria-label="Menu">☰</button>
+
+<aside id="sidebar">
+  <div class="brand">
+    <a class="logo" href="https://jakarta.ee/" title="Jakarta EE">
+      <img src="https://jakarta.ee/images/jakarta/jakarta-ee-logo-color.svg" alt="Jakarta EE">
+    </a>
+    <h1>Agentic AI <em>Tutorial</em></h1>
+    <p>Spec · Payara implementation · Samples</p>
+  </div>
+  <nav id="chnav-list"></nav>
+</aside>
+
+<div id="main"><div id="content">
+<section class="chapter" id="ch-1" data-num="1">
+<h1>Chapter 1 — Overview and motivation</h1>
+<h2>What is Jakarta Agentic AI</h2>
+<p><strong>Jakarta Agentic AI</strong> is a Jakarta EE specification (package <code>jakarta.ai.agent</code>)
+for building <strong>AI agents</strong> in a vendor-neutral way. An agent is a <strong>CDI bean</strong>
+that encapsulates autonomous, goal-driven behavior: it <strong>perceives</strong> an event,
+<strong>reasons</strong> (typically by querying an LLM), <strong>decides</strong> whether and how to proceed,
+and <strong>acts</strong> — all inside a workflow with well-defined phases.</p>
+<p>A helpful analogy: just as Jakarta Persistence standardized
+relational data access (you program against <code>EntityManager</code>, and Hibernate or
+EclipseLink implement it), Jakarta Agentic AI standardizes agent construction —
+you program against annotations and the <code>LargeLanguageModel</code> interface, and the
+application server (Payara, in our case) provides the orchestration engine and the
+LLM provider integration.</p>
+<p>📖 This tutorial gives you orientation, Payara usage and runnable samples. The
+<strong>single source of truth</strong> for the programming model is the specification itself,
+which is short and meant to be read:
+<a href="https://jakarta.ee/specifications/agentic-ai/1.0/jakarta-agentic-ai-1.0.0-M1.html" target="_blank" rel="noopener">read the Jakarta Agentic AI 1.0 specification →</a>.
+Throughout, &quot;Read the spec →&quot; links take you to the exact section.</p>
+<h2>Why a spec for agents?</h2>
+<p>Today every AI framework in Java (LangChain4j, Spring AI, etc.) has its own
+programming model. Problems the spec attacks:</p>
+<ol>
+<li><strong>Vendor lock-in</strong> — switching the LLM provider or the framework means
+rewriting the agent code. With the spec, provider selection is server
+configuration (in Payara, via MicroProfile Config), not code.</li>
+<li><strong>No container integration</strong> — agents need dependency injection, scopes,
+events, validation, transactions. Instead of reinventing all that, the spec
+<strong>builds on CDI</strong>: the trigger is a CDI event observer, the agent is a bean,
+the workflow scope is a custom CDI scope.</li>
+<li><strong>Ad-hoc workflows</strong> — without a phase model, every application invents its own
+state machine. The spec defines a standard lifecycle:
+<code>Trigger → Decision* → Action* → Outcome</code>, with <code>HandleException</code> cutting across.</li>
+</ol>
+<h3>A practical example: swapping GPT (OpenAI) for Claude (Anthropic)</h3>
+<p>The same requirement — &quot;starting today we use Claude&quot; — solved in the three worlds.</p>
+<p><strong>With LangChain4j</strong>, the provider choice is <em>compiled into</em> the application: the
+wiring class and the Maven dependency are vendor-specific.</p>
+<pre><code class="language-java">// BEFORE — pom.xml: dev.langchain4j:langchain4j-open-ai
+ChatModel model = OpenAiChatModel.builder()
+        .apiKey(System.getenv(&quot;OPENAI_API_KEY&quot;))
+        .modelName(&quot;gpt-4o&quot;)
+        .build();
+</code></pre>
+<pre><code class="language-java">// AFTER — swap the pom.xml dependency to dev.langchain4j:langchain4j-anthropic,
+// rewrite the wiring and recompile/repackage the application
+ChatModel model = AnthropicChatModel.builder()
+        .apiKey(System.getenv(&quot;ANTHROPIC_API_KEY&quot;))
+        .modelName(&quot;claude-opus-4-8&quot;)
+        .build();
+</code></pre>
+<p>The code that <em>uses</em> the <code>ChatModel</code> interface may survive — but the switch still
+requires changing a dependency + construction code, a rebuild and a redeploy. And
+the abstraction belongs to a single-vendor library, not to a standard.</p>
+<p><strong>With Spring AI</strong>, you must swap the starter in <code>pom.xml</code>
+(<code>spring-ai-starter-model-openai</code> → <code>spring-ai-starter-model-anthropic</code>) and
+migrate the property block (<code>spring.ai.openai.*</code> → <code>spring.ai.anthropic.*</code>). The
+code injecting <code>ChatClient</code> can stay the same — fair to acknowledge — but it is
+still an application rebuild, the abstraction only exists inside Spring, and there
+is a single implementation of it, with no spec or TCK guaranteeing portable
+behavior.</p>
+<p><strong>With Jakarta Agentic AI</strong>, the agent injects the <strong>platform</strong> interface and
+mentions no provider at all:</p>
+<pre><code class="language-java">@Agent
+public class QuestionAgent {
+
+    @Inject
+    LargeLanguageModel model;   // jakarta.ai.agent — no vendor here
+
+    @Action
+    void generate(Question question, AnswerStore answers) {
+        String answer = model.query(&quot;Answer concisely: {}&quot;, question.text());
+        answers.put(question.text(), answer);
+    }
+}
+</code></pre>
+<p>The whole switch is <strong>one configuration file</strong> (in Payara, MicroProfile Config):</p>
+<pre><code class="language-properties"># BEFORE                                   # AFTER
+payara.agentic.llm.provider=ollama         payara.agentic.llm.provider=anthropic
+payara.agentic.llm.model=gemma3:4b         payara.agentic.llm.model=claude-opus-4-8
+</code></pre>
+<p>Zero code changes, zero <code>pom.xml</code> changes (the provider&#39;s HTTP backend lives in
+the <strong>server</strong>, not in the WAR), zero recompilation — at most a redeploy. It is the
+same leap Jakarta Persistence made over hand-rolled JDBC: the provider became a
+configuration detail. The two samples in the samples chapter prove this live: their agents
+are written the same way, one running on local Ollama and the other on Claude, and
+the only difference between them is <code>microprofile-config.properties</code>.</p>
+<h2>The mental model: a workflow of phases</h2>
+<pre><code>   CDI event
+       |
+       ▼
+  +----------+     +-----------+     +---------+     +----------+
+  | @Trigger | -→  | @Decision | -→  | @Action | -→  | @Outcome |
+  +----------+     +-----------+     +---------+     +----------+
+   (required,       (0..N, may        (0..N)          (0..1, void,
+    exactly 1)       stop the flow)                    ends the context)
+
+              @HandleException (0..N) catches exceptions from ANY phase
+</code></pre>
+<p>Key points:</p>
+<ul>
+<li><strong>Trigger</strong> is the only required phase — exactly <strong>one</strong> method per agent in
+version 1.0 (a restriction expected to be relaxed in the future).</li>
+<li><strong>Decisions and actions can be intermixed</strong> in any sequence, enabling anything
+from <code>Trigger + Action</code> (simple execution) up to
+<code>Trigger + Decision + Action + Decision + Action</code> (complex branching).</li>
+<li>A <strong>Decision can end the workflow</strong> (by returning <code>false</code>, <code>null</code> or
+<code>Result(false, ...)</code>) — the remaining phases and the Outcome do <strong>not</strong> run.</li>
+<li><strong>Outcome</strong> marks the successful end of the workflow; after it, the container
+destroys the workflow context.</li>
+<li><strong>Data flows between phases by type</strong>: whatever a phase returns becomes
+available as a parameter of later phases (type-based injection, no manual
+parameter passing).</li>
+</ul>
+<p>The next chapter tours these concepts and links each one to its exact section in
+the spec, where the full rules live.</p>
+</section>
+<section class="chapter" id="ch-2" data-num="2">
+<h1>Chapter 2 — The spec in brief</h1>
+<p>This chapter is a fast tour of the programming model — just enough to read the
+samples and know what to look for. It deliberately does <strong>not</strong> restate the rules,
+cardinalities or ordering cases: the specification already does that, clearly and
+concisely, and it is the single source of truth. Each concept below ends with a
+<strong>&quot;Read the spec →&quot;</strong> link to the exact section.</p>
+
+<h2>An agent, at a glance</h2>
+<p>An agent is a CDI bean annotated with <code>@Agent</code>. Its behavior is expressed as a
+small set of annotated methods (the <em>phases</em>). A complete agent can fit in one
+class:</p>
+<pre><code class="language-java">@Agent
+public class QuestionAgent {
+
+    @Inject
+    LargeLanguageModel model;
+
+    @Trigger
+    Question receive(@Observes Question question) {   // a CDI event starts the workflow
+        return question;
+    }
+
+    @Decision
+    boolean isAnswerable(Question question) {          // may stop the workflow
+        return question.text() != null &amp;&amp; !question.text().isBlank();
+    }
+
+    @Action
+    Answer answer(Question question) {                 // does the work
+        return new Answer(model.query(&quot;Answer concisely: {}&quot;, question.text()));
+    }
+
+    @Outcome
+    void store(Answer answer, AnswerStore answers) {   // ends the workflow
+        answers.add(answer);
+    }
+}</code></pre>
+<p>The container discovers the bean, wires the phases into a workflow and passes data
+between them by type. <a href="https://jakarta.ee/specifications/agentic-ai/1.0/jakarta-agentic-ai-1.0.0-M1.html#programming-model" target="_blank" rel="noopener">Read the spec → the programming model</a>.</p>
+
+<h2>The phases</h2>
+<p>The lifecycle is <code>Trigger → Decision* → Action* → Outcome</code>, with
+<code>HandleException</code> cutting across every phase:</p>
+<ul>
+<li><code>@Trigger</code> — the single entry point; a CDI event observer that starts the workflow.</li>
+<li><code>@Decision</code> — optional gate(s); returning <code>false</code>/<code>null</code>/<code>Result(false, …)</code> ends the workflow early.</li>
+<li><code>@Action</code> — optional step(s) that do the work (usually the LLM call).</li>
+<li><code>@Outcome</code> — the successful end; afterwards the container destroys the workflow context.</li>
+<li><code>@HandleException</code> — recovery: return normally to continue, rethrow to stop.</li>
+</ul>
+<p>Decisions and actions may be intermixed, and data flows between phases by return
+type — no manual parameter passing.
+<a href="https://jakarta.ee/specifications/agentic-ai/1.0/jakarta-agentic-ai-1.0.0-M1.html#agent-lifecycle" target="_blank" rel="noopener">Read the spec → the agent lifecycle</a>
+and <a href="https://jakarta.ee/specifications/agentic-ai/1.0/jakarta-agentic-ai-1.0.0-M1.html#_execution_order" target="_blank" rel="noopener">execution order</a>.</p>
+
+<h2>Scopes</h2>
+<p>Two scopes matter. <code>@WorkflowScoped</code> beans live for exactly one workflow
+execution — ideal for state shared across phases without leaking between concurrent
+runs. <code>@ApplicationScoped</code> agents are shared, but their LLM conversation is still
+isolated per workflow, so two concurrent executions never mix history.
+<a href="https://jakarta.ee/specifications/agentic-ai/1.0/jakarta-agentic-ai-1.0.0-M1.html#_workflowscoped" target="_blank" rel="noopener">Read the spec → scopes</a>.</p>
+
+<h2>The LargeLanguageModel facade</h2>
+<p><code>LargeLanguageModel</code> is the vendor-neutral interface an agent injects to talk to an
+LLM. <code>query(...)</code> takes a prompt with <code>{}</code> placeholders and returns text; an
+overload maps the response to a typed object via JSON-B. The agent never names a
+provider — that is server configuration (see the next chapter). If the facade does
+not expose something you need, <code>unwrap()</code> reaches the underlying implementation.
+<a href="https://jakarta.ee/specifications/agentic-ai/1.0/jakarta-agentic-ai-1.0.0-M1.html#llm-integration" target="_blank" rel="noopener">Read the spec → LLM integration</a>.
+Conversation history is kept per workflow:
+<a href="https://jakarta.ee/specifications/agentic-ai/1.0/jakarta-agentic-ai-1.0.0-M1.html#llm-conversational-state" target="_blank" rel="noopener">read the spec → conversational state</a>.</p>
+
+<h2>Errors</h2>
+<p>Service failures surface as <code>LLMException</code> (unchecked). A typed <code>query</code> that
+cannot be mapped to the requested type also raises <code>LLMException</code> rather than
+returning corrupted data. Catch these in an <code>@HandleException</code> method with clear
+semantics: return normally to continue the workflow, rethrow to stop it.
+<a href="https://jakarta.ee/specifications/agentic-ai/1.0/jakarta-agentic-ai-1.0.0-M1.html#_exceptions" target="_blank" rel="noopener">Read the spec → exceptions</a>.</p>
+
+<p>That is the whole model. For the complete, authoritative rules — annotations,
+return patterns, ordering, cardinalities — and for more worked examples, go to the
+spec:
+<a href="https://jakarta.ee/specifications/agentic-ai/1.0/jakarta-agentic-ai-1.0.0-M1.html#examples" target="_blank" rel="noopener">read the spec → examples</a>.</p>
+</section>
+<section class="chapter" id="ch-3" data-num="3">
+<h1>Chapter 3 — Running agents on Payara</h1>
+<p>Payara is a compatible implementation of the spec. When you deploy your
+application on it, Payara supplies the <strong>orchestration engine</strong> that runs the phases
+and the <strong><code>@WorkflowScoped</code></strong> context — you write the agent, the server runs the
+workflow. It also implements the <code>LargeLanguageModel</code> facade once and plugs a
+provider-specific backend behind it (Ollama, Anthropic, Vertex), so your agent code
+stays free of any provider. This chapter is about the one thing you configure as an
+app author: <strong>which LLM backend to use</strong>.</p>
+
+<h2>Selecting a backend with MicroProfile Config</h2>
+<p>Configuration is MicroProfile Config, so it can come from the application&#39;s
+<code>META-INF/microprofile-config.properties</code>, from system properties, or from
+environment variables — which is how each sample picks its provider without any code
+change. All keys live under the <strong><code>payara.agentic.llm.</code></strong> prefix:</p>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Values / default</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>provider</code></td>
+<td><code>none</code> (default → no-op), <code>ollama</code>, <code>anthropic</code> (alias <code>claude</code>), <code>vertex</code></td>
+</tr>
+<tr>
+<td><code>model</code></td>
+<td>Ollama default <code>gemma</code>; Anthropic/Vertex default <code>claude-opus-4-8</code></td>
+</tr>
+<tr>
+<td><code>ollama.base-url</code></td>
+<td><code>http://localhost:11434</code></td>
+</tr>
+<tr>
+<td><code>anthropic.base-url</code></td>
+<td><code>https://api.anthropic.com</code></td>
+</tr>
+<tr>
+<td><code>anthropic.api-key</code></td>
+<td>or the <code>ANTHROPIC_API_KEY</code> env var</td>
+</tr>
+<tr>
+<td><code>vertex.project-id</code></td>
+<td>or the <code>ANTHROPIC_VERTEX_PROJECT_ID</code> env var (required)</td>
+</tr>
+<tr>
+<td><code>vertex.region</code></td>
+<td>or the <code>CLOUD_ML_REGION</code> env var; default <code>global</code></td>
+</tr>
+<tr>
+<td><code>max-tokens</code></td>
+<td><code>4096</code></td>
+</tr>
+<tr>
+<td><code>system</code></td>
+<td>optional system prompt (also used as the cache prefix)</td>
+</tr>
+</tbody></table>
+<p>Two behaviors worth knowing:</p>
+<ul>
+<li><strong>Unknown or absent provider → no-op</strong>, never a failed deployment: injecting
+<code>LargeLanguageModel</code> always resolves, even with nothing configured.</li>
+<li><strong>Anthropic without an API key → <code>IllegalStateException</code></strong> at startup, with a
+message naming exactly which key/env var to set — fail fast with a diagnosis.</li>
+</ul>
+
+<h2>The backends</h2>
+<ul>
+<li><strong>Ollama</strong> — local models over HTTP; the <strong>no-API-key, zero-cost</strong> option for
+offline demos (the quickstart uses <code>gemma3:4b</code>). Set <code>provider=ollama</code> and, if
+needed, <code>ollama.base-url</code>.</li>
+<li><strong>Anthropic</strong> — Claude via the Messages API. Provide the API key via
+<code>anthropic.api-key</code> or the <code>ANTHROPIC_API_KEY</code> env var (export it in the same
+shell that starts the domain — the server inherits its environment). When a
+<code>system</code> prompt is configured, Payara sends it with prompt caching so the stable
+prefix is reused across the workflow&#39;s phases, cutting cost and latency; note that
+Claude only caches prefixes above a minimum size, so short system prompts simply
+do not cache (silently — it is not an error).</li>
+<li><strong>Vertex</strong> — Claude served by Google Vertex AI: same model family, GCP
+authentication and billing (<code>vertex.project-id</code> + <code>vertex.region</code> instead of an
+API key).</li>
+<li><strong>none</strong> (default) — an inert backend that returns a fixed response; it lets you
+deploy and exercise the workflow before wiring a real provider.</li>
+</ul>
+<p>If you ever need something the facade does not expose, <code>llm.unwrap(...)</code> reaches
+the concrete backend.</p>
+</section>
+<section class="chapter" id="ch-4" data-num="4">
+<h1>Chapter 4 — The samples</h1>
+<p>Three samples, three levels: the <strong>quickstart</strong> teaches the
+programming model in 5 classes; the <strong>tutorial generator</strong> shows a real use case
+with a chat refinement loop; and the <strong>Course Content Studio</strong> raises the bar to
+<strong>two agents chained by CDI events</strong>, with a human approval gate in the middle and
+a final student-facing view.</p>
+<p>All three live in the <a href="https://github.com/jakartaee/agentic-ai/tree/main/examples" target="_blank" rel="noopener"><code>examples/</code></a>
+directory of the Jakarta Agentic AI repository — the single place they are
+maintained. This chapter explains what each one teaches and the design ideas
+behind it; for the full source, configuration and run instructions, follow the
+<strong>Source</strong> link on each sample.</p>
+<hr>
+<h2>Sample 1 — Quickstart</h2>
+<p>📦 Source: <a href="https://github.com/jakartaee/agentic-ai/tree/main/examples/quickstart" target="_blank" rel="noopener">examples/quickstart</a></p>
+<p><strong>The smallest possible agent that exercises the four phases.</strong> A REST POST fires
+a CDI event; the agent answers the question with the configured LLM. Because
+<code>Event.fire</code> is synchronous, the complete workflow (including the LLM call)
+finishes <strong>before</strong> <code>fire</code> returns, and the resource reads the answer back from an
+<code>@ApplicationScoped</code> store.</p>
+<p>The whole agent — the four phases — fits in one class; the excerpt below is the
+heart of it (full source at the <strong>Source</strong> link above):</p>
+<pre><code class="language-java">@Agent(name = &quot;QuestionAgent&quot;, description = &quot;Answers a question using the configured LLM backend.&quot;)
+public class QuestionAgent {
+    @Inject LargeLanguageModel model;
+    @Inject AnswerStore answers;
+
+    @Trigger  void onQuestion(@Valid Question question) { /* ... */ }   // [TRIGGER]
+    @Decision Result hasContent(Question question) {                    // [DECISION]
+        boolean proceed = question.text() != null &amp;&amp; !question.text().isBlank();
+        return new Result(proceed, question);                          // false → stop here
+    }
+    @Action   void generate(Question question) {                        // [ACTION]
+        String answer = model.query(&quot;Answer concisely in one short paragraph: {}&quot;,
+                                    question.text());                    // {} positional placeholder
+        answers.put(question.text(), answer);
+    }
+    @Outcome  void complete(Question question) { /* ... */ }            // [OUTCOME]
+}
+</code></pre>
+<p>Choosing the LLM backend is configuration, not code — this sample runs fully local
+on Ollama at zero cost:</p>
+<pre><code class="language-properties">payara.agentic.llm.provider=ollama
+payara.agentic.llm.model=gemma3:4b
+payara.agentic.llm.ollama.base-url=http://localhost:11434
+</code></pre>
+<h3>What it teaches</h3>
+<ul>
+<li><strong>No scope annotation</strong> → the runtime applies <code>@WorkflowScoped</code> (the spec&#39;s
+default, via the extension).</li>
+<li>The <code>@Decision</code> uses the <strong><code>Result</code></strong> pattern: <code>Result(false, ...)</code> when the
+question is blank → <code>@Action</code> and <code>@Outcome</code> <strong>do not run</strong> (the early
+termination demo).</li>
+<li>The <code>@Action</code> uses a <strong><code>{}</code> placeholder</strong> with a positional parameter.</li>
+<li><strong><code>AnswerStore</code></strong> is <code>@ApplicationScoped</code> with a <code>ConcurrentHashMap</code> — the
+bridge between the agent and the synchronous HTTP response.</li>
+<li>Runs on a small local <strong>Ollama</strong> model — no API key, no cost.</li>
+</ul>
+<hr>
+<h2>Sample 2 — Tutorial Generator</h2>
+<p>📦 Source: <a href="https://github.com/jakartaee/agentic-ai/tree/main/examples/tutorial-generator" target="_blank" rel="noopener">examples/tutorial-generator</a></p>
+<p><strong>A real use case:</strong> an agent writes a <strong>field-by-field guide</strong> for a web form (a
+customer registration form) and allows <strong>refining the guide via chat</strong>. The page
+shows the form on the left, the generated guide on the right, and a refinement
+chat box below.</p>
+<p>One agent covers both behaviors — the same <code>@Action</code> generates from scratch or
+refines an existing guide, decided by whether the request already carries one
+(full source at the <strong>Source</strong> link above):</p>
+<pre><code class="language-java">@Trigger  void onRequest(TutorialRequest request)      // logs generate|refine
+@Decision Result hasFields(TutorialRequest request)    // any fields? if not, stop
+@Action   void render(TutorialRequest request) {
+    if (generate)  content = model.query(&quot;Generate the field-guide JSON ... : {}&quot;, request.formSpec());
+    else           content = model.query(&quot;Current field-guide JSON:\n{}\n\nApply this change...: {}&quot;,
+                                         request.currentHtml(), request.instruction());  // two {} placeholders
+    store.put(stripCodeFences(content));                // LLM output needs defensive post-processing
+}
+@Outcome  void complete(TutorialRequest request)       // logs the guide&#39;s size
+</code></pre>
+<p>The LLM backend and even the system prompt are configuration — here Claude for
+HTML quality, switchable to local Ollama without touching code:</p>
+<pre><code class="language-properties">payara.agentic.llm.provider=anthropic
+payara.agentic.llm.model=claude-opus-4-8
+payara.agentic.llm.max-tokens=8192
+payara.agentic.llm.system=You are a senior technical writer...
+</code></pre>
+<h3>The strong design ideas</h3>
+<ol>
+<li><strong>Single source of truth:</strong> <code>CustomerFormSpec</code> defines the form; the page
+renders the live form from it <strong>and</strong> the agent explains those same fields —
+they cannot diverge.</li>
+<li><strong>The event carries the mode:</strong> <code>TutorialRequest(formSpec, instruction, currentHtml)</code>. <code>currentHtml</code> null/blank → <strong>generate</strong> from scratch; filled →
+<strong>refine</strong> applying <code>instruction</code>. One agent, two behaviors, decided in the
+<code>@Action</code>.</li>
+<li><strong>Refinement passes the real artifact:</strong> on every chat turn, the <strong>current</strong>
+guide + the instruction go into the prompt — the model edits the actual
+artifact instead of relying on conversational memory alone. (An important
+agent-engineering pattern worth remembering.)</li>
+<li><strong>Per-field refinement with a merge:</strong> <code>refine-field</code> extracts only the target
+field&#39;s description (JSON-P), runs the workflow over that fragment, and
+<strong>merges</strong> the result back into the full guide — preserving the other fields
+and saving tokens.</li>
+<li><strong>LLM robustness:</strong> <code>stripCodeFences</code> removes the code fences that models
+sometimes insist on adding — an honest reminder that LLM output requires
+defensive post-processing.</li>
+</ol>
+<hr>
+<h2>Sample 3 — Course Content Studio</h2>
+<p>📦 Source: <a href="https://github.com/jakartaee/agentic-ai/tree/main/examples/course-content-studio" target="_blank" rel="noopener">examples/course-content-studio</a></p>
+<p><strong>An advanced use case:</strong> the teacher pastes a chapter&#39;s content and picks a
+subject (mathematics, physics, English); an agent generates an <strong>introduction, a
+quiz and a conclusion</strong>; the teacher <strong>refines</strong> by section and, on <strong>approval</strong>, a
+<strong>second agent</strong> builds the <strong>published lesson</strong> that the student sees. It is the
+sample that exercises almost the whole spec and shows the architectural
+differentiator: <strong>agent composition through CDI events</strong>.</p>
+<p>The authoring agent shows ordered phases, per-workflow state, workflow memory,
+defensive JSON-B parsing and an exception handler — all in one class (full source
+at the <strong>Source</strong> link above):</p>
+<pre><code class="language-java">// Agent 1 — authoring (ordered, workflow memory, defensive parsing)
+@Agent(name = &quot;CourseContentAgent&quot;)
+class CourseContentAgent {
+    private CoursePacket draft;                                   // @WorkflowScoped state
+    @Trigger  void onRequest(@Valid CoursePacketRequest r)        // generate | refine
+    @Decision(order = 5)  boolean hasTeachableContent(...)        // gate
+    @Action(order = 10)   void writeIntro(...)                    // prose (per-subject rubric)
+    @Action(order = 20)   void writeQuiz(...)  { draft.setQuiz(parseQuiz(model.query(...))); }
+    @Action(order = 30)   void writeConclusion(...)               // uses workflow memory
+    @Outcome  void publish(...)                                   // writes to PacketStore
+    @HandleException void onLlmFailure(LLMException e)            // resilience
+}
+</code></pre>
+<p>On approval the REST layer fires a <code>LessonApproved</code> event, which is the
+<code>@Trigger</code> of a <strong>second</strong> agent (<code>PublishAgent</code>) — the two are composed purely
+through CDI events, with the human approval as the gate between them.</p>
+<h3>The strong design ideas</h3>
+<ol>
+<li><strong>Two agents, chained only by CDI events.</strong> <code>CourseContentAgent</code> generates/
+refines the packet; on approval, the REST layer fires the <code>LessonApproved</code>
+event, which is the <strong><code>@Trigger</code></strong> of a second <code>@Agent</code> (<code>PublishAgent</code>). There
+is no orchestrator: the <strong>human approval</strong> is the gate between them. Each agent
+has its own workflow and its own LLM conversation.</li>
+<li><strong>Truly ordered phases.</strong> The phases carry an explicit <code>order</code>
+(<code>@Decision(order=5)</code>, <code>@Action(order=10/20/30)</code>), guaranteeing intro → quiz →
+conclusion. Note: if <strong>one</strong> phase is ordered, <strong>all</strong> must be, otherwise the
+deploy fails with &quot;Inconsistent order&quot;.</li>
+<li><strong>Per-workflow state in the agent itself.</strong> No scope annotation → the runtime
+applies <code>@WorkflowScoped</code>, so the <code>draft</code> instance field accumulates the packet
+across phases safely (one instance per execution).</li>
+<li><strong>Workflow conversational memory.</strong> The conclusion does <strong>not</strong> re-send the
+chapter: it relies on the earlier turns (intro and quiz) of the same workflow
+conversation.</li>
+<li><strong>Typed result via JSON-B, with defensive parsing.</strong> The quiz becomes a <code>Quiz</code>
+record. Because small models wrap JSON in code fences, <code>parseQuiz</code> <strong>strips the
+fences and extracts the object</strong> before binding, with a placeholder quiz as a
+last resort — the workflow never aborts on bad JSON.</li>
+<li><strong>Per-section HITL.</strong> The event carries the mode (<code>currentDraftJson</code> blank →
+generate; filled → refine) and the <code>section</code>, so <code>refine-section</code> rewrites
+<strong>only the quiz</strong> (or only the intro), preserving the rest.</li>
+<li><strong>Live progress (SSE).</strong> Since <code>Event.fire</code> is synchronous, each phase reports
+to a <code>ProgressTracker</code> that streams over Server-Sent Events; the browser popup
+evolves with the agent&#39;s real steps.</li>
+<li><strong>Polymorphic quiz + LLM grading.</strong> <code>QuizQuestion</code> has a <code>type</code>
+(<code>multiple_choice</code> | <code>open</code>). For an <strong>open</strong> question the student answers in a
+<code>&lt;textarea&gt;</code> and the <code>quiz/grade</code> endpoint asks the LLM for a semantic-similarity
+score against the <code>sampleAnswer</code>, mapped on the server to a verdict. A spec
+detail worth citing: this endpoint <strong>injects the <code>LargeLanguageModel</code> directly</strong>
+into a <code>@RequestScoped</code> resource — it works because the runtime&#39;s LLM is
+<code>@Dependent</code> (it needs no active workflow), so not every use of the model must be
+inside an agent.</li>
+</ol>
+<h3>Details worth highlighting</h3>
+<ul>
+<li>The student view (<code>student.html</code>) shows the lesson with an <strong>interactive quiz</strong>
+that closes the generate → review → <strong>publish</strong> → consume narrative.</li>
+<li>Maths/physics formulas are rendered with <strong>self-hosted MathJax</strong>, so rendering
+works <strong>offline</strong>.</li>
+<li>Everything is single-author (single-slot stores), consistent with a live demo.</li>
+</ul>
+</section>
+<section class="chapter" id="ch-5" data-num="5">
+<h1>Chapter 5 — Wrap-up</h1>
+<h2>Recap: the whole story, end to end</h2>
+<p>The pieces you have seen fit together like this:</p>
+<ol>
+<li><strong>The problem.</strong> Everyone wants AI agents; in Java, every framework has its own
+proprietary model. The guiding question: &quot;what would the <em>Jakarta Persistence</em>
+of agents look like?&quot;</li>
+<li><strong>The spec.</strong> The phase model (<code>Trigger → Decision* → Action* → Outcome</code> +
+<code>HandleException</code>); a complete agent fits in one class; the <code>LargeLanguageModel</code>
+facade with <code>{}</code> placeholders; <code>@WorkflowScoped</code> — with the specification as the
+authoritative reference for the rules.</li>
+<li><strong>Running on Payara.</strong> Deploy the app and Payara runs the workflow; choosing an
+LLM backend (Ollama, Anthropic, Vertex) is MicroProfile Config, no code change.</li>
+<li><strong>The quickstart.</strong> POST a real question → <code>[TRIGGER] → [DECISION] → [ACTION] → [OUTCOME]</code> in <code>server.log</code>; POST an empty question → early termination. It runs
+on <strong>local Ollama</strong> (no network, no cost).</li>
+<li><strong>The tutorial generator and the studio.</strong> A guide generated with Claude and
+refined via chat; then two agents chained by CDI events with a human approval gate.
+Switching Ollama↔Claude↔Vertex is <strong>one properties file</strong>.</li>
+</ol>
+<h2>Running the samples — checklist</h2>
+<ul>
+<li><input disabled="" type="checkbox"> Ollama installed, <code>ollama pull gemma3:4b</code> done, the service answering at
+<code>http://localhost:11434</code> (test: <code>ollama run gemma3:4b &quot;hi&quot;</code>).</li>
+<li><input disabled="" type="checkbox"> The current <code>agentic-ai-core.jar</code> copied into the distribution&#39;s
+<code>glassfish/modules/</code> + domain restarted <strong>clearing the OSGi cache</strong>
+(classic gotcha: new JAR with an old cache = old class).</li>
+<li><input disabled="" type="checkbox"> <code>ANTHROPIC_API_KEY</code> exported <strong>in the same shell/environment that starts the
+domain</strong> (<code>$env:ANTHROPIC_API_KEY = &quot;sk-ant-...&quot;</code> before
+<code>asadmin restart-domain</code>) — the server process inherits its parent&#39;s
+environment.</li>
+<li><input disabled="" type="checkbox"> Both WARs deployed and tested.</li>
+<li><input disabled="" type="checkbox"> <code>server.log</code> open in a terminal (<code>Get-Content -Wait -Tail 0</code>).</li>
+<li><input disabled="" type="checkbox"> Fully-local option: the quickstart runs on Ollama; the tutorial generator
+can also fall back to <code>provider=ollama</code> / <code>model=gemma3:12b</code> (pull the model
+first).</li>
+<li><input disabled="" type="checkbox"> Requests ready (no typing JSON by hand): a script/<code>.http</code> file with the
+valid POST, the empty POST and the refines.</li>
+</ul>
+<p>Common questions — how this compares with LangChain4j / Spring AI, error
+handling, asynchrony, why CDI events, multi-agent collaboration and running
+costs — are answered in the
+<a href="https://github.com/jakartaee/agentic-ai#frequently-asked-questions" target="_blank" rel="noopener">project README FAQ</a>.</p>
+<h2>Key takeaways</h2>
+<ol>
+<li><strong>Agents as CDI beans</strong> — the phase model
+(<code>@Trigger/@Decision/@Action/@Outcome/@HandleException</code>) turns &quot;calling an LLM&quot;
+into a container-managed workflow, with standardized scoping, injection,
+validation and error handling.</li>
+<li><strong>Real vendor neutrality</strong> — the agent&#39;s code does not know which LLM serves
+it; switching Ollama↔Claude↔Vertex is configuration (MicroProfile Config in
+Payara).</li>
+<li><strong>A real spec with a working implementation</strong> — read the spec for the rules, run
+the samples on Payara to see them in action.</li>
+</ol>
+<hr>
+<p>🏁 End of the tutorial. Now run the samples yourself and explore the source.</p>
+</section>
+</div></div>
+
+<script>
+const CHAPTERS = [{"n":1,"t":"Overview & Motivation"},{"n":2,"t":"The Spec in Brief"},{"n":3,"t":"Running on Payara"},{"n":4,"t":"The Samples"},{"n":5,"t":"Wrap-up"}];
+const store = {
+  get(k, d){ try { return JSON.parse(localStorage.getItem('jaai.'+k)) ?? d; } catch(e){ return d; } },
+  set(k, v){ try { localStorage.setItem('jaai.'+k, JSON.stringify(v)); } catch(e){} }
+};
+
+/* ── syntax highlighting (tiny, dependency-free) ── */
+function esc(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function hlJava(src){
+  const re = /(\/\/[^\n]*|\/\*[\s\S]*?\*\/)|("(?:\\.|[^"\\])*")|(@[A-Za-z_]\w*)|\b(public|private|protected|abstract|class|interface|record|enum|extends|implements|return|void|new|if|else|for|while|do|switch|case|default|break|continue|try|catch|finally|throw|throws|import|package|static|final|volatile|synchronized|transient|boolean|int|long|double|float|char|byte|short|null|true|false|this|super|var|instanceof|yield)\b|((?<![\w.])\d[\d_]*(?:\.\d+)?)/g;
+  let out = '', last = 0, m;
+  while((m = re.exec(src))){
+    out += esc(src.slice(last, m.index));
+    const cls = m[1] ? 'cmt' : m[2] ? 'str' : m[3] ? 'ann' : m[4] ? 'kw' : 'num';
+    out += '<span class="tok-'+cls+'">'+esc(m[0])+'</span>';
+    last = m.index + m[0].length;
+  }
+  return out + esc(src.slice(last));
+}
+function hlProps(src){
+  return src.split('\n').map(line => {
+    if(/^\s*#/.test(line)) return '<span class="tok-cmt">'+esc(line)+'</span>';
+    const i = line.indexOf('=');
+    if(i < 0) return esc(line);
+    return '<span class="tok-key">'+esc(line.slice(0,i))+'</span>=<span class="tok-val">'+esc(line.slice(i+1))+'</span>';
+  }).join('\n');
+}
+document.querySelectorAll('pre code').forEach(code => {
+  const lang = (code.className.match(/language-(\w+)/)||[])[1];
+  const raw = code.textContent;
+  if(lang === 'java') code.innerHTML = hlJava(raw);
+  else if(lang === 'properties') code.innerHTML = hlProps(raw);
+  else if(lang === 'bash') code.innerHTML = raw.split('\n').map(l => /^\s*#/.test(l) ? '<span class="tok-cmt">'+esc(l)+'</span>' : esc(l)).join('\n');
+});
+
+/* ── sidebar + routing ── */
+const navList = document.getElementById('chnav-list');
+CHAPTERS.forEach(c => {
+  const a = document.createElement('a');
+  a.href = '#' + c.n;
+  a.innerHTML = '<span class="num">'+c.n+'</span><span>'+c.t+'</span>';
+  navList.appendChild(a);
+});
+function show(n){
+  n = Math.min(Math.max(1, n), CHAPTERS.length);
+  document.querySelectorAll('.chapter').forEach(s => s.classList.remove('visible'));
+  document.getElementById('ch-'+n).classList.add('visible');
+  document.querySelectorAll('#chnav-list a').forEach((a, i) => a.classList.toggle('active', i === n-1));
+  document.getElementById('sidebar').classList.remove('open');
+  window.scrollTo({top: 0, behavior: 'instant'});
+  updateBar();
+}
+function current(){ return parseInt(location.hash.slice(1)) || 1; }
+window.addEventListener('hashchange', () => show(current()));
+
+/* prev/next footers */
+document.querySelectorAll('.chapter').forEach(section => {
+  const n = parseInt(section.dataset.num);
+  const nav = document.createElement('div');
+  nav.className = 'chnav';
+  const prev = n > 1 ? '<a href="#'+(n-1)+'"><span class="dir">← Previous</span><span class="ttl">'+CHAPTERS[n-2].t+'</span></a>' : '<a class="hidden"></a>';
+  const next = n < CHAPTERS.length ? '<a class="next" href="#'+(n+1)+'"><span class="dir">Next →</span><span class="ttl">'+CHAPTERS[n].t+'</span></a>' : '<a class="hidden"></a>';
+  nav.innerHTML = prev + next;
+  section.appendChild(nav);
+});
+
+/* reading progress bar */
+function updateBar(){
+  const h = document.documentElement;
+  const max = h.scrollHeight - h.clientHeight;
+  document.getElementById('progressbar').style.width = (max > 0 ? (h.scrollTop / max) * 100 : 0) + '%';
+}
+window.addEventListener('scroll', updateBar, { passive: true });
+
+/* keyboard: ← → switch chapters */
+window.addEventListener('keydown', e => {
+  if(e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+  if(e.key === 'ArrowRight' && current() < CHAPTERS.length) location.hash = '#' + (current() + 1);
+  if(e.key === 'ArrowLeft' && current() > 1) location.hash = '#' + (current() - 1);
+});
+
+document.getElementById('menu-btn').onclick = () => document.getElementById('sidebar').classList.toggle('open');
+
+show(current());
+</script>
+</body>
+</html>
