@@ -24,16 +24,19 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Assemble index.html from the jakarta.ee shell
         run: python3 build-site.py ref-specpage.html index.html content.html
 
-      - uses: actions/configure-pages@v5
+      - uses: actions/configure-pages@v6
 
       # .git and .github are excluded by the action; build-site.py and
       # ref-specpage.html are published as they were under the branch-based build.
-      - uses: actions/upload-pages-artifact@v3
+      # Since v4 the action also drops dotfiles, so .nojekyll no longer reaches the
+      # artifact -- it was only ever read by the branch-based build, and deploying
+      # from a workflow serves the artifact verbatim without running Jekyll.
+      - uses: actions/upload-pages-artifact@v5
         with:
           path: .
 
@@ -45,4 +48,4 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
