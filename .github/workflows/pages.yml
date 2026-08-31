@@ -1,0 +1,48 @@
+name: Deploy site
+
+# index.html is assembled at deploy time by build-site.py, which wraps content.html
+# in the jakarta.ee chrome saved in ref-specpage.html. Building here rather than by
+# hand means an edit to content.html always reaches the published homepage; when the
+# file was generated locally and committed, an edit that skipped the regeneration
+# step silently never shipped.
+on:
+  push:
+    branches: [gh-pages]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Let an in-flight deployment finish rather than cancelling it midway.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Assemble index.html from the jakarta.ee shell
+        run: python3 build-site.py ref-specpage.html index.html content.html
+
+      - uses: actions/configure-pages@v5
+
+      # .git and .github are excluded by the action; build-site.py and
+      # ref-specpage.html are published as they were under the branch-based build.
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: .
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
