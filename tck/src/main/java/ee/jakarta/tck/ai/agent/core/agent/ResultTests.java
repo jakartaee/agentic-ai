@@ -17,9 +17,12 @@ import ee.jakarta.tck.ai.agent.framework.junit.anno.Standalone;
 import jakarta.ai.agent.Result;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -36,11 +39,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 public class ResultTests {
 
     @Assertion(id = "AGENTICAI-RESULT-001",
-               section = "API Types / Result",
-               strategy = "Verify Result exists in jakarta.ai.agent and is a record")
+               strategy = "Verify Result is in jakarta.ai.agent and is a record")
     public void testResultIsRecord() {
-        assertNotNull(Result.class,
-                "Result must exist in jakarta.ai.agent package");
         assertEquals("jakarta.ai.agent", Result.class.getPackageName(),
                 "Result must be in jakarta.ai.agent package");
         assertTrue(Result.class.isRecord(),
@@ -48,7 +48,6 @@ public class ResultTests {
     }
 
     @Assertion(id = "AGENTICAI-RESULT-002",
-               section = "API Types / Result",
                strategy = "Verify success() and details() accessors return the constructor arguments")
     public void testAccessorsReturnConstructorArguments() {
         Object details = new Object();
@@ -56,28 +55,29 @@ public class ResultTests {
 
         assertTrue(result.success(),
                 "success() must return the value passed to the canonical constructor");
-        assertEquals(details, result.details(),
-                "details() must return the value passed to the canonical constructor");
+        assertSame(details, result.details(),
+                "details() must return the same instance passed to the canonical constructor");
     }
 
     @Assertion(id = "AGENTICAI-RESULT-003",
-               section = "API Types / Result",
                strategy = "Verify details may be null and a false success flag is preserved")
     public void testDetailsMayBeNull() {
         Result result = new Result(false, null);
 
-        assertTrue(!result.success(),
+        assertFalse(result.success(),
                 "success() must return false when constructed with false");
         assertNull(result.details(),
                 "details() must be allowed to be null");
     }
 
     @Assertion(id = "AGENTICAI-RESULT-004",
-               section = "API Types / Result",
                strategy = "Verify records with equal components are equal and share a hash code")
     public void testValueEquality() {
-        String detailsA = new StringBuilder("context").toString();
-        String detailsB = new StringBuilder("context").toString();
+        String detailsA = new String("context");
+        String detailsB = new String("context");
+        assertNotSame(detailsA, detailsB,
+                "precondition: details instances must be distinct so equality cannot pass by identity");
+
         Result a = new Result(true, detailsA);
         Result b = new Result(true, detailsB);
         assertEquals(a, b,
@@ -94,7 +94,6 @@ public class ResultTests {
     }
 
     @Assertion(id = "AGENTICAI-RESULT-005",
-               section = "API Types / Result",
                strategy = "Verify Results are unequal when the success flag or details differ")
     public void testInequalityWhenComponentsDiffer() {
         Result base = new Result(true, "context");
@@ -108,7 +107,6 @@ public class ResultTests {
     }
 
     @Assertion(id = "AGENTICAI-RESULT-006",
-               section = "API Types / Result",
                strategy = "Verify toString exposes the component values")
     public void testToStringExposesComponents() {
         Result result = new Result(true, "flagged");
