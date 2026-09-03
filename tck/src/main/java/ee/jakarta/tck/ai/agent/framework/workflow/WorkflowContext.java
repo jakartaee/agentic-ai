@@ -15,10 +15,13 @@ package ee.jakarta.tck.ai.agent.framework.workflow;
 /**
  * Associates the current thread with a workflow identifier for TCK fixtures.
  *
- * <p>Fixtures set a workflow id around a unit of work; the reference
- * {@link ee.jakarta.tck.ai.agent.framework.stub.LargeLanguageModelStub} reads
- * {@link #current()} so recorded calls and conversation history stay
- * isolated per workflow even when the stub is {@code @ApplicationScoped}.</p>
+ * <p>This is a fixture aid only — not the normative isolation mechanism. A real
+ * implementation isolates conversational state via its {@code @WorkflowScoped}
+ * (or equivalent) context; this {@link ThreadLocal} merely stands in for that
+ * binding in unit tests and the plain-CDI baseline so the reference
+ * {@link ee.jakarta.tck.ai.agent.framework.stub.LargeLanguageModelStub} can key
+ * recorded calls and conversation history per workflow even when the stub bean
+ * is {@code @ApplicationScoped}.</p>
  */
 public final class WorkflowContext {
 

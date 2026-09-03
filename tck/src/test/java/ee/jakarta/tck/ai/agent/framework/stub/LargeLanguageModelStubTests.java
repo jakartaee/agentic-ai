@@ -168,6 +168,9 @@ public class LargeLanguageModelStubTests {
         assertEquals(List.of("prompt-1", "a"), stub.conversationHistoryForWorkflow("wf-1"));
         assertEquals(List.of("prompt-2", "b"), stub.conversationHistoryForWorkflow("wf-2"));
 
+        assertThrows(IllegalArgumentException.class, () -> stub.recordedCallsForWorkflow(null));
+        assertThrows(IllegalArgumentException.class, () -> stub.conversationHistoryForWorkflow(null));
+
         stub.reset();
         assertTrue(stub.recordedCalls().isEmpty());
         assertTrue(stub.recordedCallsForWorkflow("wf-1").isEmpty());
@@ -187,29 +190,36 @@ public class LargeLanguageModelStubTests {
         CountDownLatch done = new CountDownLatch(threads);
         AtomicReference<Throwable> error = new AtomicReference<>();
 
-        for (int t = 0; t < threads; t++) {
-            final String workflowId = "wf-" + t;
-            pool.submit(() -> {
-                try {
-                    start.await();
-                    WorkflowContext.run(workflowId, () -> {
-                        for (int i = 0; i < callsPerThread; i++) {
-                            String prompt = "turn for {} #" + i;
-                            stub.query(prompt, workflowId);
-                        }
-                    });
-                } catch (Throwable e) {
-                    error.compareAndSet(null, e);
-                } finally {
-                    done.countDown();
-                }
-            });
-        }
+        try {
+            for (int t = 0; t < threads; t++) {
+                final String workflowId = "wf-" + t;
+                pool.submit(() -> {
+                    try {
+                        start.await();
+                        WorkflowContext.run(workflowId, () -> {
+                            for (int i = 0; i < callsPerThread; i++) {
+                                String prompt = "turn for {} #" + i;
+                                stub.query(prompt, workflowId);
+                            }
+                        });
+                    } catch (Throwable e) {
+                        error.compareAndSet(null, e);
+                    } finally {
+                        done.countDown();
+                    }
+                });
+            }
 
-        start.countDown();
-        assertTrue(done.await(60, TimeUnit.SECONDS), "workers did not finish in time");
-        pool.shutdown();
-        assertTrue(pool.awaitTermination(10, TimeUnit.SECONDS));
+            start.countDown();
+            assertTrue(done.await(60, TimeUnit.SECONDS), "workers did not finish in time");
+        } finally {
+            pool.shutdown();
+            if (!pool.awaitTermination(10, TimeUnit.SECONDS)) {
+                pool.shutdownNow();
+                assertTrue(pool.awaitTermination(10, TimeUnit.SECONDS),
+                        "executor did not terminate after shutdownNow()");
+            }
+        }
 
         assertNull(error.get(), () -> "worker failed: " + error.get());
         assertEquals(threads * callsPerThread, stub.recordedCalls().size());
