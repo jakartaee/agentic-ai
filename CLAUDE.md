@@ -75,3 +75,14 @@ TCK tests live in `src/main/java` (not `src/test/java`) and are compiled to clas
 - `api` and `tck` are published; `spec`, `examples` and the aggregator (beyond its pom) are not. Staging suppresses modules with `maven.deploy.skip`, snapshot publishing with `skipPublishing` — a module that should not be published needs **both**. The parent pom is published because `api` and `tck` declare it as their parent; this matches other Jakarta specs (`jakarta.data-parent`, `jakarta.enterprise.cdi-parent`).
 - CycloneDX SBOMs are generated for the published modules only: `cyclonedx.skip` is `true` in the root pom and `false` in `api` and `tck`. The aggregator's own BOM would otherwise describe unpublished modules and GAVs that never reach a repository.
 - Do not reintroduce a `stage-release` javadoc `<skip>` in `tck`: Maven Central rejects a release without a javadoc jar.
+
+## Project site (`gh-pages` branch)
+
+The site at https://jakartaee.github.io/agentic-ai/ is **not** built from `main`. It lives on the orphan `gh-pages` branch, which shares no history with `main` and is not a Maven module.
+
+- Editable sources are `content.html` (home page body), `tutorial/index.html` (a standalone self-styled page with none of the jakarta.ee chrome) and `assets/`.
+- `index.html` is **generated and not committed** — `build-site.py` wraps `content.html` in the Eclipse toolbar, mega-menu and Solstice footer sliced out of `ref-specpage.html`, a saved copy of a live jakarta.ee page. It is `.gitignore`d and assembled by `.github/workflows/pages.yml` on every push to the branch. Never hand-edit it.
+- The home page hero copy (`TITLE`, `SUMMARY` and the jumbotron markup) is in `build-site.py`, not `content.html`.
+- Refresh the chrome to match a jakarta.ee redesign by re-saving the reference page and committing it: `curl -s -L https://jakarta.ee/specifications/agentic-ai/1.0/ -o ref-specpage.html`.
+- GitHub Pages is configured with `build_type: workflow`, so the branch is what CI builds from rather than what is served directly. The `source.branch` value in the Pages config is vestigial; the `github-pages` environment's deployment branch policy is what actually gates deploys.
+- `upload-pages-artifact` has excluded dotfiles since v4, so `.nojekyll` no longer reaches the artifact. Nothing needs it — Jekyll only ran under the old branch-based build.
