@@ -149,12 +149,6 @@ The project aims for the broadest industry consensus possible by engaging as man
 
 Our mailing list is [agentic-ai-dev@eclipse.org](https://accounts.eclipse.org/mailing-list/agentic-ai-dev). You are also welcome to join the agentic-ai channel on the [Jakarta EE Development Slack](https://eclipsefoundationhq.slack.com/join/shared_invite/zt-crh7mheq-3on2tophEuvQTUGidEAWlg?u=eaf9e1f06f194eadc66788a85&id=98ae69e304&join=Join#/shared-invite/email).
 
-## Project Website
-
-The project website is at [jakartaee.github.io/agentic-ai](https://jakartaee.github.io/agentic-ai/), which also hosts an [interactive tutorial](https://jakartaee.github.io/agentic-ai/tutorial/).
-
-Its sources are on the orphan `gh-pages` branch rather than `main`. Edit `content.html` for the home page body or `tutorial/index.html` for the tutorial; the published `index.html` is assembled from `content.html` and a saved copy of the jakarta.ee page shell by `build-site.py`, which runs in CI on every push to that branch.
-
 ## Directories
 
 - [<b>api/</b>](api/): Jakarta Agentic AI API (source code)
@@ -171,6 +165,12 @@ mvn clean install
 ```
 
 You can also build individual parts via Maven in their respective directories.
+
+## Project Website
+
+The project website is at [jakartaee.github.io/agentic-ai](https://jakartaee.github.io/agentic-ai/), which also hosts an [interactive tutorial](https://jakartaee.github.io/agentic-ai/tutorial/).
+
+Its sources are on the `gh-pages` branch rather than `main`. Edit `content.html` for the home page body or `tutorial/index.html` for the tutorial; the published `index.html` is assembled from `content.html` and a saved copy of the jakarta.ee page shell by CI on every push to that branch.
 
 ## Contributing
 
