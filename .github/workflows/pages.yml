@@ -27,21 +27,29 @@ jobs:
       - uses: actions/checkout@v7
 
       # Build against the live jakarta.ee page so the chrome tracks their design
-      # without anyone remembering to re-save it. The committed ref-specpage.html is
-      # the fallback: if jakarta.ee is unreachable, or its markup moved enough that
-      # build-site.py can no longer locate the header and footer, the deploy still
-      # publishes rather than failing on someone else's outage. Fetch to RUNNER_TEMP
-      # so the download is never itself published.
+      # without anyone remembering to re-save it. Fetch to RUNNER_TEMP so the
+      # download is never itself published.
+      #
+      # Fail rather than falling back to a stale copy. A failed deploy is not an
+      # outage -- deploy-pages only replaces the live site on success, so the last
+      # good deployment keeps serving and this costs a re-run. Falling back would
+      # instead publish silently stale chrome behind a green tick, and would hide
+      # the one event worth acting on: a slice failure means jakarta.ee restructured
+      # and the patterns below no longer match.
       - name: Assemble index.html from the jakarta.ee shell
         run: |
+          set -euo pipefail
           shell="$RUNNER_TEMP/live-shell.html"
-          if curl -fsSL --max-time 30 --retry 2 --retry-delay 3 \
-               https://jakarta.ee/specifications/agentic-ai/1.0/ -o "$shell" \
-             && python3 build-site.py "$shell" index.html content.html; then
-            echo "Built from the live jakarta.ee shell."
-          else
-            echo "::warning title=Using the cached jakarta.ee shell::Could not fetch or slice the live page; built from the committed ref-specpage.html instead."
-            python3 build-site.py ref-specpage.html index.html content.html
+
+          if ! curl -fsSL --max-time 30 --retry 3 --retry-delay 5 \
+                 https://jakarta.ee/specifications/agentic-ai/1.0/ -o "$shell"; then
+            echo "::error title=Could not fetch the jakarta.ee shell::jakarta.ee did not respond after 3 attempts. The published site is unchanged; re-run this workflow once jakarta.ee is reachable."
+            exit 1
+          fi
+
+          if ! python3 build-site.py "$shell" index.html content.html; then
+            echo "::error title=Could not slice the jakarta.ee shell::build-site.py could not locate the header or footer in the fetched page, so jakarta.ee has restructured its markup. The published site is unchanged. Update the slice patterns in build-site.py, checking that Google Tag Manager still falls outside both slices."
+            exit 1
           fi
 
       - uses: actions/configure-pages@v6
