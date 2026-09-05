@@ -82,7 +82,6 @@ body{margin:0;font-family:var(--sans);color:var(--body);background:var(--light);
 .chapter tbody tr:nth-child(even){background:#fbfbfc}
 .chapter td code,.chapter th code{white-space:nowrap}
 
-
 /* ── chapter nav footer ───────────────────────────── */
 .chnav{display:flex;justify-content:space-between;gap:14px;margin:46px 0 10px;padding-top:26px;border-top:1px solid var(--line)}
 .chnav a{flex:1;max-width:48%;text-decoration:none;border:1.5px solid var(--line);border-radius:13px;padding:14px 18px;color:var(--body);transition:border-color .15s,box-shadow .15s;background:#fff}
@@ -123,7 +122,7 @@ body{margin:0;font-family:var(--sans);color:var(--body);background:var(--light);
 
 <div id="main"><div id="content">
 <section class="chapter" id="ch-1" data-num="1">
-<h1>Chapter 1 — Overview and motivation</h1>
+<h1>Overview and motivation</h1>
 <h2>What is Jakarta Agentic AI</h2>
 <p><strong>Jakarta Agentic AI</strong> is a Jakarta EE specification (package <code>jakarta.ai.agent</code>)
 for building <strong>AI agents</strong> in a vendor-neutral way. An agent is a <strong>CDI bean</strong>
@@ -134,13 +133,13 @@ and <strong>acts</strong> — all inside a workflow with well-defined phases.</p
 relational data access (you program against <code>EntityManager</code>, and Hibernate or
 EclipseLink implement it), Jakarta Agentic AI standardizes agent construction —
 you program against annotations and the <code>LargeLanguageModel</code> interface, and the
-application server (Payara, in our case) provides the orchestration engine and the
+runtime (Payara, in the example here) provides the orchestration engine and the
 LLM provider integration.</p>
-<p>📖 This tutorial gives you orientation, Payara usage and runnable samples. The
+<p>📖 This tutorial gives you orientation and runnable samples. The
 <strong>single source of truth</strong> for the programming model is the specification itself,
-which is short and meant to be read:
+which is short and meant to be read by everyone:
 <a href="https://jakarta.ee/specifications/agentic-ai/1.0/jakarta-agentic-ai-1.0.0-M1.html" target="_blank" rel="noopener">read the Jakarta Agentic AI 1.0 specification →</a>.
-Throughout, &quot;Read the spec →&quot; links take you to the exact section.</p>
+Throughout, &quot;Read the specification →&quot; links take you to the exact section.</p>
 <h2>Why a spec for agents?</h2>
 <p>Today every AI framework in Java (LangChain4j, Spring AI, etc.) has its own
 programming model. Problems the spec attacks:</p>
@@ -651,7 +650,7 @@ the samples on Payara to see them in action.</li>
 </div></div>
 
 <script>
-const CHAPTERS = [{"n":1,"t":"Overview & Motivation"},{"n":2,"t":"The Spec in Brief"},{"n":3,"t":"Running on Payara"},{"n":4,"t":"The Samples"},{"n":5,"t":"Wrap-up"}];
+const CHAPTERS = [{"n":1,"t":"Overview and Motivation"},{"n":2,"t":"The Specification in Brief"},{"n":3,"t":"Running on Payara"},{"n":4,"t":"The Examples"},{"n":5,"t":"Wrap-up"}];
 const store = {
   get(k, d){ try { return JSON.parse(localStorage.getItem('jaai.'+k)) ?? d; } catch(e){ return d; } },
   set(k, v){ try { localStorage.setItem('jaai.'+k, JSON.stringify(v)); } catch(e){} }
