@@ -54,9 +54,12 @@ jobs:
 
       - uses: actions/configure-pages@v6
 
-      # .git, .github and (since v4) dotfiles are excluded by the action, so the
-      # artifact is index.html, content.html, build-site.py, assets/ and tutorial/.
-      # A workflow deployment serves that verbatim without running Jekyll.
+      # build-site.py and content.html are build-time inputs; index.html embeds
+      # content.html and nothing at runtime consumes either. Drop them so the
+      # served artifact is index.html, assets/ and tutorial/ only. .git, .github
+      # and (since v4) dotfiles are excluded by the upload action.
+      - name: Drop build-time sources from the artifact
+        run: rm -f build-site.py content.html
       - uses: actions/upload-pages-artifact@v5
         with:
           path: .
