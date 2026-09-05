@@ -59,8 +59,6 @@
 .api-table td:first-child { white-space: nowrap; }
 .api-table code { background: none; padding: 0; border: 0; }
 
-.download-list { line-height: 1.9; }
-
 @media (max-width: 767px) {
   .agent-flow li { flex-basis: 100%; }
 }
