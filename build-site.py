@@ -3,21 +3,30 @@
 Assemble the Jakarta Agentic AI project site from the current jakarta.ee shell.
 
 The chrome -- Eclipse toolbar, Jakarta EE mega-menu navigation, and the Solstice
-footer -- is lifted from a saved copy of a live jakarta.ee page so the site matches
-the current design rather than an older revision of it. Only the parts that identify
-the project are substituted.
+footer -- is lifted from a live jakarta.ee page so the site matches the current
+design rather than an older revision of it. Only the parts that identify the
+project are substituted.
 
-.github/workflows/pages.yml runs this on every push to gh-pages, so an edit to
-content.html reaches the published homepage on its own -- index.html is a build
-output and hand-editing it accomplishes nothing.
+.github/workflows/pages.yml runs this on every push to gh-pages, fetching the
+reference page fresh each time, so both an edit to content.html and a change to
+the jakarta.ee design reach the published homepage on their own. index.html is a
+build output and hand-editing it accomplishes nothing.
 
-Refresh the shell by re-saving the reference page and committing it:
+ref-specpage.html is the fallback the workflow uses when jakarta.ee cannot be
+reached or its markup has moved enough that the header and footer can no longer be
+located below -- the deploy then publishes the last known-good chrome instead of
+failing. Refresh it occasionally so the fallback does not drift too far:
 
     curl -s -L https://jakarta.ee/specifications/agentic-ai/1.0/ -o ref-specpage.html
+
+Run locally against either one:
+
     python3 build-site.py ref-specpage.html index.html content.html
 
-Google Tag Manager is deliberately dropped: it loads the Foundation's analytics
-container, which is not ours to fire.
+Google Tag Manager is dropped, which matters because it loads the Foundation's
+analytics container. Note that nothing here strips it: it simply falls outside the
+two slices taken below. Check the output if the mega-menu markup is ever
+restructured upstream.
 """
 import re, sys, pathlib
 

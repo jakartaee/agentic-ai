@@ -1,10 +1,10 @@
 name: Deploy site
 
 # index.html is assembled at deploy time by build-site.py, which wraps content.html
-# in the jakarta.ee chrome saved in ref-specpage.html. Building here rather than by
-# hand means an edit to content.html always reaches the published homepage; when the
-# file was generated locally and committed, an edit that skipped the regeneration
-# step silently never shipped.
+# in the jakarta.ee chrome. Building here rather than by hand means an edit to
+# content.html always reaches the published homepage; when the file was generated
+# locally and committed, an edit that skipped the regeneration step silently never
+# shipped.
 on:
   push:
     branches: [gh-pages]
@@ -26,8 +26,23 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
+      # Build against the live jakarta.ee page so the chrome tracks their design
+      # without anyone remembering to re-save it. The committed ref-specpage.html is
+      # the fallback: if jakarta.ee is unreachable, or its markup moved enough that
+      # build-site.py can no longer locate the header and footer, the deploy still
+      # publishes rather than failing on someone else's outage. Fetch to RUNNER_TEMP
+      # so the download is never itself published.
       - name: Assemble index.html from the jakarta.ee shell
-        run: python3 build-site.py ref-specpage.html index.html content.html
+        run: |
+          shell="$RUNNER_TEMP/live-shell.html"
+          if curl -fsSL --max-time 30 --retry 2 --retry-delay 3 \
+               https://jakarta.ee/specifications/agentic-ai/1.0/ -o "$shell" \
+             && python3 build-site.py "$shell" index.html content.html; then
+            echo "Built from the live jakarta.ee shell."
+          else
+            echo "::warning title=Using the cached jakarta.ee shell::Could not fetch or slice the live page; built from the committed ref-specpage.html instead."
+            python3 build-site.py ref-specpage.html index.html content.html
+          fi
 
       - uses: actions/configure-pages@v6
 
