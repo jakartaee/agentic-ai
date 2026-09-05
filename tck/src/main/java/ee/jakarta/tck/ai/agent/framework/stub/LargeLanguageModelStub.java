@@ -12,16 +12,20 @@
  *****************************************************************************/
 package ee.jakarta.tck.ai.agent.framework.stub;
 
+import ee.jakarta.tck.ai.agent.framework.workflow.WorkflowContext;
 import jakarta.ai.agent.LLMException;
 import jakarta.ai.agent.LargeLanguageModel;
 import jakarta.annotation.PreDestroy;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.json.bind.Jsonb;
 import jakarta.json.bind.JsonbBuilder;
+import jakarta.json.bind.JsonbException;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import java.util.Queue;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -30,27 +34,56 @@ import java.util.concurrent.CopyOnWriteArrayList;
  *
  * <p>Enforces the spec contract: null-prompt/resultType → IAE, strict arity on varargs
  * overloads, JSON-B serialization of parameters and deserialization of typed responses.
- * Responses and failures are queued and consumed in FIFO order.</p>
+ * Scripted responses and failures are a single global FIFO channel by design (not keyed
+ * per workflow); fixtures enqueue before concurrent work and consume in call order.
+ * Per-workflow isolation covers recorded calls and conversation history only.</p>
+ *
+ * <p>Recorded calls and conversation history are keyed by
+ * {@link WorkflowContext#current()} so concurrent workflows remain isolated even
+ * though this bean is {@code @ApplicationScoped}. Placeholder substitution walks
+ * {@code {}} positions in the original prompt so injected JSON cannot steal later
+ * substitutions (the historical corruption root cause was {@code replaceFirst} on
+ * the running result, not JSON-B). The shared {@link Jsonb} is accessed under
+ * synchronization on the instance itself: JSON-B requires thread-safe {@code Jsonb}
+ * implementations, so the lock is defensive and also shares a monitor with
+ * {@link #close()}.</p>
  */
 @ApplicationScoped
-public class LargeLanguageModelStub implements LargeLanguageModel {
+public class LargeLanguageModelStub implements LargeLanguageModel, AutoCloseable {
 
     private final Jsonb jsonb = JsonbBuilder.create();
+    private final Object dispatchLock = new Object();
     private final Queue<Object> scriptedResponses = new ConcurrentLinkedQueue<>();
     private final Queue<RuntimeException> scriptedFailures = new ConcurrentLinkedQueue<>();
     private final List<RecordedCall> calls = new CopyOnWriteArrayList<>();
+    private final Map<String, List<RecordedCall>> callsByWorkflow = new ConcurrentHashMap<>();
+    private final Map<String, List<String>> conversationByWorkflow = new ConcurrentHashMap<>();
+    private volatile boolean closed;
 
     /**
-     * Releases the underlying {@link Jsonb} instance when the CDI context shuts down.
-     * Yasson does not hold OS-level resources today, but the spec contract is to close it.
+     * Releases the underlying {@link Jsonb} instance. Idempotent; safe for
+     * try-with-resources and repeated calls. CDI shutdown delegates here via
+     * {@link #destroy()}. Synchronized on {@code jsonb} so close cannot race
+     * with {@code toJson}/{@code fromJson}.
      */
-    @PreDestroy
-    void close() {
-        try {
-            jsonb.close();
-        } catch (Exception ignored) {
-            // best-effort — the bean is going away anyway
+    @Override
+    public void close() {
+        synchronized (jsonb) {
+            if (closed) {
+                return;
+            }
+            closed = true;
+            try {
+                jsonb.close();
+            } catch (Exception ignored) {
+                // best-effort — the bean / test fixture is going away anyway
+            }
         }
+    }
+
+    @PreDestroy
+    void destroy() {
+        close();
     }
 
     /**
@@ -72,10 +105,39 @@ public class LargeLanguageModelStub implements LargeLanguageModel {
         scriptedResponses.clear();
         scriptedFailures.clear();
         calls.clear();
+        callsByWorkflow.clear();
+        conversationByWorkflow.clear();
     }
 
     public List<RecordedCall> recordedCalls() {
         return List.copyOf(calls);
+    }
+
+    /**
+     * @param workflowId workflow id; must not be {@code null}
+     * @return recorded calls for the given workflow id (empty when none)
+     * @throws IllegalArgumentException if {@code workflowId} is {@code null}
+     */
+    public List<RecordedCall> recordedCallsForWorkflow(String workflowId) {
+        requireWorkflowId(workflowId);
+        List<RecordedCall> workflowCalls = callsByWorkflow.get(workflowId);
+        return workflowCalls == null ? List.of() : List.copyOf(workflowCalls);
+    }
+
+    /**
+     * Returns conversation turns for the given workflow as interleaved effective
+     * prompts then responses. When a scripted failure is thrown after the prompt
+     * is recorded, the prompt turn is intentionally left unpaired (no response
+     * entry) — the call aborted before a model reply existed.
+     *
+     * @param workflowId workflow id; must not be {@code null}
+     * @return conversation turns (empty when none)
+     * @throws IllegalArgumentException if {@code workflowId} is {@code null}
+     */
+    public List<String> conversationHistoryForWorkflow(String workflowId) {
+        requireWorkflowId(workflowId);
+        List<String> history = conversationByWorkflow.get(workflowId);
+        return history == null ? List.of() : List.copyOf(history);
     }
 
     public RecordedCall lastCall() {
@@ -108,19 +170,43 @@ public class LargeLanguageModelStub implements LargeLanguageModel {
         if (prompt == null) throw new IllegalArgumentException("prompt is null");
 
         String effectivePrompt = (overload >= 3) ? applyPlaceholders(prompt, params) : prompt;
-        calls.add(new RecordedCall(prompt, effectivePrompt, resultType, params, overload, Instant.now()));
+        String workflowId = WorkflowContext.current();
 
-        RuntimeException failure = scriptedFailures.poll();
-        if (failure != null) throw failure;
+        final List<String> conversation;
+        final Object next;
+        synchronized (dispatchLock) {
+            RecordedCall call = new RecordedCall(prompt, effectivePrompt, resultType, params, overload, Instant.now());
+            calls.add(call);
+            callsByWorkflow
+                    .computeIfAbsent(workflowId, id -> new CopyOnWriteArrayList<>())
+                    .add(call);
+            conversation = conversationByWorkflow
+                    .computeIfAbsent(workflowId, id -> new CopyOnWriteArrayList<>());
+            conversation.add(effectivePrompt);
 
-        Object next = scriptedResponses.poll();
-        if (next == null) {
-            throw new IllegalStateException(
-                    "No scripted response queued for prompt: '" + prompt + "'. "
-                  + "Call enqueueResponse(...) before invoking the LLM in this test.");
+            RuntimeException failure = scriptedFailures.poll();
+            if (failure != null) {
+                // Prompt turn recorded; no response appended — intentional unpaired turn.
+                throw failure;
+            }
+
+            next = scriptedResponses.poll();
+            if (next == null) {
+                throw new IllegalStateException(
+                        "No scripted response queued for prompt: '" + prompt + "'. "
+                      + "Call enqueueResponse(...) before invoking the LLM in this test.");
+            }
         }
 
-        return convert(next, resultType);
+        T result = convert(next, resultType);
+        conversation.add(result == null ? "null" : result.toString());
+        return result;
+    }
+
+    private static void requireWorkflowId(String workflowId) {
+        if (workflowId == null) {
+            throw new IllegalArgumentException("workflowId is null");
+        }
     }
 
     private String applyPlaceholders(String prompt, Object[] params) {
@@ -137,18 +223,29 @@ public class LargeLanguageModelStub implements LargeLanguageModel {
             // single structured context param — keep raw prompt as effective text
             return prompt;
         }
-        String result = prompt;
-        for (Object p : params) {
-            String json;
-            try {
-                json = jsonb.toJson(p);
-            } catch (jakarta.json.bind.JsonbException e) {
-                throw new IllegalArgumentException("parameter cannot be serialized to JSON", e);
-            }
-            result = result.replaceFirst(java.util.regex.Pattern.quote("{}"),
-                     java.util.regex.Matcher.quoteReplacement(json));
+
+        // Walk {} positions in the ORIGINAL prompt so injected JSON (e.g. "{}")
+        // cannot steal later substitutions.
+        StringBuilder out = new StringBuilder(prompt.length());
+        int from = 0;
+        for (int i = 0; i < n; i++) {
+            int brace = prompt.indexOf("{}", from);
+            out.append(prompt, from, brace);
+            out.append(toJson(params[i]));
+            from = brace + 2;
         }
-        return result;
+        out.append(prompt, from, prompt.length());
+        return out.toString();
+    }
+
+    private String toJson(Object value) {
+        try {
+            synchronized (jsonb) {
+                return jsonb.toJson(value);
+            }
+        } catch (JsonbException e) {
+            throw new IllegalArgumentException("parameter cannot be serialized to JSON", e);
+        }
     }
 
     private int countExactBraces(String prompt) {
@@ -168,8 +265,10 @@ public class LargeLanguageModelStub implements LargeLanguageModel {
         if (resultType == String.class)  return (T) next.toString();
         if (next instanceof String json) {
             try {
-                return jsonb.fromJson(json, resultType);
-            } catch (jakarta.json.bind.JsonbException e) {
+                synchronized (jsonb) {
+                    return jsonb.fromJson(json, resultType);
+                }
+            } catch (JsonbException e) {
                 throw new LLMException("type conversion failed", e);
             }
         }
