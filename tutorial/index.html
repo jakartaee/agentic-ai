@@ -152,22 +152,26 @@ its programming model. LangChain4j, for instance, defines a portable
 <code>ChatModel</code> interface with drivers for multiple providers — a solid
 library-level abstraction. But the abstraction lives inside the library, not the
 platform, and the CDI, workflow, and lifecycle concerns still fall to the
-application. The specification addresses three gaps.</p>
+application. The specification addresses four gaps.</p>
 <ol>
+<li><strong>An annotated workflow instead of a state machine</strong> — without a
+defined lifecycle, every application invents its own. Here you annotate ordinary
+methods and the runtime orchestrates them:
+<code>Trigger → Decision* → Action* → Outcome</code>, with
+<code>HandleException</code> cutting across.</li>
 <li><strong>Container integration</strong> — agents need dependency injection,
 scopes, events, validation, and transactions. Rather than reinventing that, the
 spec <strong>builds on CDI</strong>: the trigger is a CDI event observer, the
 agent is a bean, and the workflow scope is a custom CDI scope. Everything else
 in the platform — <code>@Inject</code>, <code>@Valid</code>,
 <code>@Transactional</code>, <code>EntityManager</code> — just works.</li>
-<li><strong>Consistent phase model</strong> — without a defined lifecycle, every
-application invents its own state machine. The spec defines one:
-<code>Trigger → Decision* → Action* → Outcome</code>, with
-<code>HandleException</code> cutting across.</li>
-<li><strong>Portable LLM facade</strong> — the <code>LargeLanguageModel</code>
-interface is part of the platform. Applications inject it and name no provider;
-provider selection is server configuration, not application code, so switching
-provider is a redeploy rather than a rebuild.</li>
+<li><strong>A standard way to call an LLM</strong> — one
+<code>LargeLanguageModel</code> interface that every implementation provides,
+instead of each application wiring up its own client and parsing its own
+responses.</li>
+<li><strong>Vendor neutrality</strong> — nothing in the agent names a provider or
+a runtime. Both are swappable: the provider through server configuration, the
+runtime by deploying the same application elsewhere.</li>
 </ol>
 <h2>The mental model: a workflow of phases</h2>
 <pre><code>   CDI event
@@ -196,8 +200,8 @@ destroys the workflow context.</li>
 available as a parameter of later phases (type-based injection, no manual
 parameter passing).</li>
 </ul>
-<h2>What the facade enables: swapping GPT (OpenAI) for Claude (Anthropic)</h2>
-<p>To make the third point concrete, consider a running application faced with
+<h2>Vendor neutrality in practice: swapping GPT (OpenAI) for Claude (Anthropic)</h2>
+<p>To make that last point concrete, consider a running application faced with
 the requirement <em>&quot;starting today we use Claude instead of GPT&quot;</em>.
 With LangChain4j's <code>ChatModel</code>, the provider choice is compiled into
 the application:</p>
