@@ -78,7 +78,7 @@ TCK tests live in `src/main/java` (not `src/test/java`) and are compiled to clas
 
 ## Project site (`gh-pages` branch)
 
-The site at https://jakartaee.github.io/agentic-ai/ is **not** built from `main`. It lives on the orphan `gh-pages` branch, which shares no history with `main` and is not a Maven module.
+The site at https://jakartaee.github.io/agentic-ai/ is **not** built from `main`. It lives on the `gh-pages` branch, which shares no history with `main` and is not a Maven module.
 
 - Editable sources are `content.html` (home page body), `tutorial/index.html` (a standalone self-styled page with none of the jakarta.ee chrome) and `assets/`.
 - `index.html` is **generated and not committed** — `build-site.py` wraps `content.html` in the Eclipse toolbar, mega-menu and Solstice footer sliced out of `ref-specpage.html`, a saved copy of a live jakarta.ee page. It is `.gitignore`d and assembled by `.github/workflows/pages.yml` on every push to the branch. Never hand-edit it.
