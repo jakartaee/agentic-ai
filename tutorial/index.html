@@ -147,12 +147,9 @@ which is short and meant to be read by everyone:
 <a href="https://jakarta.ee/specifications/agentic-ai/1.0/jakarta-agentic-ai-1.0.0-M1.html" target="_blank" rel="noopener">read the Jakarta Agentic AI 1.0 specification →</a>.
 Throughout, &quot;Read the specification →&quot; links take you to the exact section.</p>
 <h2>Why a spec for agents?</h2>
-<p>Building AI agents in Java today usually means picking a framework and adopting
-its programming model. LangChain4j, for instance, defines a portable
-<code>ChatModel</code> interface with drivers for multiple providers — a solid
-library-level abstraction. But the abstraction lives inside the library, not the
-platform, and the CDI, workflow, and lifecycle concerns still fall to the
-application. The specification addresses three gaps.</p>
+<p>There is no standard way to build an AI agent in a Jakarta EE application today.
+Teams either adopt a vendor-specific framework or assemble the pieces themselves.
+The specification addresses three gaps.</p>
 <ol>
 <li><strong>An annotated workflow instead of a state machine</strong> — without a
 defined lifecycle, every application invents its own. Here you annotate ordinary
