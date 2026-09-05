@@ -125,89 +125,50 @@ body{margin:0;font-family:var(--sans);color:var(--body);background:var(--light);
 <h1>Overview and Motivation</h1>
 <h2>What is Jakarta Agentic AI</h2>
 <p><strong>Jakarta Agentic AI</strong> is a Jakarta EE specification (package <code>jakarta.ai.agent</code>)
-for building <strong>AI agents</strong> in a vendor-neutral way. An agent is a <strong>CDI bean</strong>
+for building <strong>AI agents</strong> on Jakarta EE runtimes. An agent is a <strong>CDI bean</strong>
 that encapsulates autonomous, goal-driven behavior: it <strong>perceives</strong> an event,
 <strong>reasons</strong> (typically by querying an LLM), <strong>decides</strong> whether and how to proceed,
 and <strong>acts</strong> — all inside a workflow with well-defined phases.</p>
-<p>A helpful analogy: just as Jakarta Persistence standardized
-relational data access (you program against <code>EntityManager</code>, and Hibernate or
+<p>A helpful analogy: just as Jakarta Persistence standardized relational data
+access (you program against <code>EntityManager</code>, and Hibernate or
 EclipseLink implement it), Jakarta Agentic AI standardizes agent construction —
-you program against annotations and the <code>LargeLanguageModel</code> interface, and the
-runtime (Payara, in the example here) provides the orchestration engine and the
-LLM provider integration.</p>
+you program against annotations and the <code>LargeLanguageModel</code> interface,
+and a compatible runtime provides the orchestration engine and the LLM provider
+integration.</p>
+<blockquote>
+<p>This tutorial uses <strong>Payara</strong> as its running implementation, so
+setup steps, configuration file paths, and configuration property names in later
+chapters are Payara-specific. The spec APIs work identically on any compatible
+runtime; only how you configure them varies.</p>
+</blockquote>
 <p>📖 This tutorial gives you orientation and runnable samples. The
 <strong>single source of truth</strong> for the programming model is the specification itself,
 which is short and meant to be read by everyone:
 <a href="https://jakarta.ee/specifications/agentic-ai/1.0/jakarta-agentic-ai-1.0.0-M1.html" target="_blank" rel="noopener">read the Jakarta Agentic AI 1.0 specification →</a>.
 Throughout, &quot;Read the specification →&quot; links take you to the exact section.</p>
 <h2>Why a spec for agents?</h2>
-<p>Today every AI framework in Java (LangChain4j, Spring AI, etc.) has its own
-programming model. Problems the spec attacks:</p>
+<p>Building AI agents in Java today usually means picking a framework and adopting
+its programming model. LangChain4j, for instance, defines a portable
+<code>ChatModel</code> interface with drivers for multiple providers — a solid
+library-level abstraction. But the abstraction lives inside the library, not the
+platform, and the CDI, workflow, and lifecycle concerns still fall to the
+application. The specification addresses three gaps.</p>
 <ol>
-<li><strong>Vendor lock-in</strong> — switching the LLM provider or the framework means
-rewriting the agent code. With the spec, provider selection is server
-configuration (in Payara, via MicroProfile Config), not code.</li>
-<li><strong>No container integration</strong> — agents need dependency injection, scopes,
-events, validation, transactions. Instead of reinventing all that, the spec
-<strong>builds on CDI</strong>: the trigger is a CDI event observer, the agent is a bean,
-the workflow scope is a custom CDI scope.</li>
-<li><strong>Ad-hoc workflows</strong> — without a phase model, every application invents its own
-state machine. The spec defines a standard lifecycle:
-<code>Trigger → Decision* → Action* → Outcome</code>, with <code>HandleException</code> cutting across.</li>
+<li><strong>Container integration</strong> — agents need dependency injection,
+scopes, events, validation, and transactions. Rather than reinventing that, the
+spec <strong>builds on CDI</strong>: the trigger is a CDI event observer, the
+agent is a bean, and the workflow scope is a custom CDI scope. Everything else
+in the platform — <code>@Inject</code>, <code>@Valid</code>,
+<code>@Transactional</code>, <code>EntityManager</code> — just works.</li>
+<li><strong>Consistent phase model</strong> — without a defined lifecycle, every
+application invents its own state machine. The spec defines one:
+<code>Trigger → Decision* → Action* → Outcome</code>, with
+<code>HandleException</code> cutting across.</li>
+<li><strong>Portable LLM facade</strong> — the <code>LargeLanguageModel</code>
+interface is part of the platform. Applications inject it and name no provider;
+provider selection is server configuration, not application code, so switching
+provider is a redeploy rather than a rebuild.</li>
 </ol>
-<h3>A practical example: swapping GPT (OpenAI) for Claude (Anthropic)</h3>
-<p>The same requirement — &quot;starting today we use Claude&quot; — solved in the three worlds.</p>
-<p><strong>With LangChain4j</strong>, the provider choice is <em>compiled into</em> the application: the
-wiring class and the Maven dependency are vendor-specific.</p>
-<pre><code class="language-java">// BEFORE — pom.xml: dev.langchain4j:langchain4j-open-ai
-ChatModel model = OpenAiChatModel.builder()
-        .apiKey(System.getenv(&quot;OPENAI_API_KEY&quot;))
-        .modelName(&quot;gpt-4o&quot;)
-        .build();
-</code></pre>
-<pre><code class="language-java">// AFTER — swap the pom.xml dependency to dev.langchain4j:langchain4j-anthropic,
-// rewrite the wiring and recompile/repackage the application
-ChatModel model = AnthropicChatModel.builder()
-        .apiKey(System.getenv(&quot;ANTHROPIC_API_KEY&quot;))
-        .modelName(&quot;claude-opus-4-8&quot;)
-        .build();
-</code></pre>
-<p>The code that <em>uses</em> the <code>ChatModel</code> interface may survive — but the switch still
-requires changing a dependency + construction code, a rebuild and a redeploy. And
-the abstraction belongs to a single-vendor library, not to a standard.</p>
-<p><strong>With Spring AI</strong>, you must swap the starter in <code>pom.xml</code>
-(<code>spring-ai-starter-model-openai</code> → <code>spring-ai-starter-model-anthropic</code>) and
-migrate the property block (<code>spring.ai.openai.*</code> → <code>spring.ai.anthropic.*</code>). The
-code injecting <code>ChatClient</code> can stay the same — fair to acknowledge — but it is
-still an application rebuild, the abstraction only exists inside Spring, and there
-is a single implementation of it, with no spec or TCK guaranteeing portable
-behavior.</p>
-<p><strong>With Jakarta Agentic AI</strong>, the agent injects the <strong>platform</strong> interface and
-mentions no provider at all:</p>
-<pre><code class="language-java">@Agent
-public class QuestionAgent {
-
-    @Inject
-    LargeLanguageModel model;   // jakarta.ai.agent — no vendor here
-
-    @Action
-    void generate(Question question, AnswerStore answers) {
-        String answer = model.query(&quot;Answer concisely: {}&quot;, question.text());
-        answers.put(question.text(), answer);
-    }
-}
-</code></pre>
-<p>The whole switch is <strong>one configuration file</strong> (in Payara, MicroProfile Config):</p>
-<pre><code class="language-properties"># BEFORE                                   # AFTER
-payara.agentic.llm.provider=ollama         payara.agentic.llm.provider=anthropic
-payara.agentic.llm.model=gemma3:4b         payara.agentic.llm.model=claude-opus-4-8
-</code></pre>
-<p>Zero code changes, zero <code>pom.xml</code> changes (the provider&#39;s HTTP backend lives in
-the <strong>server</strong>, not in the WAR), zero recompilation — at most a redeploy. It is the
-same leap Jakarta Persistence made over hand-rolled JDBC: the provider became a
-configuration detail. The two samples in the samples chapter prove this live: their agents
-are written the same way, one running on local Ollama and the other on Claude, and
-the only difference between them is <code>microprofile-config.properties</code>.</p>
 <h2>The mental model: a workflow of phases</h2>
 <pre><code>   CDI event
        |
@@ -235,8 +196,60 @@ destroys the workflow context.</li>
 available as a parameter of later phases (type-based injection, no manual
 parameter passing).</li>
 </ul>
-<p>The next chapter tours these concepts and links each one to its exact section in
-the spec, where the full rules live.</p>
+<h2>What the facade enables: swapping GPT (OpenAI) for Claude (Anthropic)</h2>
+<p>To make the third point concrete, consider a running application faced with
+the requirement <em>&quot;starting today we use Claude instead of GPT&quot;</em>.
+With LangChain4j's <code>ChatModel</code>, the provider choice is compiled into
+the application:</p>
+<pre><code class="language-java">// BEFORE — pom.xml: dev.langchain4j:langchain4j-open-ai
+ChatModel model = OpenAiChatModel.builder()
+        .apiKey(System.getenv(&quot;OPENAI_API_KEY&quot;))
+        .modelName(&quot;gpt-4o&quot;)
+        .build();
+</code></pre>
+<pre><code class="language-java">// AFTER — swap the pom.xml dependency to dev.langchain4j:langchain4j-anthropic,
+// rewrite the wiring, recompile, repackage, redeploy
+ChatModel model = AnthropicChatModel.builder()
+        .apiKey(System.getenv(&quot;ANTHROPIC_API_KEY&quot;))
+        .modelName(&quot;claude-sonnet-4-6&quot;)
+        .build();
+</code></pre>
+<p>Code that <em>uses</em> the <code>ChatModel</code> interface may survive — that
+abstraction does exist. But the switch still requires changing a dependency,
+rewriting construction code, and rebuilding the application. The abstraction is
+a library API, so it ships inside the WAR.</p>
+<p>With Jakarta Agentic AI, the agent injects the <strong>platform</strong>
+interface and names no provider:</p>
+<pre><code class="language-java">@Agent
+public class QuestionAgent {
+
+    @Inject
+    LargeLanguageModel model;   // jakarta.ai.agent — no vendor here
+
+    @Trigger
+    void ask(Question question) { }   // a CDI event starts the workflow
+
+    @Action
+    void generate(Question question, AnswerStore answers) {
+        String answer = model.query(&quot;Answer concisely: {}&quot;, question.text());
+        answers.put(question.text(), answer);
+    }
+}
+</code></pre>
+<p>The whole switch is <strong>one configuration file</strong>. In Payara that is
+<code>microprofile-config.properties</code>:</p>
+<pre><code class="language-properties"># BEFORE                                   # AFTER
+payara.agentic.llm.provider=ollama         payara.agentic.llm.provider=anthropic
+payara.agentic.llm.model=gemma3:4b         payara.agentic.llm.model=claude-sonnet-4-6
+</code></pre>
+<p>No code changes, no <code>pom.xml</code> changes (the provider's HTTP backend
+lives in the <strong>server</strong>, not in the WAR), no recompilation — at most
+a redeploy. It is the same leap Jakarta Persistence made over hand-rolled JDBC:
+the provider became a configuration detail. Chapter 4 runs this live — two
+identically written agents, one on local Ollama and one on Claude, differing
+only in <code>microprofile-config.properties</code>.</p>
+<p>The next chapter tours these concepts and links each one to its exact section
+in the spec, where the full rules live.</p>
 </section>
 <section class="chapter" id="ch-2" data-num="2">
 <h1>Chapter 2 — The spec in brief</h1>
@@ -272,8 +285,9 @@ public class QuestionAgent {
     }
 
     @Outcome
-    void store(Answer answer, AnswerStore answers) {   // ends the workflow
-        answers.add(answer);
+    void store(Question question, Answer answer,       // ends the workflow
+               AnswerStore answers) {
+        answers.put(question.text(), answer.text());
     }
 }</code></pre>
 <p>The container discovers the bean, wires the phases into a workflow and passes data
@@ -492,7 +506,7 @@ refines an existing guide, decided by whether the request already carries one
 <p>The LLM backend and even the system prompt are configuration — here Claude for
 HTML quality, switchable to local Ollama without touching code:</p>
 <pre><code class="language-properties">payara.agentic.llm.provider=anthropic
-payara.agentic.llm.model=claude-opus-4-8
+payara.agentic.llm.model=claude-sonnet-4-6
 payara.agentic.llm.max-tokens=8192
 payara.agentic.llm.system=You are a senior technical writer...
 </code></pre>
