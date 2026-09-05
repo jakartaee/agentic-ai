@@ -48,7 +48,7 @@ jobs:
           fi
 
           if ! python3 build-site.py "$shell" index.html content.html; then
-            echo "::error title=Could not slice the jakarta.ee shell::build-site.py could not locate the header or footer in the fetched page, so jakarta.ee has restructured its markup. The published site is unchanged. Update the slice patterns in build-site.py, checking that Google Tag Manager still falls outside both slices."
+            echo "::error title=Could not slice the jakarta.ee shell::build-site.py could not locate the header or footer in the fetched page, so jakarta.ee has restructured its markup. The published site is unchanged. Update the slice patterns in build-site.py."
             exit 1
           fi
 
@@ -57,7 +57,7 @@ jobs:
       # build-site.py and content.html are build-time inputs; index.html embeds
       # content.html and nothing at runtime consumes either. Drop them so the
       # served artifact is index.html, assets/ and tutorial/ only. .git, .github
-      # and (since v4) dotfiles are excluded by the upload action.
+      # and dotfiles are excluded by the upload action.
       - name: Drop build-time sources from the artifact
         run: rm -f build-site.py content.html
       - uses: actions/upload-pages-artifact@v5
