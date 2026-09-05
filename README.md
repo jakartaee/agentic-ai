@@ -170,7 +170,7 @@ You can also build individual parts via Maven in their respective directories.
 
 The project website is at [jakartaee.github.io/agentic-ai](https://jakartaee.github.io/agentic-ai/), which also hosts an [interactive tutorial](https://jakartaee.github.io/agentic-ai/tutorial/).
 
-Its sources are on the `gh-pages` branch rather than `main`. Edit `content.html` for the home page body or `tutorial/index.html` for the tutorial; the published `index.html` is assembled from `content.html` and a saved copy of the jakarta.ee page shell by CI on every push to that branch.
+Its sources are on the `gh-pages` branch rather than `main`. Edit `content.html` for the home page body or `tutorial/index.html` for the tutorial. The published `index.html` is generated, not committed: on every push to that branch, CI fetches the current jakarta.ee page shell and `build-site.py` wraps `content.html` in it.
 
 ## Contributing
 
