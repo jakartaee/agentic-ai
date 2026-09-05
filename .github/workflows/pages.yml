@@ -54,11 +54,9 @@ jobs:
 
       - uses: actions/configure-pages@v6
 
-      # .git and .github are excluded by the action; build-site.py is published as
-      # it was under the branch-based build. Since v4 the action also drops
-      # dotfiles, so .nojekyll no longer reaches the artifact -- it was only ever
-      # read by the branch-based build, and deploying from a workflow serves the
-      # artifact verbatim without running Jekyll.
+      # .git, .github and (since v4) dotfiles are excluded by the action, so the
+      # artifact is index.html, content.html, build-site.py, assets/ and tutorial/.
+      # A workflow deployment serves that verbatim without running Jekyll.
       - uses: actions/upload-pages-artifact@v5
         with:
           path: .
