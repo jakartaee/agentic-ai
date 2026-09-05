@@ -12,14 +12,19 @@ reference page fresh each time, so both an edit to content.html and a change to
 the jakarta.ee design reach the published homepage on their own. index.html is a
 build output and hand-editing it accomplishes nothing.
 
-ref-specpage.html is the fallback the workflow uses when jakarta.ee cannot be
-reached or its markup has moved enough that the header and footer can no longer be
-located below -- the deploy then publishes the last known-good chrome instead of
-failing. Refresh it occasionally so the fallback does not drift too far:
+The deploy fails rather than falling back if jakarta.ee cannot be reached or its
+markup has moved enough that the header and footer can no longer be located below.
+That is deliberate: deploy-pages only replaces the live site on success, so a
+failure leaves the previous deployment serving and costs a re-run, whereas a
+fallback would publish stale chrome behind a green tick and hide the fact that the
+slice patterns need updating.
+
+ref-specpage.html is a saved copy kept only so this can be run offline; nothing in
+CI reads it. Refresh it with:
 
     curl -s -L https://jakarta.ee/specifications/agentic-ai/1.0/ -o ref-specpage.html
 
-Run locally against either one:
+Run locally against the saved copy, or against a page fetched by hand:
 
     python3 build-site.py ref-specpage.html index.html content.html
 
