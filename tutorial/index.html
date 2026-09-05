@@ -152,7 +152,7 @@ its programming model. LangChain4j, for instance, defines a portable
 <code>ChatModel</code> interface with drivers for multiple providers — a solid
 library-level abstraction. But the abstraction lives inside the library, not the
 platform, and the CDI, workflow, and lifecycle concerns still fall to the
-application. The specification addresses four gaps.</p>
+application. The specification addresses three gaps.</p>
 <ol>
 <li><strong>An annotated workflow instead of a state machine</strong> — without a
 defined lifecycle, every application invents its own. Here you annotate ordinary
@@ -165,13 +165,10 @@ spec <strong>builds on CDI</strong>: the trigger is a CDI event observer, the
 agent is a bean, and the workflow scope is a custom CDI scope. Everything else
 in the platform — <code>@Inject</code>, <code>@Valid</code>,
 <code>@Transactional</code>, <code>EntityManager</code> — just works.</li>
-<li><strong>A standard way to call an LLM</strong> — one
-<code>LargeLanguageModel</code> interface that every implementation provides,
-instead of each application wiring up its own client and parsing its own
-responses.</li>
 <li><strong>Vendor neutrality</strong> — nothing in the agent names a provider or
-a runtime. Both are swappable: the provider through server configuration, the
-runtime by deploying the same application elsewhere.</li>
+a runtime. The LLM arrives as an injected <code>LargeLanguageModel</code> rather
+than a vendor client, so the provider is server configuration and the runtime is
+wherever you deploy.</li>
 </ol>
 <h2>The mental model: a workflow of phases</h2>
 <pre><code>   CDI event
