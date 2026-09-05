@@ -82,10 +82,9 @@ The site at https://jakartaee.github.io/agentic-ai/ is **not** built from `main`
 
 - Editable sources are `content.html` (home page body), `tutorial/index.html` (a standalone self-styled page with none of the jakarta.ee chrome) and `assets/`.
 - `index.html` is **generated and not committed**. `.github/workflows/pages.yml` fetches https://jakarta.ee/specifications/agentic-ai/1.0/ on every push to the branch, and `build-site.py` wraps `content.html` in the Eclipse toolbar, mega-menu and Solstice footer sliced out of it. It is `.gitignore`d. Never hand-edit it.
-- Because the shell is fetched live, a jakarta.ee redesign reaches the site with no commit here. There is nothing to re-save; the old committed `ref-specpage.html` snapshot has been removed.
+- Because the shell is fetched live, a jakarta.ee redesign reaches the site with no commit here.
 - The deploy **fails rather than falling back** if the fetch or the slice fails. That is deliberate: `deploy-pages` only replaces the live site on success, so a failure leaves the previous deployment serving and costs a re-run, whereas a fallback would publish stale chrome behind a green tick.
 - A slice failure means jakarta.ee restructured and the line-matching patterns in `build-site.py` no longer locate the header or footer. Fix the patterns — and re-check the Google Tag Manager point below.
-- **Nothing strips Google Tag Manager.** It is absent from the output only because it falls outside the two slices. Firing the Foundation's analytics container from this site is not intended, so verify `googletagmanager` is still absent from the generated `index.html` after any change to the slice patterns.
 - The home page hero copy (`TITLE`, `SUMMARY` and the jumbotron markup) is in `build-site.py`, not `content.html`.
 - To preview locally: `curl -s -L https://jakarta.ee/specifications/agentic-ai/1.0/ -o /tmp/shell.html && python3 build-site.py /tmp/shell.html index.html content.html`.
 - GitHub Pages is configured with `build_type: workflow`, so the branch is what CI builds from rather than what is served directly. The `source.branch` value in the Pages config is vestigial; the `github-pages` environment's deployment branch policy is what actually gates deploys.
