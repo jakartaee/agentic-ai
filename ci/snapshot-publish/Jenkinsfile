@@ -11,8 +11,6 @@
  * SPDX-License-Identifier: EPL-2.0
  */
 
-@Library('releng-pipeline') _
-
 if (currentBuild.getBuildCauses().toString().contains('BranchIndexingCause')) {
     print "INFO: Build skipped due to trigger being Branch Indexing"
     currentBuild.result = 'NOT_BUILT'
