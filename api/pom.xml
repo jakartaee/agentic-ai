@@ -42,7 +42,7 @@
                 <version>7.3.0</version>
                 <configuration>
                     <bnd><![CDATA[
-Bundle-SymbolicName: ${project.groupId}.${project.artifactId}
+Bundle-SymbolicName: ${project.artifactId}
 Export-Package: jakarta.ai.agent
 ]]></bnd>
                 </configuration>
