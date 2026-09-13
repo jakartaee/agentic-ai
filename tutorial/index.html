@@ -262,16 +262,14 @@ a redeploy. It is the same leap Jakarta Persistence made over hand-rolled JDBC:
 the provider became a configuration detail. The examples run this live — two
 identically written agents, one on local Ollama and one on Claude, differing
 only in <code>microprofile-config.properties</code>.</p>
-<p>Next, let's tour these concepts in a bit more detail. We link each concept to its exact section
-in the actual specification, where the full rules live.</p>
+<p>Next, let's tour these concepts in a bit more detail.</p>
 </section>
 <section class="chapter" id="ch-2" data-num="2">
 <h1>The Specification in Brief</h1>
-<p>This chapter is a fast tour of the programming model — just enough to read the
-samples and know what to look for. It deliberately does <strong>not</strong> restate the rules,
-cardinalities or ordering cases: the specification already does that, clearly and
-concisely, and it is the single source of truth. Each concept below ends with a
-<strong>&quot;Read the spec →&quot;</strong> link to the exact section.</p>
+<p>This is a fast tour of the programming model — just enough to read
+examples and know what to look for. Each key concept ends with a
+<strong>&quot;Read the specification →&quot;</strong> link to the exact
+specification section with further details.</p>
 
 <h2>An agent, at a glance</h2>
 <p>An agent is a CDI bean annotated with <code>@Agent</code>. Its behavior is expressed as a
