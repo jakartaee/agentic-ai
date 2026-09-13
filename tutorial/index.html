@@ -206,11 +206,13 @@ destroys the workflow context.</li>
 available as a parameter of later phases (type-based injection, no manual
 parameter passing).</li>
 </ul>
-  
-<h2>Vendor neutrality in practice: swapping GPT (OpenAI) for Claude (Anthropic)</h2>
-<p>To make that last point concrete, consider a running application faced with
+
+<h2>Pluggability in action - swapping GPT (OpenAI) for Claude (Anthropic)</h2>
+
+<p>Let's take a quick look at some code, specifically highlighting easy, pluggable
+integration with LLMs. Consider a running application faced with
 the requirement <em>&quot;starting today we use Claude instead of GPT&quot;</em>.
-With LangChain4j's <code>ChatModel</code>, the provider choice is compiled into
+With LangChain4j's <code>ChatModel</code> as an example, the provider choice is compiled into
 the application:</p>
 <pre><code class="language-java">// BEFORE — pom.xml: dev.langchain4j:langchain4j-open-ai
 ChatModel model = OpenAiChatModel.builder()
@@ -225,17 +227,18 @@ ChatModel model = AnthropicChatModel.builder()
         .modelName(&quot;claude-sonnet-4-6&quot;)
         .build();
 </code></pre>
-<p>Code that <em>uses</em> the <code>ChatModel</code> interface may survive — that
-abstraction does exist. But the switch still requires changing a dependency,
+  
+<p>The switch requires changing a dependency,
 rewriting construction code, and rebuilding the application. The abstraction is
-a library API, so it ships inside the WAR.</p>
-<p>With Jakarta Agentic AI, the agent injects the <strong>platform</strong>
-interface and names no provider:</p>
+a library API, so it ships inside your WAR.</p>
+
+<p>With Jakarta Agentic AI, the agent injects the <strong>API interface</strong>
+and names no provider:</p>
 <pre><code class="language-java">@Agent
 public class QuestionAgent {
 
     @Inject
-    LargeLanguageModel model;   // jakarta.ai.agent — no vendor here
+    LargeLanguageModel model;   // jakarta.ai.agent — no vendor code here
 
     @Trigger
     void ask(Question question) { }   // a CDI event starts the workflow
@@ -253,17 +256,17 @@ public class QuestionAgent {
 payara.agentic.llm.provider=ollama         payara.agentic.llm.provider=anthropic
 payara.agentic.llm.model=gemma3:4b         payara.agentic.llm.model=claude-sonnet-4-6
 </code></pre>
-<p>No code changes, no <code>pom.xml</code> changes (the provider's HTTP backend
-lives in the <strong>server</strong>, not in the WAR), no recompilation — at most
+<p>No code changes, no <code>pom.xml</code> changes (the provider's client infrastructure
+lives in the <strong>runtime</strong>, not in the WAR), no recompilation — at most
 a redeploy. It is the same leap Jakarta Persistence made over hand-rolled JDBC:
-the provider became a configuration detail. Chapter 4 runs this live — two
+the provider became a configuration detail. The examples run this live — two
 identically written agents, one on local Ollama and one on Claude, differing
 only in <code>microprofile-config.properties</code>.</p>
-<p>The next chapter tours these concepts and links each one to its exact section
-in the spec, where the full rules live.</p>
+<p>Next, let's tour these concepts in a bit more detail. We links each concept to its exact section
+in the actual specification, where the full rules live.</p>
 </section>
 <section class="chapter" id="ch-2" data-num="2">
-<h1>Chapter 2 — The spec in brief</h1>
+<h1>The specification in brief</h1>
 <p>This chapter is a fast tour of the programming model — just enough to read the
 samples and know what to look for. It deliberately does <strong>not</strong> restate the rules,
 cardinalities or ordering cases: the specification already does that, clearly and
