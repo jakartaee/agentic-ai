@@ -129,23 +129,27 @@ for building <strong>AI agents</strong> on Jakarta EE runtimes. An agent is a <s
 that encapsulates autonomous, goal-driven behavior: it <strong>perceives</strong> an event,
 <strong>reasons</strong> (typically by querying an LLM), <strong>decides</strong> whether and how to proceed,
 and <strong>acts</strong> — all inside a workflow with well-defined phases.</p>
-<p>A helpful analogy: just as Jakarta Persistence standardized relational data
-access (you program against <code>EntityManager</code>, and Hibernate or
-EclipseLink implement it), Jakarta Agentic AI standardizes agent construction —
-you program against annotations and the <code>LargeLanguageModel</code> interface,
-and a compatible runtime provides the orchestration engine and the LLM provider
-integration.</p>
+
+<p>Just as Jakarta Persistence standardized the API, usage patterns, and paradigms for object-relational data
+access, Jakarta Agentic AI standardizes agent construction (the same analogy applies for basically any other 
+Jakarta technology such as Servlet, REST, or Batch). You program against well-understood standard
+annotations and interfaces such as <code>@Agent</code> and <code>LargeLanguageModel</code>. A compatible 
+runtime provides the actual orchestration engine, connectivity to the LLM provider, as well as natural 
+integration with other Jakarta EE technologies.</p>
+
 <blockquote>
 <p>This tutorial uses <strong>Payara</strong> as its running implementation, so
-setup steps, configuration file paths, and configuration property names in later
-chapters are Payara-specific. The spec APIs work identically on any compatible
-runtime; only how you configure them varies.</p>
+setup steps, configuration file paths, and configuration property names are Payara-specific. The specification 
+APIs work identically on any compatible runtime - only how you configure the runtime varies. In the future
+some of these configurations will be standardized as well.</p>
 </blockquote>
-<p>📖 This tutorial gives you orientation and runnable samples. The
+
+<p>📖 This tutorial gives you basic orientation and runnable examples. The
 <strong>single source of truth</strong> for the programming model is the specification itself,
 which is short and meant to be read by everyone:
 <a href="https://jakarta.ee/specifications/agentic-ai/1.0/jakarta-agentic-ai-1.0.0-M1.html" target="_blank" rel="noopener">read the Jakarta Agentic AI 1.0 specification →</a>.
 Throughout, &quot;Read the specification →&quot; links take you to the exact section.</p>
+
 <h2>Why a spec for agents?</h2>
 <p>There is no standard way to build an AI agent in a Jakarta EE application today.
 Teams either adopt a vendor-specific framework or assemble the pieces themselves.
