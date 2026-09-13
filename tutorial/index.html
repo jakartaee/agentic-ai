@@ -337,7 +337,8 @@ not expose something you need, <code>unwrap()</code> reaches the underlying impl
 <h2>Errors</h2>
 <p>LLM service failures surface as <code>LLMException</code> (unchecked). A typed <code>query</code> that
 cannot be mapped to the requested type also raises <code>LLMException</code> rather than
-returning corrupted data. Catch these and any other errors (including invalid parameters that Jakarta Validation catches) in an <code>@HandleException</code> method with clear
+returning corrupted data. Catch these and any other errors (including invalid parameters
+that Jakarta Validation detects) in an <code>@HandleException</code> method with clear
 semantics: return normally to continue the workflow, rethrow to stop it.
 <a href="https://jakarta.ee/specifications/agentic-ai/1.0/jakarta-agentic-ai-1.0.0-M1.html#_exceptions" target="_blank" rel="noopener">Read the specification → exceptions</a>.</p>
 
