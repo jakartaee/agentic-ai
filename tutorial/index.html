@@ -200,7 +200,7 @@ from <code>Trigger + Action</code> (simple execution) up to
 workflows can be defined programmatically and change dynamically at runtime.</li>
 <li>A <strong>Decision can end the workflow</strong> (by returning <code>false</code>, <code>null</code> or
 <code>Result(false, ...)</code>) — the remaining phases and the Outcome do <strong>not</strong> run.</li>
-<li><strong>Outcome</strong> marks the successful end of the workflow; after it, the container
+<li><strong>Outcome</strong> marks the successful end of the workflow; after it, the runtime
 destroys the workflow context.</li>
 <li><strong>Data flows between phases by type</strong>: whatever a phase returns becomes
 available as a parameter of later phases (type-based injection, no manual
@@ -312,7 +312,7 @@ between them by type. <a href="https://jakarta.ee/specifications/agentic-ai/1.0/
 <li><code>@Trigger</code> — the single entry point; a CDI event observer that starts the workflow.</li>
 <li><code>@Decision</code> — optional gate(s); returning <code>false</code>/<code>null</code>/<code>Result(false, …)</code> ends the workflow early.</li>
 <li><code>@Action</code> — optional step(s) that do the work (usually an LLM call).</li>
-<li><code>@Outcome</code> — the successful end; afterwards the container destroys the workflow context.</li>
+<li><code>@Outcome</code> — the successful end; afterwards the runtime destroys the workflow context.</li>
 <li><code>@HandleException</code> — recovery: return normally to continue, rethrow to stop.</li>
 </ul>
 <p>Decisions and actions may be intermixed, and data flows between phases by return
