@@ -180,7 +180,7 @@ wherever you deploy. Like all Jakarta EE specifications, Agentic AI makes vendor
 neutrality possible.</li>
 </ol>
 
-<h2>The mental model: a workflow of phases</h2>
+<h2>The mental model - a workflow of phases</h2>
 <pre><code>   CDI event
        |
        ▼
@@ -189,8 +189,6 @@ neutrality possible.</li>
   +----------+     +-----------+     +---------+     +----------+
    (required,       (0..N, may        (0..N)          (0..1, void,
     exactly 1)       stop the flow)                    ends the context)
-
-              @HandleException (0..N) catches exceptions from ANY phase
 </code></pre>
 <p>Key points:</p>
 <ul>
@@ -198,7 +196,8 @@ neutrality possible.</li>
 version 1.0 (a restriction expected to be relaxed in the future).</li>
 <li><strong>Decisions and actions can be intermixed</strong> in any sequence, enabling anything
 from <code>Trigger + Action</code> (simple execution) up to
-<code>Trigger + Decision + Action + Decision + Action</code> (complex branching).</li>
+<code>Trigger + Decision + Action + Decision + Action + ...</code> (complex branching). In the future 
+workflows can be defined programmatically and change dynamically at runtime.</li>
 <li>A <strong>Decision can end the workflow</strong> (by returning <code>false</code>, <code>null</code> or
 <code>Result(false, ...)</code>) — the remaining phases and the Outcome do <strong>not</strong> run.</li>
 <li><strong>Outcome</strong> marks the successful end of the workflow; after it, the container
@@ -207,6 +206,7 @@ destroys the workflow context.</li>
 available as a parameter of later phases (type-based injection, no manual
 parameter passing).</li>
 </ul>
+  
 <h2>Vendor neutrality in practice: swapping GPT (OpenAI) for Claude (Anthropic)</h2>
 <p>To make that last point concrete, consider a running application faced with
 the requirement <em>&quot;starting today we use Claude instead of GPT&quot;</em>.
