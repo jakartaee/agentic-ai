@@ -150,22 +150,29 @@ which is short and meant to be read by everyone:
 <a href="https://jakarta.ee/specifications/agentic-ai/1.0/jakarta-agentic-ai-1.0.0-M1.html" target="_blank" rel="noopener">read the Jakarta Agentic AI 1.0 specification →</a>.
 Throughout, &quot;Read the specification →&quot; links take you to the exact section.</p>
 
-<h2>Why a spec for agents?</h2>
-<p>There is no standard way to build an AI agent in a Jakarta EE application today.
-Teams either adopt a vendor-specific framework or assemble the pieces themselves.
-The specification addresses three gaps.</p>
+<h2>Why a specification for agents?</h2>
+
+<p>Before this specification, there was no standard way to build an AI agent in a Jakarta EE application.
+Teams either adopt a vendor-specific framework, assemble the pieces themselves, or have no cohesive idea
+of an agent. The specification addresses three main gaps.</p>
+
 <ol>
-<li><strong>An annotated workflow instead of a state machine</strong> — without a
-defined lifecycle, every application invents its own. Here you annotate ordinary
-methods and the runtime orchestrates them:
-<code>Trigger → Decision* → Action* → Outcome</code>, with
-<code>HandleException</code> cutting across.</li>
-<li><strong>Container integration</strong> — agents need dependency injection,
-scopes, events, validation, and transactions. Rather than reinventing that, the
-spec <strong>builds on CDI</strong>: the trigger is a CDI event observer, the
-agent is a bean, and the workflow scope is a custom CDI scope. Everything else
-in the platform — <code>@Inject</code>, <code>@Valid</code>,
-<code>@Transactional</code>, <code>EntityManager</code> — just works.</li>
+<li><strong>Familiar structure instead of chaos</strong> — without a
+defined lifecycle based on common understanding, every application invents its own usage patterns and
+APIs. Here you annotate ordinary methods and the runtime orchestrates them in a well-defined way:
+<code>Trigger → Decision* → Action* → Outcome</code>. The API is also deliberately designed to be
+familiar to Jakarta EE developers, even those new to AI.</li>
+
+<li><strong>Out-of-the-box integrations</strong> — agents still need common capabilities like 
+dependency injection, scopes, events, validation, JSON processing, transactions, and persistence.
+Rather than reinventing that, the specification simply integrates with existing Jakarta
+technologies. The component model itself <strong>builds on CDI</strong>: the trigger is a CDI 
+event, the agent is a bean, and the workflow scope is a custom CDI scope. Everything else
+in the platform — <code>@Inject</code>, <code>@Valid</code>, <code>@Transactional</code>, 
+<code>EntityManager</code> — just works. Furthermore, other common integrations such as with LLMs 
+(and maybe even A2A in the future) are simply included in a way that makes sense to a Java/Jakarta 
+EE developer.</li>
+
 <li><strong>Vendor neutrality</strong> — nothing in the agent names a provider or
 a runtime. The LLM arrives as an injected <code>LargeLanguageModel</code> rather
 than a vendor client, so the provider is server configuration and the runtime is
