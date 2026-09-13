@@ -131,15 +131,15 @@ that encapsulates autonomous, goal-driven behavior: it <strong>perceives</strong
 and <strong>acts</strong> — all inside a workflow with well-defined phases.</p>
 
 <p>Just as Jakarta Persistence standardized the API, usage patterns, and paradigms for object-relational data
-access, Jakarta Agentic AI standardizes agent construction (the same analogy applies for basically any other 
+access, Jakarta Agentic AI standardizes agent construction (the same analogy applies for basically any other
 Jakarta technology such as Servlet, REST, or Batch). You program against well-understood standard
-annotations and interfaces such as <code>@Agent</code> and <code>LargeLanguageModel</code>. A compatible 
-runtime provides the actual orchestration engine, connectivity to the LLM provider, as well as natural 
+annotations and interfaces such as <code>@Agent</code> and <code>LargeLanguageModel</code>. A compatible
+runtime provides the actual orchestration engine, connectivity to the LLM provider, as well as natural
 integration with other Jakarta EE technologies.</p>
 
 <blockquote>
 <p>This tutorial uses <strong>Payara</strong> as its running implementation, so
-setup steps, configuration file paths, and configuration property names are Payara-specific. The specification 
+setup steps, configuration file paths, and configuration property names are Payara-specific. The specification
 APIs work identically on any compatible runtime - only how you configure the runtime varies. In the future
 some of these configurations will be standardized as well.</p>
 </blockquote>
@@ -163,14 +163,14 @@ APIs. Here you annotate ordinary methods and the runtime orchestrates them in a 
 <code>Trigger → Decision* → Action* → Outcome</code>. The API is also deliberately designed to be
 familiar to Jakarta EE developers, even those new to AI.</li>
 
-<li><strong>Out-of-the-box integrations</strong> — agents still need common capabilities like 
+<li><strong>Out-of-the-box integrations</strong> — agents still need common capabilities like
 dependency injection, scopes, events, validation, JSON processing, transactions, and persistence.
 Rather than reinventing that, the specification simply integrates with existing Jakarta
-technologies. The component model itself <strong>builds on CDI</strong>: the trigger is a CDI 
+technologies. The component model itself <strong>builds on CDI</strong>: the trigger is a CDI
 event, the agent is a bean, and the workflow scope is a custom CDI scope. Everything else
-in the platform — <code>@Inject</code>, <code>@Valid</code>, <code>@Transactional</code>, 
-<code>EntityManager</code> — just works. Furthermore, other common integrations such as with LLMs 
-(and maybe even A2A in the future) are simply included in a way that makes sense to a Java/Jakarta 
+in the platform — <code>@Inject</code>, <code>@Valid</code>, <code>@Transactional</code>,
+<code>EntityManager</code> — just works. Furthermore, other common integrations such as with LLMs
+(and maybe even A2A in the future) are simply included in a way that makes sense to a Java/Jakarta
 EE developer.</li>
 
 <li><strong>Vendor neutrality</strong> — nothing in the agent names a provider or
@@ -196,7 +196,7 @@ neutrality possible.</li>
 version 1.0 (a restriction expected to be relaxed in the future).</li>
 <li><strong>Decisions and actions can be intermixed</strong> in any sequence, enabling anything
 from <code>Trigger + Action</code> (simple execution) up to
-<code>Trigger + Decision + Action + Decision + Action + ...</code> (complex branching). In the future 
+<code>Trigger + Decision + Action + Decision + Action + ...</code> (complex branching). In the future
 workflows can be defined programmatically and change dynamically at runtime.</li>
 <li>A <strong>Decision can end the workflow</strong> (by returning <code>false</code>, <code>null</code> or
 <code>Result(false, ...)</code>) — the remaining phases and the Outcome do <strong>not</strong> run.</li>
@@ -227,7 +227,7 @@ ChatModel model = AnthropicChatModel.builder()
         .modelName(&quot;claude-sonnet-4-6&quot;)
         .build();
 </code></pre>
-  
+
 <p>The switch requires changing a dependency,
 rewriting construction code, and rebuilding the application. The abstraction is
 a library API, so it ships inside your WAR.</p>
@@ -262,11 +262,11 @@ a redeploy. It is the same leap Jakarta Persistence made over hand-rolled JDBC:
 the provider became a configuration detail. The examples run this live — two
 identically written agents, one on local Ollama and one on Claude, differing
 only in <code>microprofile-config.properties</code>.</p>
-<p>Next, let's tour these concepts in a bit more detail. We links each concept to its exact section
+<p>Next, let's tour these concepts in a bit more detail. We link each concept to its exact section
 in the actual specification, where the full rules live.</p>
 </section>
 <section class="chapter" id="ch-2" data-num="2">
-<h1>The specification in brief</h1>
+<h1>The Specification in Brief</h1>
 <p>This chapter is a fast tour of the programming model — just enough to read the
 samples and know what to look for. It deliberately does <strong>not</strong> restate the rules,
 cardinalities or ordering cases: the specification already does that, clearly and
