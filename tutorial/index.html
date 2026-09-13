@@ -328,30 +328,27 @@ isolated per workflow, so two concurrent executions never mix history.
 <a href="https://jakarta.ee/specifications/agentic-ai/1.0/jakarta-agentic-ai-1.0.0-M1.html#_workflowscoped" target="_blank" rel="noopener">Read the specification → scopes</a>.</p>
 
 <h2>The LargeLanguageModel facade</h2>
-<p><code>LargeLanguageModel</code> is the vendor-neutral interface an agent injects to talk to an
+<p><code>LargeLanguageModel</code> is the simple interface an agent injects to talk to an
 LLM. <code>query(...)</code> takes a prompt with <code>{}</code> placeholders and returns text; an
-overload maps the response to a typed object via JSON-B. The agent never names a
-provider — that is server configuration (see the next chapter). If the facade does
+overload maps the response to a typed object via JSON-B. If the facade does
 not expose something you need, <code>unwrap()</code> reaches the underlying implementation.
-<a href="https://jakarta.ee/specifications/agentic-ai/1.0/jakarta-agentic-ai-1.0.0-M1.html#llm-integration" target="_blank" rel="noopener">Read the spec → LLM integration</a>.
-Conversation history is kept per workflow:
-<a href="https://jakarta.ee/specifications/agentic-ai/1.0/jakarta-agentic-ai-1.0.0-M1.html#llm-conversational-state" target="_blank" rel="noopener">read the spec → conversational state</a>.</p>
+<a href="https://jakarta.ee/specifications/agentic-ai/1.0/jakarta-agentic-ai-1.0.0-M1.html#llm-integration" target="_blank" rel="noopener">Read the specification → LLM integration</a>.</p>
 
 <h2>Errors</h2>
-<p>Service failures surface as <code>LLMException</code> (unchecked). A typed <code>query</code> that
+<p>LLM service failures surface as <code>LLMException</code> (unchecked). A typed <code>query</code> that
 cannot be mapped to the requested type also raises <code>LLMException</code> rather than
-returning corrupted data. Catch these in an <code>@HandleException</code> method with clear
+returning corrupted data. Catch these and any other errors in an <code>@HandleException</code> method with clear
 semantics: return normally to continue the workflow, rethrow to stop it.
-<a href="https://jakarta.ee/specifications/agentic-ai/1.0/jakarta-agentic-ai-1.0.0-M1.html#_exceptions" target="_blank" rel="noopener">Read the spec → exceptions</a>.</p>
+<a href="https://jakarta.ee/specifications/agentic-ai/1.0/jakarta-agentic-ai-1.0.0-M1.html#_exceptions" target="_blank" rel="noopener">Read the specification → exceptions</a>.</p>
 
-<p>That is the whole model. For the complete, authoritative rules — annotations,
+<p>That is the whole basic model. For the complete, authoritative rules — annotations,
 return patterns, ordering, cardinalities — and for more worked examples, go to the
-spec:
-<a href="https://jakarta.ee/specifications/agentic-ai/1.0/jakarta-agentic-ai-1.0.0-M1.html#examples" target="_blank" rel="noopener">read the spec → examples</a>.</p>
+specification:
+<a href="https://jakarta.ee/specifications/agentic-ai/1.0/jakarta-agentic-ai-1.0.0-M1.html#examples" target="_blank" rel="noopener">read the specification → examples</a>.</p>
 </section>
 <section class="chapter" id="ch-3" data-num="3">
-<h1>Chapter 3 — Running agents on Payara</h1>
-<p>Payara is a compatible implementation of the spec. When you deploy your
+<h1>Running on Payara</h1>
+<p>Payara is a compatible implementation of the specification. When you deploy your
 application on it, Payara supplies the <strong>orchestration engine</strong> that runs the phases
 and the <strong><code>@WorkflowScoped</code></strong> context — you write the agent, the server runs the
 workflow. It also implements the <code>LargeLanguageModel</code> facade once and plugs a
