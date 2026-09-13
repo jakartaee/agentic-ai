@@ -311,21 +311,21 @@ between them by type. <a href="https://jakarta.ee/specifications/agentic-ai/1.0/
 <ul>
 <li><code>@Trigger</code> — the single entry point; a CDI event observer that starts the workflow.</li>
 <li><code>@Decision</code> — optional gate(s); returning <code>false</code>/<code>null</code>/<code>Result(false, …)</code> ends the workflow early.</li>
-<li><code>@Action</code> — optional step(s) that do the work (usually the LLM call).</li>
+<li><code>@Action</code> — optional step(s) that do the work (usually an LLM call).</li>
 <li><code>@Outcome</code> — the successful end; afterwards the container destroys the workflow context.</li>
 <li><code>@HandleException</code> — recovery: return normally to continue, rethrow to stop.</li>
 </ul>
 <p>Decisions and actions may be intermixed, and data flows between phases by return
 type — no manual parameter passing.
-<a href="https://jakarta.ee/specifications/agentic-ai/1.0/jakarta-agentic-ai-1.0.0-M1.html#agent-lifecycle" target="_blank" rel="noopener">Read the spec → the agent lifecycle</a>
+<a href="https://jakarta.ee/specifications/agentic-ai/1.0/jakarta-agentic-ai-1.0.0-M1.html#agent-lifecycle" target="_blank" rel="noopener">Read the specification → the agent lifecycle</a>
 and <a href="https://jakarta.ee/specifications/agentic-ai/1.0/jakarta-agentic-ai-1.0.0-M1.html#_execution_order" target="_blank" rel="noopener">execution order</a>.</p>
 
 <h2>Scopes</h2>
 <p>Two scopes matter. <code>@WorkflowScoped</code> beans live for exactly one workflow
-execution — ideal for state shared across phases without leaking between concurrent
+execution — ideal for state shared only across phases without leaking between concurrent
 runs. <code>@ApplicationScoped</code> agents are shared, but their LLM conversation is still
 isolated per workflow, so two concurrent executions never mix history.
-<a href="https://jakarta.ee/specifications/agentic-ai/1.0/jakarta-agentic-ai-1.0.0-M1.html#_workflowscoped" target="_blank" rel="noopener">Read the spec → scopes</a>.</p>
+<a href="https://jakarta.ee/specifications/agentic-ai/1.0/jakarta-agentic-ai-1.0.0-M1.html#_workflowscoped" target="_blank" rel="noopener">Read the specification → scopes</a>.</p>
 
 <h2>The LargeLanguageModel facade</h2>
 <p><code>LargeLanguageModel</code> is the vendor-neutral interface an agent injects to talk to an
