@@ -332,7 +332,7 @@ isolated per workflow, so two concurrent executions never mix history.
 <p><code>LargeLanguageModel</code> is the simple interface an agent injects to talk to an
 LLM. <code>query(...)</code> takes a prompt with <code>{}</code> placeholders and returns text; an
 overload maps the response to a typed object via JSON-B. If the facade does
-not expose something you need, <code>unwrap()</code> reaches the underlying implementation.
+not expose something you need, <code>unwrap(...)</code> reaches the underlying implementation.
 <a href="https://jakarta.ee/specifications/agentic-ai/1.0/jakarta-agentic-ai-1.0.0-M1.html#llm-integration" target="_blank" rel="noopener">Read the specification → LLM integration</a>.</p>
 
 <h2>Errors</h2>
@@ -355,7 +355,7 @@ specification:
 <h1>Running on Payara</h1>
 <p>Payara is a compatible implementation of the specification. You write the agent, Payara runs the
 workflow. It also implements the <code>LargeLanguageModel</code> facade and plugs in a
-provider-specific backend behind it (such as Ollama, Anthropic, or Vertex). There is really just one thing 
+provider-specific backend behind it (such as Ollama, Anthropic, or Vertex). There is really just one thing
 you configure: <strong>the LLM backend</strong>.</p>
 
 <h2>LLM backend with MicroProfile Config</h2>
@@ -376,7 +376,7 @@ prefix:</p>
 </tr>
 <tr>
 <td><code>model</code></td>
-<td>Ollama default <code>gemma</code>; Anthropic/Vertex default <code>claude-opus-4-8</code></td>
+<td>Ollama default <code>gemma</code>; Anthropic/Vertex default <code>claude-sonnet-4-6</code></td>
 </tr>
 <tr>
 <td><code>ollama.base-url</code></td>
