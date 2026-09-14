@@ -322,7 +322,7 @@ and <a href="https://jakarta.ee/specifications/agentic-ai/1.0/jakarta-agentic-ai
 
 <h2>Scopes</h2>
 <p>Two scopes matter. <code>@WorkflowScoped</code> — the default, applied when an agent
-declares no scope of its own — means beans live for exactly one workflow
+does not explicitly declare a scope — means beans live for exactly one workflow
 execution, ideal for state shared only across phases without leaking between concurrent
 runs. <code>@ApplicationScoped</code> agents are shared, but their LLM conversation is still
 isolated per workflow, so two concurrent executions never mix history.
@@ -348,8 +348,7 @@ return patterns, ordering, cardinalities — and for more worked examples, go to
 specification:
 <a href="https://jakarta.ee/specifications/agentic-ai/1.0/jakarta-agentic-ai-1.0.0-M1.html#examples" target="_blank" rel="noopener">read the specification → examples</a>.</p>
 
-<p>Next, let's get a runtime under it and then put the model to work on real
-applications.</p>
+<p>Next, let's get a runtime under things and put the API to work.</p>
 </section>
 <section class="chapter" id="ch-3" data-num="3">
 <h1>Running on Payara</h1>
