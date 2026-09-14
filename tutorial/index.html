@@ -124,37 +124,42 @@ body{margin:0;font-family:var(--sans);color:var(--body);background:var(--light);
 <section class="chapter" id="ch-1" data-num="1">
 <h1>Overview and Motivation</h1>
 <h2>What is Jakarta Agentic AI</h2>
-<p><strong>Jakarta Agentic AI</strong> is a Jakarta EE specification (package <code>jakarta.ai.agent</code>)
-for building <strong>AI agents</strong> on Jakarta EE runtimes. An agent is a <strong>CDI bean</strong>
-that encapsulates autonomous, goal-driven behavior: it <strong>perceives</strong> an event,
-<strong>reasons</strong> (typically by querying an LLM), <strong>decides</strong> whether and how to proceed,
-and <strong>acts</strong> — all inside a workflow with well-defined phases.</p>
+<p><strong>Jakarta Agentic AI</strong> is a Jakarta EE specification (package
+<code>jakarta.ai.agent</code>) for building <strong>AI agents</strong> on Jakarta EE
+runtimes. An agent is a <strong>CDI bean</strong> that encapsulates autonomous,
+goal-driven behavior: it <strong>perceives</strong> an event, <strong>reasons</strong>
+(typically by querying an LLM), <strong>decides</strong> whether and how to proceed, and
+<strong>acts</strong> — all inside a workflow with well-defined phases.</p>
 
-<p>Just as Jakarta Persistence standardized the API, usage patterns, and paradigms for object-relational data
-access, Jakarta Agentic AI standardizes agent construction (the same analogy applies for basically any other
-Jakarta technology such as Servlet, REST, or Batch). You program against well-understood standard
-annotations and interfaces such as <code>@Agent</code> and <code>LargeLanguageModel</code>. A compatible
-runtime provides the actual orchestration engine, connectivity to the LLM provider, as well as natural
+<p>Just as Jakarta Persistence standardized the API, usage patterns, and paradigms for
+object-relational data access, Jakarta Agentic AI standardizes agent construction (the
+same analogy applies for basically any other Jakarta technology such as Servlet, REST, or
+Batch). You program against well-understood standard annotations and interfaces such as
+<code>@Agent</code> and <code>LargeLanguageModel</code>. A compatible runtime provides the
+actual orchestration engine, connectivity to the LLM provider, as well as natural
 integration with other Jakarta EE technologies.</p>
 
 <blockquote>
-<p>This tutorial uses <strong>Payara</strong> as its running implementation, so
-setup steps, configuration file paths, and configuration property names are Payara-specific. The specification
-APIs work identically on any compatible runtime — only how you configure the runtime varies. In the future
-some of these configurations will be standardized as well.</p>
+<p>This tutorial uses <strong>Payara</strong> as its running implementation, so setup
+steps, configuration file paths, and configuration property names are Payara-specific. The
+specification APIs work identically on any compatible runtime — only how you configure the
+runtime varies. In the future some of these configurations will be standardized as
+well.</p>
 </blockquote>
 
-<p>📖 This tutorial gives you basic orientation and runnable examples. The
-<strong>single source of truth</strong> for the programming model is the specification itself,
-which is short and meant to be read by everyone:
-<a href="https://jakarta.ee/specifications/agentic-ai/1.0/jakarta-agentic-ai-1.0.0-M1.html" target="_blank" rel="noopener">read the Jakarta Agentic AI 1.0 specification →</a>.
+<p>📖 This tutorial gives you basic orientation and runnable examples. The <strong>single
+source of truth</strong> for the programming model is the specification itself, which is
+short and meant to be read by everyone: <a
+href="https://jakarta.ee/specifications/agentic-ai/1.0/jakarta-agentic-ai-1.0.0-M1.html"
+target="_blank" rel="noopener">read the Jakarta Agentic AI 1.0 specification →</a>.
 Throughout, &quot;Read the specification →&quot; links take you to the exact section.</p>
 
 <h2>Why a specification for agents?</h2>
 
-<p>Before this specification, there was no standard way to build an AI agent in a Jakarta EE application.
-Teams either adopt a vendor-specific framework, assemble the pieces themselves, or have no cohesive idea
-of an agent. The specification addresses three main gaps.</p>
+<p>Before this specification, there was no standard way to build an AI agent in a Jakarta
+EE application. Teams either adopt a vendor-specific framework, assemble the pieces
+themselves, or have no cohesive idea of an agent. The specification addresses three main
+gaps.</p>
 
 <ol>
 <li><strong>Familiar structure instead of chaos</strong> — without a
@@ -210,10 +215,10 @@ parameter passing).</li>
 <h2>Pluggability in action — swapping GPT (OpenAI) for Claude (Anthropic)</h2>
 
 <p>Let's take a quick look at some code, specifically highlighting easy, pluggable
-integration with LLMs. Consider a running application faced with
-the requirement <em>&quot;starting today we use Claude instead of GPT&quot;</em>.
-With LangChain4j's <code>ChatModel</code> as an example, the provider choice is compiled into
-the application:</p>
+integration with LLMs. Consider a running application faced with the requirement
+<em>&quot;starting today we use Claude instead of GPT&quot;</em>. With LangChain4j's
+<code>ChatModel</code> as an example, the provider choice is compiled into the
+application:</p>
 <pre><code class="language-java">// BEFORE — pom.xml: dev.langchain4j:langchain4j-open-ai
 ChatModel model = OpenAiChatModel.builder()
         .apiKey(System.getenv(&quot;OPENAI_API_KEY&quot;))
@@ -228,12 +233,11 @@ ChatModel model = AnthropicChatModel.builder()
         .build();
 </code></pre>
 
-<p>The switch requires changing a dependency,
-rewriting construction code, and rebuilding the application. The abstraction is
-a library API, so it ships inside your WAR.</p>
+<p>The switch requires changing a dependency, rewriting construction code, and rebuilding
+the application. The abstraction is a library API, so it ships inside your WAR.</p>
 
-<p>With Jakarta Agentic AI, the agent injects the <strong>API interface</strong>
-and names no provider:</p>
+<p>With Jakarta Agentic AI, the agent injects the <strong>API interface</strong> and names
+no provider:</p>
 <pre><code class="language-java">@Agent
 public class QuestionAgent {
 
@@ -257,23 +261,22 @@ payara.agentic.llm.provider=ollama         payara.agentic.llm.provider=anthropic
 payara.agentic.llm.model=gemma3:4b         payara.agentic.llm.model=claude-sonnet-4-6
 </code></pre>
 <p>No code changes, no <code>pom.xml</code> changes (the provider's client infrastructure
-lives in the <strong>runtime</strong>, not in the WAR), no recompilation — at most
-a redeploy. It is the same leap Jakarta Persistence made over hand-rolled JDBC:
-the provider became a configuration detail. The examples run this live — two
-identically written agents, one on local Ollama and one on Claude, differing
-only in <code>microprofile-config.properties</code>.</p>
+lives in the <strong>runtime</strong>, not in the WAR), no recompilation — at most a
+redeploy. It is the same leap Jakarta Persistence made over hand-rolled JDBC: the provider
+became a configuration detail. The examples run this live — two identically written
+agents, one on local Ollama and one on Claude, differing only in
+<code>microprofile-config.properties</code>.</p>
 <p>Next, let's tour these concepts in a bit more detail.</p>
 </section>
 <section class="chapter" id="ch-2" data-num="2">
 <h1>The Specification in Brief</h1>
-<p>This is a fast tour of the programming model — just enough to read
-examples and know what to look for. Each key concept ends with a
-<strong>&quot;Read the specification →&quot;</strong> link to the exact
-specification section with further details.</p>
+<p>This is a fast tour of the programming model — just enough to read examples and know
+what to look for. Each key concept ends with a <strong>&quot;Read the specification
+→&quot;</strong> link to the exact specification section with further details.</p>
 
 <h2>An agent, at a glance</h2>
-<p>An agent is a CDI bean annotated with <code>@Agent</code>. Its behavior is expressed as a
-small set of annotated methods (the <em>phases</em>). A complete agent can fit in one
+<p>An agent is a CDI bean annotated with <code>@Agent</code>. Its behavior is expressed as
+a small set of annotated methods (the <em>phases</em>). A complete agent can fit in one
 class:</p>
 <pre><code class="language-java">@Agent
 public class QuestionAgent {
@@ -303,7 +306,9 @@ public class QuestionAgent {
     }
 }</code></pre>
 <p>The runtime discovers the bean, wires the phases into a workflow and passes data
-between them by type. <a href="https://jakarta.ee/specifications/agentic-ai/1.0/jakarta-agentic-ai-1.0.0-M1.html#programming-model" target="_blank" rel="noopener">Read the specification → the programming model</a>.</p>
+between them by type. <a
+href="https://jakarta.ee/specifications/agentic-ai/1.0/jakarta-agentic-ai-1.0.0-M1.html#programming-model"
+target="_blank" rel="noopener">Read the specification → the programming model</a>.</p>
 
 <h2>The phases</h2>
 <p>The lifecycle is <code>Trigger → Decision* → Action* → Outcome</code>, with
@@ -315,54 +320,62 @@ between them by type. <a href="https://jakarta.ee/specifications/agentic-ai/1.0/
 <li><code>@Outcome</code> — the successful end; afterwards the runtime destroys the workflow context.</li>
 <li><code>@HandleException</code> — recovery: return normally to continue, rethrow to stop.</li>
 </ul>
-<p>Decisions and actions may be intermixed, and data flows between phases by return
-type — no manual parameter passing.
-<a href="https://jakarta.ee/specifications/agentic-ai/1.0/jakarta-agentic-ai-1.0.0-M1.html#agent-lifecycle" target="_blank" rel="noopener">Read the specification → the agent lifecycle</a>
-and <a href="https://jakarta.ee/specifications/agentic-ai/1.0/jakarta-agentic-ai-1.0.0-M1.html#_execution_order" target="_blank" rel="noopener">execution order</a>.</p>
+<p>Decisions and actions may be intermixed, and data flows between phases by return type —
+no manual parameter passing. <a
+href="https://jakarta.ee/specifications/agentic-ai/1.0/jakarta-agentic-ai-1.0.0-M1.html#agent-lifecycle"
+target="_blank" rel="noopener">Read the specification → the agent lifecycle</a> and <a
+href="https://jakarta.ee/specifications/agentic-ai/1.0/jakarta-agentic-ai-1.0.0-M1.html#_execution_order"
+target="_blank" rel="noopener">execution order</a>.</p>
 
 <h2>Scopes</h2>
 <p>Two scopes matter. <code>@WorkflowScoped</code> — the default, applied when an agent
-does not explicitly declare a scope — means beans live for exactly one workflow
-execution, ideal for state shared only across phases without leaking between concurrent
-runs. <code>@ApplicationScoped</code> agents are shared, but their LLM conversation is still
-isolated per workflow, so two concurrent executions never mix history.
-<a href="https://jakarta.ee/specifications/agentic-ai/1.0/jakarta-agentic-ai-1.0.0-M1.html#_workflowscoped" target="_blank" rel="noopener">Read the specification → scopes</a>.</p>
+does not explicitly declare a scope — means beans live for exactly one workflow execution,
+ideal for state shared only across phases without leaking between concurrent runs.
+<code>@ApplicationScoped</code> agents are shared, but their LLM conversation is still
+isolated per workflow, so two concurrent executions never mix history. <a
+href="https://jakarta.ee/specifications/agentic-ai/1.0/jakarta-agentic-ai-1.0.0-M1.html#_workflowscoped"
+target="_blank" rel="noopener">Read the specification → scopes</a>.</p>
 
 <h2>The LargeLanguageModel facade</h2>
 <p><code>LargeLanguageModel</code> is the simple interface an agent injects to talk to an
-LLM. <code>query(...)</code> takes a prompt with <code>{}</code> placeholders and returns text; an
-overload maps the response to a typed object via JSON-B. If the facade does
-not expose something you need, <code>unwrap(...)</code> reaches the underlying implementation.
-<a href="https://jakarta.ee/specifications/agentic-ai/1.0/jakarta-agentic-ai-1.0.0-M1.html#llm-integration" target="_blank" rel="noopener">Read the specification → LLM integration</a>.</p>
+LLM. <code>query(...)</code> takes a prompt with <code>{}</code> placeholders and returns
+text; an overload maps the response to a typed object via JSON-B. If the facade does not
+expose something you need, <code>unwrap(...)</code> reaches the underlying implementation.
+<a
+href="https://jakarta.ee/specifications/agentic-ai/1.0/jakarta-agentic-ai-1.0.0-M1.html#llm-integration"
+target="_blank" rel="noopener">Read the specification → LLM integration</a>.</p>
 
 <h2>Errors</h2>
-<p>LLM service failures surface as <code>LLMException</code> (unchecked). A typed <code>query</code> that
-cannot be mapped to the requested type also raises <code>LLMException</code> rather than
-returning corrupted data. Catch these and any other errors (including invalid parameters
-that Jakarta Validation detects) in an <code>@HandleException</code> method with clear
-semantics: return normally to continue the workflow, rethrow to stop it.
-<a href="https://jakarta.ee/specifications/agentic-ai/1.0/jakarta-agentic-ai-1.0.0-M1.html#_exceptions" target="_blank" rel="noopener">Read the specification → exceptions</a>.</p>
+<p>LLM service failures surface as <code>LLMException</code> (unchecked). A typed
+<code>query</code> that cannot be mapped to the requested type also raises
+<code>LLMException</code> rather than returning corrupted data. Catch these and any other
+errors (including invalid parameters that Jakarta Validation detects) in an
+<code>@HandleException</code> method with clear semantics: return normally to continue the
+workflow, rethrow to stop it. <a
+href="https://jakarta.ee/specifications/agentic-ai/1.0/jakarta-agentic-ai-1.0.0-M1.html#_exceptions"
+target="_blank" rel="noopener">Read the specification → exceptions</a>.</p>
 
 <p>That is the whole basic model. For the complete, authoritative rules — annotations,
 return patterns, ordering, cardinalities — and for more worked examples, go to the
-specification:
-<a href="https://jakarta.ee/specifications/agentic-ai/1.0/jakarta-agentic-ai-1.0.0-M1.html#examples" target="_blank" rel="noopener">read the specification → examples</a>.</p>
+specification: <a
+href="https://jakarta.ee/specifications/agentic-ai/1.0/jakarta-agentic-ai-1.0.0-M1.html#examples"
+target="_blank" rel="noopener">read the specification → examples</a>.</p>
 
 <p>Next, let's get a runtime under things and put the API to work.</p>
 </section>
 
 <section class="chapter" id="ch-3" data-num="3">
 <h1>Running on Payara</h1>
-<p>Payara is a compatible implementation of the specification. You write the agent, Payara runs the
-workflow. It also implements the <code>LargeLanguageModel</code> facade and plugs in a
-provider-specific backend behind it (such as Ollama, Anthropic, or Vertex). There is really just one thing
-you configure: <strong>the LLM backend</strong>.</p>
+<p>Payara is a compatible implementation of the specification. You write the agent, Payara
+runs the workflow. It also implements the <code>LargeLanguageModel</code> facade and plugs
+in a provider-specific backend behind it (such as Ollama, Anthropic, or Vertex). There is
+really just one thing you configure: <strong>the LLM backend</strong>.</p>
 
 <h2>LLM backend with MicroProfile Config</h2>
-<p>Configuration is done through MicroProfile Config, so it can come from the application&#39;s
-<code>META-INF/microprofile-config.properties</code>, from system properties, or from
-environment variables. All keys have the <strong><code>payara.agentic.llm.</code></strong>
-prefix:</p>
+<p>Configuration is done through MicroProfile Config, so it can come from the
+application's <code>META-INF/microprofile-config.properties</code>, from system
+properties, or from environment variables. All keys have the
+<strong><code>payara.agentic.llm.</code></strong> prefix:</p>
 <table>
 <thead>
 <tr>
@@ -424,7 +437,7 @@ needed, <code>ollama.base-url</code>.</li>
 <code>anthropic.api-key</code> or the <code>ANTHROPIC_API_KEY</code> env var (export it in the same
 shell that starts the domain — the server inherits its environment). When a
 <code>system</code> prompt is configured, Payara sends it with prompt caching so the stable
-prefix is reused across the workflow&#39;s phases, cutting cost and latency; note that
+prefix is reused across the workflow's phases, cutting cost and latency; note that
 Claude only caches prefixes above a minimum size, so short system prompts simply
 do not cache (silently — it is not an error).</li>
 <li><strong>Vertex</strong> — Claude served by Google Vertex AI: same model family, GCP
@@ -433,33 +446,36 @@ API key).</li>
 <li><strong>none</strong> (default) — an inert backend that returns a fixed response; it lets you
 deploy and exercise the workflow before wiring a real provider.</li>
 </ul>
-<p>If you ever need something the Agentic AI facade does not expose, <code>llm.unwrap(...)</code> reaches
-the concrete backend.</p>
+<p>If you ever need something the Agentic AI facade does not expose,
+<code>llm.unwrap(...)</code> reaches the concrete backend.</p>
 <p>Next, let's take a look at some examples to crystallize all this.</p>
 </section>
 
 <section class="chapter" id="ch-4" data-num="4">
 <h1>The Examples</h1>
-<p>Three examples, three levels: the <strong>quickstart</strong> teaches the
-programming model in 5 classes; the <strong>tutorial generator</strong> shows a real use case
-with a chat refinement loop; and the <strong>Course Content Studio</strong> raises the bar to
-<strong>two agents chained by CDI events</strong>, with a human approval gate in the middle and
-a final student-facing view.</p>
-<p>All three live in the <a href="https://github.com/jakartaee/agentic-ai/tree/main/examples" target="_blank" rel="noopener"><code>examples/</code></a>
-directory of the Jakarta Agentic AI repository — the single place they are
-maintained. This chapter explains what each one teaches and the design ideas
-behind it; for the full source, configuration and run instructions, follow the
-<strong>Source</strong> link on each example.</p>
+<p>Three examples, three levels: the <strong>quickstart</strong> teaches the programming
+model in 5 classes; the <strong>tutorial generator</strong> shows a real use case with a
+chat refinement loop; and the <strong>Course Content Studio</strong> raises the bar to
+<strong>two agents chained by CDI events</strong>, with a human approval gate in the
+middle and a final student-facing view.</p>
+<p>All three live in the <a
+href="https://github.com/jakartaee/agentic-ai/tree/main/examples" target="_blank"
+rel="noopener"><code>examples/</code></a> directory of the Jakarta Agentic AI repository —
+the single place they are maintained. This chapter explains what each one teaches and the
+design ideas behind it; for the full source, configuration and run instructions, follow
+the <strong>Source</strong> link on each example.</p>
 <hr>
 <h2>Example 1 — Quickstart</h2>
-<p>📦 Source: <a href="https://github.com/jakartaee/agentic-ai/tree/main/examples/quickstart" target="_blank" rel="noopener">examples/quickstart</a></p>
-<p><strong>The smallest possible agent that exercises the four phases.</strong> A REST POST fires
-a CDI event; the agent answers the question with the configured LLM. Because
+<p>📦 Source: <a
+href="https://github.com/jakartaee/agentic-ai/tree/main/examples/quickstart"
+target="_blank" rel="noopener">examples/quickstart</a></p>
+<p><strong>The smallest possible agent that exercises the four phases.</strong> A REST
+POST fires a CDI event; the agent answers the question with the configured LLM. Because
 <code>Event.fire</code> is synchronous, the complete workflow (including the LLM call)
-finishes <strong>before</strong> <code>fire</code> returns, and the resource reads the answer back from an
-<code>@ApplicationScoped</code> store.</p>
-<p>The whole agent — the four phases — fits in one class; the excerpt below is the
-heart of it (full source at the <strong>Source</strong> link above):</p>
+finishes <strong>before</strong> <code>fire</code> returns, and the resource reads the
+answer back from an <code>@ApplicationScoped</code> store.</p>
+<p>The whole agent — the four phases — fits in one class; the excerpt below is the heart
+of it (full source at the <strong>Source</strong> link above):</p>
 <pre><code class="language-java">@Agent(name = &quot;QuestionAgent&quot;, description = &quot;Answers a question using the configured LLM backend.&quot;)
 public class QuestionAgent {
     @Inject LargeLanguageModel model;
@@ -478,15 +494,15 @@ public class QuestionAgent {
     @Outcome  void complete(Question question) { /* ... */ }            // [OUTCOME]
 }
 </code></pre>
-<p>Choosing the LLM backend is configuration, not code — this example runs fully local
-on Ollama at zero cost:</p>
+<p>Choosing the LLM backend is configuration, not code — this example runs fully local on
+Ollama at zero cost:</p>
 <pre><code class="language-properties">payara.agentic.llm.provider=ollama
 payara.agentic.llm.model=gemma3:4b
 payara.agentic.llm.ollama.base-url=http://localhost:11434
 </code></pre>
 <h3>What it teaches</h3>
 <ul>
-<li><strong>No scope annotation</strong> → the runtime applies <code>@WorkflowScoped</code> (the specification&#39;s
+<li><strong>No scope annotation</strong> → the runtime applies <code>@WorkflowScoped</code> (the specification's
 default, via the extension).</li>
 <li>The <code>@Decision</code> uses the <strong><code>Result</code></strong> pattern: <code>Result(false, ...)</code> when the
 question is blank → <code>@Action</code> and <code>@Outcome</code> <strong>do not run</strong> (the early
@@ -498,14 +514,16 @@ bridge between the agent and the synchronous HTTP response.</li>
 </ul>
 <hr>
 <h2>Example 2 — Tutorial Generator</h2>
-<p>📦 Source: <a href="https://github.com/jakartaee/agentic-ai/tree/main/examples/tutorial-generator" target="_blank" rel="noopener">examples/tutorial-generator</a></p>
-<p><strong>A real use case:</strong> an agent writes a <strong>field-by-field guide</strong> for a web form (a
-customer registration form) and allows <strong>refining the guide via chat</strong>. The page
-shows the form on the left, the generated guide on the right, and a refinement
-chat box below.</p>
-<p>One agent covers both behaviors — the same <code>@Action</code> generates from scratch or
-refines an existing guide, decided by whether the request already carries one
-(full source at the <strong>Source</strong> link above):</p>
+<p>📦 Source: <a
+href="https://github.com/jakartaee/agentic-ai/tree/main/examples/tutorial-generator"
+target="_blank" rel="noopener">examples/tutorial-generator</a></p>
+<p><strong>A real use case:</strong> an agent writes a <strong>field-by-field
+guide</strong> for a web form (a customer registration form) and allows <strong>refining
+the guide via chat</strong>. The page shows the form on the left, the generated guide on
+the right, and a refinement chat box below.</p>
+<p>One agent covers both behaviors — the same <code>@Action</code> generates from scratch
+or refines an existing guide, decided by whether the request already carries one (full
+source at the <strong>Source</strong> link above):</p>
 <pre><code class="language-java">@Trigger  void onRequest(TutorialRequest request)      // logs generate|refine
 @Decision Result hasFields(TutorialRequest request)    // any fields? if not, stop
 @Action   void render(TutorialRequest request) {
@@ -516,8 +534,8 @@ refines an existing guide, decided by whether the request already carries one
 }
 @Outcome  void complete(TutorialRequest request)       // logs the guide&#39;s size
 </code></pre>
-<p>The LLM backend and even the system prompt are configuration — here Claude for
-HTML quality, switchable to local Ollama without touching code:</p>
+<p>The LLM backend and even the system prompt are configuration — here Claude for HTML
+quality, switchable to local Ollama without touching code:</p>
 <pre><code class="language-properties">payara.agentic.llm.provider=anthropic
 payara.agentic.llm.model=claude-sonnet-4-6
 payara.agentic.llm.max-tokens=8192
@@ -536,7 +554,7 @@ guide + the instruction go into the prompt — the model edits the actual
 artifact instead of relying on conversational memory alone. (An important
 agent-engineering pattern worth remembering.)</li>
 <li><strong>Per-field refinement with a merge:</strong> <code>refine-field</code> extracts only the target
-field&#39;s description (JSON-P), runs the workflow over that fragment, and
+field's description (JSON-P), runs the workflow over that fragment, and
 <strong>merges</strong> the result back into the full guide — preserving the other fields
 and saving tokens.</li>
 <li><strong>LLM robustness:</strong> <code>stripCodeFences</code> removes the code fences that models
@@ -545,16 +563,19 @@ defensive post-processing.</li>
 </ol>
 <hr>
 <h2>Example 3 — Course Content Studio</h2>
-<p>📦 Source: <a href="https://github.com/jakartaee/agentic-ai/tree/main/examples/course-content-studio" target="_blank" rel="noopener">examples/course-content-studio</a></p>
-<p><strong>An advanced use case:</strong> the teacher pastes a chapter&#39;s content and picks a
-subject (mathematics, physics, English); an agent generates an <strong>introduction, a
-quiz and a conclusion</strong>; the teacher <strong>refines</strong> by section and, on <strong>approval</strong>, a
-<strong>second agent</strong> builds the <strong>published lesson</strong> that the student sees. It is the
-example that exercises almost the whole specification and shows the architectural
-differentiator: <strong>agent composition through CDI events</strong>.</p>
+<p>📦 Source: <a
+href="https://github.com/jakartaee/agentic-ai/tree/main/examples/course-content-studio"
+target="_blank" rel="noopener">examples/course-content-studio</a></p>
+<p><strong>An advanced use case:</strong> the teacher pastes a chapter's content and picks
+a subject (mathematics, physics, English); an agent generates an <strong>introduction, a
+quiz and a conclusion</strong>; the teacher <strong>refines</strong> by section and, on
+<strong>approval</strong>, a <strong>second agent</strong> builds the <strong>published
+lesson</strong> that the student sees. It is the example that exercises almost the whole
+specification and shows the architectural differentiator: <strong>agent composition
+through CDI events</strong>.</p>
 <p>The authoring agent shows ordered phases, per-workflow state, workflow memory,
-defensive JSON-B parsing and an exception handler — all in one class (full source
-at the <strong>Source</strong> link above):</p>
+defensive JSON-B parsing and an exception handler — all in one class (full source at the
+<strong>Source</strong> link above):</p>
 <pre><code class="language-java">// Agent 1 — authoring (ordered, workflow memory, defensive parsing)
 @Agent(name = &quot;CourseContentAgent&quot;)
 class CourseContentAgent {
@@ -569,8 +590,9 @@ class CourseContentAgent {
 }
 </code></pre>
 <p>On approval the REST layer fires a <code>LessonApproved</code> event, which is the
-<code>@Trigger</code> of a <strong>second</strong> agent (<code>PublishAgent</code>) — the two are composed purely
-through CDI events, with the human approval as the gate between them.</p>
+<code>@Trigger</code> of a <strong>second</strong> agent (<code>PublishAgent</code>) — the
+two are composed purely through CDI events, with the human approval as the gate between
+them.</p>
 <h3>The strong design ideas</h3>
 <ol>
 <li><strong>Two agents, chained only by CDI events.</strong> <code>CourseContentAgent</code> generates/
@@ -597,13 +619,13 @@ generate; filled → refine) and the <code>section</code>, so <code>refine-secti
 <strong>only the quiz</strong> (or only the intro), preserving the rest.</li>
 <li><strong>Live progress (SSE).</strong> Since <code>Event.fire</code> is synchronous, each phase reports
 to a <code>ProgressTracker</code> that streams over Server-Sent Events; the browser popup
-evolves with the agent&#39;s real steps.</li>
+evolves with the agent's real steps.</li>
 <li><strong>Polymorphic quiz + LLM grading.</strong> <code>QuizQuestion</code> has a <code>type</code>
 (<code>multiple_choice</code> | <code>open</code>). For an <strong>open</strong> question the student answers in a
 <code>&lt;textarea&gt;</code> and the <code>quiz/grade</code> endpoint asks the LLM for a semantic-similarity
 score against the <code>sampleAnswer</code>, mapped on the server to a verdict. A specification
 detail worth citing: this endpoint <strong>injects the <code>LargeLanguageModel</code> directly</strong>
-into a <code>@RequestScoped</code> resource — it works because the runtime&#39;s LLM is
+into a <code>@RequestScoped</code> resource — it works because the runtime's LLM is
 <code>@Dependent</code> (it needs no active workflow), so not every use of the model must be
 inside an agent.</li>
 </ol>
@@ -640,12 +662,12 @@ Switching Ollama↔Claude↔Vertex is <strong>one properties file</strong>.</li>
 <ul>
 <li><input disabled="" type="checkbox"> Ollama installed, <code>ollama pull gemma3:4b</code> done, the service answering at
 <code>http://localhost:11434</code> (test: <code>ollama run gemma3:4b &quot;hi&quot;</code>).</li>
-<li><input disabled="" type="checkbox"> The current <code>agentic-ai-core.jar</code> copied into the distribution&#39;s
+<li><input disabled="" type="checkbox"> The current <code>agentic-ai-core.jar</code> copied into the distribution's
 <code>glassfish/modules/</code> + domain restarted <strong>clearing the OSGi cache</strong>
 (classic gotcha: new JAR with an old cache = old class).</li>
 <li><input disabled="" type="checkbox"> <code>ANTHROPIC_API_KEY</code> exported <strong>in the same shell/environment that starts the
 domain</strong> (<code>$env:ANTHROPIC_API_KEY = &quot;sk-ant-...&quot;</code> before
-<code>asadmin restart-domain</code>) — the server process inherits its parent&#39;s
+<code>asadmin restart-domain</code>) — the server process inherits its parent's
 environment.</li>
 <li><input disabled="" type="checkbox"> Both WARs deployed and tested.</li>
 <li><input disabled="" type="checkbox"> <code>server.log</code> open in a terminal (<code>Get-Content -Wait -Tail 0</code>).</li>
@@ -655,17 +677,17 @@ first).</li>
 <li><input disabled="" type="checkbox"> Requests ready (no typing JSON by hand): a script/<code>.http</code> file with the
 valid POST, the empty POST and the refines.</li>
 </ul>
-<p>Common questions — how this compares with LangChain4j / Spring AI, error
-handling, asynchrony, why CDI events, multi-agent collaboration and running
-costs — are answered in the
-<a href="https://github.com/jakartaee/agentic-ai#frequently-asked-questions" target="_blank" rel="noopener">project README FAQ</a>.</p>
+<p>Common questions — how this compares with LangChain4j / Spring AI, error handling,
+asynchrony, why CDI events, multi-agent collaboration and running costs — are answered in
+the <a href="https://github.com/jakartaee/agentic-ai#frequently-asked-questions"
+target="_blank" rel="noopener">project README FAQ</a>.</p>
 <h2>Key takeaways</h2>
 <ol>
 <li><strong>Agents as CDI beans</strong> — the phase model
 (<code>@Trigger/@Decision/@Action/@Outcome/@HandleException</code>) turns &quot;calling an LLM&quot;
 into a container-managed workflow, with standardized scoping, injection,
 validation and error handling.</li>
-<li><strong>Real vendor neutrality</strong> — the agent&#39;s code does not know which LLM serves
+<li><strong>Real vendor neutrality</strong> — the agent's code does not know which LLM serves
 it; switching Ollama↔Claude↔Vertex is configuration (MicroProfile Config in
 Payara).</li>
 <li><strong>A real specification with a working implementation</strong> — read the specification for the rules, run
