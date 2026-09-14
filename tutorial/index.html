@@ -449,9 +449,9 @@ a final student-facing view.</p>
 directory of the Jakarta Agentic AI repository — the single place they are
 maintained. This chapter explains what each one teaches and the design ideas
 behind it; for the full source, configuration and run instructions, follow the
-<strong>Source</strong> link on each sample.</p>
+<strong>Source</strong> link on each example.</p>
 <hr>
-<h2>Sample 1 — Quickstart</h2>
+<h2>Example 1 — Quickstart</h2>
 <p>📦 Source: <a href="https://github.com/jakartaee/agentic-ai/tree/main/examples/quickstart" target="_blank" rel="noopener">examples/quickstart</a></p>
 <p><strong>The smallest possible agent that exercises the four phases.</strong> A REST POST fires
 a CDI event; the agent answers the question with the configured LLM. Because
@@ -478,7 +478,7 @@ public class QuestionAgent {
     @Outcome  void complete(Question question) { /* ... */ }            // [OUTCOME]
 }
 </code></pre>
-<p>Choosing the LLM backend is configuration, not code — this sample runs fully local
+<p>Choosing the LLM backend is configuration, not code — this example runs fully local
 on Ollama at zero cost:</p>
 <pre><code class="language-properties">payara.agentic.llm.provider=ollama
 payara.agentic.llm.model=gemma3:4b
@@ -497,7 +497,7 @@ bridge between the agent and the synchronous HTTP response.</li>
 <li>Runs on a small local <strong>Ollama</strong> model — no API key, no cost.</li>
 </ul>
 <hr>
-<h2>Sample 2 — Tutorial Generator</h2>
+<h2>Example 2 — Tutorial Generator</h2>
 <p>📦 Source: <a href="https://github.com/jakartaee/agentic-ai/tree/main/examples/tutorial-generator" target="_blank" rel="noopener">examples/tutorial-generator</a></p>
 <p><strong>A real use case:</strong> an agent writes a <strong>field-by-field guide</strong> for a web form (a
 customer registration form) and allows <strong>refining the guide via chat</strong>. The page
@@ -544,13 +544,13 @@ sometimes insist on adding — an honest reminder that LLM output requires
 defensive post-processing.</li>
 </ol>
 <hr>
-<h2>Sample 3 — Course Content Studio</h2>
+<h2>Example 3 — Course Content Studio</h2>
 <p>📦 Source: <a href="https://github.com/jakartaee/agentic-ai/tree/main/examples/course-content-studio" target="_blank" rel="noopener">examples/course-content-studio</a></p>
 <p><strong>An advanced use case:</strong> the teacher pastes a chapter&#39;s content and picks a
 subject (mathematics, physics, English); an agent generates an <strong>introduction, a
 quiz and a conclusion</strong>; the teacher <strong>refines</strong> by section and, on <strong>approval</strong>, a
 <strong>second agent</strong> builds the <strong>published lesson</strong> that the student sees. It is the
-sample that exercises almost the whole spec and shows the architectural
+example that exercises almost the whole spec and shows the architectural
 differentiator: <strong>agent composition through CDI events</strong>.</p>
 <p>The authoring agent shows ordered phases, per-workflow state, workflow memory,
 defensive JSON-B parsing and an exception handler — all in one class (full source
@@ -636,7 +636,7 @@ on <strong>local Ollama</strong> (no network, no cost).</li>
 refined via chat; then two agents chained by CDI events with a human approval gate.
 Switching Ollama↔Claude↔Vertex is <strong>one properties file</strong>.</li>
 </ol>
-<h2>Running the samples — checklist</h2>
+<h2>Running the examples — checklist</h2>
 <ul>
 <li><input disabled="" type="checkbox"> Ollama installed, <code>ollama pull gemma3:4b</code> done, the service answering at
 <code>http://localhost:11434</code> (test: <code>ollama run gemma3:4b &quot;hi&quot;</code>).</li>
@@ -669,10 +669,10 @@ validation and error handling.</li>
 it; switching Ollama↔Claude↔Vertex is configuration (MicroProfile Config in
 Payara).</li>
 <li><strong>A real spec with a working implementation</strong> — read the spec for the rules, run
-the samples on Payara to see them in action.</li>
+the examples on Payara to see them in action.</li>
 </ol>
 <hr>
-<p>🏁 End of the tutorial. Now run the samples yourself and explore the source.</p>
+<p>🏁 End of the tutorial. Now run the examples yourself and explore the source.</p>
 </section>
 </div></div>
 
