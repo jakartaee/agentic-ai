@@ -350,26 +350,24 @@ specification:
 
 <p>Next, let's get a runtime under things and put the API to work.</p>
 </section>
+
 <section class="chapter" id="ch-3" data-num="3">
 <h1>Running on Payara</h1>
-<p>Payara is a compatible implementation of the specification. When you deploy your
-application on it, Payara supplies the <strong>orchestration engine</strong> that runs the phases
-and the <strong><code>@WorkflowScoped</code></strong> context — you write the agent, the server runs the
-workflow. It also implements the <code>LargeLanguageModel</code> facade once and plugs a
-provider-specific backend behind it (Ollama, Anthropic, Vertex), so your agent code
-stays free of any provider. This chapter is about the one thing you configure as an
-app author: <strong>which LLM backend to use</strong>.</p>
+<p>Payara is a compatible implementation of the specification. You write the agent, Payara runs the
+workflow. It also implements the <code>LargeLanguageModel</code> facade and plugs in a
+provider-specific backend behind it (such as Ollama, Anthropic, or Vertex). There is really just one thing 
+you configure: <strong>the LLM backend</strong>.</p>
 
-<h2>Selecting a backend with MicroProfile Config</h2>
-<p>Configuration is MicroProfile Config, so it can come from the application&#39;s
+<h2>LLM backend with MicroProfile Config</h2>
+<p>Configuration is done through MicroProfile Config, so it can come from the application&#39;s
 <code>META-INF/microprofile-config.properties</code>, from system properties, or from
-environment variables — which is how each sample picks its provider without any code
-change. All keys live under the <strong><code>payara.agentic.llm.</code></strong> prefix:</p>
+environment variables. All keys have the <strong><code>payara.agentic.llm.</code></strong>
+prefix:</p>
 <table>
 <thead>
 <tr>
 <th>Key</th>
-<th>Values / default</th>
+<th>Values/default</th>
 </tr>
 </thead>
 <tbody><tr>
@@ -435,12 +433,14 @@ API key).</li>
 <li><strong>none</strong> (default) — an inert backend that returns a fixed response; it lets you
 deploy and exercise the workflow before wiring a real provider.</li>
 </ul>
-<p>If you ever need something the facade does not expose, <code>llm.unwrap(...)</code> reaches
+<p>If you ever need something the Agentic AI facade does not expose, <code>llm.unwrap(...)</code> reaches
 the concrete backend.</p>
+<p>Next, let's take a look at some examples to crystallize all this.</p>
 </section>
+
 <section class="chapter" id="ch-4" data-num="4">
-<h1>Chapter 4 — The samples</h1>
-<p>Three samples, three levels: the <strong>quickstart</strong> teaches the
+<h1>The Examples</h1>
+<p>Three examples, three levels: the <strong>quickstart</strong> teaches the
 programming model in 5 classes; the <strong>tutorial generator</strong> shows a real use case
 with a chat refinement loop; and the <strong>Course Content Studio</strong> raises the bar to
 <strong>two agents chained by CDI events</strong>, with a human approval gate in the middle and
