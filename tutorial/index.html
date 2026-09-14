@@ -140,7 +140,7 @@ integration with other Jakarta EE technologies.</p>
 <blockquote>
 <p>This tutorial uses <strong>Payara</strong> as its running implementation, so
 setup steps, configuration file paths, and configuration property names are Payara-specific. The specification
-APIs work identically on any compatible runtime - only how you configure the runtime varies. In the future
+APIs work identically on any compatible runtime — only how you configure the runtime varies. In the future
 some of these configurations will be standardized as well.</p>
 </blockquote>
 
@@ -180,7 +180,7 @@ wherever you deploy. Like all Jakarta EE specifications, Agentic AI makes vendor
 neutrality possible.</li>
 </ol>
 
-<h2>The mental model - a workflow of phases</h2>
+<h2>The mental model — a workflow of phases</h2>
 <pre><code>   CDI event
        |
        ▼
@@ -207,7 +207,7 @@ available as a parameter of later phases (type-based injection, no manual
 parameter passing).</li>
 </ul>
 
-<h2>Pluggability in action - swapping GPT (OpenAI) for Claude (Anthropic)</h2>
+<h2>Pluggability in action — swapping GPT (OpenAI) for Claude (Anthropic)</h2>
 
 <p>Let's take a quick look at some code, specifically highlighting easy, pluggable
 integration with LLMs. Consider a running application faced with
@@ -486,7 +486,7 @@ payara.agentic.llm.ollama.base-url=http://localhost:11434
 </code></pre>
 <h3>What it teaches</h3>
 <ul>
-<li><strong>No scope annotation</strong> → the runtime applies <code>@WorkflowScoped</code> (the spec&#39;s
+<li><strong>No scope annotation</strong> → the runtime applies <code>@WorkflowScoped</code> (the specification&#39;s
 default, via the extension).</li>
 <li>The <code>@Decision</code> uses the <strong><code>Result</code></strong> pattern: <code>Result(false, ...)</code> when the
 question is blank → <code>@Action</code> and <code>@Outcome</code> <strong>do not run</strong> (the early
@@ -550,7 +550,7 @@ defensive post-processing.</li>
 subject (mathematics, physics, English); an agent generates an <strong>introduction, a
 quiz and a conclusion</strong>; the teacher <strong>refines</strong> by section and, on <strong>approval</strong>, a
 <strong>second agent</strong> builds the <strong>published lesson</strong> that the student sees. It is the
-example that exercises almost the whole spec and shows the architectural
+example that exercises almost the whole specification and shows the architectural
 differentiator: <strong>agent composition through CDI events</strong>.</p>
 <p>The authoring agent shows ordered phases, per-workflow state, workflow memory,
 defensive JSON-B parsing and an exception handler — all in one class (full source
@@ -601,7 +601,7 @@ evolves with the agent&#39;s real steps.</li>
 <li><strong>Polymorphic quiz + LLM grading.</strong> <code>QuizQuestion</code> has a <code>type</code>
 (<code>multiple_choice</code> | <code>open</code>). For an <strong>open</strong> question the student answers in a
 <code>&lt;textarea&gt;</code> and the <code>quiz/grade</code> endpoint asks the LLM for a semantic-similarity
-score against the <code>sampleAnswer</code>, mapped on the server to a verdict. A spec
+score against the <code>sampleAnswer</code>, mapped on the server to a verdict. A specification
 detail worth citing: this endpoint <strong>injects the <code>LargeLanguageModel</code> directly</strong>
 into a <code>@RequestScoped</code> resource — it works because the runtime&#39;s LLM is
 <code>@Dependent</code> (it needs no active workflow), so not every use of the model must be
@@ -617,14 +617,14 @@ works <strong>offline</strong>.</li>
 </ul>
 </section>
 <section class="chapter" id="ch-5" data-num="5">
-<h1>Chapter 5 — Wrap-up</h1>
+<h1>Wrap-up</h1>
 <h2>Recap: the whole story, end to end</h2>
 <p>The pieces you have seen fit together like this:</p>
 <ol>
 <li><strong>The problem.</strong> Everyone wants AI agents; in Java, every framework has its own
 proprietary model. The guiding question: &quot;what would the <em>Jakarta Persistence</em>
 of agents look like?&quot;</li>
-<li><strong>The spec.</strong> The phase model (<code>Trigger → Decision* → Action* → Outcome</code> +
+<li><strong>The specification.</strong> The phase model (<code>Trigger → Decision* → Action* → Outcome</code> +
 <code>HandleException</code>); a complete agent fits in one class; the <code>LargeLanguageModel</code>
 facade with <code>{}</code> placeholders; <code>@WorkflowScoped</code> — with the specification as the
 authoritative reference for the rules.</li>
@@ -668,7 +668,7 @@ validation and error handling.</li>
 <li><strong>Real vendor neutrality</strong> — the agent&#39;s code does not know which LLM serves
 it; switching Ollama↔Claude↔Vertex is configuration (MicroProfile Config in
 Payara).</li>
-<li><strong>A real spec with a working implementation</strong> — read the spec for the rules, run
+<li><strong>A real specification with a working implementation</strong> — read the specification for the rules, run
 the examples on Payara to see them in action.</li>
 </ol>
 <hr>
