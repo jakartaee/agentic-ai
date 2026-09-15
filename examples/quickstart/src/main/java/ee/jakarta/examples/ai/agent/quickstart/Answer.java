@@ -12,15 +12,10 @@
  *****************************************************************************/
 package ee.jakarta.examples.ai.agent.quickstart;
 
-import jakarta.validation.constraints.NotBlank;
-
 /**
- * CDI event that triggers the {@link QuestionAgent} workflow.
- * <p>
- * The constraint is what {@code @Valid} on the trigger parameter enforces: an
- * agent is never started with a blank question. {@link AskResource} rejects
- * blank input with a 400 before firing, so the constraint guards the agent
- * against any other caller.
+ * The model's reply, produced by the {@code @Action} phase and consumed by the
+ * {@code @Outcome} phase. Phases pass values by type, so returning this record
+ * from one phase is all it takes for the next to receive it as a parameter.
  */
-public record Question(@NotBlank String text) {
+public record Answer(String text) {
 }

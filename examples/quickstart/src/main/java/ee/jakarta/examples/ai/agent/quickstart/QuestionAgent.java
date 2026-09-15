@@ -17,18 +17,23 @@ import jakarta.ai.agent.Agent;
 import jakarta.ai.agent.Decision;
 import jakarta.ai.agent.LargeLanguageModel;
 import jakarta.ai.agent.Outcome;
-import jakarta.ai.agent.Result;
 import jakarta.ai.agent.Trigger;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * Minimal Jakarta Agentic AI agent: answers a question with the configured LLM
+ * A compact Jakarta Agentic AI agent: answers a question with the configured LLM
  * backend. Exercises all four specification phases &mdash; {@code @Trigger},
  * {@code @Decision}, {@code @Action}, {@code @Outcome} &mdash; and logs each so
  * the workflow is visible in {@code server.log}.
+ * <p>
+ * The {@code @Decision} skips a question that has already been answered, so the
+ * same question twice costs one model call rather than two. That is also what
+ * demonstrates early termination: when it returns {@code false}, neither
+ * {@code @Action} nor {@code @Outcome} runs.
  * <p>
  * Default scope is {@code @WorkflowScoped} (applied by the runtime extension).
  */
@@ -45,26 +50,30 @@ public class QuestionAgent {
 
     @Trigger
     void onQuestion(@Valid Question question) {
-        LOGGER.info("[TRIGGER] question received: " + question.text());
+        LOGGER.log(Level.INFO, "[TRIGGER] question received: {0}", question.text());
     }
 
+    /**
+     * Answer it only if we have not answered it before. Returning {@code false}
+     * ends the workflow here, so the model is never called for a repeat.
+     */
     @Decision
-    Result hasContent(Question question) {
-        boolean proceed = question.text() != null && !question.text().isBlank();
-        LOGGER.info("[DECISION] proceed=" + proceed);
-        return new Result(proceed, question);
+    boolean notYetAnswered(Question question) {
+        boolean proceed = answers.get(question.text()) == null;
+        LOGGER.log(Level.INFO, "[DECISION] not yet answered: {0}", proceed);
+        return proceed;
     }
 
     @Action
-    void generate(Question question) {
-        LOGGER.info("[ACTION] querying LLM...");
-        String answer = model.query("Answer concisely in one short paragraph: {}", question.text());
-        answers.put(question.text(), answer);
-        LOGGER.info("[ACTION] answer: " + answer);
+    Answer generate(Question question) {
+        LOGGER.log(Level.INFO, "[ACTION] querying LLM for: {0}", question.text());
+        return new Answer(model.query("Answer concisely in one short paragraph: {}",
+                question.text()));
     }
 
     @Outcome
-    void complete(Question question) {
-        LOGGER.info("[OUTCOME] workflow complete for: " + question.text());
+    void store(Question question, Answer answer) {
+        answers.put(question.text(), answer.text());
+        LOGGER.log(Level.INFO, "[OUTCOME] stored answer: {0}", answer.text());
     }
 }
