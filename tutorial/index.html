@@ -525,10 +525,10 @@ payara.agentic.llm.ollama.base-url=http://localhost:11434
 <li><strong>No scope annotation</strong> → the runtime applies <code>@WorkflowScoped</code>, the
 specification's default.</li>
 <li><strong><code>@Valid</code> on the trigger parameter</strong> — the phase model honours Jakarta
-Validation. A violation is raised before the body runs and can be caught by
-<code>@HandleException</code>.</li>
-<li><strong>No parameter passing</strong> — <code>generate</code> and <code>complete</code> each just declare
-<code>Question</code> and the runtime supplies it. Phases communicate by type.</li>
+Validation, and a violation is raised before the body runs.</li>
+<li><strong>Nothing passes <code>Question</code> from phase to phase</strong> — the runtime invokes each
+phase and fills its parameters by type. All four here match the triggering event, so each
+phase declares <code>Question</code> and gets it.</li>
 <li>The <code>@Decision</code> uses the <strong><code>Result</code></strong> pattern: <code>Result(false, ...)</code> when the
 question is blank → <code>@Action</code> and <code>@Outcome</code> <strong>do not run</strong> (the early
 termination demo).</li>
