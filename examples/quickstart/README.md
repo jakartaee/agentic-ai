@@ -1,6 +1,6 @@
 # Quickstart — Jakarta Agentic AI sample
 
-The smallest Jakarta Agentic AI sample: a single `@Agent` answers a question,
+A compact Jakarta Agentic AI example: a single `@Agent` answers a question,
 exercising the four specification phases (`@Trigger`, `@Decision`, `@Action`,
 `@Outcome`). A synchronous REST call fires the trigger event and returns the LLM
 answer in the same response.
@@ -48,6 +48,13 @@ curl -s http://localhost:8080/quickstart/api/ask \
   -d '{"question":"What is Jakarta EE in one sentence?"}'
 ```
 
-Watch `server.log` for `[TRIGGER]` → `[DECISION]` → `[ACTION]` → `[OUTCOME]`. An
-empty `question` demonstrates early termination: `@Decision` returns
-`Result(false, ...)` and `@Action` never runs.
+Watch `server.log` for `[TRIGGER]` → `[DECISION]` → `[ACTION]` → `[OUTCOME]`.
+
+Ask the **same question again** to see early termination: `@Decision` finds the
+answer already stored, returns `false`, and neither `@Action` nor `@Outcome`
+runs — so the second call never reaches the model. The log stops after
+`[DECISION]` and the answer comes back just as fast.
+
+An empty `question` is rejected with a 400 before the event is fired; `@NotBlank`
+on the event record is what `@Valid` on the trigger enforces for any other
+caller.

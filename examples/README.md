@@ -6,9 +6,9 @@ This module contains example applications and usage patterns for Jakarta Agentic
 
 ### Quickstart
 
-Located in `quickstart/`, the smallest possible sample: a single `@Agent` that
-answers a question, exercising all four phases (`@Trigger`, `@Decision`,
-`@Action`, `@Outcome`) over a synchronous REST call. Runs on a small local
+Located in `quickstart/`, a compact example: a single `@Agent` that answers a
+question, exercising all four phases (`@Trigger`, `@Decision`, `@Action`,
+`@Outcome`) over a synchronous REST call. Runs on a small local
 Ollama model, so it needs no API key. Start here. See its
 [README](quickstart/README.md).
 
