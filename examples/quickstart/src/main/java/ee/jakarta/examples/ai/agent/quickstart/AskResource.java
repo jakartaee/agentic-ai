@@ -43,15 +43,19 @@ public class AskResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response ask(AskRequest request) {
-        String text = request == null || request.question() == null ? "" : request.question();
-        Question question = new Question(text);
+        String text = request == null ? null : request.question();
+        if (text == null || text.isBlank()) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(new AskResponse("", "A question is required."))
+                    .build();
+        }
 
-        trigger.fire(question);   // runs the entire workflow synchronously
+        trigger.fire(new Question(text));   // runs the entire workflow synchronously
 
         String answer = answers.get(text);
         return Response.ok(new AskResponse(
                 text,
-                answer != null ? answer : "(no answer — workflow terminated, or LLM provider is 'none')"
+                answer != null ? answer : "(no answer — the LLM provider is 'none')"
         )).build();
     }
 
