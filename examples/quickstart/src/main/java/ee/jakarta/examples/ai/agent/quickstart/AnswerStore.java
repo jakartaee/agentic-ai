@@ -18,8 +18,8 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Application-scoped holder so the synchronous REST call can read back the
- * answer produced by the agent's {@code @Action} phase.
+ * Application-scoped holder so the REST call can read back the answer after the
+ * workflow completes.
  */
 @ApplicationScoped
 public class AnswerStore {

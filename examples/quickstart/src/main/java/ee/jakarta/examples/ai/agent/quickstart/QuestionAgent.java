@@ -30,11 +30,6 @@ import java.util.logging.Logger;
  * {@code @Decision}, {@code @Action}, {@code @Outcome} &mdash; and logs each so
  * the workflow is visible in {@code server.log}.
  * <p>
- * The {@code @Decision} skips a question that has already been answered, so the
- * same question twice costs one model call rather than two. That is also what
- * demonstrates early termination: when it returns {@code false}, neither
- * {@code @Action} nor {@code @Outcome} runs.
- * <p>
  * Default scope is {@code @WorkflowScoped} (applied by the runtime extension).
  */
 @Agent(name = "QuestionAgent", description = "Answers a question using the configured LLM backend.")
@@ -53,10 +48,6 @@ public class QuestionAgent {
         LOGGER.log(Level.INFO, "[TRIGGER] question received: {0}", question.text());
     }
 
-    /**
-     * Answer it only if we have not answered it before. Returning {@code false}
-     * ends the workflow here, so the model is never called for a repeat.
-     */
     @Decision
     boolean notYetAnswered(Question question) {
         boolean proceed = answers.get(question.text()) == null;

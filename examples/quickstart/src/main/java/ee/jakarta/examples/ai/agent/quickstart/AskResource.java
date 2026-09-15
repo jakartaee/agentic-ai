@@ -16,9 +16,7 @@ import jakarta.ai.agent.LLMException;
 import jakarta.enterprise.context.RequestScoped;
 import jakarta.enterprise.event.Event;
 import jakarta.inject.Inject;
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.ConstraintViolationException;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
@@ -34,11 +32,8 @@ import java.util.logging.Logger;
  * <p>
  * {@code Event.fire(...)} is synchronous, so the whole workflow (including the
  * LLM call) completes before it returns; the answer is then read back from the
- * {@link AnswerStore} and returned in the same HTTP response.
- * <p>
- * The request is validated declaratively: {@code @NotBlank} on the request
- * record and {@code @Valid} on the parameter, so a missing or empty question is
- * rejected with a 400 before this method body runs.
+ * {@link AnswerStore} and returned in the same HTTP response. Failures from the
+ * workflow surface here too, which is why they are caught below.
  */
 @Path("ask")
 @RequestScoped
@@ -55,14 +50,16 @@ public class AskResource {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response ask(@NotNull @Valid AskRequest request) {
+    public Response ask(AskRequest request) {
         String text = request.question();
 
         try {
             trigger.fire(new Question(text));   // runs the entire workflow synchronously
+        } catch (ConstraintViolationException e) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(new AskResponse(text, "A question is required."))
+                    .build();
         } catch (LLMException e) {
-            // Event.fire is synchronous, so a model failure surfaces here rather than
-            // in the agent. The most common cause is the configured backend not running.
             LOGGER.log(Level.WARNING, "LLM call failed", e);
             return Response.status(Response.Status.SERVICE_UNAVAILABLE)
                     .entity(new AskResponse(text,
@@ -74,7 +71,7 @@ public class AskResource {
         return Response.ok(new AskResponse(text, answers.get(text))).build();
     }
 
-    public record AskRequest(@NotBlank String question) {
+    public record AskRequest(String question) {
     }
 
     public record AskResponse(String question, String answer) {

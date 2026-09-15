@@ -13,9 +13,8 @@
 package ee.jakarta.examples.ai.agent.quickstart;
 
 /**
- * The model's reply, produced by the {@code @Action} phase and consumed by the
- * {@code @Outcome} phase. Phases pass values by type, so returning this record
- * from one phase is all it takes for the next to receive it as a parameter.
+ * The model's reply, returned by the {@code @Action} phase and received by the
+ * {@code @Outcome} phase.
  */
 public record Answer(String text) {
 }
