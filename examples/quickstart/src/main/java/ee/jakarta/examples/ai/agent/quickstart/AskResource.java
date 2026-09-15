@@ -12,6 +12,7 @@
  *****************************************************************************/
 package ee.jakarta.examples.ai.agent.quickstart;
 
+import jakarta.ai.agent.LLMException;
 import jakarta.enterprise.context.RequestScoped;
 import jakarta.enterprise.event.Event;
 import jakarta.inject.Inject;
@@ -21,6 +22,9 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Fires the {@link Question} CDI event that triggers the agent workflow.
@@ -32,6 +36,8 @@ import jakarta.ws.rs.core.Response;
 @Path("ask")
 @RequestScoped
 public class AskResource {
+
+    private static final Logger LOGGER = Logger.getLogger(AskResource.class.getName());
 
     @Inject
     Event<Question> trigger;
@@ -50,13 +56,20 @@ public class AskResource {
                     .build();
         }
 
-        trigger.fire(new Question(text));   // runs the entire workflow synchronously
+        try {
+            trigger.fire(new Question(text));   // runs the entire workflow synchronously
+        } catch (LLMException e) {
+            // Event.fire is synchronous, so a model failure surfaces here rather than
+            // in the agent. The most common cause is the configured backend not running.
+            LOGGER.log(Level.WARNING, "LLM call failed", e);
+            return Response.status(Response.Status.SERVICE_UNAVAILABLE)
+                    .entity(new AskResponse(text,
+                            "The LLM backend is unavailable. Check that the provider "
+                                    + "configured in microprofile-config.properties is running."))
+                    .build();
+        }
 
-        String answer = answers.get(text);
-        return Response.ok(new AskResponse(
-                text,
-                answer != null ? answer : "(no answer — the LLM provider is 'none')"
-        )).build();
+        return Response.ok(new AskResponse(text, answers.get(text))).build();
     }
 
     public record AskRequest(String question) {
