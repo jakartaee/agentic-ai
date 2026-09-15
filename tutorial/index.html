@@ -485,28 +485,34 @@ rel="noopener">examples README</a> describes them all.</p>
 href="https://github.com/jakartaee/agentic-ai/tree/main/examples/quickstart"
 target="_blank" rel="noopener">examples/quickstart</a></p>
 <p><strong>The smallest possible agent that exercises the four phases.</strong> A REST
-POST fires a CDI event; the agent answers the question with the configured LLM. Because
-<code>Event.fire</code> is synchronous, the complete workflow (including the LLM call)
-finishes <strong>before</strong> <code>fire</code> returns, and the resource reads the
-answer back from an <code>@ApplicationScoped</code> store.</p>
+POST fires a CDI event and the agent answers the question with the configured LLM.</p>
 <p>The whole agent — the four phases — fits in one class; the excerpt below is the heart
 of it (full source at the <strong>Source</strong> link above):</p>
-<pre><code class="language-java">@Agent(name = &quot;QuestionAgent&quot;, description = &quot;Answers a question using the configured LLM backend.&quot;)
+<pre><code class="language-java">@Agent(name = &quot;QuestionAgent&quot;,
+       description = &quot;Answers a question using the configured LLM backend.&quot;)
 public class QuestionAgent {
+
     @Inject LargeLanguageModel model;
     @Inject AnswerStore answers;
 
-    @Trigger  void onQuestion(@Valid Question question) { /* ... */ }   // [TRIGGER]
-    @Decision Result hasContent(Question question) {                    // [DECISION]
+    @Trigger
+    void onQuestion(@Valid Question question) { /* ... */ }
+
+    @Decision
+    Result hasContent(Question question) {
         boolean proceed = question.text() != null &amp;&amp; !question.text().isBlank();
-        return new Result(proceed, question);                          // false → stop here
+        return new Result(proceed, question);        // false stops the workflow here
     }
-    @Action   void generate(Question question) {                        // [ACTION]
-        String answer = model.query(&quot;Answer concisely in one short paragraph: {}&quot;,
-                                    question.text());                    // {} positional placeholder
+
+    @Action
+    void generate(Question question) {
+        String answer = model.query(
+                &quot;Answer concisely in one short paragraph: {}&quot;, question.text());
         answers.put(question.text(), answer);
     }
-    @Outcome  void complete(Question question) { /* ... */ }            // [OUTCOME]
+
+    @Outcome
+    void complete(Question question) { /* ... */ }
 }
 </code></pre>
 <p>Choosing the LLM backend is configuration, not code — this example runs fully local on
@@ -517,15 +523,20 @@ payara.agentic.llm.ollama.base-url=http://localhost:11434
 </code></pre>
 <h3>What it teaches</h3>
 <ul>
-<li><strong>No scope annotation</strong> → the runtime applies <code>@WorkflowScoped</code> (the specification's
-default, via the extension).</li>
+<li><strong>No scope annotation</strong> → the runtime applies <code>@WorkflowScoped</code>, the
+specification's default.</li>
+<li><strong><code>@Valid</code> on the trigger parameter</strong> — the phase model honours Jakarta
+Validation. A violation is raised before the body runs and can be caught by
+<code>@HandleException</code>.</li>
+<li><strong>No parameter passing</strong> — <code>generate</code> and <code>complete</code> each just declare
+<code>Question</code> and the runtime supplies it. Phases communicate by type.</li>
 <li>The <code>@Decision</code> uses the <strong><code>Result</code></strong> pattern: <code>Result(false, ...)</code> when the
 question is blank → <code>@Action</code> and <code>@Outcome</code> <strong>do not run</strong> (the early
 termination demo).</li>
 <li>The <code>@Action</code> uses a <strong><code>{}</code> placeholder</strong> with a positional parameter.</li>
-<li><strong><code>AnswerStore</code></strong> is <code>@ApplicationScoped</code> with a <code>ConcurrentHashMap</code> — the
-bridge between the agent and the synchronous HTTP response.</li>
-<li>Runs on a small local <strong>Ollama</strong> model — no API key, no cost.</li>
+<li><strong><code>AnswerStore</code></strong> is <code>@ApplicationScoped</code> with a <code>ConcurrentHashMap</code> —
+<code>Event.fire</code> is synchronous, so the whole workflow finishes before the REST method
+resumes and it can read the answer straight back.</li>
 </ul>
 <hr>
 <h2>Example 2 — Tutorial Generator</h2>
