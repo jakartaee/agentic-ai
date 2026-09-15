@@ -16,9 +16,7 @@ import jakarta.ai.agent.LLMException;
 import jakarta.enterprise.context.RequestScoped;
 import jakarta.enterprise.event.Event;
 import jakarta.inject.Inject;
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.ConstraintViolationException;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
@@ -36,9 +34,10 @@ import java.util.logging.Logger;
  * LLM call) completes before it returns; the answer is then read back from the
  * {@link AnswerStore} and returned in the same HTTP response.
  * <p>
- * The request is validated declaratively: {@code @NotBlank} on the request
- * record and {@code @Valid} on the parameter, so a missing or empty question is
- * rejected with a 400 before this method body runs.
+ * The question is constrained in one place only &mdash; {@code @NotBlank} on
+ * {@link Question}, enforced by {@code @Valid} on the agent's trigger. This
+ * resource does not re-check it. Its job is to turn the two failures that come
+ * back out of the synchronous {@code fire} into status codes.
  */
 @Path("ask")
 @RequestScoped
@@ -55,11 +54,16 @@ public class AskResource {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response ask(@NotNull @Valid AskRequest request) {
+    public Response ask(AskRequest request) {
         String text = request.question();
 
         try {
             trigger.fire(new Question(text));   // runs the entire workflow synchronously
+        } catch (ConstraintViolationException e) {
+            // @Valid on the trigger rejected the question before the agent started.
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(new AskResponse(text, "A question is required."))
+                    .build();
         } catch (LLMException e) {
             // Event.fire is synchronous, so a model failure surfaces here rather than
             // in the agent. The most common cause is the configured backend not running.
@@ -74,7 +78,7 @@ public class AskResource {
         return Response.ok(new AskResponse(text, answers.get(text))).build();
     }
 
-    public record AskRequest(@NotBlank String question) {
+    public record AskRequest(String question) {
     }
 
     public record AskResponse(String question, String answer) {
