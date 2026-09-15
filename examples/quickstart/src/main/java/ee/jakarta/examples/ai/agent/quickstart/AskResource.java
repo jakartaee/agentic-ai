@@ -69,11 +69,7 @@ public class AskResource {
                     .build();
         }
 
-        String answer = answers.get(text);
-        return Response.ok(new AskResponse(
-                text,
-                answer != null ? answer : "(no answer — the LLM provider is 'none')"
-        )).build();
+        return Response.ok(new AskResponse(text, answers.get(text))).build();
     }
 
     public record AskRequest(String question) {
