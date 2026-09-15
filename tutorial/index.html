@@ -484,9 +484,10 @@ rel="noopener">examples README</a> describes them all.</p>
 <p>📦 Source: <a
 href="https://github.com/jakartaee/agentic-ai/tree/main/examples/quickstart"
 target="_blank" rel="noopener">examples/quickstart</a></p>
-<p><strong>The smallest possible agent that exercises the four phases.</strong> A REST
-POST fires a CDI event and the agent answers the question with the configured LLM. It
-fits in one class, shown here in full apart from the logging:</p>
+<p><strong>A compact agent that exercises all four phases.</strong> A REST POST fires a CDI
+event and the agent answers the question with the configured LLM, unless it has answered
+that question before. It fits in one class, shown here in full apart from the
+logging:</p>
 <pre><code class="language-java">@Agent(name = &quot;QuestionAgent&quot;,
        description = &quot;Answers a question using the configured LLM backend.&quot;)
 public class QuestionAgent {
@@ -498,20 +499,20 @@ public class QuestionAgent {
     void onQuestion(@Valid Question question) { /* ... */ }
 
     @Decision
-    Result hasContent(Question question) {
-        boolean proceed = question.text() != null &amp;&amp; !question.text().isBlank();
-        return new Result(proceed, question);        // false stops the workflow here
+    boolean notYetAnswered(Question question) {
+        return answers.get(question.text()) == null;   // a repeat stops the workflow here
     }
 
     @Action
-    void generate(Question question) {
-        String answer = model.query(
-                &quot;Answer concisely in one short paragraph: {}&quot;, question.text());
-        answers.put(question.text(), answer);
+    Answer generate(Question question) {
+        return new Answer(model.query(
+                &quot;Answer concisely in one short paragraph: {}&quot;, question.text()));
     }
 
     @Outcome
-    void complete(Question question) { /* ... */ }
+    void store(Question question, Answer answer) {
+        answers.put(question.text(), answer.text());
+    }
 }
 </code></pre>
 <p>Choosing the LLM backend is configuration, not code — this example runs fully local on
@@ -527,18 +528,20 @@ specification's default.</li>
 <li><strong>An agent is an ordinary CDI bean</strong>, so injection works as it does anywhere:
 the platform's <code>LargeLanguageModel</code> and the application's own <code>AnswerStore</code>
 arrive through the same <code>@Inject</code>.</li>
-<li><strong>The event type stays plain.</strong> <code>Question</code> is a bare record — no
-annotation, interface or base class — and <code>@Observes</code> on the trigger parameter is
-optional, so both spellings mean the same thing.</li>
+<li><strong>The event type stays plain.</strong> <code>Question</code> is a record carrying one Bean
+Validation constraint and nothing else — no interface, no base class, nothing from
+<code>jakarta.ai.agent</code> — and <code>@Observes</code> on the trigger parameter is optional, so
+both spellings mean the same thing.</li>
 <li><strong><code>@Valid</code> on the trigger parameter</strong> — the phase model honours Jakarta
-Validation, and a violation is raised before the body runs.</li>
-<li><strong>Nothing passes <code>Question</code> from phase to phase</strong> — the runtime invokes each
-phase and fills its parameters by type. All four here match the triggering event, so each
-phase declares <code>Question</code> and gets it.</li>
+Validation, and a violation is raised before the body runs. Here it is the
+<code>@NotBlank</code> on <code>Question</code>, so an agent never starts on an empty question.</li>
+<li><strong>Nothing is passed between phases by hand</strong> — the runtime invokes each phase and
+fills its parameters by type. <code>Question</code> matches the triggering event; <code>Answer</code>
+matches what <code>@Action</code> returned, which is how <code>@Outcome</code> receives it.</li>
 <li><strong>A <code>@Decision</code> says whether the workflow continues</strong>, and has three ways to
 say it: a <code>boolean</code>, a <code>Result(success, details)</code>, or a domain object where
-<code>null</code> means stop. This one returns a <code>Result</code> whose <code>success</code> is false for a
-blank question, so <code>@Action</code> and <code>@Outcome</code> never run.</li>
+<code>null</code> means stop. This one returns <code>false</code> for a question already in the store, so
+a repeat never reaches the model.</li>
 <li><strong>Prompts are parameterised, not concatenated</strong> — the <code>{}</code> is filled from the
 argument that follows the prompt, positionally.</li>
 </ul>
