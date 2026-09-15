@@ -529,10 +529,14 @@ Validation, and a violation is raised before the body runs.</li>
 <li><strong>Nothing passes <code>Question</code> from phase to phase</strong> — the runtime invokes each
 phase and fills its parameters by type. All four here match the triggering event, so each
 phase declares <code>Question</code> and gets it.</li>
-<li>The <code>@Decision</code> uses the <strong><code>Result</code></strong> pattern: <code>Result(false, ...)</code> when the
-question is blank → <code>@Action</code> and <code>@Outcome</code> <strong>do not run</strong> (the early
-termination demo).</li>
-<li>The <code>@Action</code> uses a <strong><code>{}</code> placeholder</strong> with a positional parameter.</li>
+<li><strong>A <code>@Decision</code> says whether the workflow continues</strong>, and has three ways to
+say it: a <code>boolean</code>, a <code>Result(success, details)</code>, or a domain object where
+<code>null</code> means stop. This one returns a <code>Result</code> whose <code>success</code> is false for a
+blank question, so <code>@Action</code> and <code>@Outcome</code> never run.</li>
+<li><strong>Prompts are parameterised, not concatenated.</strong> Arguments after the prompt fill
+its <code>{}</code> placeholders in order, and Jakarta JSON Binding serialises them, so a domain
+object can be passed straight in. With no placeholder, an argument is attached as
+structured context instead.</li>
 </ul>
 <hr>
 <h2>Example 2 — Tutorial Generator</h2>
