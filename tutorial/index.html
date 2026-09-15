@@ -485,9 +485,8 @@ rel="noopener">examples README</a> describes them all.</p>
 href="https://github.com/jakartaee/agentic-ai/tree/main/examples/quickstart"
 target="_blank" rel="noopener">examples/quickstart</a></p>
 <p><strong>The smallest possible agent that exercises the four phases.</strong> A REST
-POST fires a CDI event and the agent answers the question with the configured LLM.</p>
-<p>The whole agent — the four phases — fits in one class; the excerpt below is the heart
-of it (full source at the <strong>Source</strong> link above):</p>
+POST fires a CDI event and the agent answers the question with the configured LLM. It
+fits in one class, shown here in full apart from the logging:</p>
 <pre><code class="language-java">@Agent(name = &quot;QuestionAgent&quot;,
        description = &quot;Answers a question using the configured LLM backend.&quot;)
 public class QuestionAgent {
