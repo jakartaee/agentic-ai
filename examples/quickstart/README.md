@@ -58,3 +58,7 @@ runs — so the second call never reaches the model. The log stops after
 An empty `question` is rejected with a 400 before the event is fired; `@NotBlank`
 on the event record is what `@Valid` on the trigger enforces for any other
 caller.
+
+If the configured backend is not running — Ollama not started, for instance —
+the call returns a 503 saying so, rather than a stack trace. `Event.fire(...)`
+is synchronous, so the `LLMException` surfaces at the resource.

@@ -27,7 +27,7 @@ public class AnswerStore {
     private final Map<String, String> answers = new ConcurrentHashMap<>();
 
     public void put(String question, String answer) {
-        answers.put(question, answer == null ? "" : answer);
+        answers.put(question, answer);
     }
 
     public String get(String question) {
