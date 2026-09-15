@@ -524,6 +524,12 @@ payara.agentic.llm.ollama.base-url=http://localhost:11434
 <ul>
 <li><strong>No scope annotation</strong> → the runtime applies <code>@WorkflowScoped</code>, the
 specification's default.</li>
+<li><strong>An agent is an ordinary CDI bean</strong>, so injection works as it does anywhere:
+the platform's <code>LargeLanguageModel</code> and the application's own <code>AnswerStore</code>
+arrive through the same <code>@Inject</code>.</li>
+<li><strong>The event type stays plain.</strong> <code>Question</code> is a bare record — no
+annotation, interface or base class — and <code>@Observes</code> on the trigger parameter is
+optional, so both spellings mean the same thing.</li>
 <li><strong><code>@Valid</code> on the trigger parameter</strong> — the phase model honours Jakarta
 Validation, and a violation is raised before the body runs.</li>
 <li><strong>Nothing passes <code>Question</code> from phase to phase</strong> — the runtime invokes each
