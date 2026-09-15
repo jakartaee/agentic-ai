@@ -32,12 +32,8 @@ import java.util.logging.Logger;
  * <p>
  * {@code Event.fire(...)} is synchronous, so the whole workflow (including the
  * LLM call) completes before it returns; the answer is then read back from the
- * {@link AnswerStore} and returned in the same HTTP response.
- * <p>
- * The question is constrained in one place only &mdash; {@code @NotBlank} on
- * {@link Question}, enforced by {@code @Valid} on the agent's trigger. This
- * resource does not re-check it. Its job is to turn the two failures that come
- * back out of the synchronous {@code fire} into status codes.
+ * {@link AnswerStore} and returned in the same HTTP response. Failures from the
+ * workflow surface here too, which is why they are caught below.
  */
 @Path("ask")
 @RequestScoped
@@ -60,13 +56,10 @@ public class AskResource {
         try {
             trigger.fire(new Question(text));   // runs the entire workflow synchronously
         } catch (ConstraintViolationException e) {
-            // @Valid on the trigger rejected the question before the agent started.
             return Response.status(Response.Status.BAD_REQUEST)
                     .entity(new AskResponse(text, "A question is required."))
                     .build();
         } catch (LLMException e) {
-            // Event.fire is synchronous, so a model failure surfaces here rather than
-            // in the agent. The most common cause is the configured backend not running.
             LOGGER.log(Level.WARNING, "LLM call failed", e);
             return Response.status(Response.Status.SERVICE_UNAVAILABLE)
                     .entity(new AskResponse(text,

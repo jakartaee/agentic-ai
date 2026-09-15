@@ -18,9 +18,8 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Application-scoped holder so the REST call can read back the answer stored by
- * the agent's {@code @Outcome} phase. The {@code @Decision} also reads it, to
- * skip a question that has already been answered.
+ * Application-scoped holder so the REST call can read back the answer after the
+ * workflow completes.
  */
 @ApplicationScoped
 public class AnswerStore {
