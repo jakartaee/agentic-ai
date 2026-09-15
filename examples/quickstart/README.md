@@ -55,9 +55,10 @@ answer already stored, returns `false`, and neither `@Action` nor `@Outcome`
 runs — so the second call never reaches the model. The log stops after
 `[DECISION]` and the answer comes back just as fast.
 
-An empty `question` is rejected with a 400 before the event is fired; `@NotBlank`
-on the event record is what `@Valid` on the trigger enforces for any other
-caller.
+Validation is declarative at both boundaries. `@NotBlank` on the request record
+with `@Valid` on the resource parameter rejects an empty `question` with a 400
+before the event is fired, and `@NotBlank` on the event record is what `@Valid`
+on the trigger enforces for any other caller.
 
 If the configured backend is not running — Ollama not started, for instance —
 the call returns a 503 saying so, rather than a stack trace. `Event.fire(...)`
