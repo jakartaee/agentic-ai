@@ -55,7 +55,7 @@ public class PhaseOrderingTests {
 
     @RequiresNoImplementation
     @Assertion(id = "AGENTICAI-ORDER-001",
-               section = "3.2 Agent Lifecycle",
+               section = "agent-lifecycle",
                strategy = "Trigger event is observed; trace records TRIGGER with method name and payload")
     public void triggerIsObservedAndRecorded() {
         events.fire(new PhaseOrderingEvent("test-payload"));
@@ -70,7 +70,7 @@ public class PhaseOrderingTests {
 
     @RequiresImplementation
     @Assertion(id = "AGENTICAI-ORDER-002",
-               section = "3.2 Agent Lifecycle",
+               section = "agent-lifecycle",
                strategy = "Full T→D→A→O pipeline executes in strict declaration order")
     public void fullPipelineExecutesInStrictOrder() {
         llm.enqueueResponse("proceed");
@@ -82,7 +82,7 @@ public class PhaseOrderingTests {
 
     @RequiresImplementation
     @Assertion(id = "AGENTICAI-ORDER-003",
-               section = "3.2 Agent Lifecycle",
+               section = "agent-lifecycle",
                strategy = "Trigger return value (non-void) is available for injection in Decision")
     public void triggerReturnValueIsInjectableInDecision() {
         llm.enqueueResponse("proceed");

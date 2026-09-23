@@ -57,7 +57,7 @@ public class TerminationTests {
 
     @RequiresNoImplementation
     @Assertion(id = "AGENTICAI-TERM-001",
-               section = "3.3 Decision Phase",
+               section = "agent-lifecycle",
                strategy = "Trigger is observed in the boolean-termination agent")
     public void booleanAgentTriggerObserved() {
         trace.reset();
@@ -67,7 +67,7 @@ public class TerminationTests {
 
     @RequiresNoImplementation
     @Assertion(id = "AGENTICAI-TERM-002",
-               section = "3.3 Decision Phase",
+               section = "agent-lifecycle",
                strategy = "Trigger is observed in the Result-termination agent")
     public void resultAgentTriggerObserved() {
         trace.reset();
@@ -77,7 +77,7 @@ public class TerminationTests {
 
     @RequiresNoImplementation
     @Assertion(id = "AGENTICAI-TERM-003",
-               section = "3.3 Decision Phase",
+               section = "agent-lifecycle",
                strategy = "Trigger is observed in the Object-termination agent")
     public void objectAgentTriggerObserved() {
         trace.reset();
@@ -87,7 +87,7 @@ public class TerminationTests {
 
     @RequiresImplementation
     @Assertion(id = "AGENTICAI-TERM-004",
-               section = "3.3 Decision Phase",
+               section = "agent-lifecycle",
                strategy = "Boolean false from @Decision halts all downstream phases")
     public void booleanFalseTerminatesWorkflow() {
         trace.reset();
@@ -97,7 +97,7 @@ public class TerminationTests {
 
     @RequiresImplementation
     @Assertion(id = "AGENTICAI-TERM-005",
-               section = "3.3 Decision Phase",
+               section = "agent-lifecycle",
                strategy = "Result(success=false) from @Decision halts all downstream phases")
     public void resultFalseTerminatesWorkflow() {
         trace.reset();
@@ -107,7 +107,7 @@ public class TerminationTests {
 
     @RequiresImplementation
     @Assertion(id = "AGENTICAI-TERM-006",
-               section = "3.3 Decision Phase",
+               section = "agent-lifecycle",
                strategy = "Object null from @Decision halts all downstream phases")
     public void objectNullTerminatesWorkflow() {
         trace.reset();

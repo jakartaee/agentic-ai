@@ -76,7 +76,7 @@ public class OrchestrationTests {
     // -------------------------------------------------------------------------
 
     @Assertion(id = "AGENTICAI-ORCHESTRATION-BHV-006",
-               section = "Workflow Composition Patterns",
+               section = "agent-lifecycle",
                strategy = "Minimalist pattern: an agent with @Trigger only is a valid complete workflow; "
                         + "firing the event drives the trigger via CDI without a compatible implementation")
     public void minimalistWorkflowCompletesWithTriggerOnly() {
@@ -87,7 +87,7 @@ public class OrchestrationTests {
 
     @RequiresNoImplementation
     @Assertion(id = "AGENTICAI-ORCHESTRATION-BHV-002-PRECONDITION",
-               section = "Workflow Composition Patterns",
+               section = "agent-lifecycle",
                strategy = "LinearAgent @Trigger is observed by CDI without a compatible implementation")
     public void linearAgentTriggerObserved() {
         trace.reset();
@@ -97,7 +97,7 @@ public class OrchestrationTests {
 
     @RequiresNoImplementation
     @Assertion(id = "AGENTICAI-ORCHESTRATION-BHV-004-PRECONDITION",
-               section = "Workflow Composition Patterns",
+               section = "agent-lifecycle",
                strategy = "IntermixedAgent @Trigger is observed by CDI without a compatible implementation")
     public void intermixedAgentTriggerObserved() {
         trace.reset();
@@ -107,7 +107,7 @@ public class OrchestrationTests {
 
     @RequiresNoImplementation
     @Assertion(id = "AGENTICAI-ORCHESTRATION-BHV-005-PRECONDITION",
-               section = "Workflow Termination",
+               section = "agent-lifecycle",
                strategy = "BranchingAgent @Trigger is observed by CDI without a compatible implementation "
                         + "regardless of which decision is configured as the termination point")
     public void branchingAgentTriggerObserved() {
@@ -119,7 +119,7 @@ public class OrchestrationTests {
 
     @RequiresNoImplementation
     @Assertion(id = "AGENTICAI-ORCHESTRATION-BHV-006-EVALUATIVE-PRECONDITION",
-               section = "Workflow Composition Patterns",
+               section = "agent-lifecycle",
                strategy = "OutcomeOnlyAgent (Evaluative pattern) @Trigger is observed by CDI without a compatible implementation")
     public void outcomeOnlyAgentTriggerObserved() {
         trace.reset();
@@ -129,7 +129,7 @@ public class OrchestrationTests {
 
     @RequiresNoImplementation
     @Assertion(id = "AGENTICAI-ORCHESTRATION-BHV-001-PRECONDITION",
-               section = "Workflow Composition Patterns",
+               section = "agent-lifecycle",
                strategy = "AnchoredAgent @Trigger is observed by CDI even when declared at the bottom of the source file")
     public void anchoredAgentTriggerObserved() {
         trace.reset();
@@ -143,7 +143,7 @@ public class OrchestrationTests {
 
     @RequiresImplementation
     @Assertion(id = "AGENTICAI-ORCHESTRATION-BHV-001",
-               section = "Workflow Composition Patterns",
+               section = "agent-lifecycle",
                strategy = "@Trigger is always the first phase invoked even when declared at the bottom "
                         + "of the source file — verified via AnchoredAgent where @Trigger is the LAST method declared")
     public void triggerIsAlwaysFirstPhaseRegardlessOfPosition() {
@@ -154,7 +154,7 @@ public class OrchestrationTests {
 
     @RequiresImplementation
     @Assertion(id = "AGENTICAI-ORCHESTRATION-BHV-002",
-               section = "@Action / Cardinality and Order",
+               section = "agent-lifecycle",
                strategy = "@Decision and @Action execute in source-file declaration order; AnchoredAgent declares "
                         + "@Action BEFORE @Decision so a compatible implementation must invoke act() before decide()")
     public void methodsExecuteInDeclarationOrder() {
@@ -168,7 +168,7 @@ public class OrchestrationTests {
 
     @RequiresImplementation
     @Assertion(id = "AGENTICAI-ORCHESTRATION-BHV-003",
-               section = "Workflow Composition Patterns",
+               section = "agent-lifecycle",
                strategy = "@Outcome is always the last phase invoked in a successful workflow even when declared "
                         + "at the top of the source file — verified via AnchoredAgent where @Outcome is the FIRST method declared")
     public void outcomeIsAlwaysLastPhaseRegardlessOfPosition() {
@@ -179,7 +179,7 @@ public class OrchestrationTests {
 
     @RequiresImplementation
     @Assertion(id = "AGENTICAI-ORCHESTRATION-BHV-004",
-               section = "Workflow Composition Patterns",
+               section = "agent-lifecycle",
                strategy = "Multiple alternating @Decision and @Action phases all execute in declaration order")
     public void intermixedDecisionAndActionPhasesSupported() {
         trace.reset();
@@ -194,7 +194,7 @@ public class OrchestrationTests {
 
     @RequiresImplementation
     @Assertion(id = "AGENTICAI-ORCHESTRATION-BHV-005",
-               section = "Workflow Termination",
+               section = "agent-lifecycle",
                strategy = "false from the FIRST @Decision in a chain immediately prevents ALL subsequent phases "
                         + "including the trailing @Outcome anchor")
     public void terminationAtFirstDecisionHaltsEntirePipeline() {
@@ -206,7 +206,7 @@ public class OrchestrationTests {
 
     @RequiresImplementation
     @Assertion(id = "AGENTICAI-ORCHESTRATION-BHV-005",
-               section = "Workflow Termination",
+               section = "agent-lifecycle",
                strategy = "false from a MID-CHAIN @Decision (after an upstream decision proceeded) prevents the "
                         + "remaining @Action and the trailing @Outcome anchor — the implementation must keep checking termination "
                         + "across the whole chain, not just at the first decision")
@@ -224,7 +224,7 @@ public class OrchestrationTests {
 
     @RequiresImplementation
     @Assertion(id = "AGENTICAI-ORCHESTRATION-BHV-006",
-               section = "Workflow Composition Patterns",
+               section = "agent-lifecycle",
                strategy = "Linear pattern: multiple @Action phases execute sequentially without any @Decision")
     public void linearPatternSupported() {
         trace.reset();
@@ -238,7 +238,7 @@ public class OrchestrationTests {
 
     @RequiresImplementation
     @Assertion(id = "AGENTICAI-ORCHESTRATION-BHV-006",
-               section = "Workflow Composition Patterns",
+               section = "agent-lifecycle",
                strategy = "Evaluative pattern: @Decision proceeds directly to @Outcome when no @Action is declared")
     public void evaluativePatternSupported() {
         trace.reset();
@@ -249,7 +249,7 @@ public class OrchestrationTests {
 
     @RequiresImplementation
     @Assertion(id = "AGENTICAI-ORCHESTRATION-BHV-006",
-               section = "Workflow Composition Patterns",
+               section = "agent-lifecycle",
                strategy = "Intermixed pattern: alternating @Decision/@Action chain executes in declaration order through @Outcome")
     public void intermixedPatternSupported() {
         trace.reset();

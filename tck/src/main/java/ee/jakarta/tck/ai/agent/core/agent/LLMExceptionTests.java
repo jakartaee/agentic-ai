@@ -23,6 +23,12 @@ import static org.junit.jupiter.api.Assertions.*;
  *
  * <p>These tests verify that the LLMException class conforms to the
  * Jakarta Agentic AI 1.0 specification requirements.
+ *
+ * <p><strong>Assertion numbering:</strong> the {@code AGENTICAI-LLMEXCEPTION-*}
+ * identifiers run 001, 002, 004–008. The number 003 is intentionally unused: an
+ * earlier default-constructor assertion was retired because {@link LLMException}
+ * exposes no no-argument constructor. The remaining identifiers are kept stable
+ * rather than renumbered, so the gap at 003 is expected and not an omission.
  */
 @Standalone
 public class LLMExceptionTests {

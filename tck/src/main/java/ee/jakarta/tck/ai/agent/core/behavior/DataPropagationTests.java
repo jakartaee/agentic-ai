@@ -58,7 +58,7 @@ public class DataPropagationTests {
 
     @RequiresNoImplementation
     @Assertion(id = "AGENTICAI-DATA-001",
-               section = "3.4 Data Propagation",
+               section = "parameter-resolution",
                strategy = "Trigger fires and records its phase before the implementation dispatches further phases")
     public void triggerIsObserved() {
         events.fire(new DataPropagationEvent("input"));
@@ -67,7 +67,7 @@ public class DataPropagationTests {
 
     @RequiresImplementation
     @Assertion(id = "AGENTICAI-DATA-002",
-               section = "3.4 Data Propagation",
+               section = "parameter-resolution",
                strategy = "TriggerOutput returned by @Trigger is injectable as a parameter in @Decision")
     public void triggerOutputIsInjectableInDecision() {
         llm.enqueueResponse("ok");
@@ -77,7 +77,7 @@ public class DataPropagationTests {
 
     @RequiresImplementation
     @Assertion(id = "AGENTICAI-DATA-003",
-               section = "3.4 Data Propagation",
+               section = "parameter-resolution",
                strategy = "DecisionOutput returned by @Decision is injectable as a parameter in @Action")
     public void decisionOutputIsInjectableInAction() {
         llm.enqueueResponse("ok");
@@ -87,7 +87,7 @@ public class DataPropagationTests {
 
     @RequiresImplementation
     @Assertion(id = "AGENTICAI-DATA-004",
-               section = "3.4 Data Propagation",
+               section = "parameter-resolution",
                strategy = "@Outcome can inject objects from all preceding phases simultaneously")
     public void allPhaseOutputsAreInjectableInOutcome() {
         llm.enqueueResponse("ok");

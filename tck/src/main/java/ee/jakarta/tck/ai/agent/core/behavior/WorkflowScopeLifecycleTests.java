@@ -70,7 +70,7 @@ public class WorkflowScopeLifecycleTests {
 
     @RequiresImplementation
     @Assertion(id = "AGENTICAI-CDI-BHV-001",
-               section = "Agent Lifecycle, @Agent",
+               section = "agent-lifecycle",
                strategy = "An @Agent with no explicit scope behaves as @WorkflowScoped: two independent "
                         + "workflow executions yield two distinct bean instances. Verified via ScopeDefaultAgent "
                         + "(no scope) recording a unique instanceId per workflow. NOTE: sequential events used as a "
@@ -87,7 +87,7 @@ public class WorkflowScopeLifecycleTests {
 
     @RequiresImplementation
     @Assertion(id = "AGENTICAI-CDI-BHV-002",
-               section = "Architecture, Convention over Configuration",
+               section = "agent-lifecycle",
                strategy = "When @Agent.name() is empty, the compatible implementation derives the name as the simple class name with "
                         + "the first letter lowercased. ScopeDefaultAgent must be resolvable by the EL/bean name "
                         + "\"scopeDefaultAgent\" via BeanManager.getBeans(String). Depends on the compatible implementation registering "
@@ -101,7 +101,7 @@ public class WorkflowScopeLifecycleTests {
 
     @RequiresImplementation
     @Assertion(id = "AGENTICAI-CDI-BHV-002",
-               section = "Architecture, Convention over Configuration",
+               section = "agent-lifecycle",
                strategy = "An explicit @Agent(name = \"lifecycleSpy\") overrides the derived default; the compatible implementation must "
                         + "register the bean under that name, resolvable via BeanManager.getBeans(\"lifecycleSpy\"). "
                         + "Depends on the implementation's name-registration API; update once specified.")
@@ -115,7 +115,7 @@ public class WorkflowScopeLifecycleTests {
 
     @RequiresImplementation
     @Assertion(id = "AGENTICAI-CDI-BHV-003",
-               section = "CDI Integration, Lifecycle",
+               section = "cdi-integration",
                strategy = "@PostConstruct is invoked exactly once per @WorkflowScoped workflow execution — "
                         + "LifecycleCallbackRecorder counts one @PostConstruct call after a single workflow")
     public void workflowScopedAgentPostConstructCalledOnce() {
@@ -127,7 +127,7 @@ public class WorkflowScopeLifecycleTests {
 
     @RequiresImplementation
     @Assertion(id = "AGENTICAI-CDI-BHV-003",
-               section = "CDI Integration, Lifecycle",
+               section = "cdi-integration",
                strategy = "@PreDestroy is invoked exactly once after the @WorkflowScoped context is destroyed "
                         + "(workflow completes through @Outcome) — LifecycleCallbackRecorder counts one call")
     public void workflowScopedAgentPreDestroyCalledAfterWorkflow() {
@@ -140,7 +140,7 @@ public class WorkflowScopeLifecycleTests {
 
     @RequiresImplementation
     @Assertion(id = "AGENTICAI-CDI-BHV-003",
-               section = "CDI Integration, Lifecycle",
+               section = "cdi-integration",
                strategy = "@PreDestroy is invoked exactly once even when the workflow FAILS (the issue requires "
                         + "cleanup 'after the workflow completes or fails'). LifecycleSpyAgent.setFailInAction(true) "
                         + "makes @Action throw; the compatible implementation must still tear down the @WorkflowScoped context and the "
@@ -163,7 +163,7 @@ public class WorkflowScopeLifecycleTests {
 
     @RequiresImplementation
     @Assertion(id = "AGENTICAI-CDI-BHV-004",
-               section = "CDI Integration, Scopes",
+               section = "cdi-integration",
                strategy = "@WorkflowScoped creates a distinct bean instance per workflow execution — two "
                         + "sequential events yield two different instanceIds (v1 proxy for concurrent workflows)")
     public void workflowScopedAgentHasUniqueInstancePerWorkflow() {

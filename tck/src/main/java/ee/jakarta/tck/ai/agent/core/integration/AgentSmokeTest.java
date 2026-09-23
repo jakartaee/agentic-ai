@@ -74,7 +74,7 @@ public class AgentSmokeTest {
 
     @RequiresNoImplementation
     @Assertion(id = "AGENTICAI-SMOKE-001",
-               section = "3.2 Agent Lifecycle",
+               section = "agent-lifecycle",
                strategy = "Agent Deployment -> CDI Event Trigger -> Trace records the @Trigger phase")
     public void deploymentTriggersAgentObserver() {
         events.fire(new GreetEvent("Jakarta AI"));
@@ -94,7 +94,7 @@ public class AgentSmokeTest {
      */
     @RequiresImplementation
     @Assertion(id = "AGENTICAI-SMOKE-002",
-               section = "3.2 Agent Lifecycle",
+               section = "agent-lifecycle",
                strategy = "Full lifecycle: @Trigger -> @Action -> @Outcome with LLM stub interaction")
     public void fullLifecycleRequiresCompatibleImplementation() {
         llm.enqueueResponse("Hello from Stub!");
