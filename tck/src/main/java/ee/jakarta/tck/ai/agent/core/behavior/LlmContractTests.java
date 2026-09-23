@@ -73,7 +73,7 @@ public class LlmContractTests {
     // -------------------------------------------------------------------------
 
     @Assertion(id = "AGENTICAI-LLM-BHV-002",
-               section = "LLM Interface, Input Integrity",
+               section = "llm-integration",
                strategy = "null prompt on single-arg overload must throw IllegalArgumentException immediately")
     public void nullPromptThrowsIllegalArgumentException() {
         assertThatThrownBy(() -> llm.query(null))
@@ -81,7 +81,7 @@ public class LlmContractTests {
     }
 
     @Assertion(id = "AGENTICAI-LLM-BHV-002",
-               section = "LLM Interface, Input Integrity",
+               section = "llm-integration",
                strategy = "null prompt on varargs overload must throw IllegalArgumentException immediately")
     public void nullPromptWithParamsThrowsIllegalArgumentException() {
         assertThatThrownBy(() -> llm.query(null, "x"))
@@ -89,7 +89,7 @@ public class LlmContractTests {
     }
 
     @Assertion(id = "AGENTICAI-LLM-BHV-002",
-               section = "LLM Interface, Input Integrity",
+               section = "llm-integration",
                strategy = "null resultType on typed overload must throw IllegalArgumentException immediately")
     public void nullResultTypeThrowsIllegalArgumentException() {
         assertThatThrownBy(() -> llm.query("p", (Class<?>) null))
@@ -97,7 +97,7 @@ public class LlmContractTests {
     }
 
     @Assertion(id = "AGENTICAI-LLM-BHV-002",
-               section = "LLM Interface, Positional Parameters",
+               section = "llm-integration",
                strategy = "more parameters than placeholders must throw IllegalArgumentException")
     public void arityMoreParamsThanPlaceholdersThrows() {
         stub.reset();
@@ -107,7 +107,7 @@ public class LlmContractTests {
     }
 
     @Assertion(id = "AGENTICAI-LLM-BHV-002",
-               section = "LLM Interface, Positional Parameters",
+               section = "llm-integration",
                strategy = "fewer parameters than placeholders must throw IllegalArgumentException")
     public void arityFewerParamsThanPlaceholdersThrows() {
         stub.reset();
@@ -117,7 +117,7 @@ public class LlmContractTests {
     }
 
     @Assertion(id = "AGENTICAI-LLM-BHV-002",
-               section = "LLM Interface, Positional Parameters",
+               section = "llm-integration",
                strategy = "prompt with no placeholder receiving multiple params must throw IllegalArgumentException")
     public void noPlaceholderRejectsMultipleParams() {
         stub.reset();
@@ -127,7 +127,7 @@ public class LlmContractTests {
     }
 
     @Assertion(id = "AGENTICAI-LLM-BHV-002",
-               section = "LLM Interface, Positional Parameters",
+               section = "llm-integration",
                strategy = "parameter that cannot be converted must throw IllegalArgumentException")
     public void parameterSerializationFailureThrowsIllegalArgumentException() {
         stub.reset();
@@ -136,7 +136,7 @@ public class LlmContractTests {
     }
 
     @Assertion(id = "AGENTICAI-LLM-BHV-002",
-               section = "LLM Interface, Positional Parameters",
+               section = "llm-integration",
                strategy = "parameter that cannot be converted on the typed varargs overload must throw IllegalArgumentException")
     public void parameterSerializationFailureOnTypedOverloadThrowsIllegalArgumentException() {
         stub.reset();
@@ -145,7 +145,7 @@ public class LlmContractTests {
     }
 
     @Assertion(id = "AGENTICAI-LLM-BHV-002",
-               section = "LLM Interface, Input Integrity",
+               section = "llm-integration",
                strategy = "null prompt on the typed varargs overload must throw IllegalArgumentException immediately")
     public void nullPromptOnTypedVarargsOverloadThrowsIllegalArgumentException() {
         assertThatThrownBy(() -> llm.query(null, PersonFixture.class, "x"))
@@ -153,7 +153,7 @@ public class LlmContractTests {
     }
 
     @Assertion(id = "AGENTICAI-LLM-BHV-002",
-               section = "LLM Interface, Input Integrity",
+               section = "llm-integration",
                strategy = "null resultType on the typed varargs overload must throw IllegalArgumentException immediately")
     public void nullResultTypeOnTypedVarargsOverloadThrowsIllegalArgumentException() {
         assertThatThrownBy(() -> llm.query("p", (Class<?>) null, "x"))
@@ -161,7 +161,7 @@ public class LlmContractTests {
     }
 
     @Assertion(id = "AGENTICAI-LLM-BHV-002",
-               section = "LLM Interface, Positional Parameters",
+               section = "llm-integration",
                strategy = "more parameters than placeholders on the typed varargs overload must throw IllegalArgumentException")
     public void arityMismatchOnTypedVarargsOverloadThrows() {
         stub.reset();
@@ -171,7 +171,7 @@ public class LlmContractTests {
     }
 
     @Assertion(id = "AGENTICAI-LLM-BHV-006",
-               section = "LLM Interface, Provider Abstraction",
+               section = "llm-integration",
                strategy = "unwrap to an incompatible type must throw IllegalArgumentException")
     public void unwrapToIncompatibleTypeThrowsIllegalArgumentException() {
         assertThatThrownBy(() -> llm.unwrap(String.class))
@@ -183,7 +183,7 @@ public class LlmContractTests {
     // -------------------------------------------------------------------------
 
     @Assertion(id = "AGENTICAI-LLM-BHV-001",
-               section = "API Overview, LLM Interface",
+               section = "llm-integration",
                strategy = "positional {} placeholders are substituted in declaration order via JSON-B")
     public void positionalPlaceholdersSubstitutedInOrderViaJsonB() {
         stub.reset();
@@ -193,7 +193,7 @@ public class LlmContractTests {
     }
 
     @Assertion(id = "AGENTICAI-LLM-BHV-001",
-               section = "API Overview, LLM Interface",
+               section = "llm-integration",
                strategy = "look-alike tokens ({name}, { }) are not treated as positional placeholders")
     public void lookAlikeTokensAreNotPlaceholders() {
         stub.reset();
@@ -206,7 +206,7 @@ public class LlmContractTests {
     }
 
     @Assertion(id = "AGENTICAI-LLM-BHV-002",
-               section = "LLM Interface, Positional Parameters",
+               section = "llm-integration",
                strategy = "prompt with no placeholder allows exactly one structured context parameter")
     public void noPlaceholderAllowsSingleStructuredContextParam() {
         stub.reset();
@@ -221,7 +221,7 @@ public class LlmContractTests {
     }
 
     @Assertion(id = "AGENTICAI-LLM-BHV-003",
-               section = "Architecture, JSON-B",
+               section = "llm-integration",
                strategy = "complex object parameters are serialized into the prompt via Jakarta JSON Binding")
     public void complexObjectSerializedViaJsonBinding() {
         stub.reset();
@@ -233,7 +233,7 @@ public class LlmContractTests {
     }
 
     @Assertion(id = "AGENTICAI-LLM-BHV-004",
-               section = "Architecture, JSON-B",
+               section = "llm-integration",
                strategy = "typed response is deserialized from JSON string via Jakarta JSON Binding")
     public void typedResponseDeserializedViaJsonBinding() {
         stub.reset();
@@ -244,7 +244,7 @@ public class LlmContractTests {
     }
 
     @Assertion(id = "AGENTICAI-LLM-BHV-005",
-               section = "LLM Interface, Error Semantics",
+               section = "llm-exception",
                strategy = "LLM service error propagates as LLMException")
     public void serviceErrorPropagatesAsLlmException() {
         stub.reset();
@@ -254,7 +254,7 @@ public class LlmContractTests {
     }
 
     @Assertion(id = "AGENTICAI-LLM-BHV-005",
-               section = "LLM Interface, Error Semantics",
+               section = "llm-exception",
                strategy = "response type conversion failure propagates as LLMException")
     public void typeConversionFailurePropagatesAsLlmException() {
         stub.reset();
@@ -264,7 +264,7 @@ public class LlmContractTests {
     }
 
     @Assertion(id = "AGENTICAI-LLM-BHV-005",
-               section = "LLM Interface, Error Semantics",
+               section = "llm-exception",
                strategy = "response type conversion failure on the typed varargs overload propagates as LLMException")
     public void typeConversionFailureOnTypedVarargsOverloadPropagatesAsLlmException() {
         stub.reset();
@@ -274,7 +274,7 @@ public class LlmContractTests {
     }
 
     @Assertion(id = "AGENTICAI-LLM-BHV-006",
-               section = "LLM Interface, Provider Abstraction",
+               section = "llm-integration",
                strategy = "unwrap to the concrete stub type returns the same instance")
     public void unwrapToCompatibleTypeReturnsImplementation() {
         LargeLanguageModelStub unwrapped = llm.unwrap(LargeLanguageModelStub.class);
@@ -287,7 +287,7 @@ public class LlmContractTests {
 
     @RequiresImplementation
     @Assertion(id = "AGENTICAI-LLM-BHV-007",
-               section = "Architecture, Concurrency",
+               section = "cdi-integration",
                strategy = "conversational state does not leak between sequential workflow executions "
                         + "(sequential firing is a v1 proxy for concurrency)")
     public void conversationalStateIsolatedBetweenWorkflows() {

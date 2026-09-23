@@ -93,7 +93,7 @@ public class CdiIntegrationTests {
     // -------------------------------------------------------------------------
 
     @Assertion(id = "AGENTICAI-CDI-BHV-002",
-               section = "Architecture, Convention over Configuration",
+               section = "agent-lifecycle",
                strategy = "A static nested class annotated @Agent @ApplicationScoped is discovered as a CDI "
                         + "managed bean and its @Trigger observer fires when the triggering event is fired")
     public void staticInnerAgentIsDiscoveredAsCdiBean() {
@@ -103,7 +103,7 @@ public class CdiIntegrationTests {
     }
 
     @Assertion(id = "AGENTICAI-CDI-BHV-002",
-               section = "Architecture, Convention over Configuration",
+               section = "agent-lifecycle",
                strategy = "An @Agent bean using @Inject constructor injection (no no-args constructor) is a valid "
                         + "CDI managed bean; the @Trigger fires, proving the container created it via its constructor")
     public void constructorInjectedAgentIsDiscoveredAndManaged() {
@@ -113,7 +113,7 @@ public class CdiIntegrationTests {
     }
 
     @Assertion(id = "AGENTICAI-CDI-BHV-002",
-               section = "Architecture, Convention over Configuration",
+               section = "agent-lifecycle",
                strategy = "An @ApplicationScoped @Agent is a first-class CDI bean: the container injects a "
                         + "client proxy (a generated subclass), not the raw instance. Proven by the injected "
                         + "reference being an instance of the agent type but having a different runtime class")
@@ -126,7 +126,7 @@ public class CdiIntegrationTests {
 
     @RequiresNoImplementation
     @Assertion(id = "AGENTICAI-CDI-BHV-003-PRECONDITION",
-               section = "CDI Integration, Lifecycle",
+               section = "cdi-integration",
                strategy = "SingletonCdiAgent @Trigger fires via CDI; confirms the bean is instantiated and managed")
     public void singletonAgentTriggerObserved() {
         trace.reset();
@@ -135,7 +135,7 @@ public class CdiIntegrationTests {
     }
 
     @Assertion(id = "AGENTICAI-CDI-BHV-003",
-               section = "CDI Integration, Lifecycle",
+               section = "cdi-integration",
                strategy = "@PostConstruct is invoked exactly once for an @ApplicationScoped @Agent regardless of "
                         + "how many workflow events are fired; the static instance counter stays 1")
     public void applicationScopedAgentPostConstructCalledOnce() {
@@ -146,7 +146,7 @@ public class CdiIntegrationTests {
     }
 
     @Assertion(id = "AGENTICAI-CDI-BHV-004",
-               section = "CDI Integration, Scopes",
+               section = "cdi-integration",
                strategy = "An @ApplicationScoped @Agent reuses the same bean instance across sequential workflow "
                         + "events — both @Trigger invocations record the same instanceId in the trace")
     public void applicationScopedAgentSharesInstanceAcrossWorkflows() {
@@ -163,7 +163,7 @@ public class CdiIntegrationTests {
 
     @RequiresNoImplementation
     @Assertion(id = "AGENTICAI-CDI-BHV-006-PRECONDITION",
-               section = "CDI Integration, Interceptors",
+               section = "cdi-integration",
                strategy = "InterceptedAgent @Trigger fires via CDI; confirms the agent and its enabled interceptor "
                         + "deploy without error")
     public void interceptedAgentTriggerObserved() {
@@ -174,7 +174,7 @@ public class CdiIntegrationTests {
 
     @RequiresNoImplementation
     @Assertion(id = "AGENTICAI-CDI-BHV-005-PRECONDITION",
-               section = "Workflow Orchestration, Parameter Injection",
+               section = "parameter-resolution",
                strategy = "ResolutionOrderAgent @Trigger fires via CDI; confirms the agent and its CDI-bean "
                         + "collaborator (ResolutionCdiBean) deploy without resolution errors")
     public void resolutionOrderAgentTriggerObserved() {
@@ -189,7 +189,7 @@ public class CdiIntegrationTests {
 
     @RequiresImplementation
     @Assertion(id = "AGENTICAI-CDI-BHV-004",
-               section = "CDI Integration, Scopes",
+               section = "cdi-integration",
                strategy = "An @ApplicationScoped @Agent uses the same bean instance across all phases of a "
                         + "workflow — @Trigger, @Action, @Outcome all record the same instanceId")
     public void applicationScopedAgentUseSameInstanceAcrossAllPhases() {
@@ -206,7 +206,7 @@ public class CdiIntegrationTests {
 
     @RequiresImplementation
     @Assertion(id = "AGENTICAI-CDI-BHV-005",
-               section = "Workflow Orchestration, Parameter Injection",
+               section = "parameter-resolution",
                strategy = "The compatible implementation resolves method parameters in priority order: (1) triggering event, (3) "
                         + "LargeLanguageModel, (4) CDI beans — ResolutionOrderAgent @Action args are "
                         + "[0]=event, [1]=LLM, [2]=ResolutionCdiBean")
@@ -225,7 +225,7 @@ public class CdiIntegrationTests {
 
     @RequiresImplementation
     @Assertion(id = "AGENTICAI-CDI-BHV-006",
-               section = "CDI Integration, Interceptors",
+               section = "cdi-integration",
                strategy = "A CDI interceptor bound via a custom @InterceptorBinding executes before and after the "
                         + "method body for EVERY business-method phase the compatible implementation dispatches through the CDI proxy — "
                         + "verified by binding the interceptor to both @Action (process) and @Outcome (finish) and "
@@ -243,7 +243,7 @@ public class CdiIntegrationTests {
 
     @RequiresImplementation
     @Assertion(id = "AGENTICAI-CDI-BHV-007",
-               section = "Workflow Orchestration",
+               section = "agent-lifecycle",
                strategy = "The triggering event object is available as a method parameter in @Decision, @Action, "
                         + "and @Outcome — all three downstream phases receive it as args()[0]")
     public void triggeringEventIsAvailableInAllDownstreamPhases() {

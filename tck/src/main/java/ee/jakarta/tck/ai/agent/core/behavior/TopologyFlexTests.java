@@ -53,7 +53,7 @@ public class TopologyFlexTests {
 
     @RequiresNoImplementation
     @Assertion(id = "AGENTICAI-FLEX-001",
-               section = "3.5 Optional Phases",
+               section = "agent-lifecycle",
                strategy = "Agent without @Decision triggers successfully via CDI")
     public void noDecisionAgentTriggerObserved() {
         llm.reset();
@@ -64,7 +64,7 @@ public class TopologyFlexTests {
 
     @RequiresNoImplementation
     @Assertion(id = "AGENTICAI-FLEX-002",
-               section = "3.5 Optional Phases",
+               section = "agent-lifecycle",
                strategy = "Agent without @Outcome triggers successfully via CDI")
     public void noOutcomeAgentTriggerObserved() {
         llm.reset();
@@ -75,7 +75,7 @@ public class TopologyFlexTests {
 
     @RequiresImplementation
     @Assertion(id = "AGENTICAI-FLEX-003",
-               section = "3.5 Optional Phases",
+               section = "agent-lifecycle",
                strategy = "Workflow without @Decision executes T→A→O without error")
     public void workflowWithoutDecisionExecutesActions() {
         llm.reset();
@@ -86,7 +86,7 @@ public class TopologyFlexTests {
 
     @RequiresImplementation
     @Assertion(id = "AGENTICAI-FLEX-004",
-               section = "3.5 Optional Phases",
+               section = "agent-lifecycle",
                strategy = "Workflow without @Outcome completes gracefully after @Action")
     public void workflowWithoutOutcomeCompletesGracefully() {
         llm.reset();
