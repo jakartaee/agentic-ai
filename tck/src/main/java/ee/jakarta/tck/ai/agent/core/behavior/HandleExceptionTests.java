@@ -85,7 +85,7 @@ public class HandleExceptionTests {
 
     @RequiresNoImplementation
     @Assertion(id = "AGENTICAI-HANDLEEXCEPTION-BHV-001-PRECONDITION",
-               section = "3.6 Exception Handling",
+               section = "error-handling",
                strategy = "RecoveryAgent @Trigger is observed by CDI without a compatible implementation")
     public void recoveryAgentTriggerObserved() {
         trace.reset();
@@ -95,7 +95,7 @@ public class HandleExceptionTests {
 
     @RequiresNoImplementation
     @Assertion(id = "AGENTICAI-HANDLEEXCEPTION-BHV-002-PRECONDITION",
-               section = "3.6 Exception Handling",
+               section = "error-handling",
                strategy = "PropagationAgent @Trigger is observed by CDI without a compatible implementation")
     public void propagationAgentTriggerObserved() {
         trace.reset();
@@ -105,7 +105,7 @@ public class HandleExceptionTests {
 
     @RequiresNoImplementation
     @Assertion(id = "AGENTICAI-HANDLEEXCEPTION-BHV-004-PRECONDITION",
-               section = "3.6 Exception Handling",
+               section = "error-handling",
                strategy = "HierarchyAgent @Trigger is observed by CDI without a compatible implementation")
     public void hierarchyAgentTriggerObserved() {
         trace.reset();
@@ -115,7 +115,7 @@ public class HandleExceptionTests {
 
     @RequiresNoImplementation
     @Assertion(id = "AGENTICAI-HANDLEEXCEPTION-BHV-005-PRECONDITION",
-               section = "3.6 Exception Handling",
+               section = "error-handling",
                strategy = "RecursiveGuardAgent @Trigger is observed by CDI without a compatible implementation")
     public void recursiveGuardAgentTriggerObserved() {
         trace.reset();
@@ -125,7 +125,7 @@ public class HandleExceptionTests {
 
     @RequiresNoImplementation
     @Assertion(id = "AGENTICAI-HANDLEEXCEPTION-BHV-006-PRECONDITION",
-               section = "3.6 Exception Handling",
+               section = "error-handling",
                strategy = "PhaseFailureAgent @Trigger is observed by CDI when no phase is configured to fail")
     public void phaseFailureAgentTriggerObserved() {
         trace.reset();
@@ -136,7 +136,7 @@ public class HandleExceptionTests {
 
     @RequiresNoImplementation
     @Assertion(id = "AGENTICAI-HANDLEEXCEPTION-BHV-010-PRECONDITION",
-               section = "3.6 Exception Handling",
+               section = "error-handling",
                strategy = "NoHandlerAgent @Trigger is observed by CDI without a compatible implementation")
     public void noHandlerAgentTriggerObserved() {
         trace.reset();
@@ -148,7 +148,7 @@ public class HandleExceptionTests {
 
     @RequiresImplementation
     @Assertion(id = "AGENTICAI-HANDLEEXCEPTION-BHV-001",
-               section = "3.6 Exception Handling",
+               section = "error-handling",
                strategy = "Handler completing normally allows @Outcome to run, producing the full recovery phase sequence")
     public void handlerNormalReturnAllowsOutcome() {
         trace.reset();
@@ -159,7 +159,7 @@ public class HandleExceptionTests {
 
     @RequiresImplementation
     @Assertion(id = "AGENTICAI-HANDLEEXCEPTION-BHV-002",
-               section = "3.6 Exception Handling",
+               section = "error-handling",
                strategy = "HANDLE_EXCEPTION phase is recorded when @Action throws")
     public void handlerIsInvokedOnActionFailure() {
         trace.reset();
@@ -169,7 +169,7 @@ public class HandleExceptionTests {
 
     @RequiresImplementation
     @Assertion(id = "AGENTICAI-HANDLEEXCEPTION-BHV-003",
-               section = "3.6 Exception Handling",
+               section = "error-handling",
                strategy = "@Outcome runs as the final phase after a handler returns normally")
     public void workflowProceedsToOutcomeAfterRecovery() {
         trace.reset();
@@ -181,7 +181,7 @@ public class HandleExceptionTests {
 
     @RequiresImplementation
     @Assertion(id = "AGENTICAI-HANDLEEXCEPTION-BHV-004",
-               section = "3.6 Exception Handling",
+               section = "error-handling",
                strategy = "The most specific handler is selected when multiple @HandleException methods exist in the same agent")
     public void specificHandlerSelectedOverGeneric() {
         trace.reset();
@@ -197,7 +197,7 @@ public class HandleExceptionTests {
 
     @RequiresImplementation
     @Assertion(id = "AGENTICAI-HANDLEEXCEPTION-BHV-005",
-               section = "3.6 Exception Handling",
+               section = "error-handling",
                strategy = "An exception thrown inside @HandleException propagates immediately without re-entering the handler")
     public void handlerExceptionPropagatesWithoutRecursion() {
         trace.reset();
@@ -215,7 +215,7 @@ public class HandleExceptionTests {
 
     @RequiresImplementation
     @Assertion(id = "AGENTICAI-HANDLEEXCEPTION-BHV-006",
-               section = "3.6 Exception Handling",
+               section = "error-handling",
                strategy = "@HandleException is invoked when an exception originates in the @Trigger phase")
     public void triggerFailureInvokesHandler() {
         trace.reset();
@@ -226,7 +226,7 @@ public class HandleExceptionTests {
 
     @RequiresImplementation
     @Assertion(id = "AGENTICAI-HANDLEEXCEPTION-BHV-007",
-               section = "3.6 Exception Handling",
+               section = "error-handling",
                strategy = "@HandleException is invoked when an exception originates in the @Decision phase")
     public void decisionFailureInvokesHandler() {
         trace.reset();
@@ -237,7 +237,7 @@ public class HandleExceptionTests {
 
     @RequiresImplementation
     @Assertion(id = "AGENTICAI-HANDLEEXCEPTION-BHV-008",
-               section = "3.6 Exception Handling",
+               section = "error-handling",
                strategy = "@HandleException is invoked when an exception originates in the @Action phase")
     public void actionFailureInvokesHandler() {
         trace.reset();
@@ -248,7 +248,7 @@ public class HandleExceptionTests {
 
     @RequiresImplementation
     @Assertion(id = "AGENTICAI-HANDLEEXCEPTION-BHV-009",
-               section = "3.6 Exception Handling",
+               section = "error-handling",
                strategy = "@HandleException is invoked when an exception originates in the @Outcome phase")
     public void outcomeFailureInvokesHandler() {
         trace.reset();
@@ -261,7 +261,7 @@ public class HandleExceptionTests {
 
     @RequiresImplementation
     @Assertion(id = "AGENTICAI-HANDLEEXCEPTION-BHV-010",
-               section = "3.6 Exception Handling",
+               section = "error-handling",
                strategy = "An unhandled exception propagates to the caller when no @HandleException method is present")
     public void uncaughtExceptionPropagatesWithoutHandler() {
         trace.reset();
@@ -274,7 +274,7 @@ public class HandleExceptionTests {
 
     @RequiresImplementation
     @Assertion(id = "AGENTICAI-HANDLEEXCEPTION-BHV-011",
-               section = "3.6 Exception Handling",
+               section = "error-handling",
                strategy = "The handler receives the exact exception instance that was thrown (referential identity)")
     public void handlerReceivesExactExceptionInstance() {
         trace.reset();
@@ -292,7 +292,7 @@ public class HandleExceptionTests {
     }
 
     @Assertion(id = "AGENTICAI-HANDLEEXCEPTION-BHV-012",
-               section = "3.6 Exception Handling",
+               section = "error-handling",
                strategy = "@HandleException methods must declare a Throwable subtype as the first parameter")
     public void handlerParameterMustBeExceptionType() {
         for (Method m : RecoveryAgent.class.getDeclaredMethods()) {
@@ -308,7 +308,7 @@ public class HandleExceptionTests {
     }
 
     @Assertion(id = "AGENTICAI-HANDLEEXCEPTION-BHV-013",
-               section = "3.6 Exception Handling",
+               section = "error-handling",
                strategy = "@HandleException methods must declare void return type")
     public void handlerMustReturnVoid() {
         for (Method m : RecoveryAgent.class.getDeclaredMethods()) {
@@ -324,7 +324,7 @@ public class HandleExceptionTests {
 
     @RequiresImplementation
     @Assertion(id = "AGENTICAI-TERMINATION-BHV-001",
-               section = "3.7 Workflow Termination",
+               section = "agent-lifecycle",
                strategy = "Normal workflow completion ends with @Outcome as the final recorded phase")
     public void normalTerminationCompletesOutcome() {
         trace.reset();
@@ -335,7 +335,7 @@ public class HandleExceptionTests {
 
     @RequiresImplementation
     @Assertion(id = "AGENTICAI-TERMINATION-BHV-002",
-               section = "3.7 Workflow Termination",
+               section = "agent-lifecycle",
                strategy = "@Decision returning false halts execution before @Action and @Outcome")
     public void decisionBasedTerminationSkipsDownstreamPhases() {
         trace.reset();
@@ -345,7 +345,7 @@ public class HandleExceptionTests {
 
     @RequiresImplementation
     @Assertion(id = "AGENTICAI-TERMINATION-BHV-003",
-               section = "3.7 Workflow Termination",
+               section = "agent-lifecycle",
                strategy = "An unhandled exception terminates the workflow before @Outcome runs")
     public void exceptionBasedTerminationAbortsWorkflow() {
         trace.reset();
@@ -358,7 +358,7 @@ public class HandleExceptionTests {
 
     @RequiresImplementation
     @Assertion(id = "AGENTICAI-TERMINATION-BHV-004",
-               section = "3.7 Workflow Termination",
+               section = "agent-lifecycle",
                strategy = "An exception re-thrown from @HandleException terminates the workflow immediately without reaching @Outcome")
     public void handlerFailureTerminatesWorkflow() {
         trace.reset();

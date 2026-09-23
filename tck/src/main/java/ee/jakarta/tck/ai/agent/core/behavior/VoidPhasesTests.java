@@ -54,7 +54,7 @@ public class VoidPhasesTests {
 
     @RequiresNoImplementation
     @Assertion(id = "AGENTICAI-VOID-001",
-               section = "3.2 Agent Lifecycle",
+               section = "agent-lifecycle",
                strategy = "void @Trigger is observed and recorded without error")
     public void voidTriggerIsObserved() {
         events.fire(new VoidPhasesEvent("test"));
@@ -63,7 +63,7 @@ public class VoidPhasesTests {
 
     @RequiresImplementation
     @Assertion(id = "AGENTICAI-VOID-002",
-               section = "3.2 Agent Lifecycle",
+               section = "agent-lifecycle",
                strategy = "void @Trigger does not pollute the injection context; @Decision receives only the original event")
     public void voidTriggerDoesNotPollutInjectionContext() {
         events.fire(new VoidPhasesEvent("test"));
@@ -76,7 +76,7 @@ public class VoidPhasesTests {
 
     @RequiresImplementation
     @Assertion(id = "AGENTICAI-VOID-003",
-               section = "3.3 Action Phase",
+               section = "agent-lifecycle",
                strategy = "void @Action does not break the injection context for @Outcome")
     public void voidActionDoesNotBreakOutcome() {
         events.fire(new VoidPhasesEvent("test"));

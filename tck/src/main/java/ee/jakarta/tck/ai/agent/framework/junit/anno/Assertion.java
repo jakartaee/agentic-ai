@@ -29,7 +29,7 @@ import java.lang.annotation.Target;
  * <h2>Example Usage</h2>
  * <pre>{@code
  * @Assertion(id = "AGENTICAI-001",
- *            section = "3.1 Agent Metadata",
+ *            section = "agent-lifecycle",
  *            strategy = "Verify @Agent annotation is retained at runtime")
  * public void testAgentAnnotationRetention() {
  *     // test implementation

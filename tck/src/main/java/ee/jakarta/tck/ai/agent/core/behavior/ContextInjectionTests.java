@@ -49,7 +49,7 @@ public class ContextInjectionTests {
 
     @RequiresNoImplementation
     @Assertion(id = "AGENTICAI-CTX-001",
-               section = "3.2 Agent Lifecycle",
+               section = "agent-lifecycle",
                strategy = "LargeLanguageModel is injectable as a direct method parameter of @Trigger")
     public void llmIsInjectedAsTriggerParameter() {
         llm.reset();
@@ -64,7 +64,7 @@ public class ContextInjectionTests {
     }
 
     @Assertion(id = "AGENTICAI-CTX-002",
-               section = "3.2 Agent Lifecycle",
+               section = "agent-lifecycle",
                strategy = "Triggering event payload is accessible in @Trigger and preserved in the trace")
     public void eventPayloadIsPreservedInTrigger() {
         llm.reset();
@@ -78,7 +78,7 @@ public class ContextInjectionTests {
 
     @RequiresImplementation
     @Assertion(id = "AGENTICAI-CTX-003",
-               section = "3.4 Data Propagation",
+               section = "parameter-resolution",
                strategy = "Triggering event is available for injection in @Action")
     public void eventIsInjectableInAction() {
         llm.reset();
@@ -96,7 +96,7 @@ public class ContextInjectionTests {
 
     @RequiresImplementation
     @Assertion(id = "AGENTICAI-CTX-004",
-               section = "3.4 Data Propagation",
+               section = "parameter-resolution",
                strategy = "LargeLanguageModel is injectable as a direct method parameter of @Action")
     public void llmIsInjectedInAction() {
         llm.reset();
