@@ -289,22 +289,25 @@ public class QuestionAgent {
     LargeLanguageModel model;
 
     @Trigger
-    Question receive(@Observes Question question) {   // a CDI event starts the workflow
-        return question;
+    void onQuestion(Question question) {                       // a CDI event starts the workflow
+        if (question.text() == null || question.text().isBlank()) {
+            throw new IllegalArgumentException(&quot;Question text is required.&quot;);
+        }
     }
 
     @Decision
-    boolean isAnswerable(Question question) {          // may stop the workflow
-        return question.text() != null &amp;&amp; !question.text().isBlank();
+    boolean notYetAnswered(Question question,                  // may stop the workflow
+                           AnswerStore answers) {
+        return answers.get(question.text()) == null;
     }
 
     @Action
-    Answer answer(Question question) {                 // does the work
+    Answer generate(Question question) {                       // does the work
         return new Answer(model.query(&quot;Answer concisely: {}&quot;, question.text()));
     }
 
     @Outcome
-    void store(Question question, Answer answer,       // ends the workflow
+    void store(Question question, Answer answer,               // ends the workflow
                AnswerStore answers) {
         answers.put(question.text(), answer.text());
     }
