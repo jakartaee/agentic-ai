@@ -432,7 +432,7 @@ message naming exactly which key/env var to set — fail fast with a diagnosis.<
 <h2>The backends</h2>
 <ul>
 <li><strong>Ollama</strong> — local models over HTTP; the <strong>no-API-key, zero-cost</strong> option for
-offline demos (the quickstart uses <code>gemma3:4b</code>). Set <code>provider=ollama</code> and, if
+offline demos (the ask-agent sample uses <code>gemma3:4b</code>). Set <code>provider=ollama</code> and, if
 needed, <code>ollama.base-url</code>.</li>
 <li><strong>Anthropic</strong> — Claude via the Messages API. Provide the API key via
 <code>anthropic.api-key</code> or the <code>ANTHROPIC_API_KEY</code> env var (export it in the same
@@ -454,7 +454,7 @@ deploy and exercise the workflow before wiring a real provider.</li>
 
 <section class="chapter" id="ch-4" data-num="4">
 <h1>The Examples</h1>
-<p>Three examples, three levels: the <strong>quickstart</strong> teaches the programming
+<p>Three examples, three levels: the <strong>ask agent</strong> teaches the programming
 model in 5 classes; the <strong>tutorial generator</strong> shows a real use case with a
 chat refinement loop; and the <strong>Course Content Studio</strong> raises the bar to
 <strong>two agents chained by CDI events</strong>, with a human approval gate in the
@@ -480,10 +480,10 @@ rel="noopener">examples README</a> describes them all.</p>
 </blockquote>
 
 <hr>
-<h2>Example 1 — Quickstart</h2>
+<h2>Example 1 — Ask Agent</h2>
 <p>📦 Source: <a
-href="https://github.com/jakartaee/agentic-ai/tree/main/examples/quickstart"
-target="_blank" rel="noopener">examples/quickstart</a></p>
+href="https://github.com/jakartaee/agentic-ai/tree/main/examples/ask-agent"
+target="_blank" rel="noopener">examples/ask-agent</a></p>
 <p><strong>A compact agent that exercises all four phases.</strong> A REST POST fires a CDI
 event and the agent answers the question with the configured LLM, unless it has answered
 that question before. It fits in one class, shown here in full apart from the
@@ -685,7 +685,7 @@ facade with <code>{}</code> placeholders; <code>@WorkflowScoped</code> — with 
 authoritative reference for the rules.</li>
 <li><strong>Running on Payara.</strong> Deploy the app and Payara runs the workflow; choosing an
 LLM backend (Ollama, Anthropic, Vertex) is MicroProfile Config, no code change.</li>
-<li><strong>The quickstart.</strong> POST a real question → <code>[TRIGGER] → [DECISION] → [ACTION] → [OUTCOME]</code> in <code>server.log</code>; POST an empty question → early termination. It runs
+<li><strong>The ask agent.</strong> POST a real question → <code>[TRIGGER] → [DECISION] → [ACTION] → [OUTCOME]</code> in <code>server.log</code>; POST an empty question → early termination. It runs
 on <strong>local Ollama</strong> (no network, no cost).</li>
 <li><strong>The tutorial generator and the studio.</strong> A guide generated with Claude and
 refined via chat; then two agents chained by CDI events with a human approval gate.
@@ -704,7 +704,7 @@ domain</strong> (<code>$env:ANTHROPIC_API_KEY = &quot;sk-ant-...&quot;</code> be
 environment.</li>
 <li><input disabled="" type="checkbox"> Both WARs deployed and tested.</li>
 <li><input disabled="" type="checkbox"> <code>server.log</code> open in a terminal (<code>Get-Content -Wait -Tail 0</code>).</li>
-<li><input disabled="" type="checkbox"> Fully-local option: the quickstart runs on Ollama; the tutorial generator
+<li><input disabled="" type="checkbox"> Fully-local option: the ask agent runs on Ollama; the tutorial generator
 can also fall back to <code>provider=ollama</code> / <code>model=gemma3:12b</code> (pull the model
 first).</li>
 <li><input disabled="" type="checkbox"> Requests ready (no typing JSON by hand): a script/<code>.http</code> file with the
