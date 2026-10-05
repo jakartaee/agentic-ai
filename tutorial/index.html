@@ -289,7 +289,7 @@ public class QuestionAgent {
     LargeLanguageModel model;
 
     @Trigger
-    void onQuestion(Question question) {   // starts the workflow
+    void onQuestion(@Observes Question question) {   // starts the workflow
         if (question.text() == null || question.text().isBlank()) {
             throw new IllegalArgumentException(&quot;Question text is required.&quot;);
         }
