@@ -540,7 +540,8 @@ Validation constraint and nothing else — no interface, no base class, nothing 
 both forms mean the same thing.</li>
 <li><strong><code>@Valid</code> on the trigger parameter</strong> — the phase model honours Jakarta
 Validation, and a violation is raised before the body runs. Here it is the
-<code>@NotBlank</code> on <code>Question</code>, so an agent never starts on an empty question.</li>
+<code>@NotBlank</code> on <code>Question</code>, so an agent never starts on an empty question —
+the declarative version of the manual null/blank check sketched in the earlier chapters.</li>
 <li><strong>Nothing is passed between phases by hand</strong> — the runtime invokes each phase and
 fills its parameters by type. <code>Question</code> matches the triggering event; <code>Answer</code>
 matches what <code>@Action</code> returned, which is how <code>@Outcome</code> receives it.</li>
