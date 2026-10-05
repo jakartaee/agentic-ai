@@ -10,10 +10,10 @@
         <version>1.0.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>jakarta.agentic-ai-examples.quickstart</artifactId>
+    <artifactId>jakarta.agentic-ai-examples.ask-agent</artifactId>
     <packaging>war</packaging>
 
-    <name>Quickstart Example</name>
+    <name>Ask Agent Example</name>
     <description>
         The smallest Jakarta Agentic AI sample: a single @Agent that answers a
         question, exercising the four specification phases (@Trigger, @Decision,
@@ -49,8 +49,8 @@
     </dependencies>
 
     <build>
-        <!-- War name -> default context root: /quickstart -->
-        <finalName>quickstart</finalName>
+        <!-- War name -> default context root: /ask-agent -->
+        <finalName>ask-agent</finalName>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

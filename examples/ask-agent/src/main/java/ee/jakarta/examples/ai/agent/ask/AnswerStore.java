@@ -10,7 +10,7 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  *****************************************************************************/
-package ee.jakarta.examples.ai.agent.quickstart;
+package ee.jakarta.examples.ai.agent.ask;
 
 import jakarta.enterprise.context.ApplicationScoped;
 

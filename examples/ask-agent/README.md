@@ -1,4 +1,4 @@
-# Quickstart — Jakarta Agentic AI sample
+# Ask Agent — Jakarta Agentic AI sample
 
 A compact Jakarta Agentic AI example: a single `@Agent` answers a question,
 exercising the four specification phases (`@Trigger`, `@Decision`, `@Action`,
@@ -6,7 +6,7 @@ exercising the four specification phases (`@Trigger`, `@Decision`, `@Action`,
 answer in the same response.
 
 ```
-POST /quickstart/api/ask   { "question": "..." }  ->  { "question", "answer" }
+POST /ask-agent/api/ask   { "question": "..." }  ->  { "question", "answer" }
 ```
 
 ## Configure the LLM
@@ -36,14 +36,14 @@ payara.agentic.llm.ollama.base-url=http://localhost:11434
 ## Build & deploy
 
 ```bash
-mvn -pl examples/quickstart -am package
-asadmin deploy examples/quickstart/target/quickstart.war
+mvn -pl examples/ask-agent -am package
+asadmin deploy examples/ask-agent/target/ask-agent.war
 ```
 
 Then ask a question:
 
 ```bash
-curl -s http://localhost:8080/quickstart/api/ask \
+curl -s http://localhost:8080/ask-agent/api/ask \
   -H 'Content-Type: application/json' \
   -d '{"question":"What is Jakarta EE in one sentence?"}'
 ```
