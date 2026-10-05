@@ -246,12 +246,15 @@ public class QuestionAgent {
     LargeLanguageModel model;   // jakarta.ai.agent — no vendor code here
 
     @Trigger
-    void ask(Question question) { }   // a CDI event starts the workflow
+    void onQuestion(Question question) {   // CDI event that starts the workflow
+        if (question.text() == null || question.text().isBlank()) {
+            throw new IllegalArgumentException(&quot;Question text is required.&quot;);
+        }
+    }
 
     @Action
-    void generate(Question question, AnswerStore answers) {
-        String answer = model.query(&quot;Answer concisely: {}&quot;, question.text());
-        answers.put(question.text(), answer);
+    Answer generate(Question question) {
+        return new Answer(model.query(&quot;Answer concisely: {}&quot;, question.text()));
     }
 }
 </code></pre>
