@@ -7,7 +7,7 @@ part by chat and then **approves & publishes**, which triggers a **second agent*
 that builds the student-facing lesson.
 
 It is a deliberately "advanced" sample — it exercises features the basic
-quickstart does not:
+ask-agent sample does not:
 
 | Feature | Where |
 |---|---|

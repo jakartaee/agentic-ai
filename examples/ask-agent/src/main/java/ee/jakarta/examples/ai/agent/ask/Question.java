@@ -10,11 +10,12 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  *****************************************************************************/
-package ee.jakarta.examples.ai.agent.quickstart;
+package ee.jakarta.examples.ai.agent.ask;
+
+import jakarta.validation.constraints.NotBlank;
 
 /**
- * The model's reply, returned by the {@code @Action} phase and received by the
- * {@code @Outcome} phase.
+ * CDI event that triggers the {@link QuestionAgent} workflow.
  */
-public record Answer(String text) {
+public record Question(@NotBlank String text) {
 }
