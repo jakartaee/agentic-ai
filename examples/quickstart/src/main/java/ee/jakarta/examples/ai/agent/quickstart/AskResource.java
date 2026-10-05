@@ -54,7 +54,7 @@ public class AskResource {
         String text = request.question();
 
         try {
-            trigger.fire(new Question(text));   // runs the entire workflow synchronously
+            trigger.fire(new Question(text));
         } catch (ConstraintViolationException e) {
             return Response.status(Response.Status.BAD_REQUEST)
                     .entity(new AskResponse(text, "A question is required."))
