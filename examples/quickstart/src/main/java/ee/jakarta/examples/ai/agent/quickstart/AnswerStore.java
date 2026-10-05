@@ -18,7 +18,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Application-scoped holder so the REST call can read back the answer after the
+ * Application-scoped holder so REST calls can read back answers after the
  * workflow completes.
  */
 @ApplicationScoped
