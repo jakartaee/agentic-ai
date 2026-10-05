@@ -537,7 +537,7 @@ arrive through the same <code>@Inject</code>.</li>
 <li><strong>The event type stays plain.</strong> <code>Question</code> is a record carrying one Bean
 Validation constraint and nothing else — no interface, no base class, nothing from
 <code>jakarta.ai.agent</code> — and <code>@Observes</code> on the trigger parameter is optional, so
-both spellings mean the same thing.</li>
+both forms mean the same thing.</li>
 <li><strong><code>@Valid</code> on the trigger parameter</strong> — the phase model honours Jakarta
 Validation, and a violation is raised before the body runs. Here it is the
 <code>@NotBlank</code> on <code>Question</code>, so an agent never starts on an empty question.</li>
