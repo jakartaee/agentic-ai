@@ -15,12 +15,16 @@ package ee.jakarta.examples.ai.agent.tutorialgenerator;
 import jakarta.ai.agent.Action;
 import jakarta.ai.agent.Agent;
 import jakarta.ai.agent.Decision;
+import jakarta.ai.agent.LLMException;
 import jakarta.ai.agent.LargeLanguageModel;
 import jakarta.ai.agent.Outcome;
 import jakarta.ai.agent.Trigger;
 import jakarta.inject.Inject;
+import jakarta.json.Json;
+import jakarta.json.JsonReader;
 import jakarta.validation.Valid;
 
+import java.io.StringReader;
 import java.util.logging.Logger;
 
 /**
@@ -69,12 +73,22 @@ public class TutorialAgent {
                     "Generate the field-guide JSON for this form. "
                             + "Use each field's name attribute as the JSON key: {}", request.formSpec());
         }
-        store.put(stripCodeFences(content));
+        String json = stripCodeFences(content);
+        requireJsonObject(json);
+        store.put(json);
     }
 
     @Outcome
     void complete(TutorialRequest request) {
         LOGGER.info("[OUTCOME] tutorial ready (" + store.get().length() + " chars)");
+    }
+
+    private static void requireJsonObject(String content) {
+        try (JsonReader reader = Json.createReader(new StringReader(content))) {
+            reader.readObject();
+        } catch (RuntimeException parseFailure) {
+            throw new LLMException("LLM returned output that is not a JSON object", parseFailure);
+        }
     }
 
     /** LLMs sometimes wrap output in ```json ... ``` despite instructions; strip it. */
