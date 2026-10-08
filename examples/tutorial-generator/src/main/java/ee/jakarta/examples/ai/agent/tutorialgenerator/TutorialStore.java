@@ -15,7 +15,7 @@ package ee.jakarta.examples.ai.agent.tutorialgenerator;
 import jakarta.enterprise.context.ApplicationScoped;
 
 /**
- * Holds the latest guide content produced by {@link TutorialAgent} so the
+ * Holds the latest field-guide JSON produced by {@link TutorialAgent} so the
  * synchronous REST call can read it back after the event fires.
  *
  * <p>{@code @ApplicationScoped} is intentional: the guide must survive across
@@ -27,13 +27,13 @@ import jakarta.enterprise.context.ApplicationScoped;
 @ApplicationScoped
 public class TutorialStore {
 
-    private volatile String html = "";
+    private volatile String json = "";
 
-    public void put(String html) {
-        this.html = html == null ? "" : html;
+    public void put(String json) {
+        this.json = json == null ? "" : json;
     }
 
     public String get() {
-        return html;
+        return json;
     }
 }
