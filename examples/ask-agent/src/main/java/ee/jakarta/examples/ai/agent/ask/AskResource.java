@@ -15,6 +15,7 @@ package ee.jakarta.examples.ai.agent.ask;
 import jakarta.ai.agent.LLMException;
 import jakarta.enterprise.context.RequestScoped;
 import jakarta.enterprise.event.Event;
+import jakarta.enterprise.event.ObserverException;
 import jakarta.inject.Inject;
 import jakarta.validation.ConstraintViolationException;
 import jakarta.ws.rs.Consumes;
@@ -55,17 +56,25 @@ public class AskResource {
 
         try {
             trigger.fire(new Question(text));
-        } catch (ConstraintViolationException e) {
-            return Response.status(Response.Status.BAD_REQUEST)
-                    .entity(new AskResponse(text, "A question is required."))
-                    .build();
-        } catch (LLMException e) {
-            LOGGER.log(Level.WARNING, "LLM call failed", e);
-            return Response.status(Response.Status.SERVICE_UNAVAILABLE)
-                    .entity(new AskResponse(text,
-                            "The LLM backend is unavailable. Check that the provider "
-                                    + "configured in microprofile-config.properties is running."))
-                    .build();
+        } catch (ObserverException wrapper) {
+            // CDI wraps anything thrown by a synchronous observer (interceptor
+            // violations and exceptions bubbling up from @Decision/@Action/@Outcome
+            // alike) in ObserverException; unwrap to recover the original cause.
+            Throwable cause = wrapper.getCause();
+            if (cause instanceof ConstraintViolationException) {
+                return Response.status(Response.Status.BAD_REQUEST)
+                        .entity(new AskResponse(text, "A question is required."))
+                        .build();
+            }
+            if (cause instanceof LLMException) {
+                LOGGER.log(Level.WARNING, "LLM call failed", cause);
+                return Response.status(Response.Status.SERVICE_UNAVAILABLE)
+                        .entity(new AskResponse(text,
+                                "The LLM backend is unavailable. Check that the provider "
+                                        + "configured in microprofile-config.properties is running."))
+                        .build();
+            }
+            throw wrapper;
         }
 
         return Response.ok(new AskResponse(text, answers.get(text))).build();
