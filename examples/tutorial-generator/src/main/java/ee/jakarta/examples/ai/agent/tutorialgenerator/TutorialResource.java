@@ -15,6 +15,7 @@ package ee.jakarta.examples.ai.agent.tutorialgenerator;
 import jakarta.ai.agent.LLMException;
 import jakarta.enterprise.context.RequestScoped;
 import jakarta.enterprise.event.Event;
+import jakarta.enterprise.event.ObserverException;
 import jakarta.inject.Inject;
 import jakarta.json.Json;
 import jakarta.json.JsonObjectBuilder;
@@ -118,15 +119,23 @@ public class TutorialResource {
     private Response runWorkflow(TutorialRequest request) {
         try {
             trigger.fire(request);
-        } catch (ConstraintViolationException e) {
-            return Response.status(Response.Status.BAD_REQUEST)
-                    .entity("The request is missing required data.").build();
-        } catch (LLMException e) {
-            LOGGER.log(Level.WARNING, "LLM call failed", e);
-            return Response.status(Response.Status.SERVICE_UNAVAILABLE)
-                    .entity("The LLM backend is unavailable. Check that the provider "
-                            + "configured in microprofile-config.properties is running.")
-                    .build();
+        } catch (ObserverException wrapper) {
+            // CDI wraps anything thrown by a synchronous observer (interceptor
+            // violations and exceptions bubbling up from @Decision/@Action/@Outcome
+            // alike) in ObserverException; unwrap to recover the original cause.
+            Throwable cause = wrapper.getCause();
+            if (cause instanceof ConstraintViolationException) {
+                return Response.status(Response.Status.BAD_REQUEST)
+                        .entity("The request is missing required data.").build();
+            }
+            if (cause instanceof LLMException) {
+                LOGGER.log(Level.WARNING, "LLM call failed", cause);
+                return Response.status(Response.Status.SERVICE_UNAVAILABLE)
+                        .entity("The LLM backend is unavailable. Check that the provider "
+                                + "configured in microprofile-config.properties is running.")
+                        .build();
+            }
+            throw wrapper;
         }
         return Response.ok(store.get()).build();
     }
