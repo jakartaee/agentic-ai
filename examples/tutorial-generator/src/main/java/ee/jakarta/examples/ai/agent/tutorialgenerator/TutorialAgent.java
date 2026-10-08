@@ -15,21 +15,25 @@ package ee.jakarta.examples.ai.agent.tutorialgenerator;
 import jakarta.ai.agent.Action;
 import jakarta.ai.agent.Agent;
 import jakarta.ai.agent.Decision;
+import jakarta.ai.agent.LLMException;
 import jakarta.ai.agent.LargeLanguageModel;
 import jakarta.ai.agent.Outcome;
-import jakarta.ai.agent.Result;
 import jakarta.ai.agent.Trigger;
 import jakarta.inject.Inject;
+import jakarta.json.Json;
+import jakarta.json.JsonReader;
+import jakarta.validation.Valid;
 
+import java.io.StringReader;
 import java.util.logging.Logger;
 
 /**
- * Generates and refines an HTML tutorial that explains a web form, field by
- * field, using the configured LLM. Exercises the four specification phases and
- * supports a chat refinement loop: when the request carries the current HTML,
- * the {@code @Action} revises it instead of regenerating from scratch.
+ * Generates and refines a field-by-field guide (JSON) for a web form using the
+ * configured LLM. Exercises the four specification phases and supports a chat
+ * refinement loop: when the request carries the current guide, the
+ * {@code @Action} revises it instead of regenerating from scratch.
  */
-@Agent(name = "TutorialAgent", description = "Generates and refines an HTML tutorial explaining a web form.")
+@Agent(name = "TutorialAgent", description = "Generates and refines a field-by-field guide for a web form.")
 public class TutorialAgent {
 
     private static final Logger LOGGER = Logger.getLogger(TutorialAgent.class.getName());
@@ -41,35 +45,37 @@ public class TutorialAgent {
     TutorialStore store;
 
     @Trigger
-    void onRequest(TutorialRequest request) {
-        boolean refine = request.currentHtml() != null && !request.currentHtml().isBlank();
-        LOGGER.info("[TRIGGER] tutorial request (" + (refine ? "refine" : "generate") + ")");
+    void onRequest(@Valid TutorialRequest request) {
+        LOGGER.info("[TRIGGER] tutorial request (" + (request.refine() ? "refine" : "generate") + ")");
     }
 
     @Decision
-    Result hasFields(TutorialRequest request) {
-        boolean proceed = request.formSpec() != null && !request.formSpec().fields().isEmpty();
+    boolean hasInstructionWhenRefining(TutorialRequest request) {
+        boolean proceed = !request.refine()
+                || (request.instruction() != null && !request.instruction().isBlank());
         LOGGER.info("[DECISION] proceed=" + proceed);
-        return new Result(proceed, request);
+        return proceed;
     }
 
     @Action
     void render(TutorialRequest request) {
         String content;
-        if (request.currentHtml() == null || request.currentHtml().isBlank()) {
-            LOGGER.info("[ACTION] generating field-guide JSON from the form spec...");
-            content = model.query(
-                    "Generate the field-guide JSON for this form. "
-                            + "Use each field's name attribute as the JSON key: {}", request.formSpec());
-        } else {
+        if (request.refine()) {
             LOGGER.info("[ACTION] refining field-guide: " + request.instruction());
             content = model.query(
                     "Current field-guide JSON:\n{}\n\n"
                             + "Apply this change to the explanations: {}\n\n"
                             + "Return the complete updated JSON object.",
-                    request.currentHtml(), request.instruction());
+                    request.currentGuide(), request.instruction());
+        } else {
+            LOGGER.info("[ACTION] generating field-guide JSON from the form spec...");
+            content = model.query(
+                    "Generate the field-guide JSON for this form. "
+                            + "Use each field's name attribute as the JSON key: {}", request.formSpec());
         }
-        store.put(stripCodeFences(content));
+        String json = stripCodeFences(content);
+        requireJsonObject(json);
+        store.put(json);
     }
 
     @Outcome
@@ -77,12 +83,20 @@ public class TutorialAgent {
         LOGGER.info("[OUTCOME] tutorial ready (" + store.get().length() + " chars)");
     }
 
-    /** LLMs sometimes wrap output in ```html ... ``` despite instructions; strip it. */
-    private static String stripCodeFences(String html) {
-        if (html == null) {
+    private static void requireJsonObject(String content) {
+        try (JsonReader reader = Json.createReader(new StringReader(content))) {
+            reader.readObject();
+        } catch (RuntimeException parseFailure) {
+            throw new LLMException("LLM returned output that is not a JSON object", parseFailure);
+        }
+    }
+
+    /** LLMs sometimes wrap output in ```json ... ``` despite instructions; strip it. */
+    private static String stripCodeFences(String content) {
+        if (content == null) {
             return "";
         }
-        String trimmed = html.strip();
+        String trimmed = content.strip();
         if (trimmed.startsWith("```")) {
             int firstNewline = trimmed.indexOf('\n');
             if (firstNewline > 0) {

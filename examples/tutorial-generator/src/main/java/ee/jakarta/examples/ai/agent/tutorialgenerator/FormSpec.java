@@ -12,6 +12,9 @@
  *****************************************************************************/
 package ee.jakarta.examples.ai.agent.tutorialgenerator;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotEmpty;
+
 import java.util.List;
 
 /**
@@ -21,5 +24,5 @@ import java.util.List;
  * @param intro  short description shown above the form
  * @param fields the form fields
  */
-public record FormSpec(String title, String intro, List<FieldSpec> fields) {
+public record FormSpec(String title, String intro, @NotEmpty List<@Valid FieldSpec> fields) {
 }
