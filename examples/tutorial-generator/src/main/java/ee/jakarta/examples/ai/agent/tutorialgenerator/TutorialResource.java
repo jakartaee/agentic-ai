@@ -62,12 +62,16 @@ public class TutorialResource {
         return form.spec();
     }
 
-    /** The current field-guide JSON (empty until first generated). */
+    /** The current field-guide JSON, or 204 before the first generation. */
     @GET
     @Path("tutorial")
     @Produces(MediaType.APPLICATION_JSON)
-    public String current() {
-        return store.get();
+    public Response current() {
+        String json = store.get();
+        if (json == null || json.isBlank()) {
+            return Response.noContent().build();
+        }
+        return Response.ok(json).build();
     }
 
     /** Generate a fresh field-guide from the form. */
@@ -100,6 +104,7 @@ public class TutorialResource {
     public Response refineField(FieldRefineRequest request) {
         if (request == null || request.fieldName() == null) {
             return Response.status(Response.Status.BAD_REQUEST)
+                    .type(MediaType.TEXT_PLAIN)
                     .entity("A field name is required.").build();
         }
         String fullJson = store.get();
@@ -123,11 +128,13 @@ public class TutorialResource {
             Throwable cause = wrapper.getCause();
             if (cause instanceof ConstraintViolationException) {
                 return Response.status(Response.Status.BAD_REQUEST)
+                        .type(MediaType.TEXT_PLAIN)
                         .entity("The request is missing required data.").build();
             }
             if (cause instanceof LLMException) {
                 LOGGER.log(Level.WARNING, "LLM call failed", cause);
                 return Response.status(Response.Status.SERVICE_UNAVAILABLE)
+                        .type(MediaType.TEXT_PLAIN)
                         .entity("The LLM backend is unavailable. Check that the provider "
                                 + "configured in microprofile-config.properties is running.")
                         .build();
