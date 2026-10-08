@@ -57,9 +57,6 @@ public class AskResource {
         try {
             trigger.fire(new Question(text));
         } catch (ObserverException wrapper) {
-            // CDI wraps anything thrown by a synchronous observer (interceptor
-            // violations and exceptions bubbling up from @Decision/@Action/@Outcome
-            // alike) in ObserverException; unwrap to recover the original cause.
             Throwable cause = wrapper.getCause();
             if (cause instanceof ConstraintViolationException) {
                 return Response.status(Response.Status.BAD_REQUEST)
