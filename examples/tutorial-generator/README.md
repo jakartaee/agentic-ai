@@ -8,30 +8,34 @@ The page shows the form on the left and the generated guide on the right; a chat
 box below sends refinement instructions to the agent.
 
 ```
-GET  /tutorial-generator/                       the side-by-side UI
-GET  /tutorial-generator/api/form               the form metadata (FormSpec)
-POST /tutorial-generator/api/tutorial/generate  generate a fresh guide
-POST /tutorial-generator/api/tutorial/refine    { "instruction": "..." }  refine the current guide
+GET  /tutorial-generator/                            the side-by-side UI
+GET  /tutorial-generator/api/form                    the form metadata (FormSpec)
+GET  /tutorial-generator/api/tutorial                the current field-guide JSON (204 before first generation)
+POST /tutorial-generator/api/tutorial/generate       generate a fresh field-guide
+POST /tutorial-generator/api/tutorial/refine         { "instruction": "..." }                       refine the whole guide
+POST /tutorial-generator/api/tutorial/refine-field   { "fieldName": "...", "instruction": "..." }   refine one field and merge
 ```
 
 ## How it works
 
 `CustomerFormSpec` is the single source of truth: the page renders the live form
 from it, and the agent explains the same fields. `TutorialAgent` runs the four
-phases — `@Trigger`, `@Decision` (enough fields?), `@Action` (the LLM generates
-or revises the HTML), `@Outcome` (store it). Refinement passes the *current
-HTML + instruction* to the model each turn, so it edits the real artifact rather
-than relying on memory alone.
+phases — `@Trigger` (`@Valid`-validates the request), `@Decision` (a refine with
+no instruction stops here), `@Action` (the LLM generates or revises the
+field-guide JSON, and the output is parsed before it is stored), `@Outcome`
+(logs the stored size). Refinement passes the *current guide JSON + instruction*
+to the model each turn, so it edits the real artifact rather than relying on
+memory alone.
 
 ## Configure the LLM
 
 The LLM provider is selected by the runtime via MicroProfile Config. This sample
-uses **Anthropic (Claude)** for high-quality HTML; the system prompt is shipped
-as config and reused as the prompt-cache prefix:
+uses **Anthropic (Claude)** for guide quality; the system prompt is shipped as
+config and reused as the prompt-cache prefix:
 
 ```properties
 payara.agentic.llm.provider=anthropic
-payara.agentic.llm.model=claude-opus-4-8
+payara.agentic.llm.model=claude-sonnet-4-6
 payara.agentic.llm.max-tokens=8192
 payara.agentic.llm.system=You are a senior technical writer...
 ```
@@ -41,7 +45,7 @@ payara.agentic.llm.system=You are a senior technical writer...
 > implementation, configure the provider the way that implementation documents.
 > To run fully local instead of Claude, switch to
 > `payara.agentic.llm.provider=ollama` / `model=gemma3:12b` (a 12B-class model
-> is recommended for HTML quality).
+> is recommended so the output is reliably well-formed JSON).
 
 ## Prerequisites
 
