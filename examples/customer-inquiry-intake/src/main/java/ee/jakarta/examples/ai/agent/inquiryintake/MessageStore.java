@@ -15,25 +15,25 @@ package ee.jakarta.examples.ai.agent.inquiryintake;
 import jakarta.enterprise.context.ApplicationScoped;
 
 /**
- * Holds the latest triaged inquiry JSON produced by {@link IntakeAgent} so the
- * synchronous REST call can read it back after the event fires.
+ * Holds the latest draft of the customer's message so the synchronous REST
+ * call can read it back after the {@link AssistAgent} workflow completes.
  *
- * <p>{@code @ApplicationScoped} is intentional: the inquiry must survive
- * across HTTP requests so a later {@code /refine} call can read what an
- * earlier {@code /draft} call produced. {@code volatile} gives the visibility
- * guarantee needed for the single-writer (agent action), single-reader
- * (resource) access pattern of this demo.
+ * <p>{@code @ApplicationScoped} is intentional: the draft must survive across
+ * HTTP requests so a later {@code /message/refine} call can read what the
+ * earlier {@code /message/draft} call produced. {@code volatile} gives the
+ * visibility guarantee needed for the single-writer (agent action),
+ * single-reader (resource) access pattern of this demo.
  */
 @ApplicationScoped
-public class InquiryStore {
+public class MessageStore {
 
-    private volatile String json = "";
+    private volatile String message = "";
 
-    public void put(String json) {
-        this.json = json == null ? "" : json;
+    public void put(String message) {
+        this.message = message == null ? "" : message;
     }
 
     public String get() {
-        return json;
+        return message;
     }
 }
