@@ -12,15 +12,23 @@
  *****************************************************************************/
 package ee.jakarta.examples.ai.agent.inquiryintake;
 
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+
 /**
  * CDI event that triggers the {@link IntakeAgent} pipeline. The raw
  * submission from the contact form: whatever identity fields the customer
- * filled in, plus the free-text message that is always required.
+ * filled in (all optional), plus the free-text message that is always
+ * required.
  *
- * @param name    sender's name, or {@code null}/blank if the customer did not fill it in
- * @param email   business email, or {@code null}/blank
- * @param company organisation, or {@code null}/blank
- * @param message the customer's message (required)
+ * <p>The Bean Validation constraints on the record fields fire via the
+ * {@code @Valid} annotation on the {@code @Trigger} parameter; a violation
+ * is thrown before the workflow body runs.
  */
-public record IntakeRequest(String name, String email, String company, String message) {
+public record IntakeRequest(
+        @Size(max = 100) String name,
+        @Email @Size(max = 150) String email,
+        @Size(max = 100) String company,
+        @NotBlank @Size(max = 5000) String message) {
 }

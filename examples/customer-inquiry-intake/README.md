@@ -15,30 +15,55 @@ POST /customer-inquiry-intake/api/intake/confirm     { identity, classification,
 
 ## How the agent is wired
 
-`IntakeAgent` has three `@Action` methods, but there is no explicit
-`order=` anywhere. The runtime orders them by the data each one needs:
+`IntakeAgent` has three `@Action` methods and two `@Decision` methods, with no
+explicit `order=` anywhere. The runtime orders every phase by the data each
+one declares as a parameter.
+
+**Actions, ordered by dataflow:**
 
 - `Identity enrichIdentity(IntakeRequest)` and `Classification classify(IntakeRequest)`
-  take only the triggering event and can run first.
+  both take only the triggering event and can run first.
 - `IntakeRecord assemble(IntakeRequest, Identity, Classification)` runs after
-  both of them because it declares them as parameters; the runtime matches
-  parameters by type.
+  the two above because it declares their returned records as parameters; the
+  runtime matches parameters by type.
 
-That dataflow-ordering is the same mechanism the ask-agent example uses to
-pass the generated `Answer` from `@Action` to `@Outcome`. Here it threads a
-real pipeline together.
+That dataflow-ordering is the same mechanism Example 1 uses to pass the
+generated `Answer` from `@Action` to `@Outcome`; here it threads a real
+pipeline together, and the returned `Identity` and `Classification` records
+are workflow state carried between phases.
 
-The other phases:
+**The two decisions sit at different gates:**
 
-- `@Trigger` — logs that an inquiry arrived.
-- `@Decision canProcess(IntakeRequest)` — stops the workflow on an empty
-  message so no LLM call happens for a no-op.
-- `@Outcome` — logs that the inquiry is ready.
-- `@HandleException onLlmFailure(LLMException, IntakeRequest)` — catches an
-  LLM failure anywhere in the pipeline and writes a minimal fallback record
-  (the customer's own values + the unpolished original message), so the UI
-  always shows a review screen instead of a 500. The resource reads the
-  record from the `@RequestScoped IntakeOutput` holder either way.
+- `Result canProcess(IntakeRequest)` runs first and returns a `Result` —
+  `Result(false, "Message is too short to process meaningfully.")` on a
+  trivial submission. Returning `Result` (instead of a plain `boolean`)
+  carries the reason through the Result's `details`, visible in the server
+  log.
+- `boolean hasEnoughContent(Identity, IntakeRequest)` runs after
+  `enrichIdentity` — it takes an `Identity` as a parameter, so parameter-type
+  dataflow places it there. If the message is short and the agent extracted
+  nothing identifying, the workflow stops before `assemble` runs; the
+  resource then returns `422` and the customer is asked to elaborate.
+
+**The surrounding phases:**
+
+- `@Trigger void onSubmit(@Valid IntakeRequest)` — the `@Valid` runs Bean
+  Validation on the record (`@NotBlank` on `message`, `@Email` on `email`,
+  `@Size` on each field). A violation is thrown by the interceptor before
+  the workflow body runs; the resource unwraps the `ObserverException` and
+  returns 400 with the specific field errors.
+- `@Outcome void done(IntakeRequest)` — logs that the record is ready.
+- `@HandleException void onLlmFailure(LLMException, IntakeRequest)` — catches
+  an LLM failure anywhere in the pipeline and writes a minimal fallback
+  record (the customer's own values + the unpolished original message), so
+  the UI always shows a review screen instead of a 500.
+
+**Typed LLM output.** `enrichIdentity` uses the typed form of the facade,
+`model.query(prompt, Identity.class, args)`, so the LLM's JSON response is
+bound directly to the `Identity` record by JSON-B. No hand-rolled parsing,
+no manual code-fence stripping. If the LLM returns something JSON-B cannot
+bind, the facade throws `LLMException` and the exception handler writes the
+fallback.
 
 ## Configure the LLM
 
