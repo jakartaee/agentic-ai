@@ -18,22 +18,22 @@ import jakarta.validation.constraints.NotNull;
 /**
  * CDI event that triggers the {@link TutorialAgent} workflow.
  * <p>
- * When {@code currentGuide} is {@code null}/blank the agent generates a fresh
- * guide; otherwise it revises {@code currentGuide} according to
- * {@code instruction} (the chat refinement loop). The current artifact is
- * passed explicitly each turn so the model edits the real guide rather than
- * relying on conversational memory alone.
+ * When {@code currentGuidance} is {@code null}/blank the agent writes fresh
+ * guidance; otherwise it revises {@code currentGuidance} according to
+ * {@code instruction} (the chat refinement loop). The current guidance is
+ * passed explicitly each turn so the model edits the real artifact rather
+ * than relying on conversational memory alone.
  *
- * @param formSpec     the form to explain
- * @param instruction  the developer's refinement request, or {@code null} on first generation
- * @param currentGuide the guide JSON to revise, or {@code null} on first generation
+ * @param formSpec        the form to write guidance for
+ * @param instruction     the developer's refinement request, or {@code null} on first generation
+ * @param currentGuidance the guidance JSON to revise, or {@code null} on first generation
  */
 public record TutorialRequest(@NotNull @Valid FormSpec formSpec,
                               String instruction,
-                              String currentGuide) {
+                              String currentGuidance) {
 
-    /** True when the request carries an existing guide to revise. */
+    /** True when the request carries existing guidance to revise. */
     public boolean refine() {
-        return currentGuide != null && !currentGuide.isBlank();
+        return currentGuidance != null && !currentGuidance.isBlank();
     }
 }

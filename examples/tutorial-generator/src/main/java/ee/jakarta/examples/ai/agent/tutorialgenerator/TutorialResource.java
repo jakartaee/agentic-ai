@@ -34,9 +34,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * REST API for the tutorial UI. Firing the {@link TutorialRequest} event is
+ * REST API for the guidance UI. Firing the {@link TutorialRequest} event is
  * synchronous, so the agent workflow (including the LLM call) completes before
- * the method returns and the freshly produced guide can be read from the
+ * the method returns and the freshly written guidance can be read from the
  * {@link TutorialStore}.
  */
 @Path("")
@@ -62,7 +62,7 @@ public class TutorialResource {
         return form.spec();
     }
 
-    /** The current field-guide JSON, or 204 before the first generation. */
+    /** The current guidance JSON, or 204 before anything has been written. */
     @GET
     @Path("tutorial")
     @Produces(MediaType.APPLICATION_JSON)
@@ -74,7 +74,7 @@ public class TutorialResource {
         return Response.ok(json).build();
     }
 
-    /** Generate a fresh field-guide from the form. */
+    /** Write fresh guidance for the form. */
     @POST
     @Path("tutorial/generate")
     @Produces(MediaType.APPLICATION_JSON)
@@ -82,7 +82,7 @@ public class TutorialResource {
         return runWorkflow(new TutorialRequest(form.spec(), null, null));
     }
 
-    /** Refine the whole guide with a chat instruction. */
+    /** Refine the whole guidance with a chat instruction. */
     @POST
     @Path("tutorial/refine")
     @Consumes(MediaType.APPLICATION_JSON)
@@ -93,9 +93,9 @@ public class TutorialResource {
     }
 
     /**
-     * Refine the description of a single field. The agent receives only that
-     * field's current description, updates it, and the result is merged back
-     * into the full guide JSON so the other fields are preserved.
+     * Refine the guidance for a single field. The agent receives only that
+     * field's current guidance, updates it, and the result is merged back
+     * into the full guidance JSON so the other fields are preserved.
      */
     @POST
     @Path("tutorial/refine-field")
@@ -149,7 +149,7 @@ public class TutorialResource {
         try (JsonReader reader = Json.createReader(new StringReader(json))) {
             return reader.readObject().getString(fieldName, "");
         } catch (Exception e) {
-            LOGGER.warning("Could not extract field '" + fieldName + "' from guide JSON: " + e.getMessage());
+            LOGGER.warning("Could not extract field '" + fieldName + "' from guidance JSON: " + e.getMessage());
             return "";
         }
     }
@@ -160,7 +160,7 @@ public class TutorialResource {
             try (JsonReader reader = Json.createReader(new StringReader(fullJson))) {
                 reader.readObject().forEach(builder::add);
             } catch (Exception e) {
-                LOGGER.warning("Could not parse guide JSON when merging field '" + fieldName + "': " + e.getMessage());
+                LOGGER.warning("Could not parse guidance JSON when merging field '" + fieldName + "': " + e.getMessage());
             }
         }
         builder.add(fieldName, newValue);

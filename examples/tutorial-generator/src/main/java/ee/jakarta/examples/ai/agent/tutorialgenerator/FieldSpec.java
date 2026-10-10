@@ -15,9 +15,9 @@ package ee.jakarta.examples.ai.agent.tutorialgenerator;
 import java.util.List;
 
 /**
- * Metadata for one form field. This is the structured input the agent uses to
- * explain the field &mdash; the page also renders the live form from it, so the
- * form and its tutorial share a single source of truth.
+ * Metadata for one form field. The agent reads this to write guidance for the
+ * field; the page also renders the live form from it, so the form and its
+ * guidance share a single source of truth.
  *
  * @param name     HTML field name
  * @param label    human-readable label

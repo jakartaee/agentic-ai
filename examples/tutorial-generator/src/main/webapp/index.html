@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>Customer registration — Field guide</title>
+    <title>Customer onboarding — Form guidance</title>
     <link rel="preconnect" href="https://fonts.googleapis.com"/>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
     <style>
@@ -204,7 +204,7 @@
 
 <header>
     <div class="logo">Field<span>·</span>Guide</div>
-    <p class="header-sub">Customer registration &mdash; field guide powered by Jakarta Agentic AI</p>
+    <p class="header-sub">Customer onboarding &mdash; AI form guidance</p>
 </header>
 
 <div class="toast" id="toast"></div>
@@ -214,10 +214,10 @@
     <!-- Left: registration form -->
     <div class="form-col">
         <div class="card" id="formCard">
-            <h2>Registration form</h2>
+            <h2>Customer registration form</h2>
             <form id="customerForm" onsubmit="return false;"></form>
             <div class="actions">
-                <button id="genBtn" onclick="generate()">Generate field guide</button>
+                <button id="genBtn" onclick="generate()">Generate guidance</button>
                 <span class="status" id="status"></span>
             </div>
         </div>
@@ -234,17 +234,17 @@
 
             <div class="panel-body">
                 <div class="field-desc hint" id="fieldDesc">
-                    Click a field on the left to see its explanation.
+                    Select a field to view the AI guidance.
                 </div>
             </div>
 
             <div class="panel-divider"></div>
 
             <div class="panel-chat">
-                <div class="panel-chat-label">Refine this description</div>
+                <div class="panel-chat-label">Refine this guidance</div>
                 <div class="chatlog" id="chatlog"></div>
                 <div class="chatbar">
-                    <input id="chatInput" type="text" placeholder="e.g. Add a format example…"/>
+                    <input id="chatInput" type="text" placeholder="e.g. Add an example format…"/>
                     <button id="refineBtn" onclick="refine()">Send</button>
                 </div>
             </div>
@@ -339,10 +339,10 @@
             descEl.textContent = text;
             descEl.classList.remove('hint');
         } else if (guideData) {
-            descEl.textContent = 'No explanation generated for this field.';
+            descEl.textContent = 'No guidance has been generated for this field yet.';
             descEl.classList.add('hint');
         } else {
-            descEl.textContent = 'Click "Generate field guide" to get AI-powered explanations.';
+            descEl.textContent = 'Click "Generate guidance" to get AI-powered help.';
             descEl.classList.add('hint');
         }
 
@@ -377,16 +377,16 @@
     }
 
     async function generate() {
-        busy(true, 'Generating field guide…');
+        busy(true, 'Generating guidance…');
         try {
             const text = await (await fetch('api/tutorial/generate', { method: 'POST' })).text();
             guideData = parseGuide(text);
             if (guideData) {
                 $('formCard').classList.add('has-guide');
                 if (selectedField) updatePanel(selectedField);
-                showToast('✓ Field guide ready — click any field to see its explanation');
+                showToast('✓ Guidance ready — select a field to view it');
             } else {
-                $('status').textContent = 'Unexpected response — try again.';
+                $('status').textContent = 'Unexpected response — please try again.';
             }
         } catch (e) {
             $('status').textContent = 'Error: ' + e;
@@ -431,7 +431,7 @@
 
         addMsg('you', instruction);
         $('chatInput').value = '';
-        busy(true, 'Refining…');
+        busy(true, 'Refining guidance…');
         try {
             const text = await (await fetch('api/tutorial/refine-field', {
                 method: 'POST',
@@ -445,7 +445,7 @@
                 // updatePanel restores chat history — re-append latest exchange
                 $('chatlog').innerHTML = '';
                 (chatHistory[selectedField.name] || []).forEach(m => appendMsg(m.cls, m.text));
-                addMsg('agent', 'Updated.');
+                addMsg('agent', 'Updated the guidance.');
             } else {
                 addMsg('agent', text.length > 300 ? text.slice(0, 300) + '…' : text);
             }

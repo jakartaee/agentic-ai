@@ -15,14 +15,14 @@ package ee.jakarta.examples.ai.agent.tutorialgenerator;
 import jakarta.enterprise.context.ApplicationScoped;
 
 /**
- * Holds the latest field-guide JSON produced by {@link TutorialAgent} so the
+ * Holds the latest guidance JSON produced by {@link TutorialAgent} so the
  * synchronous REST call can read it back after the event fires.
  *
- * <p>{@code @ApplicationScoped} is intentional: the guide must survive across
- * HTTP requests so a subsequent {@code /refine} call can read what a prior
- * {@code /generate} call produced. {@code volatile} provides the visibility
- * guarantee needed for the single-writer (agent action), single-reader
- * (resource) access pattern of this demo.
+ * <p>{@code @ApplicationScoped} is intentional: the guidance must survive
+ * across HTTP requests so a later {@code /refine} call can read what an
+ * earlier {@code /generate} call produced. {@code volatile} gives the
+ * visibility guarantee needed for the single-writer (agent action),
+ * single-reader (resource) access pattern of this demo.
  */
 @ApplicationScoped
 public class TutorialStore {

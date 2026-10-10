@@ -28,12 +28,12 @@ import java.io.StringReader;
 import java.util.logging.Logger;
 
 /**
- * Generates and refines a field-by-field guide (JSON) for a web form using the
- * configured LLM. Exercises the four specification phases and supports a chat
- * refinement loop: when the request carries the current guide, the
- * {@code @Action} revises it instead of regenerating from scratch.
+ * Writes and refines field-by-field guidance (as JSON) for a web form using
+ * the configured LLM. Exercises the four specification phases and supports a
+ * chat refinement loop: when the request carries existing guidance, the
+ * {@code @Action} revises it instead of writing from scratch.
  */
-@Agent(name = "TutorialAgent", description = "Generates and refines a field-by-field guide for a web form.")
+@Agent(name = "TutorialAgent", description = "Writes and refines field-by-field guidance for a web form.")
 public class TutorialAgent {
 
     private static final Logger LOGGER = Logger.getLogger(TutorialAgent.class.getName());
@@ -46,7 +46,7 @@ public class TutorialAgent {
 
     @Trigger
     void onRequest(@Valid TutorialRequest request) {
-        LOGGER.info("[TRIGGER] tutorial request (" + (request.refine() ? "refine" : "generate") + ")");
+        LOGGER.info("[TRIGGER] " + (request.refine() ? "refine" : "generate") + " request");
     }
 
     @Decision
@@ -61,16 +61,16 @@ public class TutorialAgent {
     void render(TutorialRequest request) {
         String content;
         if (request.refine()) {
-            LOGGER.info("[ACTION] refining field-guide: " + request.instruction());
+            LOGGER.info("[ACTION] refining guidance: " + request.instruction());
             content = model.query(
-                    "Current field-guide JSON:\n{}\n\n"
-                            + "Apply this change to the explanations: {}\n\n"
+                    "Current guidance JSON:\n{}\n\n"
+                            + "Apply this change to the guidance: {}\n\n"
                             + "Return the complete updated JSON object.",
-                    request.currentGuide(), request.instruction());
+                    request.currentGuidance(), request.instruction());
         } else {
-            LOGGER.info("[ACTION] generating field-guide JSON from the form spec...");
+            LOGGER.info("[ACTION] writing fresh guidance from the form spec");
             content = model.query(
-                    "Generate the field-guide JSON for this form. "
+                    "Write the guidance JSON for this form. "
                             + "Use each field's name attribute as the JSON key: {}", request.formSpec());
         }
         String json = stripCodeFences(content);
@@ -80,7 +80,7 @@ public class TutorialAgent {
 
     @Outcome
     void complete(TutorialRequest request) {
-        LOGGER.info("[OUTCOME] tutorial ready (" + store.get().length() + " chars)");
+        LOGGER.info("[OUTCOME] guidance ready (" + store.get().length() + " chars)");
     }
 
     private static void requireJsonObject(String content) {
