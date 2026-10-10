@@ -15,7 +15,7 @@
 
     <name>Tutorial Generator Example</name>
     <description>
-        A Jakarta Agentic AI agent that writes a field-by-field guide for a web
+        An agent that writes a field-by-field guide for a web
         form and lets a developer refine it through chat, showing the four
         specification phases and iterative LLM refinement of a stored artifact.
     </description>
@@ -33,7 +33,6 @@
     </properties>
 
     <dependencies>
-        <!-- Jakarta Agentic AI API — provided by the target runtime. -->
         <dependency>
             <groupId>jakarta.agentic-ai</groupId>
             <artifactId>jakarta.agentic-ai-api</artifactId>
@@ -41,7 +40,6 @@
             <scope>provided</scope>
         </dependency>
 
-        <!-- Jakarta EE 10 umbrella API — provided by the target runtime. -->
         <dependency>
             <groupId>jakarta.platform</groupId>
             <artifactId>jakarta.jakartaee-api</artifactId>
@@ -49,7 +47,6 @@
     </dependencies>
 
     <build>
-        <!-- War name -> default context root: /tutorial-generator -->
         <finalName>tutorial-generator</finalName>
         <plugins>
             <plugin>
