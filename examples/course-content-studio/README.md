@@ -1,7 +1,7 @@
 # Course Content Studio — Jakarta Agentic AI sample
 
-An **education** sample for the Jakarta Agentic AI API, running on **Payara
-Server**. A teacher pastes a chapter and picks a subject; an agent generates an
+An **education** sample for the Jakarta Agentic AI API. A teacher pastes a
+chapter and picks a subject; an agent generates an
 **introduction**, a **quiz** and a **conclusion**; the teacher **refines** any
 part by chat and then **approves & publishes**, which triggers a **second agent**
 that builds the student-facing lesson.
@@ -52,8 +52,8 @@ GET  /course/api/progress/{runId}       live phase progress (Server-Sent Events)
 
 - JDK 17+
 - Maven 3.9+
-- A **Payara Server 7** build that includes the `agentic-ai-core` runtime module
-  (it provides the `jakarta.ai.agent` API and the LLM backends).
+- A Jakarta EE 10 runtime with a Jakarta Agentic AI implementation (for example
+  a Payara Server build that includes the `agentic-ai-core` runtime module).
 - An LLM backend. **Default: Claude on Google Cloud Vertex AI** — fast and
   reliable for live demos. You need:
   - a GCP project with a Claude model enabled on Vertex AI, and
