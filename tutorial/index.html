@@ -461,11 +461,12 @@ deploy and exercise the workflow before wiring a real provider.</li>
 <section class="chapter" id="ch-4" data-num="4">
 <h1>The Examples</h1>
 <p>Three examples, three levels: the <strong>ask agent</strong> teaches the programming
-model in 5 classes; the <strong>customer inquiry intake</strong> sample puts the AI inside
-a real contact form, with <strong>one agent handling four flows</strong> (draft, refine,
-classify, extract) dispatched by a sealed event; and the <strong>Course Content Studio</strong>
-raises the bar to <strong>two agents chained by CDI events</strong>, with a human approval
-gate in the middle and a final student-facing view.</p>
+model in 5 classes; the <strong>customer inquiry intake</strong> sample runs a short
+multi-phase pipeline inside one agent — enrich identity, classify, assemble &amp; polish —
+with phases ordered by the data they consume and an <code>@HandleException</code> fallback
+for an LLM outage; and the <strong>Course Content Studio</strong> raises the bar to
+<strong>two agents chained by CDI events</strong>, with a human approval gate in the middle
+and a final student-facing view.</p>
 
 <p>All three live in the <a
 href="https://github.com/jakartaee/agentic-ai/tree/main/examples" target="_blank"
@@ -558,89 +559,81 @@ argument that follows the prompt, positionally.</li>
 <p>📦 Source: <a
 href="https://github.com/jakartaee/agentic-ai/tree/main/examples/customer-inquiry-intake"
 target="_blank" rel="noopener">examples/customer-inquiry-intake</a></p>
-<p><strong>A real use case:</strong> a customer-facing contact form with five fields —
-<code>name</code>, <code>businessEmail</code>, <code>company</code>, <code>inquiryType</code>,
-<code>message</code> — where the AI does the work the customer would otherwise have to do by
-hand. Next to each field is a small <strong>✦</strong> link that opens an assistant panel
-offering the AI help that fits that field: <strong>pull your details out of your
-message</strong>, <strong>suggest the right category</strong>, or <strong>draft and refine
-the message</strong> itself.</p>
-<p><strong>One agent, four flows.</strong> Every endpoint that reaches the LLM goes through
-<code>AssistAgent</code>; the resource never calls <code>LargeLanguageModel</code> directly.
-The triggering event, <code>AssistRequest</code>, is a <strong>sealed interface</strong>
-with four concrete subtypes — <code>Draft</code>, <code>Refine</code>, <code>Classify</code>,
-<code>Extract</code> — and the agent dispatches by subtype in its <code>@Action</code>. The
-four phases are not a per-task shape; they are the shape of the agent, and the concrete
-event picks which work to do inside them.</p>
-<pre><code class="language-java">public sealed interface AssistRequest {
-    record Draft(String brief)                               implements AssistRequest {}
-    record Refine(String currentMessage, String instruction) implements AssistRequest {}
-    record Classify(String message)                          implements AssistRequest {}
-    record Extract(String text)                              implements AssistRequest {}
-}
-</code></pre>
-<p>The agent, in full apart from logging and the per-flow prompt bodies (full source at the
-<strong>Source</strong> link above):</p>
-<pre><code class="language-java">@Trigger
-void onRequest(AssistRequest request) { ... }
-
-@Decision
-boolean hasEnoughToProceed(AssistRequest request) {           // stop a no-op before the LLM is called
-    if (request instanceof AssistRequest.Draft d)    return notBlank(d.brief());
-    if (request instanceof AssistRequest.Refine r)   return notBlank(r.currentMessage()) &amp;&amp; notBlank(r.instruction());
-    if (request instanceof AssistRequest.Classify c) return notBlank(c.message());
-    if (request instanceof AssistRequest.Extract e)  return notBlank(e.text());
-    return false;
-}
+<p><strong>A real use case:</strong> a customer-facing contact form. The customer types what
+they have — even just the message — and clicks <strong>Prepare inquiry</strong>; the agent
+runs a short pipeline end-to-end (pulling the sender's identity out of the message when it
+isn't already filled in, picking a routing category, and rewriting the message in a tone
+that matches that category) and the customer reviews the prepared record before confirming.</p>
+<p><strong>Phases are ordered by the data they consume, not by an explicit <code>order=</code>
+on the annotations.</strong> <code>IntakeAgent</code> has three <code>@Action</code> methods
+that return typed domain records; the runtime matches parameters by type to figure out what
+has to run first:</p>
+<pre><code class="language-java">@Action
+Identity enrichIdentity(IntakeRequest request) { ... }       // takes only the triggering event
 
 @Action
-void dispatch(AssistRequest request) {                        // one prompt per flow; LLMException on malformed JSON
-    if (request instanceof AssistRequest.Draft d)         draftMessage(d);
-    else if (request instanceof AssistRequest.Refine r)   refineMessage(r);
-    else if (request instanceof AssistRequest.Classify c) classifyInquiry(c);
-    else if (request instanceof AssistRequest.Extract e)  extractIdentity(e);
+Classification classify(IntakeRequest request) { ... }       // takes only the triggering event
+
+@Action
+IntakeRecord assemble(IntakeRequest request,                 // takes the two above as parameters,
+                      Identity identity,                     //   so the runtime runs this after
+                      Classification classification) { ... } //   enrichIdentity and classify
+</code></pre>
+<p>This is the same dataflow-threading pattern <strong>Example 1</strong> uses to hand the
+generated <code>Answer</code> from <code>@Action</code> to <code>@Outcome</code>; here it
+threads a real multi-step pipeline together, and the returned <code>Identity</code> and
+<code>Classification</code> records are workflow state carried between phases.</p>
+<p>The surrounding phases:</p>
+<pre><code class="language-java">@Trigger
+void onSubmit(IntakeRequest request) { ... }                  // logs that an inquiry arrived
+
+@Decision
+boolean canProcess(IntakeRequest request) {                   // short-circuit on an empty message
+    return request.message() != null &amp;&amp; !request.message().isBlank();
 }
 
 @Outcome
-void done(AssistRequest request) { ... }
+void done(IntakeRequest request) { ... }                      // logs that the record is ready
+
+@HandleException
+void onLlmFailure(LLMException e, IntakeRequest request) {    // graceful fallback for an LLM outage
+    output.setRecord(IntakeRecord.fallbackFor(request));      //   so the review screen always has
+}                                                             //   something to show
 </code></pre>
-<p>Results land in two places: the <strong>message</strong> flows write to
-<code>MessageStore</code> (application-scoped, so the draft survives across the chat
-refinement HTTP requests), and every flow also writes to <code>AssistResponse</code>
-(request-scoped), which the resource reads back inside the same request to build the HTTP
-response. The resource itself fires the sealed events through a single <code>runFlow</code>
-helper and does no LLM work of its own.</p>
+<p>The pipeline writes its result to a <code>@RequestScoped IntakeOutput</code> holder that
+the resource reads back inside the same HTTP request. The resource exposes just two
+endpoints — <code>POST /api/intake</code> to run the pipeline, and
+<code>POST /api/intake/confirm</code> to hand the (possibly edited) record off — and never
+calls <code>LargeLanguageModel</code> directly.</p>
 <p>The LLM backend and the system prompt are configuration — here Claude on Vertex AI,
 switchable to local Ollama without touching code:</p>
 <pre><code class="language-properties">payara.agentic.llm.provider=vertex
 payara.agentic.llm.model=claude-sonnet-4-6
 payara.agentic.llm.max-tokens=4096
-payara.agentic.llm.system=You are a writing assistant inside a customer contact form...
+payara.agentic.llm.system=You are an intake assistant for a customer-facing contact form...
 </code></pre>
 <h3>The strong design ideas</h3>
 <ol>
-<li><strong>The agent owns LLM interaction.</strong> One agent is the single surface for
-<code>LargeLanguageModel</code>; the resource fires events and reads results. Multiple
-distinct flows (draft, refine, classify, extract) share the same four phases rather than
-each getting its own ad-hoc call site.</li>
-<li><strong>The event shape is the flow.</strong> <code>AssistRequest</code> is a sealed
-interface; the four record subtypes carry exactly the payload each flow needs
-(<code>brief</code>; <code>currentMessage + instruction</code>; <code>message</code>;
-<code>text</code>). <code>@Decision</code> and <code>@Action</code> pattern-match on the
-subtype — no flags, no nullable fields.</li>
-<li><strong>Single source of truth:</strong> <code>InquiryFormSpec</code> defines the form
-(the five fields plus the allowed values for <code>inquiryType</code>); the page renders the
-form from it <strong>and</strong> the classify prompt is constrained with the same
-allowed-values list — they cannot diverge.</li>
-<li><strong>Refinement passes the real artifact:</strong> on every chat turn the
-<strong>current</strong> message + the instruction go into the prompt, so the model edits
-the actual draft instead of relying on conversational memory alone. (An important
-agent-engineering pattern worth remembering.)</li>
-<li><strong>LLM robustness:</strong> the extract flow <strong>parses the LLM output as a
-<code>JsonObject</code> before returning it</strong>, and a parse failure throws
-<code>LLMException</code> which the REST layer turns into a <strong>503</strong>. The
-classify flow does its own sanity check against the allowed list. LLM output needs
-defensive validation, not just defensive stripping.</li>
+<li><strong>Dataflow is ordering.</strong> Three <code>@Action</code> methods, no explicit
+<code>order=</code>. <code>enrichIdentity</code> and <code>classify</code> both take only
+<code>IntakeRequest</code>, so they can run first; <code>assemble</code> declares the
+<code>Identity</code> and <code>Classification</code> they return as parameters, so the
+runtime orders it after both. This is Example 1's parameter-type threading grown up into a
+real pipeline.</li>
+<li><strong>Workflow state is typed records between phases.</strong> <code>Identity</code>
+and <code>Classification</code> are immutable records returned from one phase and consumed
+by the next. No mutable store threaded through the agent; nothing to accidentally overwrite
+across concurrent workflows.</li>
+<li><strong>The agent owns LLM interaction.</strong> Every LLM call lives in the agent; the
+resource fires an event and reads the result from a request-scoped holder. The resource is
+a thin REST adapter, not an LLM caller.</li>
+<li><strong>Graceful fallback on failure.</strong> <code>@HandleException</code> catches an
+<code>LLMException</code> from any action in the pipeline and writes a minimal fallback
+<code>IntakeRecord</code> (the customer's own values + the unpolished message), so the
+review screen always has something to show instead of a 500. The handler's recovery is a
+real path, not an afterthought.</li>
+<li><strong>Short-circuit before the LLM.</strong> <code>@Decision</code> stops the workflow
+on an empty message, so no LLM call ever happens for a no-op submission.</li>
 </ol>
 <hr>
 <h2>Example 3 — Course Content Studio</h2>
@@ -735,10 +728,10 @@ authoritative reference for the rules.</li>
 LLM backend (Ollama, Anthropic, Vertex) is MicroProfile Config, no code change.</li>
 <li><strong>The ask agent.</strong> POST a real question → <code>[TRIGGER] → [DECISION] → [ACTION] → [OUTCOME]</code> in <code>server.log</code>; POST an empty question → early termination. It runs
 on <strong>local Ollama</strong> (no network, no cost).</li>
-<li><strong>The inquiry intake sample and the studio.</strong> A customer contact form where
-Claude drafts and refines the message, suggests a category, and extracts identity details
-on request; then two agents chained by CDI events with a human approval gate. Switching
-Ollama↔Claude↔Vertex is <strong>one properties file</strong>.</li>
+<li><strong>The inquiry intake sample and the studio.</strong> A customer contact form that
+runs a three-step pipeline on submit (enrich identity, classify, assemble &amp; polish) and
+shows the prepared record for review; then two agents chained by CDI events with a human
+approval gate. Switching Ollama↔Claude↔Vertex is <strong>one properties file</strong>.</li>
 </ol>
 <h2>Running the examples — checklist</h2>
 <ul>
