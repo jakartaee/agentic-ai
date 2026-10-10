@@ -13,25 +13,23 @@
 package ee.jakarta.examples.ai.agent.inquiryintake;
 
 import jakarta.enterprise.context.RequestScoped;
-import jakarta.json.JsonObject;
 
 /**
- * Per-request holder for the result the {@link AssistAgent} just produced.
- * The agent writes into this; the resource reads from it after
+ * Per-request holder for the {@link IntakeRecord} the pipeline produced
+ * (either from the normal {@code assemble} action, or from the exception
+ * handler's fallback). The resource reads this after
  * {@code trigger.fire(...)} returns, in the same HTTP request.
  */
 @RequestScoped
-public class AssistResponse {
+public class IntakeOutput {
 
-    private String message;
-    private String inquiryType;
-    private JsonObject identity;
+    private IntakeRecord record;
 
-    public String message()        { return message; }
-    public String inquiryType()    { return inquiryType; }
-    public JsonObject identity()   { return identity; }
+    public IntakeRecord record() {
+        return record;
+    }
 
-    public void setMessage(String message)         { this.message = message; }
-    public void setInquiryType(String inquiryType) { this.inquiryType = inquiryType; }
-    public void setIdentity(JsonObject identity)   { this.identity = identity; }
+    public void setRecord(IntakeRecord record) {
+        this.record = record;
+    }
 }

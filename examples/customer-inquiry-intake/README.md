@@ -1,60 +1,44 @@
 # Customer Inquiry Intake — Jakarta Agentic AI sample
 
-A customer-facing contact form that **lets the AI do the work the customer
-would otherwise have to do by hand**: pull their name, email, and company out
-of their message, suggest the right routing category, and draft or refine the
-free-text message itself.
-
-The form is five fields — `name`, `businessEmail`, `company`, `inquiryType`,
-`message` — all user-controlled. Each has a small **✦** link that opens an
-assistant panel offering the AI help that fits that field.
+A customer-facing contact form backed by a single-agent pipeline. The
+customer types what they have (even just a message) and clicks **Prepare
+inquiry**; the agent runs end-to-end — pulling the sender's identity out of
+the message if it isn't already filled in, picking a routing category, and
+rewriting the message in a tone that matches that category — and the
+customer reviews the prepared record before confirming.
 
 ```
-GET  /customer-inquiry-intake/                             the contact form
-GET  /customer-inquiry-intake/api/form                     the form schema (FormSpec)
-GET  /customer-inquiry-intake/api/message                  the current message draft (204 before anything is drafted)
-POST /customer-inquiry-intake/api/message/draft            { "brief": "..." }           draft a polished message from a brief
-POST /customer-inquiry-intake/api/message/refine           { "instruction": "..." }     refine the current message
-POST /customer-inquiry-intake/api/classify                 { "message": "..." }         suggest an inquiryType from the message
-POST /customer-inquiry-intake/api/extract                  { "text": "..." }            pull name / email / company out of some text
-POST /customer-inquiry-intake/api/submit                   { ...the full form... }      send the inquiry
+GET  /customer-inquiry-intake/                       the UI
+POST /customer-inquiry-intake/api/intake             { name?, email?, company?, message }    run the pipeline, return the prepared IntakeRecord
+POST /customer-inquiry-intake/api/intake/confirm     { identity, classification, message }   hand the (possibly edited) record off
 ```
 
-## One agent, four flows
+## How the agent is wired
 
-Every endpoint that reaches the LLM goes through `AssistAgent`. The resource
-never calls `LargeLanguageModel` directly — the agent is the single surface
-for the model.
+`IntakeAgent` has three `@Action` methods, but there is no explicit
+`order=` anywhere. The runtime orders them by the data each one needs:
 
-The event is a sealed interface, `AssistRequest`, with four concrete subtypes:
+- `Identity enrichIdentity(IntakeRequest)` and `Classification classify(IntakeRequest)`
+  take only the triggering event and can run first.
+- `IntakeRecord assemble(IntakeRequest, Identity, Classification)` runs after
+  both of them because it declares them as parameters; the runtime matches
+  parameters by type.
 
-- `AssistRequest.Draft(brief)` — draft a polished message from a short brief.
-- `AssistRequest.Refine(currentMessage, instruction)` — refine the current
-  message. The whole current message goes into the prompt on every refine
-  turn, so the model edits the real draft rather than relying on
-  conversational memory alone (the iterate-on-current-artifact pattern).
-- `AssistRequest.Classify(message)` — classify the message into one of the
-  configured inquiry types.
-- `AssistRequest.Extract(text)` — pull the sender's name, email, and company
-  out of a block of text.
+That dataflow-ordering is the same mechanism the ask-agent example uses to
+pass the generated `Answer` from `@Action` to `@Outcome`. Here it threads a
+real pipeline together.
 
-The agent runs the same four phases for every flow:
+The other phases:
 
-- `@Trigger` — logs which flow this is.
-- `@Decision` — stops the workflow when there is nothing meaningful to do
-  (empty brief, empty refine instruction, empty classify message, empty
-  extract text), so the LLM is never called for a no-op.
-- `@Action` — a single `dispatch` method pattern-matches on the subtype and
-  runs the right prompt. Results are written to `MessageStore` (for the two
-  message flows, which are persistent across HTTP requests) and to the
-  `@RequestScoped AssistResponse` (which the resource reads back inside the
-  same request).
-- `@Outcome` — logs that the flow is done.
-
-That one agent handles multiple flows and stages is the design point worth
-taking away: the four phases are not a per-task shape — they are the shape
-of the agent itself, and the concrete event picks which work to do inside
-them.
+- `@Trigger` — logs that an inquiry arrived.
+- `@Decision canProcess(IntakeRequest)` — stops the workflow on an empty
+  message so no LLM call happens for a no-op.
+- `@Outcome` — logs that the inquiry is ready.
+- `@HandleException onLlmFailure(LLMException, IntakeRequest)` — catches an
+  LLM failure anywhere in the pipeline and writes a minimal fallback record
+  (the customer's own values + the unpolished original message), so the UI
+  always shows a review screen instead of a 500. The resource reads the
+  record from the `@RequestScoped IntakeOutput` holder either way.
 
 ## Configure the LLM
 
@@ -66,7 +50,7 @@ config and is reused as the Anthropic prompt-cache prefix:
 payara.agentic.llm.provider=vertex
 payara.agentic.llm.model=claude-sonnet-4-6
 payara.agentic.llm.max-tokens=4096
-payara.agentic.llm.system=You are a writing assistant inside a customer contact form...
+payara.agentic.llm.system=You are an intake assistant for a customer-facing contact form...
 ```
 
 > The `payara.agentic.llm.*` keys are the configuration surface of the Payara
@@ -74,7 +58,7 @@ payara.agentic.llm.system=You are a writing assistant inside a customer contact 
 > implementation, configure the provider the way that implementation
 > documents. To run fully local instead of Claude, switch to
 > `payara.agentic.llm.provider=ollama` / `model=gemma3:12b` — a 12B-class
-> model is recommended so the classify and extract outputs stay well-formed.
+> model is recommended so the extract step produces well-formed JSON.
 
 ## Prerequisites
 
@@ -94,10 +78,11 @@ mvn -pl examples/customer-inquiry-intake -am package
 asadmin deploy examples/customer-inquiry-intake/target/customer-inquiry-intake.war
 ```
 
-Open <http://localhost:8080/customer-inquiry-intake/>, type a short brief
-into the message field's assistant panel (for example *"upgrading EE 8 → 10
-on Payara 5, three month deadline, need help scoping"*), click **Draft
-message**, then refine it through chat and let the assistant suggest a
-category. Watch `server.log` for
-`[TRIGGER]` → `[DECISION]` → `[ACTION]` → `[OUTCOME]` on every draft or
-refine, and `[SUBMIT]` once you send the inquiry.
+Open <http://localhost:8080/customer-inquiry-intake/>, leave the identity
+fields blank, type a message that mentions you by name (for example *"Hi, I'm
+Jane Smith from Acme &lt;jane@acme.com&gt; — our EE 8 app on Payara 5 needs
+to be on EE 10 before our audit in three months. Who should we talk to?"*),
+and click **Prepare inquiry**. Watch `server.log` for
+`[TRIGGER]` → `[DECISION]` → `[ACTION] enrichIdentity` and
+`[ACTION] classify` (which may run in either order), then
+`[ACTION] assemble`, then `[OUTCOME]`, then `[CONFIRM]` when you send.
