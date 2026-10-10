@@ -10,14 +10,14 @@
         <version>1.0.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>jakarta.agentic-ai-examples.tutorial-generator</artifactId>
+    <artifactId>jakarta.agentic-ai-examples.customer-inquiry-intake</artifactId>
     <packaging>war</packaging>
 
-    <name>Tutorial Generator Example</name>
+    <name>Customer Inquiry Intake Example</name>
     <description>
-        An agent that writes a field-by-field guide for a web
-        form and lets a developer refine it through chat, showing the four
-        specification phases and iterative LLM refinement of a stored artifact.
+        An agent that turns a free-text customer inquiry into a structured,
+        actionable record (summary, category, urgency, cleaned-up message,
+        suggested next step) and lets the user refine any field through chat.
     </description>
 
     <licenses>
@@ -47,7 +47,7 @@
     </dependencies>
 
     <build>
-        <finalName>tutorial-generator</finalName>
+        <finalName>customer-inquiry-intake</finalName>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

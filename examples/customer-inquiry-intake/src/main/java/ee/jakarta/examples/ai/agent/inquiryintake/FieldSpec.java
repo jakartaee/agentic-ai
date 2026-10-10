@@ -10,22 +10,21 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  *****************************************************************************/
-package ee.jakarta.examples.ai.agent.tutorialgenerator;
+package ee.jakarta.examples.ai.agent.inquiryintake;
 
 import java.util.List;
 
 /**
- * Metadata for one form field. This is the structured input the agent uses to
- * explain the field &mdash; the page also renders the live form from it, so the
- * form and its tutorial share a single source of truth.
+ * Metadata for one field of a structured customer inquiry. The agent fills
+ * this field from the raw brief; the page also renders the editable control
+ * from it, so the schema and the UI share a single source of truth.
  *
- * @param name     HTML field name
+ * @param name     field name used as the JSON key in the inquiry record
  * @param label    human-readable label
- * @param type     input type: text, email, tel, select, textarea, checkbox
- * @param required whether the field is mandatory
+ * @param type     input type: text, select, textarea
  * @param options  select options (empty for non-select fields)
- * @param help     short author hint about the field's purpose
+ * @param help     short hint shown under the control
  */
-public record FieldSpec(String name, String label, String type, boolean required,
+public record FieldSpec(String name, String label, String type,
                         List<String> options, String help) {
 }
