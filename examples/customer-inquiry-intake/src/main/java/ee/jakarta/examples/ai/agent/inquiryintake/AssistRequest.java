@@ -13,23 +13,24 @@
 package ee.jakarta.examples.ai.agent.inquiryintake;
 
 /**
- * CDI event that triggers the {@link AssistAgent} workflow.
- * <p>
- * On a first draft the request carries only {@code brief} (what the customer
- * roughly wants to say) and the agent writes a polished message. On refine,
- * the request carries {@code currentMessage} plus an {@code instruction} and
- * the agent revises the existing message. The current message is passed on
- * every refine turn so the model edits the real artifact rather than relying
- * on conversational memory alone.
- *
- * @param brief          what the customer wants to say, or {@code null} on refine
- * @param instruction    the chat refinement instruction, or {@code null} on first draft
- * @param currentMessage the message to revise, or {@code null} on first draft
+ * CDI event that triggers the {@link AssistAgent} workflow. The agent handles
+ * four distinct flows and the concrete subtype of the event selects which
+ * one: drafting the customer's message from a brief, refining the current
+ * message, classifying the message into an inquiry type, or extracting the
+ * sender's identity from some text. One agent, one place that talks to the
+ * LLM.
  */
-public record AssistRequest(String brief, String instruction, String currentMessage) {
+public sealed interface AssistRequest {
 
-    /** True when the request carries an existing message to revise. */
-    public boolean refine() {
-        return currentMessage != null && !currentMessage.isBlank();
-    }
+    /** Draft a polished message from a short customer brief. */
+    record Draft(String brief) implements AssistRequest {}
+
+    /** Refine an existing message with a chat instruction. */
+    record Refine(String currentMessage, String instruction) implements AssistRequest {}
+
+    /** Classify a message into one of the configured inquiry types. */
+    record Classify(String message) implements AssistRequest {}
+
+    /** Pull the sender's name, email, and company out of a block of text. */
+    record Extract(String text) implements AssistRequest {}
 }

@@ -20,38 +20,41 @@ POST /customer-inquiry-intake/api/extract                  { "text": "..." }    
 POST /customer-inquiry-intake/api/submit                   { ...the full form... }      send the inquiry
 ```
 
-## Two shapes of AI call in one sample
+## One agent, four flows
 
-- **The agent** (`AssistAgent`) handles the message. Drafting the first version
-  from a brief and refining it on later turns is iterative, stateful work; it
-  earns the four-phase workflow, the `@Valid` trigger, the `@Decision`
-  short-circuit (nothing happens on a blank brief or an empty refine
-  instruction), and the iterate-on-the-current-artifact pattern.
-- **The `LargeLanguageModel` facade used directly** (in `AssistResource`)
-  handles `classify` and `extract`. Those are one-shot, stateless utility
-  calls — classification and information extraction — and giving them a full
-  agent would be ceremony without content. The resource injects
-  `LargeLanguageModel` and makes a single `model.query(...)` call per
-  endpoint.
+Every endpoint that reaches the LLM goes through `AssistAgent`. The resource
+never calls `LargeLanguageModel` directly — the agent is the single surface
+for the model.
 
-Picking the right shape per task is itself a design point worth taking away
-from this sample.
+The event is a sealed interface, `AssistRequest`, with four concrete subtypes:
 
-## How the agent is wired
+- `AssistRequest.Draft(brief)` — draft a polished message from a short brief.
+- `AssistRequest.Refine(currentMessage, instruction)` — refine the current
+  message. The whole current message goes into the prompt on every refine
+  turn, so the model edits the real draft rather than relying on
+  conversational memory alone (the iterate-on-current-artifact pattern).
+- `AssistRequest.Classify(message)` — classify the message into one of the
+  configured inquiry types.
+- `AssistRequest.Extract(text)` — pull the sender's name, email, and company
+  out of a block of text.
 
-`AssistAgent` runs the four phases:
+The agent runs the same four phases for every flow:
 
-- `@Trigger` — logs whether this is a draft or a refine.
+- `@Trigger` — logs which flow this is.
 - `@Decision` — stops the workflow when there is nothing meaningful to do
-  (first draft with no brief, refine with no instruction), so the LLM is
-  never called for a no-op.
-- `@Action` — one prompt for each mode; the response is stored in
-  `MessageStore` for the resource to read back.
-- `@Outcome` — logs the size of the stored draft.
+  (empty brief, empty refine instruction, empty classify message, empty
+  extract text), so the LLM is never called for a no-op.
+- `@Action` — a single `dispatch` method pattern-matches on the subtype and
+  runs the right prompt. Results are written to `MessageStore` (for the two
+  message flows, which are persistent across HTTP requests) and to the
+  `@RequestScoped AssistResponse` (which the resource reads back inside the
+  same request).
+- `@Outcome` — logs that the flow is done.
 
-Refinement passes the *current message* back into the prompt on every turn,
-so the model edits the real draft rather than relying on conversational
-memory alone.
+That one agent handles multiple flows and stages is the design point worth
+taking away: the four phases are not a per-task shape — they are the shape
+of the agent itself, and the concrete event picks which work to do inside
+them.
 
 ## Configure the LLM
 
