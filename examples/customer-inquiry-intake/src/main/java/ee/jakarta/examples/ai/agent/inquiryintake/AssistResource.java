@@ -13,14 +13,11 @@
 package ee.jakarta.examples.ai.agent.inquiryintake;
 
 import jakarta.ai.agent.LLMException;
-import jakarta.ai.agent.LargeLanguageModel;
 import jakarta.enterprise.context.RequestScoped;
 import jakarta.enterprise.event.Event;
 import jakarta.enterprise.event.ObserverException;
 import jakarta.inject.Inject;
-import jakarta.json.Json;
 import jakarta.json.JsonObject;
-import jakarta.json.JsonReader;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
@@ -29,19 +26,17 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 
-import java.io.StringReader;
 import java.util.Map;
+import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * REST API for the contact-form assistant. The {@code /message/*} endpoints
- * run the {@link AssistAgent} workflow via a CDI event (synchronous, so the
- * agent's result is in the {@link MessageStore} by the time the method
- * returns). The {@code /classify} and {@code /extract} endpoints are
- * one-shot calls that use the {@link LargeLanguageModel} facade directly —
- * no stateful workflow, no event — because those tasks are stateless utility
- * calls, not iterative artifact editing.
+ * REST API for the contact-form assistant. Every endpoint that reaches the
+ * LLM goes through {@link AssistAgent} by firing an {@link AssistRequest}
+ * event; the resource never calls {@link jakarta.ai.agent.LargeLanguageModel}
+ * directly. {@code Event.fire(...)} is synchronous, so the agent's result is
+ * in {@link AssistResponse} by the time the method returns.
  */
 @Path("")
 @RequestScoped
@@ -56,10 +51,10 @@ public class AssistResource {
     MessageStore messages;
 
     @Inject
-    Event<AssistRequest> trigger;
+    AssistResponse response;
 
     @Inject
-    LargeLanguageModel model;
+    Event<AssistRequest> trigger;
 
     /** The form schema; the page renders the fields from this. */
     @GET
@@ -86,9 +81,10 @@ public class AssistResource {
     @Path("message/draft")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response draft(DraftRequest request) {
-        String brief = request == null ? null : request.brief();
-        return runWorkflow(new AssistRequest(brief, null, null));
+    public Response draft(DraftBody body) {
+        String brief = body == null ? null : body.brief();
+        return runFlow(new AssistRequest.Draft(brief),
+                       () -> Map.of("message", response.message()));
     }
 
     /** Refine the current message with a chat instruction. */
@@ -96,71 +92,35 @@ public class AssistResource {
     @Path("message/refine")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response refine(RefineRequest request) {
-        String instruction = request == null ? null : request.instruction();
-        return runWorkflow(new AssistRequest(null, instruction, messages.get()));
+    public Response refine(RefineBody body) {
+        String instruction = body == null ? null : body.instruction();
+        return runFlow(new AssistRequest.Refine(messages.get(), instruction),
+                       () -> Map.of("message", response.message()));
     }
 
-    /** Classify a message into one of the inquiry types. One-shot LLM call, no agent. */
+    /** Classify the message into one of the configured inquiry types. */
     @POST
     @Path("classify")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response classify(ClassifyRequest request) {
-        if (request == null || request.message() == null || request.message().isBlank()) {
-            return Response.status(Response.Status.BAD_REQUEST)
-                    .type(MediaType.TEXT_PLAIN)
-                    .entity("A message is required.").build();
-        }
-        try {
-            String raw = model.query(
-                    "Classify this customer inquiry into exactly one of: {}. "
-                            + "Return only the single word, nothing else.\n\n{}",
-                    InquiryFormSpec.INQUIRY_TYPES, request.message());
-            String type = raw.strip().replaceAll("[^A-Za-z]", "");
-            if (!InquiryFormSpec.INQUIRY_TYPES.contains(type)) {
-                type = "General";
-            }
-            return Response.ok(Map.of("inquiryType", type)).build();
-        } catch (LLMException e) {
-            return llmUnavailable(e);
-        }
+    public Response classify(ClassifyBody body) {
+        String message = body == null ? null : body.message();
+        return runFlow(new AssistRequest.Classify(message),
+                       () -> Map.of("inquiryType", response.inquiryType()));
     }
 
-    /**
-     * Pull the sender's name, email, and company out of a block of text. Used
-     * when the customer pastes a longer message that already identifies them
-     * ("Hi, I'm Jane Smith from Acme, jane@acme.com..."). One-shot LLM call,
-     * no agent; missing values come back as empty strings.
-     */
+    /** Pull the sender's name, email, and company out of a block of text. */
     @POST
     @Path("extract")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response extract(ExtractRequest request) {
-        if (request == null || request.text() == null || request.text().isBlank()) {
-            return Response.status(Response.Status.BAD_REQUEST)
-                    .type(MediaType.TEXT_PLAIN)
-                    .entity("Some text is required.").build();
-        }
-        try {
-            String raw = model.query(
-                    "Extract the sender's identity from the text below. Return a JSON object with "
-                            + "exactly these keys: \"name\", \"businessEmail\", \"company\". If a value "
-                            + "is not clearly present, use an empty string for that key. Return only the "
-                            + "JSON object, with no markdown or commentary.\n\n{}",
-                    request.text());
-            String json = stripCodeFences(raw);
-            JsonObject extracted;
-            try (JsonReader reader = Json.createReader(new StringReader(json))) {
-                extracted = reader.readObject();
-            } catch (RuntimeException parseFailure) {
-                throw new LLMException("Extraction returned non-JSON output", parseFailure);
-            }
-            return Response.ok(extracted.toString()).build();
-        } catch (LLMException e) {
-            return llmUnavailable(e);
-        }
+    public Response extract(ExtractBody body) {
+        String text = body == null ? null : body.text();
+        return runFlow(new AssistRequest.Extract(text),
+                       () -> {
+                           JsonObject identity = response.identity();
+                           return identity == null ? Map.of() : identity;
+                       });
     }
 
     /**
@@ -184,51 +144,29 @@ public class AssistResource {
         return Response.ok(Map.of("status", "submitted")).build();
     }
 
-    private Response runWorkflow(AssistRequest request) {
+    private Response runFlow(AssistRequest request, Supplier<Object> successBody) {
         try {
             trigger.fire(request);
         } catch (ObserverException wrapper) {
             Throwable cause = wrapper.getCause();
             if (cause instanceof LLMException llm) {
-                return llmUnavailable(llm);
+                LOGGER.log(Level.WARNING, "LLM call failed", llm);
+                return Response.status(Response.Status.SERVICE_UNAVAILABLE)
+                        .type(MediaType.TEXT_PLAIN)
+                        .entity("The LLM backend is unavailable. Check that the provider "
+                                + "configured in microprofile-config.properties is running.")
+                        .build();
             }
             throw wrapper;
         }
-        return Response.ok(Map.of("message", messages.get())).build();
+        return Response.ok(successBody.get()).build();
     }
 
-    private Response llmUnavailable(LLMException e) {
-        LOGGER.log(Level.WARNING, "LLM call failed", e);
-        return Response.status(Response.Status.SERVICE_UNAVAILABLE)
-                .type(MediaType.TEXT_PLAIN)
-                .entity("The LLM backend is unavailable. Check that the provider "
-                        + "configured in microprofile-config.properties is running.")
-                .build();
-    }
+    public record DraftBody(String brief) {}
 
-    /** LLMs sometimes wrap output in ```json ... ``` despite instructions; strip it. */
-    private static String stripCodeFences(String content) {
-        if (content == null) {
-            return "";
-        }
-        String trimmed = content.strip();
-        if (trimmed.startsWith("```")) {
-            int firstNewline = trimmed.indexOf('\n');
-            if (firstNewline > 0) {
-                trimmed = trimmed.substring(firstNewline + 1);
-            }
-            if (trimmed.endsWith("```")) {
-                trimmed = trimmed.substring(0, trimmed.length() - 3);
-            }
-        }
-        return trimmed.strip();
-    }
+    public record RefineBody(String instruction) {}
 
-    public record DraftRequest(String brief) {}
+    public record ClassifyBody(String message) {}
 
-    public record RefineRequest(String instruction) {}
-
-    public record ClassifyRequest(String message) {}
-
-    public record ExtractRequest(String text) {}
+    public record ExtractBody(String text) {}
 }
