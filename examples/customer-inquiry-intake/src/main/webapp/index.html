@@ -32,20 +32,7 @@
         .logo span { color: #3d9bff; }
         .header-sub { color: #8fa8c8; font-size: 13px; padding-left: 24px; border-left: 1px solid #1e3256; }
 
-        .page-grid {
-            display: flex;
-            gap: 20px;
-            padding: 28px 32px;
-            align-items: start;
-        }
-
-        .form-col {
-            flex: 1; min-width: 0;
-            max-width: 620px;
-            margin: 0 auto;
-            transition: max-width .36s var(--ease), margin .36s var(--ease);
-        }
-        .page-grid.panel-open .form-col { max-width: none; margin: 0; }
+        main { max-width: 620px; margin: 0 auto; padding: 28px 32px; }
 
         .card {
             background: var(--card);
@@ -54,23 +41,18 @@
             padding: 28px;
             box-shadow: 0 1px 4px rgba(10,22,40,.06);
         }
-        .intro { margin: 0 0 24px; font-size: 14px; color: var(--muted); line-height: 1.6; }
-        .intro strong { color: var(--ink); font-weight: 600; }
+        .card + .card { margin-top: 20px; }
+        .card h2 {
+            margin: 0 0 6px;
+            font-size: 11px; font-weight: 600; color: var(--muted);
+            text-transform: uppercase; letter-spacing: .08em;
+        }
+        .card .lede { margin: 0 0 20px; color: var(--muted); font-size: 13.5px; line-height: 1.6; }
 
-        .field { position: relative; margin-top: 18px; }
+        .field { margin-top: 16px; }
         .field:first-of-type { margin-top: 0; }
-        label {
-            display: flex; align-items: center; justify-content: space-between;
-            margin-bottom: 5px; font-size: 13px; font-weight: 500; color: var(--ink);
-        }
-        .assist-link {
-            background: transparent; border: 0; padding: 0;
-            color: var(--blue); font-size: 12px; font-weight: 500;
-            cursor: pointer; font-family: inherit;
-        }
-        .assist-link:hover { color: var(--blue-h); text-decoration: underline; }
-        .assist-link::before { content: '✦ '; }
-
+        label { display: block; margin-bottom: 5px; font-size: 13px; font-weight: 500; color: var(--ink); }
+        label small { color: var(--muted); font-weight: 400; font-size: 12px; margin-left: 6px; }
         input, select, textarea {
             width: 100%; padding: 10px 12px; background: #fff; color: var(--ink);
             border: 1.5px solid var(--border); border-radius: 8px;
@@ -80,11 +62,10 @@
         input:focus, select:focus, textarea:focus {
             border-color: var(--blue); box-shadow: 0 0 0 3px rgba(0,85,204,.1);
         }
-        textarea#message { min-height: 140px; resize: vertical; line-height: 1.55; }
-        small.help { display: block; color: var(--muted); font-size: 12px; margin-top: 4px; }
+        textarea { min-height: 120px; resize: vertical; line-height: 1.55; }
 
-        .submit-row {
-            margin-top: 24px; display: flex; justify-content: flex-end; gap: 10px; align-items: center;
+        .actions {
+            margin-top: 20px; display: flex; justify-content: flex-end; gap: 10px; align-items: center;
         }
         button {
             background: var(--blue); color: #fff; border: 0;
@@ -94,82 +75,23 @@
         }
         button:hover:not(:disabled) { background: var(--blue-h); }
         button:disabled { opacity: .45; cursor: default; }
-        .status { color: var(--muted); font-size: 13px; }
-
-        /* ── Assist side panel ── */
-        .assist-panel {
-            flex-shrink: 0;
-            width: 0; overflow: hidden;
-            transition: width .36s var(--ease);
-        }
-        .assist-panel.open { width: 400px; }
-
-        .assist-panel-inner {
-            width: 400px;
-            display: flex; flex-direction: column;
-            border-radius: 12px;
-            height: calc(100vh - 112px);
-            overflow: hidden;
-            background: var(--card);
+        button.ghost {
+            background: transparent; color: var(--blue);
             border: 1px solid var(--border);
-            box-shadow: 0 1px 4px rgba(10,22,40,.06);
-            transform: translateX(20px); opacity: 0;
-            transition: transform .36s var(--ease), opacity .28s var(--ease);
         }
-        .assist-panel.open .assist-panel-inner { transform: translateX(0); opacity: 1; }
+        button.ghost:hover:not(:disabled) { background: var(--bg); }
+        .status { color: var(--muted); font-size: 13px; margin-right: auto; }
 
-        .panel-header {
-            display: flex; align-items: center; justify-content: space-between;
-            padding: 14px 20px;
-            background: #f8fafc;
-            border-bottom: 1px solid var(--border);
-            flex-shrink: 0; gap: 10px;
+        .pill {
+            display: inline-block; padding: 2px 10px; border-radius: 12px;
+            background: var(--navy); color: #fff; font-size: 12px; font-weight: 500;
+            text-transform: capitalize; letter-spacing: 0;
         }
-        .panel-title {
-            font-size: 13px; font-weight: 600; color: var(--ink);
-            flex: 1; display: flex; align-items: center; gap: 6px;
+        .diff {
+            margin-top: 6px; font-size: 12px; color: var(--muted);
+            padding-top: 4px; border-top: 1px dashed var(--border);
         }
-        .panel-title::before {
-            content: '✦'; color: var(--blue); font-size: 14px;
-        }
-        .panel-close {
-            background: transparent; border: 1px solid var(--border);
-            color: var(--muted); border-radius: 6px; width: 26px; height: 26px; padding: 0;
-            cursor: pointer; font-size: 14px; display: flex; align-items: center; justify-content: center;
-            font-family: inherit; flex-shrink: 0;
-        }
-        .panel-close:hover { background: var(--bg); color: var(--ink); }
-
-        .panel-body {
-            flex: 1; overflow-y: auto; padding: 20px;
-            display: flex; flex-direction: column; gap: 16px;
-            scrollbar-width: thin; scrollbar-color: var(--border) transparent;
-        }
-        .panel-body::-webkit-scrollbar { width: 4px; }
-        .panel-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
-        .panel-body p { margin: 0; font-size: 13px; color: var(--muted); line-height: 1.55; }
-        .panel-body .brief {
-            width: 100%; min-height: 90px; padding: 10px 12px;
-            border: 1.5px solid var(--border); border-radius: 8px;
-            font-size: 13.5px; font-family: inherit; outline: none; resize: vertical;
-            line-height: 1.5; color: var(--ink);
-        }
-        .panel-body .brief:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(0,85,204,.1); }
-        .panel-body button { align-self: flex-start; }
-
-        .panel-divider { height: 1px; background: var(--border); margin: 0; flex-shrink: 0; }
-
-        .panel-chat { padding: 14px 20px 18px; display: flex; flex-direction: column; gap: 9px; flex-shrink: 0; }
-        .panel-chat-label { font-size: 10px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; }
-        .chatlog { display: flex; flex-direction: column; gap: 6px; max-height: 140px; overflow-y: auto; }
-        .msg { font-size: 13px; padding: 7px 11px; border-radius: 14px; max-width: 85%; line-height: 1.5; }
-        .msg.you { background: var(--blue); color: #fff; align-self: flex-end; border-bottom-right-radius: 3px; }
-        .msg.agent { background: var(--bg); color: var(--ink); align-self: flex-start; border-bottom-left-radius: 3px; border: 1px solid var(--border); }
-        .chatbar { display: flex; gap: 7px; }
-        .chatbar input {
-            flex: 1; padding: 8px 12px; border-radius: 18px; font-size: 13px;
-        }
-        .chatbar button { border-radius: 18px; padding: 8px 16px; font-size: 13px; }
+        .diff code { background: var(--accent); padding: 1px 6px; border-radius: 4px; }
 
         .toast {
             position: fixed; top: 80px; left: 50%;
@@ -180,7 +102,6 @@
             box-shadow: 0 4px 16px rgba(0,0,0,0.2);
             opacity: 0; pointer-events: none; z-index: 1000;
             transition: opacity .22s, transform .22s;
-            white-space: nowrap;
         }
         .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
     </style>
@@ -189,113 +110,87 @@
 
 <header>
     <div class="logo">Contact<span>·</span>Us</div>
-    <p class="header-sub">Customer inquiry &mdash; AI-assisted contact form</p>
+    <p class="header-sub">Customer inquiry &mdash; prepared with Jakarta Agentic AI</p>
 </header>
 
 <div class="toast" id="toast"></div>
 
-<div class="page-grid" id="pageGrid">
-
-    <div class="form-col">
-        <div class="card">
-            <p class="intro">
-                Fill in the form below &mdash; the <strong>✦ links</strong> next to each
-                field offer AI help: pull your details out of your message, suggest the
-                right category, or draft the message itself from a short brief.
-            </p>
-            <form id="inquiryForm" onsubmit="return false;">
-                <div class="field">
-                    <label>
-                        <span>Name</span>
-                        <button type="button" class="assist-link" onclick="openAssist('identity')">Extract from message</button>
-                    </label>
-                    <input id="name" type="text" autocomplete="name"/>
-                </div>
-                <div class="field">
-                    <label>
-                        <span>Business email</span>
-                        <button type="button" class="assist-link" onclick="openAssist('identity')">Extract from message</button>
-                    </label>
-                    <input id="businessEmail" type="email" autocomplete="email"/>
-                </div>
-                <div class="field">
-                    <label>
-                        <span>Company</span>
-                        <button type="button" class="assist-link" onclick="openAssist('identity')">Extract from message</button>
-                    </label>
-                    <input id="company" type="text" autocomplete="organization"/>
-                </div>
-                <div class="field">
-                    <label>
-                        <span>What can we help with?</span>
-                        <button type="button" class="assist-link" onclick="openAssist('inquiryType')">Suggest from message</button>
-                    </label>
-                    <select id="inquiryType">
-                        <option value="">Select…</option>
-                    </select>
-                </div>
-                <div class="field">
-                    <label>
-                        <span>How can we help?</span>
-                        <button type="button" class="assist-link" onclick="openAssist('message')">Help me write this</button>
-                    </label>
-                    <textarea id="message" placeholder="Describe what you are looking for…"></textarea>
-                </div>
-            </form>
-            <div class="submit-row">
-                <span class="status" id="status"></span>
-                <button id="submitBtn" onclick="submitInquiry()">Send inquiry</button>
+<main>
+    <section class="card" id="intakeCard">
+        <h2>Contact us</h2>
+        <p class="lede">
+            Fill in what you have &mdash; even just the message is enough. The assistant will
+            pull your details out of the text, pick a category, and tidy the message up before
+            you review and send.
+        </p>
+        <form id="intakeForm" onsubmit="return false;">
+            <div class="field">
+                <label for="name">Name <small>optional</small></label>
+                <input id="name" type="text" autocomplete="name"/>
             </div>
+            <div class="field">
+                <label for="email">Business email <small>optional</small></label>
+                <input id="email" type="email" autocomplete="email"/>
+            </div>
+            <div class="field">
+                <label for="company">Company <small>optional</small></label>
+                <input id="company" type="text" autocomplete="organization"/>
+            </div>
+            <div class="field">
+                <label for="message">Your message</label>
+                <textarea id="message" placeholder="Describe what you need. Mention your name, email and company if they are not already filled in — the assistant will pick them up."></textarea>
+            </div>
+        </form>
+        <div class="actions">
+            <span class="status" id="intakeStatus"></span>
+            <button id="submitBtn" onclick="submitInquiry()">Prepare inquiry</button>
         </div>
-    </div>
+    </section>
 
-    <div class="assist-panel" id="assistPanel">
-        <div class="assist-panel-inner">
-            <div class="panel-header">
-                <span class="panel-title" id="panelTitle">Assistant</span>
-                <button class="panel-close" onclick="closeAssist()" aria-label="Close">✕</button>
-            </div>
-
-            <div class="panel-body" id="panelBody"></div>
-
-            <div class="panel-divider" id="chatDivider" hidden></div>
-            <div class="panel-chat" id="panelChat" hidden>
-                <div class="panel-chat-label">Refine this message</div>
-                <div class="chatlog" id="chatlog"></div>
-                <div class="chatbar">
-                    <input id="chatInput" type="text" placeholder="e.g. shorter, more formal, add urgency…"/>
-                    <button id="refineBtn" onclick="refineMessage()">Send</button>
-                </div>
-            </div>
+    <section class="card" id="reviewCard" hidden>
+        <h2>Review before sending</h2>
+        <p class="lede">
+            Here is what we will send. Edit anything that is off, then confirm.
+        </p>
+        <div class="field">
+            <label for="rName">Name</label>
+            <input id="rName" type="text"/>
+            <div class="diff" id="rNameDiff" hidden></div>
         </div>
-    </div>
-
-</div>
+        <div class="field">
+            <label for="rEmail">Business email</label>
+            <input id="rEmail" type="email"/>
+            <div class="diff" id="rEmailDiff" hidden></div>
+        </div>
+        <div class="field">
+            <label for="rCompany">Company</label>
+            <input id="rCompany" type="text"/>
+            <div class="diff" id="rCompanyDiff" hidden></div>
+        </div>
+        <div class="field">
+            <label for="rCategory">Routed to</label>
+            <select id="rCategory">
+                <option value="GENERAL">General</option>
+                <option value="SALES">Sales</option>
+                <option value="SUPPORT">Support</option>
+                <option value="PARTNERSHIP">Partnership</option>
+            </select>
+        </div>
+        <div class="field">
+            <label for="rMessage">Message</label>
+            <textarea id="rMessage"></textarea>
+        </div>
+        <div class="actions">
+            <span class="status" id="reviewStatus"></span>
+            <button class="ghost" onclick="backToEdit()">Back to edit</button>
+            <button id="confirmBtn" onclick="confirmInquiry()">Confirm &amp; send</button>
+        </div>
+    </section>
+</main>
 
 <script>
     const $ = (id) => document.getElementById(id);
-
-    let schema       = null;
-    let currentMode  = null;
-    const chatHistory = [];
-
-    async function loadSchema() {
-        schema = await (await fetch('api/form')).json();
-        const sel = $('inquiryType');
-        for (const o of (schema.fields.find(f => f.name === 'inquiryType').options)) {
-            const opt = document.createElement('option');
-            opt.value = o; opt.textContent = o;
-            sel.appendChild(opt);
-        }
-    }
-
-    async function loadMessageDraft() {
-        const res = await fetch('api/message');
-        if (res.status === 200) {
-            const body = await res.json();
-            if (body && body.message) $('message').value = body.message;
-        }
-    }
+    let originalIdentity = { name: '', email: '', company: '' };
 
     function showToast(msg, duration = 3500) {
         const t = $('toast');
@@ -304,228 +199,115 @@
         setTimeout(() => t.classList.remove('show'), duration);
     }
 
-    function busy(on, msg) {
-        const buttons = document.querySelectorAll('button:not(.panel-close):not(.assist-link)');
-        buttons.forEach(b => b.disabled = on);
-        $('status').textContent = on ? (msg || '') : '';
+    function busy(sectionBtn, statusEl, on, msg) {
+        sectionBtn.disabled = on;
+        statusEl.textContent = on ? (msg || '') : '';
     }
-
-    // ── Side panel: three modes depending on which assist was clicked ─────
-
-    function openAssist(mode) {
-        currentMode = mode;
-        $('panelBody').innerHTML = '';
-        $('panelChat').hidden = true;
-        $('chatDivider').hidden = true;
-
-        if (mode === 'identity') renderIdentityAssist();
-        else if (mode === 'inquiryType') renderClassifyAssist();
-        else if (mode === 'message') renderMessageAssist();
-
-        $('assistPanel').classList.add('open');
-        $('pageGrid').classList.add('panel-open');
-    }
-
-    function closeAssist() {
-        $('assistPanel').classList.remove('open');
-        $('pageGrid').classList.remove('panel-open');
-        currentMode = null;
-    }
-
-    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeAssist(); });
-
-    function renderIdentityAssist() {
-        $('panelTitle').textContent = 'Extract your details';
-        const body = $('panelBody');
-        body.innerHTML = `
-            <p>If your message already identifies you (for example, "Hi, I'm Jane Smith from Acme &lt;jane@acme.com&gt;…"), the assistant can pull your <strong>name</strong>, <strong>business email</strong>, and <strong>company</strong> out and fill the fields above.</p>
-            <button onclick="extractIdentity()">Pull from my message</button>
-        `;
-    }
-
-    function renderClassifyAssist() {
-        $('panelTitle').textContent = 'Suggest a category';
-        const body = $('panelBody');
-        body.innerHTML = `
-            <p>The assistant can read your message and suggest the closest category.</p>
-            <button onclick="classifyInquiry()">Suggest from my message</button>
-        `;
-    }
-
-    function renderMessageAssist() {
-        $('panelTitle').textContent = 'Draft or refine your message';
-        const body = $('panelBody');
-        body.innerHTML = `
-            <p>Type a short brief &mdash; a few words about what you want to say &mdash; and the assistant will draft the message for you.</p>
-            <textarea id="brief" class="brief" placeholder="e.g. upgrading EE 8 → 10 on Payara 5, need help, three month deadline"></textarea>
-            <button onclick="draftMessage()">Draft message</button>
-        `;
-        if ($('message').value.trim()) {
-            $('panelChat').hidden = false;
-            $('chatDivider').hidden = false;
-            $('chatlog').innerHTML = '';
-            chatHistory.forEach(m => appendMsg(m.cls, m.text));
-        }
-    }
-
-    function appendMsg(cls, text) {
-        const m = document.createElement('div');
-        m.className = 'msg ' + cls; m.textContent = text;
-        $('chatlog').appendChild(m);
-        $('chatlog').scrollTop = $('chatlog').scrollHeight;
-    }
-
-    function addMsg(cls, text) {
-        chatHistory.push({ cls, text });
-        appendMsg(cls, text);
-    }
-
-    // ── Three AI calls ────────────────────────────────────────────────────
-
-    async function extractIdentity() {
-        const text = $('message').value.trim();
-        if (!text) {
-            showToast('Add some text to your message first.');
-            return;
-        }
-        busy(true, 'Extracting…');
-        try {
-            const res = await fetch('api/extract', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ text })
-            });
-            if (!res.ok) { showToast(await res.text() || 'Could not extract.'); return; }
-            const data = await res.json();
-            let filled = 0;
-            for (const k of ['name', 'businessEmail', 'company']) {
-                if (data[k]) { $(k).value = data[k]; filled++; }
-            }
-            showToast(filled ? `✓ Filled ${filled} field${filled === 1 ? '' : 's'}` : 'Nothing to pull out of this message yet.');
-            closeAssist();
-        } catch (e) {
-            showToast('Error: ' + e);
-        } finally {
-            busy(false);
-        }
-    }
-
-    async function classifyInquiry() {
-        const message = $('message').value.trim();
-        if (!message) {
-            showToast('Write a message first so the assistant can classify it.');
-            return;
-        }
-        busy(true, 'Classifying…');
-        try {
-            const res = await fetch('api/classify', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ message })
-            });
-            if (!res.ok) { showToast(await res.text() || 'Could not classify.'); return; }
-            const data = await res.json();
-            if (data.inquiryType) {
-                $('inquiryType').value = data.inquiryType;
-                showToast(`✓ Suggested: ${data.inquiryType}`);
-            }
-            closeAssist();
-        } catch (e) {
-            showToast('Error: ' + e);
-        } finally {
-            busy(false);
-        }
-    }
-
-    async function draftMessage() {
-        const brief = $('brief') ? $('brief').value.trim() : '';
-        if (!brief) {
-            showToast('Add a short brief first.');
-            return;
-        }
-        busy(true, 'Drafting…');
-        try {
-            const res = await fetch('api/message/draft', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ brief })
-            });
-            if (!res.ok) { showToast(await res.text() || 'Could not draft.'); return; }
-            const data = await res.json();
-            $('message').value = data.message || '';
-            chatHistory.length = 0;
-            showToast('✓ Draft ready — refine it below if you like');
-            renderMessageAssist();
-        } catch (e) {
-            showToast('Error: ' + e);
-        } finally {
-            busy(false);
-        }
-    }
-
-    async function refineMessage() {
-        const instruction = $('chatInput').value.trim();
-        if (!instruction) return;
-        addMsg('you', instruction);
-        $('chatInput').value = '';
-        busy(true, 'Refining…');
-        try {
-            const res = await fetch('api/message/refine', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ instruction })
-            });
-            if (!res.ok) { addMsg('agent', await res.text() || 'Could not refine.'); return; }
-            const data = await res.json();
-            $('message').value = data.message || '';
-            addMsg('agent', 'Updated.');
-        } catch (e) {
-            addMsg('agent', 'Error: ' + e);
-        } finally {
-            busy(false);
-        }
-    }
-
-    $('chatInput').addEventListener('keydown', (e) => { if (e.key === 'Enter') refineMessage(); });
-
-    // ── Submit ────────────────────────────────────────────────────────────
 
     async function submitInquiry() {
-        const submission = {
-            name:          $('name').value.trim(),
-            businessEmail: $('businessEmail').value.trim(),
-            company:       $('company').value.trim(),
-            inquiryType:   $('inquiryType').value,
-            message:       $('message').value.trim()
-        };
-        if (!submission.name || !submission.businessEmail || !submission.company
-                || !submission.inquiryType || !submission.message) {
-            showToast('Please fill in all fields before sending.');
+        const message = $('message').value.trim();
+        if (!message) {
+            showToast('A message is required.');
             return;
         }
-        busy(true, 'Sending…');
+        const payload = {
+            name:    $('name').value.trim() || null,
+            email:   $('email').value.trim() || null,
+            company: $('company').value.trim() || null,
+            message
+        };
+        originalIdentity = { name: payload.name || '', email: payload.email || '', company: payload.company || '' };
+        busy($('submitBtn'), $('intakeStatus'), true, 'Preparing…');
         try {
-            const res = await fetch('api/submit', {
+            const res = await fetch('api/intake', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(submission)
+                body: JSON.stringify(payload)
             });
-            if (!res.ok) { showToast(await res.text() || 'Could not send.'); return; }
-            showToast('✓ Inquiry sent — we will be in touch');
-            document.getElementById('inquiryForm').reset();
-            chatHistory.length = 0;
+            if (!res.ok) {
+                $('intakeStatus').textContent = (await res.text()) || 'Something went wrong.';
+                return;
+            }
+            const record = await res.json();
+            fillReview(record);
+            $('intakeCard').hidden = true;
+            $('reviewCard').hidden = false;
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         } catch (e) {
-            showToast('Error: ' + e);
+            $('intakeStatus').textContent = 'Error: ' + e;
         } finally {
-            busy(false);
+            busy($('submitBtn'), $('intakeStatus'), false);
         }
     }
 
-    async function init() {
-        await loadSchema();
-        await loadMessageDraft();
+    function fillReview(record) {
+        const id = record.identity || {};
+        $('rName').value    = id.name || '';
+        $('rEmail').value   = id.email || '';
+        $('rCompany').value = id.company || '';
+        $('rCategory').value = record.classification || 'GENERAL';
+        $('rMessage').value  = record.message || '';
+        showDiff('rNameDiff',    originalIdentity.name,    id.name);
+        showDiff('rEmailDiff',   originalIdentity.email,   id.email);
+        showDiff('rCompanyDiff', originalIdentity.company, id.company);
     }
-    init();
+
+    function showDiff(elId, originalValue, finalValue) {
+        const el = $(elId);
+        if (originalValue || !finalValue) {
+            el.hidden = true;
+            return;
+        }
+        el.hidden = false;
+        el.innerHTML = 'Filled in from your message: <code>' + escapeHtml(finalValue) + '</code>';
+    }
+
+    function escapeHtml(s) {
+        return (s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    }
+
+    function backToEdit() {
+        $('reviewCard').hidden = true;
+        $('intakeCard').hidden = false;
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    async function confirmInquiry() {
+        const record = {
+            identity: {
+                name:    $('rName').value.trim(),
+                email:   $('rEmail').value.trim(),
+                company: $('rCompany').value.trim()
+            },
+            classification: $('rCategory').value,
+            message:        $('rMessage').value.trim()
+        };
+        if (!record.message) {
+            showToast('The message cannot be empty.');
+            return;
+        }
+        busy($('confirmBtn'), $('reviewStatus'), true, 'Sending…');
+        try {
+            const res = await fetch('api/intake/confirm', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(record)
+            });
+            if (!res.ok) {
+                $('reviewStatus').textContent = (await res.text()) || 'Could not send.';
+                return;
+            }
+            showToast('✓ Inquiry sent — we will be in touch');
+            $('reviewCard').hidden = true;
+            $('intakeCard').hidden = false;
+            $('intakeForm').reset();
+            originalIdentity = { name: '', email: '', company: '' };
+        } catch (e) {
+            $('reviewStatus').textContent = 'Error: ' + e;
+        } finally {
+            busy($('confirmBtn'), $('reviewStatus'), false);
+        }
+    }
 </script>
 </body>
 </html>

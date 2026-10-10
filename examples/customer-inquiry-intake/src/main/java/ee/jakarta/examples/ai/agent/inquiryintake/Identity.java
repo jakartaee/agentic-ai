@@ -12,18 +12,10 @@
  *****************************************************************************/
 package ee.jakarta.examples.ai.agent.inquiryintake;
 
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotEmpty;
-
-import java.util.List;
-
 /**
- * Schema for a structured customer inquiry: a title, a short intro, and the
- * fields the agent will fill.
- *
- * @param title  schema title
- * @param intro  short description shown above the form
- * @param fields the inquiry fields
+ * Resolved sender identity: the customer's own values where supplied, with
+ * anything missing pulled out of the message by the agent. Returned by the
+ * {@code enrichIdentity} action and consumed by {@code assemble} by type.
  */
-public record FormSpec(String title, String intro, @NotEmpty List<@Valid FieldSpec> fields) {
+public record Identity(String name, String email, String company) {
 }
