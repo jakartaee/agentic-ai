@@ -14,11 +14,12 @@ Ollama model, so it needs no API key. Start here. See its
 
 ### Customer Inquiry Intake
 
-Located in `customer-inquiry-intake/`, a deployable web application where an
-agent triages a free-text customer inquiry into a structured, actionable
-record (summary, category, urgency, cleaned-up message, suggested next step)
-and lets the user refine any field through chat before handing it off. See
-its [README](customer-inquiry-intake/README.md).
+Located in `customer-inquiry-intake/`, a deployable web application: an
+AI-assisted customer contact form where the agent drafts and refines the
+customer's message, suggests a routing category, and pulls name / email /
+company out of a longer message. Also shows when to reach for an agent
+versus the `LargeLanguageModel` facade directly. See its
+[README](customer-inquiry-intake/README.md).
 
 ### Fraud Detection Agent
 
