@@ -14,7 +14,9 @@ package ee.jakarta.examples.ai.agent.inquiryintake;
 
 import jakarta.enterprise.context.RequestScoped;
 import jakarta.enterprise.event.Event;
+import jakarta.enterprise.event.ObserverException;
 import jakarta.inject.Inject;
+import jakarta.validation.ConstraintViolationException;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
@@ -51,20 +53,36 @@ public class IntakeResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response submit(IntakeRequest request) {
-        if (request == null || request.message() == null || request.message().isBlank()) {
+        if (request == null) {
             return Response.status(Response.Status.BAD_REQUEST)
                     .type(MediaType.TEXT_PLAIN)
-                    .entity("A message is required.").build();
+                    .entity("A submission is required.").build();
         }
-        trigger.fire(request);
+        try {
+            trigger.fire(request);
+        } catch (ObserverException wrapper) {
+            // CDI wraps anything thrown by a synchronous observer. The Bean Validation
+            // interceptor on @Trigger(@Valid IntakeRequest) throws a ConstraintViolationException
+            // when the record is invalid; map that to a 400. LLMException from an @Action is
+            // caught inside the agent by @HandleException and never propagates out.
+            Throwable cause = wrapper.getCause();
+            if (cause instanceof ConstraintViolationException cve) {
+                return Response.status(Response.Status.BAD_REQUEST)
+                        .type(MediaType.TEXT_PLAIN)
+                        .entity(formatViolations(cve)).build();
+            }
+            throw wrapper;
+        }
+
         IntakeRecord record = output.record();
         if (record == null) {
-            // @Decision stopped the workflow (shouldn't happen since we guard above) or
-            // @HandleException ran without setting a record. Either way, surface a
-            // generic failure.
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+            // A mid-pipeline @Decision returned false and the workflow stopped before
+            // @Action assemble could run.
+            return Response.status(422)
                     .type(MediaType.TEXT_PLAIN)
-                    .entity("The intake pipeline produced no record.").build();
+                    .entity("We could not route this inquiry. Please add your name, email, "
+                            + "or company, or elaborate on what you are asking for.")
+                    .build();
         }
         return Response.ok(record).build();
     }
@@ -82,5 +100,12 @@ public class IntakeResource {
         }
         LOGGER.info("[CONFIRM] inquiry sent: " + record);
         return Response.ok(Map.of("status", "sent")).build();
+    }
+
+    private static String formatViolations(ConstraintViolationException e) {
+        StringBuilder sb = new StringBuilder("The submission has validation errors:");
+        e.getConstraintViolations().forEach(v ->
+                sb.append("\n  - ").append(v.getPropertyPath()).append(": ").append(v.getMessage()));
+        return sb.toString();
     }
 }

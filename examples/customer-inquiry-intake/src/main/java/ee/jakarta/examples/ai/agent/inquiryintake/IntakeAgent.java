@@ -19,34 +19,39 @@ import jakarta.ai.agent.HandleException;
 import jakarta.ai.agent.LLMException;
 import jakarta.ai.agent.LargeLanguageModel;
 import jakarta.ai.agent.Outcome;
+import jakarta.ai.agent.Result;
 import jakarta.ai.agent.Trigger;
 import jakarta.inject.Inject;
-import jakarta.json.Json;
-import jakarta.json.JsonObject;
-import jakarta.json.JsonReader;
+import jakarta.validation.Valid;
 
-import java.io.StringReader;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
  * Processes a raw contact-form submission into a reviewed inquiry record.
- * Three actions run as a pipeline — their order is set by the data each one
- * needs, not by an explicit {@code order=} on the annotations:
+ * The agent uses several API features that extend what Example 1 shows:
  *
- * <ol>
- *   <li>{@link #enrichIdentity} and {@link #classify} both take only the
- *       {@link IntakeRequest} and can run first.</li>
- *   <li>{@link #assemble} takes an {@link Identity} and a
- *       {@link Classification}, so the runtime runs it after the two above
- *       have produced their results.</li>
- * </ol>
- *
- * {@link #onLlmFailure} catches an {@link LLMException} from any of the
- * actions and writes a minimal fallback record, so the customer sees
- * "received, we'll process manually" instead of a 500 when the model is
- * unavailable.
+ * <ul>
+ *   <li>{@code @Valid} on the trigger parameter — Bean Validation on
+ *       {@link IntakeRequest} runs before the workflow body.</li>
+ *   <li>{@code @Decision} returning a {@link Result} so the reason the
+ *       workflow stopped is carried as the Result's {@code details}, not
+ *       just a boolean.</li>
+ *   <li>A second {@code @Decision} that gates mid-pipeline — ordered
+ *       after {@link #enrichIdentity} by taking an {@link Identity} as a
+ *       parameter.</li>
+ *   <li>Three {@code @Action} methods ordered by parameter-type
+ *       dataflow (no explicit {@code order=}). {@link #enrichIdentity} and
+ *       {@link #classify} both take only {@link IntakeRequest} and can run
+ *       first; {@link #assemble} declares both of their returned records
+ *       as parameters, so the runtime runs it after.</li>
+ *   <li>Typed {@code model.query(Class, ...)} in {@link #enrichIdentity}
+ *       — the LLM response binds directly to {@link Identity} via
+ *       JSON-B, with no hand-rolled JSON parsing.</li>
+ *   <li>{@code @HandleException} catching {@link LLMException} with a
+ *       fallback record, so the UI always has something to show.</li>
+ * </ul>
  */
 @Agent(name = "IntakeAgent",
        description = "Processes a customer contact-form submission into a reviewed inquiry record.")
@@ -61,38 +66,45 @@ public class IntakeAgent {
     IntakeOutput output;
 
     @Trigger
-    void onSubmit(IntakeRequest request) {
+    void onSubmit(@Valid IntakeRequest request) {
         LOGGER.info("[TRIGGER] inquiry received");
     }
 
     @Decision
-    boolean canProcess(IntakeRequest request) {
-        boolean proceed = notBlank(request.message());
-        LOGGER.info("[DECISION] proceed=" + proceed);
-        return proceed;
+    Result canProcess(IntakeRequest request) {
+        String message = request.message().strip();
+        if (message.length() < 20) {
+            Result stop = new Result(false, "Message is too short to process meaningfully.");
+            LOGGER.info("[DECISION canProcess] stop: " + stop.details());
+            return stop;
+        }
+        LOGGER.info("[DECISION canProcess] proceed");
+        return new Result(true, null);
     }
 
     @Action
     Identity enrichIdentity(IntakeRequest request) {
         if (notBlank(request.name()) && notBlank(request.email()) && notBlank(request.company())) {
-            LOGGER.info("[ACTION] enrichIdentity: all fields present, skipping LLM");
+            LOGGER.info("[ACTION enrichIdentity] all fields present, skipping LLM");
             return new Identity(request.name(), request.email(), request.company());
         }
-        LOGGER.info("[ACTION] enrichIdentity: filling gaps from the message");
-        JsonObject extracted = parseObject(model.query(
+        LOGGER.info("[ACTION enrichIdentity] filling gaps from the message");
+        Identity extracted = model.query(
                 "Extract the sender's identity from the text below. Return a JSON object with "
                         + "exactly these keys: \"name\", \"email\", \"company\". Use empty strings "
-                        + "for anything not clearly present. Return only the JSON object.\n\n{}",
-                request.message()));
+                        + "for anything not clearly present. Return only the JSON object, no "
+                        + "markdown or commentary.\n\n{}",
+                Identity.class,
+                request.message());
         return new Identity(
-                preferGiven(request.name(),    extracted.getString("name",    "")),
-                preferGiven(request.email(),   extracted.getString("email",   "")),
-                preferGiven(request.company(), extracted.getString("company", "")));
+                preferGiven(request.name(),    extracted.name()),
+                preferGiven(request.email(),   extracted.email()),
+                preferGiven(request.company(), extracted.company()));
     }
 
     @Action
     Classification classify(IntakeRequest request) {
-        LOGGER.info("[ACTION] classify");
+        LOGGER.info("[ACTION classify]");
         String raw = model.query(
                 "Classify this customer inquiry into exactly one of: {}. Return only the single word.\n\n{}",
                 List.of(Classification.values()), request.message());
@@ -103,9 +115,21 @@ public class IntakeAgent {
         }
     }
 
+    @Decision
+    boolean hasEnoughContent(Identity identity, IntakeRequest request) {
+        boolean anyIdentity = notBlank(identity.name())
+                || notBlank(identity.email())
+                || notBlank(identity.company());
+        boolean substantive = request.message().strip().split("\\s+").length >= 6;
+        boolean proceed = anyIdentity || substantive;
+        LOGGER.info("[DECISION hasEnoughContent] proceed=" + proceed
+                + " (anyIdentity=" + anyIdentity + ", substantive=" + substantive + ")");
+        return proceed;
+    }
+
     @Action
     IntakeRecord assemble(IntakeRequest request, Identity identity, Classification classification) {
-        LOGGER.info("[ACTION] assemble (" + classification + ")");
+        LOGGER.info("[ACTION assemble] (" + classification + ")");
         String polished = model.query(
                 "Rewrite the following customer inquiry to be clear, concise, and professional. "
                         + "The inquiry is categorised as {}, so adopt that register. Keep the "
@@ -133,32 +157,5 @@ public class IntakeAgent {
 
     private static String preferGiven(String given, String extracted) {
         return notBlank(given) ? given : (extracted == null ? "" : extracted);
-    }
-
-    private JsonObject parseObject(String raw) {
-        String json = stripCodeFences(raw);
-        try (JsonReader reader = Json.createReader(new StringReader(json))) {
-            return reader.readObject();
-        } catch (RuntimeException parseFailure) {
-            throw new LLMException("LLM returned output that is not a JSON object", parseFailure);
-        }
-    }
-
-    /** LLMs sometimes wrap output in ```json ... ``` despite instructions; strip it. */
-    private static String stripCodeFences(String content) {
-        if (content == null) {
-            return "";
-        }
-        String trimmed = content.strip();
-        if (trimmed.startsWith("```")) {
-            int firstNewline = trimmed.indexOf('\n');
-            if (firstNewline > 0) {
-                trimmed = trimmed.substring(firstNewline + 1);
-            }
-            if (trimmed.endsWith("```")) {
-                trimmed = trimmed.substring(0, trimmed.length() - 3);
-            }
-        }
-        return trimmed.strip();
     }
 }
