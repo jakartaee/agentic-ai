@@ -12,12 +12,13 @@ question, exercising all four phases (`@Trigger`, `@Decision`, `@Action`,
 Ollama model, so it needs no API key. Start here. See its
 [README](ask-agent/README.md).
 
-### Tutorial Generator
+### Customer Inquiry Intake
 
-Located in `tutorial-generator/`, a deployable web application where an agent
-writes a field-by-field guide for a web form and refines it through chat,
-editing the stored artifact each turn. See its
-[README](tutorial-generator/README.md).
+Located in `customer-inquiry-intake/`, a deployable web application where an
+agent triages a free-text customer inquiry into a structured, actionable
+record (summary, category, urgency, cleaned-up message, suggested next step)
+and lets the user refine any field through chat before handing it off. See
+its [README](customer-inquiry-intake/README.md).
 
 ### Fraud Detection Agent
 

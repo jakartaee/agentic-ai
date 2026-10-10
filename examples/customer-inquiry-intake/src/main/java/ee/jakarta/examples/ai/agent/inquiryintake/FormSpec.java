@@ -10,7 +10,7 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  *****************************************************************************/
-package ee.jakarta.examples.ai.agent.tutorialgenerator;
+package ee.jakarta.examples.ai.agent.inquiryintake;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
@@ -18,11 +18,12 @@ import jakarta.validation.constraints.NotEmpty;
 import java.util.List;
 
 /**
- * A web form described to the agent: a title, a short intro, and its fields.
+ * Schema for a structured customer inquiry: a title, a short intro, and the
+ * fields the agent will fill.
  *
- * @param title  form title
+ * @param title  schema title
  * @param intro  short description shown above the form
- * @param fields the form fields
+ * @param fields the inquiry fields
  */
 public record FormSpec(String title, String intro, @NotEmpty List<@Valid FieldSpec> fields) {
 }

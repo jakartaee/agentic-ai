@@ -10,7 +10,7 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  *****************************************************************************/
-package ee.jakarta.examples.ai.agent.tutorialgenerator;
+package ee.jakarta.examples.ai.agent.inquiryintake;
 
 import jakarta.ai.agent.LLMException;
 import jakarta.enterprise.context.RequestScoped;
@@ -34,27 +34,27 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * REST API for the guidance UI. Firing the {@link TutorialRequest} event is
- * synchronous, so the agent workflow (including the LLM call) completes before
- * the method returns and the freshly written guidance can be read from the
- * {@link TutorialStore}.
+ * REST API for the intake UI. Firing the {@link IntakeRequest} event is
+ * synchronous, so the agent workflow (including the LLM call) completes
+ * before the method returns and the fresh inquiry can be read from the
+ * {@link InquiryStore}.
  */
 @Path("")
 @RequestScoped
-public class TutorialResource {
+public class IntakeResource {
 
-    private static final Logger LOGGER = Logger.getLogger(TutorialResource.class.getName());
-
-    @Inject
-    Event<TutorialRequest> trigger;
+    private static final Logger LOGGER = Logger.getLogger(IntakeResource.class.getName());
 
     @Inject
-    TutorialStore store;
+    Event<IntakeRequest> trigger;
 
     @Inject
-    CustomerFormSpec form;
+    InquiryStore store;
 
-    /** The form metadata; the page renders the live form from this. */
+    @Inject
+    InquiryFormSpec form;
+
+    /** The inquiry schema; the page renders the editable record from this. */
     @GET
     @Path("form")
     @Produces(MediaType.APPLICATION_JSON)
@@ -62,9 +62,9 @@ public class TutorialResource {
         return form.spec();
     }
 
-    /** The current guidance JSON, or 204 before anything has been written. */
+    /** The current triaged inquiry JSON, or 204 before anything has been drafted. */
     @GET
-    @Path("tutorial")
+    @Path("inquiry")
     @Produces(MediaType.APPLICATION_JSON)
     public Response current() {
         String json = store.get();
@@ -74,31 +74,33 @@ public class TutorialResource {
         return Response.ok(json).build();
     }
 
-    /** Write fresh guidance for the form. */
+    /** Draft a structured inquiry from the raw customer message. */
     @POST
-    @Path("tutorial/generate")
+    @Path("inquiry/draft")
+    @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response generate() {
-        return runWorkflow(new TutorialRequest(form.spec(), null, null));
+    public Response draft(DraftRequest request) {
+        String brief = request == null ? null : request.brief();
+        return runWorkflow(new IntakeRequest(form.spec(), brief, null, null));
     }
 
-    /** Refine the whole guidance with a chat instruction. */
+    /** Refine the whole inquiry with a chat instruction. */
     @POST
-    @Path("tutorial/refine")
+    @Path("inquiry/refine")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response refine(RefineRequest request) {
         String instruction = request == null ? null : request.instruction();
-        return runWorkflow(new TutorialRequest(form.spec(), instruction, store.get()));
+        return runWorkflow(new IntakeRequest(form.spec(), null, instruction, store.get()));
     }
 
     /**
-     * Refine the guidance for a single field. The agent receives only that
-     * field's current guidance, updates it, and the result is merged back
-     * into the full guidance JSON so the other fields are preserved.
+     * Refine a single field. The agent receives only that field's current
+     * value, updates it, and the result is merged back into the full inquiry
+     * so the other fields are preserved.
      */
     @POST
-    @Path("tutorial/refine-field")
+    @Path("inquiry/refine-field")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response refineField(FieldRefineRequest request) {
@@ -112,7 +114,7 @@ public class TutorialResource {
         String fieldJson = Json.createObjectBuilder()
                 .add(request.fieldName(), currentValue)
                 .build().toString();
-        Response result = runWorkflow(new TutorialRequest(form.spec(), request.instruction(), fieldJson));
+        Response result = runWorkflow(new IntakeRequest(form.spec(), null, request.instruction(), fieldJson));
         if (result.getStatus() != Response.Status.OK.getStatusCode()) {
             return result;
         }
@@ -121,7 +123,26 @@ public class TutorialResource {
         return Response.ok(store.get()).build();
     }
 
-    private Response runWorkflow(TutorialRequest request) {
+    /**
+     * Hand the inquiry off to whichever team should pick it up. Here it just
+     * logs — in a real deployment this is where the record would reach a
+     * ticketing system, a database, or an outbound message.
+     */
+    @POST
+    @Path("inquiry/submit")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response submit() {
+        String json = store.get();
+        if (json == null || json.isBlank()) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .type(MediaType.TEXT_PLAIN)
+                    .entity("There is no inquiry to submit.").build();
+        }
+        LOGGER.info("[SUBMIT] inquiry handed off: " + json);
+        return Response.ok("{\"status\":\"submitted\"}").build();
+    }
+
+    private Response runWorkflow(IntakeRequest request) {
         try {
             trigger.fire(request);
         } catch (ObserverException wrapper) {
@@ -149,7 +170,7 @@ public class TutorialResource {
         try (JsonReader reader = Json.createReader(new StringReader(json))) {
             return reader.readObject().getString(fieldName, "");
         } catch (Exception e) {
-            LOGGER.warning("Could not extract field '" + fieldName + "' from guidance JSON: " + e.getMessage());
+            LOGGER.warning("Could not extract field '" + fieldName + "' from inquiry JSON: " + e.getMessage());
             return "";
         }
     }
@@ -160,12 +181,14 @@ public class TutorialResource {
             try (JsonReader reader = Json.createReader(new StringReader(fullJson))) {
                 reader.readObject().forEach(builder::add);
             } catch (Exception e) {
-                LOGGER.warning("Could not parse guidance JSON when merging field '" + fieldName + "': " + e.getMessage());
+                LOGGER.warning("Could not parse inquiry JSON when merging field '" + fieldName + "': " + e.getMessage());
             }
         }
         builder.add(fieldName, newValue);
         return builder.build().toString();
     }
+
+    public record DraftRequest(String brief) {}
 
     public record RefineRequest(String instruction) {}
 

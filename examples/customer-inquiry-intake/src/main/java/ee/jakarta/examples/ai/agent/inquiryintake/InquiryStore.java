@@ -10,22 +10,22 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  *****************************************************************************/
-package ee.jakarta.examples.ai.agent.tutorialgenerator;
+package ee.jakarta.examples.ai.agent.inquiryintake;
 
 import jakarta.enterprise.context.ApplicationScoped;
 
 /**
- * Holds the latest guidance JSON produced by {@link TutorialAgent} so the
+ * Holds the latest triaged inquiry JSON produced by {@link IntakeAgent} so the
  * synchronous REST call can read it back after the event fires.
  *
- * <p>{@code @ApplicationScoped} is intentional: the guidance must survive
+ * <p>{@code @ApplicationScoped} is intentional: the inquiry must survive
  * across HTTP requests so a later {@code /refine} call can read what an
- * earlier {@code /generate} call produced. {@code volatile} gives the
- * visibility guarantee needed for the single-writer (agent action),
- * single-reader (resource) access pattern of this demo.
+ * earlier {@code /draft} call produced. {@code volatile} gives the visibility
+ * guarantee needed for the single-writer (agent action), single-reader
+ * (resource) access pattern of this demo.
  */
 @ApplicationScoped
-public class TutorialStore {
+public class InquiryStore {
 
     private volatile String json = "";
 
