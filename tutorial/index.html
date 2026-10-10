@@ -461,8 +461,9 @@ deploy and exercise the workflow before wiring a real provider.</li>
 <section class="chapter" id="ch-4" data-num="4">
 <h1>The Examples</h1>
 <p>Three examples, three levels: the <strong>ask agent</strong> teaches the programming
-model in 5 classes; the <strong>tutorial generator</strong> shows a real use case with a
-chat refinement loop; and the <strong>Course Content Studio</strong> raises the bar to
+model in 5 classes; the <strong>customer inquiry intake</strong> sample shows a real use
+case where an agent triages a free-text request into a structured record and lets the user
+refine it through chat; and the <strong>Course Content Studio</strong> raises the bar to
 <strong>two agents chained by CDI events</strong>, with a human approval gate in the
 middle and a final student-facing view.</p>
 
@@ -553,53 +554,62 @@ a repeat never reaches the model.</li>
 argument that follows the prompt, positionally.</li>
 </ul>
 <hr>
-<h2>Example 2 — Tutorial Generator</h2>
+<h2>Example 2 — Customer Inquiry Intake</h2>
 <p>📦 Source: <a
-href="https://github.com/jakartaee/agentic-ai/tree/main/examples/tutorial-generator"
-target="_blank" rel="noopener">examples/tutorial-generator</a></p>
-<p><strong>A real use case:</strong> an agent writes a <strong>field-by-field
-guide</strong> for a web form (a customer registration form) and allows <strong>refining
-the guide via chat</strong>. The page shows the form on the left, the generated guide on
-the right, and a refinement chat box below.</p>
-<p>One agent covers both behaviors — the same <code>@Action</code> generates from scratch
-or refines an existing guide, decided by whether the request already carries one (full
-source at the <strong>Source</strong> link above):</p>
-<pre><code class="language-java">@Trigger  void onRequest(TutorialRequest request)      // logs generate|refine
-@Decision Result hasFields(TutorialRequest request)    // any fields? if not, stop
-@Action   void render(TutorialRequest request) {
-    if (generate)  content = model.query(&quot;Generate the field-guide JSON ... : {}&quot;, request.formSpec());
-    else           content = model.query(&quot;Current field-guide JSON:\n{}\n\nApply this change...: {}&quot;,
-                                         request.currentHtml(), request.instruction());  // two {} placeholders
-    store.put(stripCodeFences(content));                // LLM output needs defensive post-processing
+href="https://github.com/jakartaee/agentic-ai/tree/main/examples/customer-inquiry-intake"
+target="_blank" rel="noopener">examples/customer-inquiry-intake</a></p>
+<p><strong>A real use case:</strong> a free-text customer inquiry comes in and the agent
+<strong>triages</strong> it into a structured record a teammate can act on — a one-line
+summary, a routing category, an urgency, a cleaned-up message, and a suggested next step.
+The user then <strong>refines any field through chat</strong> and submits. The page shows
+the raw inquiry at the top, the triaged record below, and a chat panel for refining the
+selected field.</p>
+<p>One agent covers both the first draft and every refinement — the same <code>@Action</code>
+either triages the raw brief from scratch or revises an existing record, decided by whether
+the request carries one (full source at the <strong>Source</strong> link above):</p>
+<pre><code class="language-java">@Trigger  void onRequest(IntakeRequest request)             // logs draft|refine
+@Decision boolean hasEnoughToProceed(IntakeRequest request) // need a brief, or an instruction when refining
+@Action   void render(IntakeRequest request) {
+    if (refine)   content = model.query(&quot;Current triaged inquiry JSON:\n{}\n\nApply this change: {}\n\n...&quot;,
+                                        request.currentInquiry(), request.instruction());
+    else          content = model.query(&quot;Triage this customer inquiry into a single JSON object. Use these exact keys: {}. Choose `category` from {} and `urgency` from {}. The raw inquiry follows:\n\n{}&quot;,
+                                        fieldNames(spec), categories, urgencies, request.brief());
+    String json = stripCodeFences(content);
+    requireJsonObject(json);                                // throws LLMException on malformed output
+    store.put(json);
 }
-@Outcome  void complete(TutorialRequest request)       // logs the guide&#39;s size
+@Outcome  void complete(IntakeRequest request)              // logs the record&#39;s size
 </code></pre>
-<p>The LLM backend and even the system prompt are configuration — here Claude for HTML
-quality, switchable to local Ollama without touching code:</p>
-<pre><code class="language-properties">payara.agentic.llm.provider=anthropic
+<p>The LLM backend and the system prompt are configuration — here Claude on Vertex AI,
+switchable to local Ollama without touching code:</p>
+<pre><code class="language-properties">payara.agentic.llm.provider=vertex
 payara.agentic.llm.model=claude-sonnet-4-6
-payara.agentic.llm.max-tokens=8192
-payara.agentic.llm.system=You are a senior technical writer...
+payara.agentic.llm.max-tokens=4096
+payara.agentic.llm.system=You are a customer support triage assistant...
 </code></pre>
 <h3>The strong design ideas</h3>
 <ol>
-<li><strong>Single source of truth:</strong> <code>CustomerFormSpec</code> defines the form; the page
-renders the live form from it <strong>and</strong> the agent explains those same fields —
-they cannot diverge.</li>
-<li><strong>The event carries the mode:</strong> <code>TutorialRequest(formSpec, instruction, currentHtml)</code>. <code>currentHtml</code> null/blank → <strong>generate</strong> from scratch; filled →
-<strong>refine</strong> applying <code>instruction</code>. One agent, two behaviors, decided in the
-<code>@Action</code>.</li>
+<li><strong>Single source of truth:</strong> <code>InquiryFormSpec</code> defines the record
+shape (the fields plus the allowed values for <code>category</code> and <code>urgency</code>);
+the page renders the structured UI from it <strong>and</strong> the agent is told to produce
+JSON with exactly those keys — they cannot diverge.</li>
+<li><strong>The event carries the mode:</strong>
+<code>IntakeRequest(formSpec, brief, instruction, currentInquiry)</code>.
+<code>currentInquiry</code> null/blank → <strong>draft</strong> from the brief; filled →
+<strong>refine</strong> applying <code>instruction</code>. One agent, two behaviors, decided
+in the <code>@Action</code>.</li>
 <li><strong>Refinement passes the real artifact:</strong> on every chat turn, the <strong>current</strong>
-guide + the instruction go into the prompt — the model edits the actual
-artifact instead of relying on conversational memory alone. (An important
+inquiry JSON + the instruction go into the prompt — the model edits the actual
+record instead of relying on conversational memory alone. (An important
 agent-engineering pattern worth remembering.)</li>
 <li><strong>Per-field refinement with a merge:</strong> <code>refine-field</code> extracts only the target
-field's description (JSON-P), runs the workflow over that fragment, and
-<strong>merges</strong> the result back into the full guide — preserving the other fields
+field's value (JSON-P), runs the workflow over that fragment, and
+<strong>merges</strong> the result back into the full record — preserving the other fields
 and saving tokens.</li>
-<li><strong>LLM robustness:</strong> <code>stripCodeFences</code> removes the code fences that models
-sometimes insist on adding — an honest reminder that LLM output requires
-defensive post-processing.</li>
+<li><strong>LLM robustness:</strong> the output is <strong>parsed as a <code>JsonObject</code>
+before it is stored</strong>, and a parse failure throws <code>LLMException</code> which the
+REST layer turns into a <strong>503</strong> — an honest reminder that LLM output needs
+defensive validation, not just defensive stripping.</li>
 </ol>
 <hr>
 <h2>Example 3 — Course Content Studio</h2>
@@ -694,9 +704,10 @@ authoritative reference for the rules.</li>
 LLM backend (Ollama, Anthropic, Vertex) is MicroProfile Config, no code change.</li>
 <li><strong>The ask agent.</strong> POST a real question → <code>[TRIGGER] → [DECISION] → [ACTION] → [OUTCOME]</code> in <code>server.log</code>; POST an empty question → early termination. It runs
 on <strong>local Ollama</strong> (no network, no cost).</li>
-<li><strong>The tutorial generator and the studio.</strong> A guide generated with Claude and
-refined via chat; then two agents chained by CDI events with a human approval gate.
-Switching Ollama↔Claude↔Vertex is <strong>one properties file</strong>.</li>
+<li><strong>The inquiry intake sample and the studio.</strong> A customer inquiry triaged by
+Claude into a structured record and refined field-by-field via chat; then two agents
+chained by CDI events with a human approval gate. Switching Ollama↔Claude↔Vertex is
+<strong>one properties file</strong>.</li>
 </ol>
 <h2>Running the examples — checklist</h2>
 <ul>
@@ -711,7 +722,7 @@ domain</strong> (<code>$env:ANTHROPIC_API_KEY = &quot;sk-ant-...&quot;</code> be
 environment.</li>
 <li><input disabled="" type="checkbox"> Both WARs deployed and tested.</li>
 <li><input disabled="" type="checkbox"> <code>server.log</code> open in a terminal (<code>Get-Content -Wait -Tail 0</code>).</li>
-<li><input disabled="" type="checkbox"> Fully-local option: the ask agent runs on Ollama; the tutorial generator
+<li><input disabled="" type="checkbox"> Fully-local option: the ask agent runs on Ollama; the inquiry intake sample
 can also fall back to <code>provider=ollama</code> / <code>model=gemma3:12b</code> (pull the model
 first).</li>
 <li><input disabled="" type="checkbox"> Requests ready (no typing JSON by hand): a script/<code>.http</code> file with the
