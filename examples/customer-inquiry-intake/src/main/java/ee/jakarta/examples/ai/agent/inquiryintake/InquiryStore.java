@@ -10,30 +10,30 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  *****************************************************************************/
-package ee.jakarta.examples.ai.agent.tutorialgenerator;
+package ee.jakarta.examples.ai.agent.inquiryintake;
 
 import jakarta.enterprise.context.ApplicationScoped;
 
 /**
- * Holds the latest guide content produced by {@link TutorialAgent} so the
+ * Holds the latest triaged inquiry JSON produced by {@link IntakeAgent} so the
  * synchronous REST call can read it back after the event fires.
  *
- * <p>{@code @ApplicationScoped} is intentional: the guide must survive across
- * HTTP requests so a subsequent {@code /refine} call can read what a prior
- * {@code /generate} call produced. {@code volatile} provides the visibility
+ * <p>{@code @ApplicationScoped} is intentional: the inquiry must survive
+ * across HTTP requests so a later {@code /refine} call can read what an
+ * earlier {@code /draft} call produced. {@code volatile} gives the visibility
  * guarantee needed for the single-writer (agent action), single-reader
  * (resource) access pattern of this demo.
  */
 @ApplicationScoped
-public class TutorialStore {
+public class InquiryStore {
 
-    private volatile String html = "";
+    private volatile String json = "";
 
-    public void put(String html) {
-        this.html = html == null ? "" : html;
+    public void put(String json) {
+        this.json = json == null ? "" : json;
     }
 
     public String get() {
-        return html;
+        return json;
     }
 }
