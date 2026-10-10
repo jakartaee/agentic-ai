@@ -17,16 +17,15 @@ import jakarta.enterprise.context.ApplicationScoped;
 import java.util.List;
 
 /**
- * Supplies the sample's form: a Customer registration form to contract Azul
- * Payara Server. Single source of truth for both the rendered form and the
- * generated tutorial.
+ * Supplies the sample's form: a generic customer registration form. Single
+ * source of truth for both the rendered form and the generated field-guide.
  */
 @ApplicationScoped
 public class CustomerFormSpec {
 
     private final FormSpec spec = new FormSpec(
-            "Contract Azul Payara Server",
-            "Tell us about your organisation and your runtime needs; our team will get back to you.",
+            "Customer registration",
+            "Tell us about your organisation; our team will get back to you shortly.",
             List.of(
                     new FieldSpec("firstName", "First name", "text", true,
                             List.of(), "Given name of the main contact."),
@@ -41,11 +40,11 @@ public class CustomerFormSpec {
                     new FieldSpec("country", "Country", "select", true,
                             List.of("United States", "United Kingdom", "Germany", "Brazil",
                                     "India", "Japan", "Other"),
-                            "Used for regional licensing and the correct sales contact."),
+                            "Used to route the enquiry to the right regional contact."),
                     new FieldSpec("phone", "Phone", "tel", false,
                             List.of(), "Optional direct line for a faster conversation."),
-                    new FieldSpec("message", "Requirements / How can we help?", "textarea", true,
-                            List.of(), "Number of instances, environments, and any support expectations.")
+                    new FieldSpec("message", "How can we help?", "textarea", true,
+                            List.of(), "A short description of what you are looking for; the more concrete, the better.")
             ));
 
     public FormSpec spec() {
