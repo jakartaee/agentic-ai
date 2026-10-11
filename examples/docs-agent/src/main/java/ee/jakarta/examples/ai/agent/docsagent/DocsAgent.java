@@ -15,7 +15,7 @@ package ee.jakarta.examples.ai.agent.docsagent;
 import jakarta.ai.agent.Action;
 import jakarta.ai.agent.Agent;
 import jakarta.ai.agent.Decision;
-import jakarta.ai.agent.HandleException;
+import jakarta.ai.agent.OnException;
 import jakarta.ai.agent.LargeLanguageModel;
 import jakarta.ai.agent.Outcome;
 import jakarta.ai.agent.Trigger;
@@ -32,13 +32,13 @@ import jakarta.inject.Inject;
  * 3. @Action - Creates a documentation pull request based on the analysis
  * 4. @Action - Reviews the generated documentation
  * 5. @Outcome - Applies the documentation changes
- * 6. @HandleException - Handles any errors during the workflow
+ * 6. @OnException - Handles any errors during the workflow
  *
  * DEMONSTRATES:
  * - Object return from @Decision phase (DocumentationAnalysis)
  * - Parameter injection of decision result into @Action methods
  * - LLM integration for intelligent decision-making
- * - Exception handling with @HandleException
+ * - Exception handling with @OnException
  */
 @Agent(name = "DocsAgent", description = "Monitors pull requests and automatically generates documentation updates")
 public class DocsAgent {
@@ -177,7 +177,7 @@ public class DocsAgent {
      * Returns normally to continue workflow (after logging/recovery).
      * Re-throws exception to stop workflow.
      */
-    @HandleException
+    @OnException
     private void handleDocumentationPullRequestException(Throwable error, PullRequest pullRequest) {
         System.err.println("❌ Error during documentation workflow for PR: " + pullRequest.getId());
         System.err.println("   Error: " + error.getMessage());

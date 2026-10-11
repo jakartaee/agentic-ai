@@ -16,7 +16,7 @@ import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder.Phase;
 import jakarta.ai.agent.Action;
 import jakarta.ai.agent.Agent;
-import jakarta.ai.agent.HandleException;
+import jakarta.ai.agent.OnException;
 import jakarta.ai.agent.Trigger;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.event.Observes;
@@ -39,12 +39,12 @@ public class HierarchyAgent {
         throw new SpecificDomainException("Specific failure");
     }
 
-    @HandleException
+    @OnException
     public void onSpecific(SpecificDomainException ex) {
         trace.record(Phase.HANDLE_EXCEPTION, "onSpecific", ex);
     }
 
-    @HandleException
+    @OnException
     public void onGeneric(AgentDomainException ex) {
         trace.record(Phase.HANDLE_EXCEPTION, "onGeneric", ex);
     }

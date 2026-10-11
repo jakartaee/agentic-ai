@@ -15,7 +15,7 @@ package ee.jakarta.examples.ai.agent.inquiryintake;
 import jakarta.ai.agent.Action;
 import jakarta.ai.agent.Agent;
 import jakarta.ai.agent.Decision;
-import jakarta.ai.agent.HandleException;
+import jakarta.ai.agent.OnException;
 import jakarta.ai.agent.LLMException;
 import jakarta.ai.agent.LargeLanguageModel;
 import jakarta.ai.agent.Outcome;
@@ -49,7 +49,7 @@ import java.util.logging.Logger;
  *   <li>Typed {@code model.query(Class, ...)} in {@link #enrichIdentity}
  *       — the LLM response binds directly to {@link Identity} via
  *       JSON-B, with no hand-rolled JSON parsing.</li>
- *   <li>{@code @HandleException} catching {@link LLMException} with a
+ *   <li>{@code @OnException} catching {@link LLMException} with a
  *       fallback record, so the UI always has something to show.</li>
  * </ul>
  */
@@ -145,7 +145,7 @@ public class IntakeAgent {
         LOGGER.info("[OUTCOME] inquiry prepared");
     }
 
-    @HandleException
+    @OnException
     void onLlmFailure(LLMException failure, IntakeRequest request) {
         LOGGER.log(Level.WARNING, "LLM call failed; writing fallback record", failure);
         output.setRecord(IntakeRecord.fallbackFor(request));

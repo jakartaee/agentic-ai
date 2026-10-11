@@ -68,7 +68,7 @@ import java.lang.annotation.Target;
  * {@code @NotNull}, {@code @Email}). Validation occurs before the decision 
  * method is invoked. Validation failures raise 
  * {@code jakarta.validation.ConstraintViolationException}, which can be
- * handled by {@link HandleException @HandleException} methods.
+ * handled by {@link OnException @OnException} methods.
  * <p>
  * <b>Return types</b><br>
  * Decision methods support multiple return patterns:

@@ -106,12 +106,12 @@ public class ValidationTests {
         assertThat(trace.phases()).doesNotContain(Phase.ACTION);
     }
 
-    // ── Invalid input: routed to @HandleException ────────────────────────────
+    // ── Invalid input: routed to @OnException ────────────────────────────
 
     @RequiresImplementation
     @Assertion(id = "AGENTICAI-VALIDATION-BHV-003",
                section = "jakarta-validation-constraints",
-               strategy = "A ConstraintViolationException from failed validation is routed to a matching @HandleException method")
+               strategy = "A ConstraintViolationException from failed validation is routed to a matching @OnException method")
     public void invalidInputRoutedToHandler() {
         trace.reset();
         events.fire(new ValidationEvent(null));
@@ -129,7 +129,7 @@ public class ValidationTests {
     @RequiresImplementation
     @Assertion(id = "AGENTICAI-VALIDATION-BHV-004",
                section = "jakarta-validation-constraints",
-               strategy = "Without a matching @HandleException, the ConstraintViolationException propagates to the container")
+               strategy = "Without a matching @OnException, the ConstraintViolationException propagates to the container")
     public void invalidInputPropagatesWithoutHandler() {
         trace.reset();
         // CDI wraps observer exceptions; the cause is the ConstraintViolationException

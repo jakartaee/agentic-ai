@@ -44,7 +44,7 @@ public class SignatureTests {
                 Decision.class,
                 Action.class,
                 Outcome.class,
-                HandleException.class,
+                OnException.class,
                 WorkflowScoped.class
         };
 
@@ -110,7 +110,7 @@ public class SignatureTests {
                 Decision.class,
                 Action.class,
                 Outcome.class,
-                HandleException.class
+                OnException.class
         };
 
         for (Class<?> annotation : lifecycleAnnotations) {
@@ -147,7 +147,7 @@ public class SignatureTests {
                 Decision.class,
                 Action.class,
                 Outcome.class,
-                HandleException.class,
+                OnException.class,
                 WorkflowScoped.class
         };
 

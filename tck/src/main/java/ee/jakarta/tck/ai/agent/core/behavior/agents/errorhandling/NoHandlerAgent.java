@@ -36,7 +36,7 @@ public class NoHandlerAgent {
     @Action
     public void act(NoHandlerEvent event) {
         trace.record(Phase.ACTION, "act", event);
-        throw new AgentDomainException("Unhandled failure — no @HandleException");
+        throw new AgentDomainException("Unhandled failure — no @OnException");
     }
 
     @Outcome

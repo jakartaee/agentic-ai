@@ -35,7 +35,7 @@ import ee.jakarta.tck.ai.agent.framework.junit.anno.RequiresNoImplementation;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder.Phase;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder.TraceEntry;
-import jakarta.ai.agent.HandleException;
+import jakarta.ai.agent.OnException;
 import jakarta.enterprise.event.Event;
 import jakarta.enterprise.event.ObserverException;
 import jakarta.inject.Inject;
@@ -53,7 +53,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @Deployed
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-public class HandleExceptionTests {
+public class OnExceptionTests {
 
     @Deployment
     public static Archive<?> createDeployment() {
@@ -84,7 +84,7 @@ public class HandleExceptionTests {
     // ── Smoke checks — CDI fires @Trigger without a compatible implementation ─────────────────
 
     @RequiresNoImplementation
-    @Assertion(id = "AGENTICAI-HANDLEEXCEPTION-BHV-001-PRECONDITION",
+    @Assertion(id = "AGENTICAI-ONEXCEPTION-BHV-001-PRECONDITION",
                section = "error-handling",
                strategy = "RecoveryAgent @Trigger is observed by CDI without a compatible implementation")
     public void recoveryAgentTriggerObserved() {
@@ -94,7 +94,7 @@ public class HandleExceptionTests {
     }
 
     @RequiresNoImplementation
-    @Assertion(id = "AGENTICAI-HANDLEEXCEPTION-BHV-002-PRECONDITION",
+    @Assertion(id = "AGENTICAI-ONEXCEPTION-BHV-002-PRECONDITION",
                section = "error-handling",
                strategy = "PropagationAgent @Trigger is observed by CDI without a compatible implementation")
     public void propagationAgentTriggerObserved() {
@@ -104,7 +104,7 @@ public class HandleExceptionTests {
     }
 
     @RequiresNoImplementation
-    @Assertion(id = "AGENTICAI-HANDLEEXCEPTION-BHV-004-PRECONDITION",
+    @Assertion(id = "AGENTICAI-ONEXCEPTION-BHV-004-PRECONDITION",
                section = "error-handling",
                strategy = "HierarchyAgent @Trigger is observed by CDI without a compatible implementation")
     public void hierarchyAgentTriggerObserved() {
@@ -114,7 +114,7 @@ public class HandleExceptionTests {
     }
 
     @RequiresNoImplementation
-    @Assertion(id = "AGENTICAI-HANDLEEXCEPTION-BHV-005-PRECONDITION",
+    @Assertion(id = "AGENTICAI-ONEXCEPTION-BHV-005-PRECONDITION",
                section = "error-handling",
                strategy = "RecursiveGuardAgent @Trigger is observed by CDI without a compatible implementation")
     public void recursiveGuardAgentTriggerObserved() {
@@ -124,7 +124,7 @@ public class HandleExceptionTests {
     }
 
     @RequiresNoImplementation
-    @Assertion(id = "AGENTICAI-HANDLEEXCEPTION-BHV-006-PRECONDITION",
+    @Assertion(id = "AGENTICAI-ONEXCEPTION-BHV-006-PRECONDITION",
                section = "error-handling",
                strategy = "PhaseFailureAgent @Trigger is observed by CDI when no phase is configured to fail")
     public void phaseFailureAgentTriggerObserved() {
@@ -135,7 +135,7 @@ public class HandleExceptionTests {
     }
 
     @RequiresNoImplementation
-    @Assertion(id = "AGENTICAI-HANDLEEXCEPTION-BHV-010-PRECONDITION",
+    @Assertion(id = "AGENTICAI-ONEXCEPTION-BHV-010-PRECONDITION",
                section = "error-handling",
                strategy = "NoHandlerAgent @Trigger is observed by CDI without a compatible implementation")
     public void noHandlerAgentTriggerObserved() {
@@ -147,7 +147,7 @@ public class HandleExceptionTests {
     // ── Recovery flow (BHV-001–003) ─────────────────────────────────────────
 
     @RequiresImplementation
-    @Assertion(id = "AGENTICAI-HANDLEEXCEPTION-BHV-001",
+    @Assertion(id = "AGENTICAI-ONEXCEPTION-BHV-001",
                section = "error-handling",
                strategy = "Handler completing normally allows @Outcome to run, producing the full recovery phase sequence")
     public void handlerNormalReturnAllowsOutcome() {
@@ -158,7 +158,7 @@ public class HandleExceptionTests {
     }
 
     @RequiresImplementation
-    @Assertion(id = "AGENTICAI-HANDLEEXCEPTION-BHV-002",
+    @Assertion(id = "AGENTICAI-ONEXCEPTION-BHV-002",
                section = "error-handling",
                strategy = "HANDLE_EXCEPTION phase is recorded when @Action throws")
     public void handlerIsInvokedOnActionFailure() {
@@ -168,7 +168,7 @@ public class HandleExceptionTests {
     }
 
     @RequiresImplementation
-    @Assertion(id = "AGENTICAI-HANDLEEXCEPTION-BHV-003",
+    @Assertion(id = "AGENTICAI-ONEXCEPTION-BHV-003",
                section = "error-handling",
                strategy = "@Outcome runs as the final phase after a handler returns normally")
     public void workflowProceedsToOutcomeAfterRecovery() {
@@ -180,9 +180,9 @@ public class HandleExceptionTests {
     // ── Exception hierarchy (BHV-004) ───────────────────────────────────────
 
     @RequiresImplementation
-    @Assertion(id = "AGENTICAI-HANDLEEXCEPTION-BHV-004",
+    @Assertion(id = "AGENTICAI-ONEXCEPTION-BHV-004",
                section = "error-handling",
-               strategy = "The most specific handler is selected when multiple @HandleException methods exist in the same agent")
+               strategy = "The most specific handler is selected when multiple @OnException methods exist in the same agent")
     public void specificHandlerSelectedOverGeneric() {
         trace.reset();
         hierarchyEvents.fire(new HierarchyEvent("x"));
@@ -196,9 +196,9 @@ public class HandleExceptionTests {
     // ── Recursive prevention (BHV-005) ──────────────────────────────────────
 
     @RequiresImplementation
-    @Assertion(id = "AGENTICAI-HANDLEEXCEPTION-BHV-005",
+    @Assertion(id = "AGENTICAI-ONEXCEPTION-BHV-005",
                section = "error-handling",
-               strategy = "An exception thrown inside @HandleException propagates immediately without re-entering the handler")
+               strategy = "An exception thrown inside @OnException propagates immediately without re-entering the handler")
     public void handlerExceptionPropagatesWithoutRecursion() {
         trace.reset();
         // CDI wraps observer exceptions in ObserverException; the cause is the AgentDomainException
@@ -214,9 +214,9 @@ public class HandleExceptionTests {
     // ── Cross-phase coverage (BHV-006–009) ──────────────────────────────────
 
     @RequiresImplementation
-    @Assertion(id = "AGENTICAI-HANDLEEXCEPTION-BHV-006",
+    @Assertion(id = "AGENTICAI-ONEXCEPTION-BHV-006",
                section = "error-handling",
-               strategy = "@HandleException is invoked when an exception originates in the @Trigger phase")
+               strategy = "@OnException is invoked when an exception originates in the @Trigger phase")
     public void triggerFailureInvokesHandler() {
         trace.reset();
         phaseFailureAgent.setFailAt(PhaseFailureAgent.FailingPhase.TRIGGER);
@@ -225,9 +225,9 @@ public class HandleExceptionTests {
     }
 
     @RequiresImplementation
-    @Assertion(id = "AGENTICAI-HANDLEEXCEPTION-BHV-007",
+    @Assertion(id = "AGENTICAI-ONEXCEPTION-BHV-007",
                section = "error-handling",
-               strategy = "@HandleException is invoked when an exception originates in the @Decision phase")
+               strategy = "@OnException is invoked when an exception originates in the @Decision phase")
     public void decisionFailureInvokesHandler() {
         trace.reset();
         phaseFailureAgent.setFailAt(PhaseFailureAgent.FailingPhase.DECISION);
@@ -236,9 +236,9 @@ public class HandleExceptionTests {
     }
 
     @RequiresImplementation
-    @Assertion(id = "AGENTICAI-HANDLEEXCEPTION-BHV-008",
+    @Assertion(id = "AGENTICAI-ONEXCEPTION-BHV-008",
                section = "error-handling",
-               strategy = "@HandleException is invoked when an exception originates in the @Action phase")
+               strategy = "@OnException is invoked when an exception originates in the @Action phase")
     public void actionFailureInvokesHandler() {
         trace.reset();
         phaseFailureAgent.setFailAt(PhaseFailureAgent.FailingPhase.ACTION);
@@ -247,9 +247,9 @@ public class HandleExceptionTests {
     }
 
     @RequiresImplementation
-    @Assertion(id = "AGENTICAI-HANDLEEXCEPTION-BHV-009",
+    @Assertion(id = "AGENTICAI-ONEXCEPTION-BHV-009",
                section = "error-handling",
-               strategy = "@HandleException is invoked when an exception originates in the @Outcome phase")
+               strategy = "@OnException is invoked when an exception originates in the @Outcome phase")
     public void outcomeFailureInvokesHandler() {
         trace.reset();
         phaseFailureAgent.setFailAt(PhaseFailureAgent.FailingPhase.OUTCOME);
@@ -260,9 +260,9 @@ public class HandleExceptionTests {
     // ── Fallback, parameter identity, method contracts (BHV-010–013) ────────
 
     @RequiresImplementation
-    @Assertion(id = "AGENTICAI-HANDLEEXCEPTION-BHV-010",
+    @Assertion(id = "AGENTICAI-ONEXCEPTION-BHV-010",
                section = "error-handling",
-               strategy = "An unhandled exception propagates to the caller when no @HandleException method is present")
+               strategy = "An unhandled exception propagates to the caller when no @OnException method is present")
     public void uncaughtExceptionPropagatesWithoutHandler() {
         trace.reset();
         // CDI wraps observer exceptions in ObserverException; the cause is the AgentDomainException
@@ -273,7 +273,7 @@ public class HandleExceptionTests {
     }
 
     @RequiresImplementation
-    @Assertion(id = "AGENTICAI-HANDLEEXCEPTION-BHV-011",
+    @Assertion(id = "AGENTICAI-ONEXCEPTION-BHV-011",
                section = "error-handling",
                strategy = "The handler receives the exact exception instance that was thrown (referential identity)")
     public void handlerReceivesExactExceptionInstance() {
@@ -291,30 +291,30 @@ public class HandleExceptionTests {
                 });
     }
 
-    @Assertion(id = "AGENTICAI-HANDLEEXCEPTION-BHV-012",
+    @Assertion(id = "AGENTICAI-ONEXCEPTION-BHV-012",
                section = "error-handling",
-               strategy = "@HandleException methods must declare a Throwable subtype as the first parameter")
+               strategy = "@OnException methods must declare a Throwable subtype as the first parameter")
     public void handlerParameterMustBeExceptionType() {
         for (Method m : RecoveryAgent.class.getDeclaredMethods()) {
-            if (m.isAnnotationPresent(HandleException.class)) {
+            if (m.isAnnotationPresent(OnException.class)) {
                 assertThat(m.getParameterCount())
-                        .as("@HandleException method '%s' must have at least one parameter", m.getName())
+                        .as("@OnException method '%s' must have at least one parameter", m.getName())
                         .isGreaterThanOrEqualTo(1);
                 assertThat(Throwable.class.isAssignableFrom(m.getParameterTypes()[0]))
-                        .as("@HandleException method '%s' first parameter must be a Throwable subtype", m.getName())
+                        .as("@OnException method '%s' first parameter must be a Throwable subtype", m.getName())
                         .isTrue();
             }
         }
     }
 
-    @Assertion(id = "AGENTICAI-HANDLEEXCEPTION-BHV-013",
+    @Assertion(id = "AGENTICAI-ONEXCEPTION-BHV-013",
                section = "error-handling",
-               strategy = "@HandleException methods must declare void return type")
+               strategy = "@OnException methods must declare void return type")
     public void handlerMustReturnVoid() {
         for (Method m : RecoveryAgent.class.getDeclaredMethods()) {
-            if (m.isAnnotationPresent(HandleException.class)) {
+            if (m.isAnnotationPresent(OnException.class)) {
                 assertThat(m.getReturnType())
-                        .as("@HandleException method '%s' must return void", m.getName())
+                        .as("@OnException method '%s' must return void", m.getName())
                         .isEqualTo(void.class);
             }
         }
@@ -359,7 +359,7 @@ public class HandleExceptionTests {
     @RequiresImplementation
     @Assertion(id = "AGENTICAI-TERMINATION-BHV-004",
                section = "agent-lifecycle",
-               strategy = "An exception re-thrown from @HandleException terminates the workflow immediately without reaching @Outcome")
+               strategy = "An exception re-thrown from @OnException terminates the workflow immediately without reaching @Outcome")
     public void handlerFailureTerminatesWorkflow() {
         trace.reset();
         // CDI wraps observer exceptions in ObserverException; the cause is the AgentDomainException

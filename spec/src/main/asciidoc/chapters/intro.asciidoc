@@ -100,7 +100,7 @@ to reference material:
   workflow model and shows a complete example.
 - xref:agent-lifecycle[Annotations and Lifecycle] is the normative chapter
   that defines `@Agent`, `@Trigger`, `@Decision`, `@Action`, `@Outcome`, and
-  `@HandleException`, along with parameter injection, validation, error
+  `@OnException`, along with parameter injection, validation, error
   handling, and workflow termination.
 - xref:cdi-integration[CDI Integration] covers scopes, the `@WorkflowScoped`
   custom scope, event observation rules, interceptors, and lifecycle

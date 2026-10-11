@@ -6,7 +6,7 @@ Technology Compatibility Kit (TCK) for Jakarta Agentic AI 1.0 Specification.
 
 This TCK verifies that implementations of Jakarta Agentic AI conform to the specification requirements. It includes tests for:
 
-- **Agent Annotations**: `@Agent`, `@Trigger`, `@Decision`, `@Action`, `@Outcome`, `@HandleException`
+- **Agent Annotations**: `@Agent`, `@Trigger`, `@Decision`, `@Action`, `@Outcome`, `@OnException`
 - **CDI Integration**: `@WorkflowScoped` custom scope
 - **Core Interfaces**: `LargeLanguageModel` interface
 - **API Signature**: Verification of the complete API surface
@@ -73,7 +73,7 @@ public void testAgentAnnotationExists() {
 - `@Decision` - decision making with LLM
 - `@Action` - action execution
 - `@Outcome` - workflow completion
-- `@HandleException` - error handling
+- `@OnException` - error handling
 
 ### LargeLanguageModel Interface Tests
 - Verify interface exists with all required methods:

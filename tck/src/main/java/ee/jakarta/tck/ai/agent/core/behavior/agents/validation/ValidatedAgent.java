@@ -16,7 +16,7 @@ import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder.Phase;
 import jakarta.ai.agent.Action;
 import jakarta.ai.agent.Agent;
-import jakarta.ai.agent.HandleException;
+import jakarta.ai.agent.OnException;
 import jakarta.ai.agent.Trigger;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.event.Observes;
@@ -32,7 +32,7 @@ import jakarta.validation.ConstraintViolationException;
  * runtime validates the object <em>before</em> invoking the action body. A
  * {@code null} payload violates {@link InputData}'s {@code @NotNull} constraint,
  * raising a {@link ConstraintViolationException} that is routed to the
- * {@code @HandleException} method instead of running the action body.</p>
+ * {@code @OnException} method instead of running the action body.</p>
  */
 @Agent
 @ApplicationScoped
@@ -52,7 +52,7 @@ public class ValidatedAgent {
         trace.record(Phase.ACTION, "act", data);
     }
 
-    @HandleException
+    @OnException
     public void onInvalid(ConstraintViolationException ex) {
         trace.record(Phase.HANDLE_EXCEPTION, "onInvalid", ex);
     }

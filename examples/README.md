@@ -54,7 +54,7 @@ Located in `course-content-studio/`, this deployable web application demonstrate
 - Typed LLM results bound with Jakarta JSON Binding
 - Per-workflow conversational memory via `@WorkflowScoped` agents
 - Multi-agent chaining through CDI events with a human-in-the-loop approval gate
-- Resilience with `@HandleException`, plus live phase progress over Server-Sent Events
+- Resilience with `@OnException`, plus live phase progress over Server-Sent Events
 
 **Purpose:**
 A teacher generates, refines and publishes a lesson (introduction, quiz and

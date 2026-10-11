@@ -16,7 +16,7 @@ import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder.Phase;
 import jakarta.ai.agent.Action;
 import jakarta.ai.agent.Agent;
-import jakarta.ai.agent.HandleException;
+import jakarta.ai.agent.OnException;
 import jakarta.ai.agent.Trigger;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.event.Observes;
@@ -39,7 +39,7 @@ public class RecursiveGuardAgent {
         throw new AgentDomainException("Simulated failure");
     }
 
-    @HandleException
+    @OnException
     public void onError(AgentDomainException ex) {
         trace.record(Phase.HANDLE_EXCEPTION, "onError", ex);
         throw new AgentDomainException("Handler failure — must not recurse");

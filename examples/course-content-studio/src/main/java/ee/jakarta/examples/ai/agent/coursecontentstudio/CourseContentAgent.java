@@ -19,7 +19,7 @@ import ee.jakarta.examples.ai.agent.coursecontentstudio.model.QuizQuestion;
 import jakarta.ai.agent.Action;
 import jakarta.ai.agent.Agent;
 import jakarta.ai.agent.Decision;
-import jakarta.ai.agent.HandleException;
+import jakarta.ai.agent.OnException;
 import jakarta.ai.agent.LLMException;
 import jakarta.ai.agent.LargeLanguageModel;
 import jakarta.ai.agent.Outcome;
@@ -57,7 +57,7 @@ import java.util.logging.Logger;
  *   <li><b>Human-in-the-loop</b> — the event carries the mode (generate vs.
  *       refine) and a target section, so the teacher can refine one part.</li>
  *   <li><b>Resilience</b> — a placeholder quiz keeps the workflow moving when the
- *       model returns unusable JSON; {@code @HandleException} covers LLM outages
+ *       model returns unusable JSON; {@code @OnException} covers LLM outages
  *       and invalid requests.</li>
  *   <li><b>Live progress</b> — each phase reports to {@link ProgressTracker} so
  *       the browser popup shows what the agent is doing.</li>
@@ -199,7 +199,7 @@ public class CourseContentAgent {
         progress.complete(runId);
     }
 
-    @HandleException
+    @OnException
     void onLlmFailure(LLMException e) {
         LOGGER.warning("[HANDLE] LLM failure: " + e.getMessage());
         progress.publish(runId, "LLM error — publishing what we have");
@@ -209,7 +209,7 @@ public class CourseContentAgent {
         progress.complete(runId);
     }
 
-    @HandleException
+    @OnException
     void onInvalidRequest(ConstraintViolationException e) {
         LOGGER.warning("[HANDLE] invalid request rejected: " + e.getMessage());
         progress.publish(runId, "Invalid request rejected");

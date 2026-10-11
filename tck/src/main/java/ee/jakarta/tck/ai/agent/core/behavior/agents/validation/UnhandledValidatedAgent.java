@@ -23,7 +23,7 @@ import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 
 /**
- * Like {@link ValidatedAgent} but with no {@code @HandleException} method. When
+ * Like {@link ValidatedAgent} but with no {@code @OnException} method. When
  * validation fails, the {@code ConstraintViolationException} has no matching
  * handler and must propagate to the container.
  */
