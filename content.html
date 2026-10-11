@@ -91,7 +91,7 @@
   <li><code>@Outcome</code><span>Mark the end of the workflow</span></li>
 </ol>
 
-<p class="text-muted"><code>@HandleException</code> handles failures arising in any phase.</p>
+<p class="text-muted"><code>@OnException</code> handles failures arising in any phase.</p>
 
 <table class="table table-striped api-table">
   <thead>
@@ -103,7 +103,7 @@
     <tr><td><code>@Decision</code></td><td>Decides whether and how the workflow proceeds.</td></tr>
     <tr><td><code>@Action</code></td><td>A step within the workflow.</td></tr>
     <tr><td><code>@Outcome</code></td><td>Terminal step; marks the end of the workflow.</td></tr>
-    <tr><td><code>@HandleException</code></td><td>Exception handler within the workflow.</td></tr>
+    <tr><td><code>@OnException</code></td><td>Exception handler within the workflow.</td></tr>
     <tr><td><code>@WorkflowScoped</code></td><td>CDI normal scope, one context per workflow execution.</td></tr>
     <tr><td><code>LargeLanguageModel</code></td><td>Injectable LLM facade with automatic type conversion.</td></tr>
     <tr><td><code>Result</code></td><td>Built-in record returning a boolean plus detail from a decision.</td></tr>
