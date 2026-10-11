@@ -42,7 +42,7 @@ Defines the `jakarta.ai.agent` package. Most types are annotations or interfaces
 | `@Decision` | Method that decides whether and how the workflow should proceed. Returns `boolean`, `Result`, or a domain object. |
 | `@Action` | Step within the workflow. |
 | `@Outcome` | Terminal step; marks the end of the workflow. |
-| `@HandleException` | Exception handler within the workflow. |
+| `@OnException` | Exception handler within the workflow. |
 | `@WorkflowScoped` | Custom CDI normal scope — one context per workflow execution. |
 | `LargeLanguageModel` | Injectable LLM facade. Prompt parameters use `{}` as positional placeholders (like SLF4J). JSON Binding is used for type conversion. |
 | `Result` | Built-in record for boolean + detail return from `@Decision`. |

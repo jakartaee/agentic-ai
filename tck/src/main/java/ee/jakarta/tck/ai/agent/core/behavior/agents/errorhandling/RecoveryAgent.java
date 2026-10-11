@@ -16,7 +16,7 @@ import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder.*;
 import jakarta.ai.agent.Action;
 import jakarta.ai.agent.Agent;
-import jakarta.ai.agent.HandleException;
+import jakarta.ai.agent.OnException;
 import jakarta.ai.agent.Outcome;
 import jakarta.ai.agent.Trigger;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -40,7 +40,7 @@ public class RecoveryAgent {
         throw new AgentDomainException("Simulated action failure");
     }
 
-    @HandleException
+    @OnException
     public void onError(AgentDomainException ex) {
         trace.record(Phase.HANDLE_EXCEPTION, "onError", ex);
         // normal return — workflow recovers and proceeds to @Outcome

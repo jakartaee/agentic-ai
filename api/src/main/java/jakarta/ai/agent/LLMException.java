@@ -27,7 +27,7 @@ package jakarta.ai.agent;
  * </ul>
  * <p>
  * As a runtime exception, it does not require explicit handling but can be
- * caught by {@link HandleException} annotated methods in agent workflows.
+ * caught by {@link OnException} annotated methods in agent workflows.
  *
  * @since 1.0
  */

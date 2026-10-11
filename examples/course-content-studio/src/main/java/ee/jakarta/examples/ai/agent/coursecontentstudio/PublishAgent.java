@@ -18,7 +18,7 @@ import ee.jakarta.examples.ai.agent.coursecontentstudio.model.PublishedLesson;
 import jakarta.ai.agent.Action;
 import jakarta.ai.agent.Agent;
 import jakarta.ai.agent.Decision;
-import jakarta.ai.agent.HandleException;
+import jakarta.ai.agent.OnException;
 import jakarta.ai.agent.LLMException;
 import jakarta.ai.agent.LargeLanguageModel;
 import jakarta.ai.agent.Outcome;
@@ -108,7 +108,7 @@ public class PublishAgent {
         progress.complete(runId);
     }
 
-    @HandleException
+    @OnException
     void onLlmFailure(LLMException e) {
         LOGGER.warning("[HANDLE] publish LLM failure: " + e.getMessage());
         if (lesson != null) {

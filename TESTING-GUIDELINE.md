@@ -22,7 +22,7 @@ The TCK contains two kinds of assertions:
 
 - Assertions tagged with `@RequiresImplementation` exercise behavior that
   only a compatible Jakarta Agentic AI implementation can dispatch
-  (`@Decision`, `@Action`, `@Outcome`, `@HandleException`).
+  (`@Decision`, `@Action`, `@Outcome`, `@OnException`).
 - Assertions tagged with `@RequiresNoImplementation` verify the plain-CDI
   baseline (`@Trigger` observation only) and must be skipped when a
   compatible implementation is present.

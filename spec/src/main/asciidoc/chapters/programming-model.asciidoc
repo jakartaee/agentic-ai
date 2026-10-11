@@ -22,7 +22,7 @@ combination of the following phases:
 Decisions and actions can be intermixed in any sequence, allowing agents to
 implement simple linear workflows or complex conditional branching.
 
-In addition, an agent may declare `@HandleException` methods to recover from
+In addition, an agent may declare `@OnException` methods to recover from
 errors that occur during workflow execution.
 
 ==== Workflow Execution

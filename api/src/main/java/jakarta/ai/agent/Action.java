@@ -75,7 +75,7 @@ import java.lang.annotation.Target;
  * {@code @NotNull}, {@code @NotEmpty}). Validation occurs before the action 
  * method is invoked. Validation failures raise 
  * {@code jakarta.validation.ConstraintViolationException}, which can be
- * handled by {@link HandleException @HandleException} methods.
+ * handled by {@link OnException @OnException} methods.
  * <p>
  * <b>Return types</b><br>
  * Action methods support two return patterns:

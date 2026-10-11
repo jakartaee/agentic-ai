@@ -72,7 +72,7 @@ public class FraudDetectionAgent {
         logger.info("Transaction marked as suspect: " + transaction.getId());
     }
 
-    @HandleException
+    @OnException
     @Transactional
     public void handleModelUnavailable(LLMException e, BankTransaction transaction) {
         logger.warn("Fraud model unavailable for transaction: " + transaction.getId(), e);
@@ -171,7 +171,7 @@ public class DocumentationAgent {
         logger.info("Created documentation PR #" + docPr.getNumber());
     }
 
-    @HandleException
+    @OnException
     public void handleGenerationFailure(LLMException e, PullRequestEvent prEvent) {
         logger.warn("Documentation generation unavailable for PR #" +
             prEvent.getNumber(), e);
@@ -256,7 +256,7 @@ public class CustomerSupportAgent {
         }
     }
 
-    @HandleException
+    @OnException
     public void handleModelFailure(LLMException e, CustomerMessage message) {
         logger.warn("Support response generation unavailable", e);
         ticketService.escalate(customer.getId(), "Automated response unavailable");
@@ -278,7 +278,7 @@ public class OnboardingAgent {
     private EmailService emailService;
 
     // Constraint violations short-circuit the workflow and are recovered by
-    // @HandleException below.
+    // @OnException below.
     @Trigger
     public void onInvitation(@Valid @NotNull UserInvitation invitation) {
         logger.info("Processing invitation for: " + invitation.getEmail());
@@ -305,7 +305,7 @@ public class OnboardingAgent {
         invitation.setStatus(InvitationStatus.ACCEPTED);
     }
 
-    @HandleException
+    @OnException
     public void onInvalidInvitation(ConstraintViolationException e,
                                     UserInvitation invitation) {
         for (var v : e.getConstraintViolations()) {
@@ -315,7 +315,7 @@ public class OnboardingAgent {
     }
 
     // Compensating recovery when the mail service cannot deliver.
-    @HandleException
+    @OnException
     public void onDeliveryFailure(EmailDeliveryException e,
                                   UserInvitation invitation) {
         logger.error("Unable to deliver welcome email", e);

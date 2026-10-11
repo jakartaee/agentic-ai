@@ -53,7 +53,7 @@ are workflow state carried between phases.
   the workflow body runs; the resource unwraps the `ObserverException` and
   returns 400 with the specific field errors.
 - `@Outcome void done(IntakeRequest)` — logs that the record is ready.
-- `@HandleException void onLlmFailure(LLMException, IntakeRequest)` — catches
+- `@OnException void onLlmFailure(LLMException, IntakeRequest)` — catches
   an LLM failure anywhere in the pipeline and writes a minimal fallback
   record (the customer's own values + the unpolished original message), so
   the UI always shows a review screen instead of a 500.

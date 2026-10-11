@@ -86,7 +86,7 @@ implementation cannot be unwrapped to the requested type.
 
 The `LLMException` class is a runtime exception thrown when LLM operations fail. As a
 runtime exception, it does not require explicit handling but may be caught
-by methods annotated with the `@HandleException` annotation in agent workflows. Common failure scenarios include:
+by methods annotated with the `@OnException` annotation in agent workflows. Common failure scenarios include:
 
 - Communication failures with the LLM service
 - Invalid or malformed responses from the LLM (truncated output, error
@@ -200,7 +200,7 @@ public Priority parsePriority(Issue issue) {
 ==== Error Handling
 
 Handle LLM failures inline with try-catch, or workflow-wide with
-`@HandleException`. See xref:error-handling[Error Handling] in
+`@OnException`. See xref:error-handling[Error Handling] in
 xref:agent-lifecycle[Annotations and Lifecycle] for handler matching rules
 and the behavior when a handler returns normally vs. re-throws.
 
@@ -224,7 +224,7 @@ public boolean robustEvaluation(Task task) {
 
 [source,java]
 ----
-@HandleException
+@OnException
 public void handleLLMError(LLMException e, Task task) {
   logger.error("LLM failed for task: " + task.getId(), e);
   task.setStatus(TaskStatus.NEEDS_MANUAL_REVIEW);

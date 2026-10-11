@@ -64,7 +64,7 @@ public class IntakeResource {
             // CDI wraps anything thrown by a synchronous observer. The Bean Validation
             // interceptor on @Trigger(@Valid IntakeRequest) throws a ConstraintViolationException
             // when the record is invalid; map that to a 400. LLMException from an @Action is
-            // caught inside the agent by @HandleException and never propagates out.
+            // caught inside the agent by @OnException and never propagates out.
             Throwable cause = wrapper.getCause();
             if (cause instanceof ConstraintViolationException cve) {
                 return Response.status(Response.Status.BAD_REQUEST)

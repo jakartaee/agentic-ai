@@ -14,7 +14,7 @@ package ee.jakarta.tck.ai.agent.core.behavior.agents.validation;
 
 /**
  * Triggering event for {@link UnhandledValidatedAgent}, which declares no
- * {@code @HandleException} method. A {@code null} payload produces a validation
+ * {@code @OnException} method. A {@code null} payload produces a validation
  * failure that must propagate to the container.
  */
 public record UnhandledValidationEvent(String payload) {

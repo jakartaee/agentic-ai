@@ -79,7 +79,7 @@ import java.lang.annotation.Target;
  * <p><b>Examples</b><br>
  * <pre>{@code
  * // Recoverable error - returns normally, workflow continues
- * @HandleException
+ * @OnException
  * public void handleRecoverable(IOException ex, BankTransaction transaction) {
  *     logger.warn("I/O error, retrying transaction: " + transaction.getId(), ex);
  *     retryQueue.add(transaction);
@@ -87,7 +87,7 @@ import java.lang.annotation.Target;
  * }
  *
  * // Fatal error - re-throws, workflow stops
- * @HandleException
+ * @OnException
  * public void handleFatal(SecurityException ex, BankAccount account) {
  *     logger.error("Security violation", ex);
  *     auditService.logSecurityBreach(account);
@@ -95,7 +95,7 @@ import java.lang.annotation.Target;
  * }
  *
  * // Conditional recovery - decides whether to continue or stop
- * @HandleException
+ * @OnException
  * public void handleWithFallback(Exception ex) {
  *     if (isRecoverable(ex)) {
  *         logger.info("Recovering from error", ex);
@@ -109,13 +109,13 @@ import java.lang.annotation.Target;
  * }
  *
  * // Multiple handlers for different exception types
- * @HandleException
+ * @OnException
  * public void handleValidationError(ValidationException ex) {
  *     logger.warn("Validation failed: " + ex.getMessage());
  *     // Returns normally - workflow continues with validation flag set
  * }
  *
- * @HandleException
+ * @OnException
  * public void handleGenericError(Exception ex) {
  *     logger.error("Unexpected error", ex);
  *     alertService.notifyAdministrators(ex);
@@ -123,7 +123,7 @@ import java.lang.annotation.Target;
  * }
  *
  * // Handler with LLM for diagnostics
- * @HandleException
+ * @OnException
  * public void handleWithDiagnostics(Exception ex, LargeLanguageModel llm) {
  *     String analysis = llm.query(
  *         "Analyze this error and suggest recovery",
@@ -147,5 +147,5 @@ import java.lang.annotation.Target;
  */
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface HandleException {
+public @interface OnException {
 }

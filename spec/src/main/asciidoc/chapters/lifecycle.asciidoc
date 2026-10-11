@@ -17,7 +17,7 @@ generally in order:
 - `@Decision` — optional, zero or more
 - `@Action` — optional, zero or more
 - `@Outcome` — optional, zero or one (may be relaxed in the future)
-- `@HandleException` — optional, zero or more
+- `@OnException` — optional, zero or more
 
 === @Agent
 
@@ -134,7 +134,7 @@ public class AnalyzingAgent {
 === Parameter Resolution
 
 All workflow methods (annotated with `@Trigger`, `@Decision`, `@Action`, 
-`@Outcome`, and `@HandleException`) receive their parameters through automatic
+`@Outcome`, and `@OnException`) receive their parameters through automatic
 resolution based on type and the current workflow state. Each annotation uses 
 this single set of rules.
 
@@ -149,7 +149,7 @@ the following order:
   have returned objects of the same type, the most recently returned object
   is used.
 . **`LargeLanguageModel`** — if the parameter type is `LargeLanguageModel`.
-. **Exception** — for `@HandleException` methods only, the thrown exception
+. **Exception** — for `@OnException` methods only, the thrown exception
   (or any supertype thereof) is the required first parameter.
 . **CDI injection** — if the parameter is a CDI bean.
 
@@ -160,7 +160,7 @@ Parameters may declare Jakarta Validation constraints (`@Valid`, `@NotNull`,
 `@NotEmpty`, `@Size`, etc). Validation occurs before parameter injection and
 workflow method invocation. If validation fails, a
 `ConstraintViolationException` is raised; it can be caught by an
-`@HandleException` method or propagated to the container.
+`@OnException` method or propagated to the container.
 
 `ConstraintViolationException` is a runtime exception, so explicit handling
 is not required. Common scenarios include parameter constraint failures,
@@ -359,15 +359,15 @@ Outcome methods must return `void`. The outcome phase is intended for
 finalization and side effects, not for producing further data. Future
 releases may relax this for downstream system integration.
 
-=== @HandleException
+=== @OnException
 
-The `@HandleException` annotation marks a method that handles exceptions
+The `@OnException` annotation marks a method that handles exceptions
 occurring during workflow execution. For handler matching and dispatch
 semantics, see xref:error-handling[Error Handling].
 
 ==== Cardinality
 
-An agent may define zero or more `@HandleException` methods.
+An agent may define zero or more `@OnException` methods.
 
 ==== Parameters
 
@@ -388,14 +388,14 @@ recovery, logging, and cleanup.
 public class ExceptionHandlingExamples {
 
     // Recoverable - returns normally, workflow continues
-    @HandleException
+    @OnException
     public void handleRecoverable(IOException ex, BankTransaction transaction) {
         logger.warn("I/O error, retrying: " + transaction.getId(), ex);
         retryQueue.add(transaction);
     }
 
     // Fatal - re-throws, workflow stops
-    @HandleException
+    @OnException
     public void handleFatal(SecurityException ex, BankTransaction transaction) {
         logger.error("Security violation", ex);
         auditService.logSecurityBreach(transaction);
@@ -403,7 +403,7 @@ public class ExceptionHandlingExamples {
     }
 
     // Conditional recovery
-    @HandleException
+    @OnException
     public void handleWithFallback(Exception ex, BankTransaction transaction) {
         if (isRecoverable(ex)) {
             performRecovery(transaction);
@@ -419,7 +419,7 @@ public class ExceptionHandlingExamples {
 
 When an exception occurs in any workflow phase (`@Trigger`, `@Decision`,
 `@Action`, or `@Outcome`), the runtime searches for a matching
-`@HandleException` method. The most specific exception type match wins,
+`@OnException` method. The most specific exception type match wins,
 following Java's exception hierarchy.
 
 - If the handler returns normally, the workflow continues with the next
@@ -446,13 +446,13 @@ public class ResilientAgent {
         return analyzeEvent(event); // may throw IOException
     }
 
-    @HandleException
+    @OnException
     public void handleIOException(IOException e, Event event) {
         logger.warn("I/O error, will retry", e);
         scheduleRetry(event);
     }
 
-    @HandleException
+    @OnException
     public void handleGenericException(Exception e, Event event) {
         logger.error("Unexpected error", e);
         logFailure(event, e);
@@ -478,7 +478,7 @@ once the workflow terminates.
 
 Each lifecycle annotation marks a method as participating in a single
 workflow phase. A method must not declare more than one of `@Trigger`,
-`@Decision`, `@Action`, `@Outcome`, or `@HandleException`; combining two or
+`@Decision`, `@Action`, `@Outcome`, or `@OnException`; combining two or
 more of them on the same method is a deployment error.
 
 ==== Inherited Methods

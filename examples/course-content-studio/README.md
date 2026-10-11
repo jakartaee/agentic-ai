@@ -16,7 +16,7 @@ ask-agent sample does not:
 | **Per-workflow conversational memory** | `writeConclusion` does not re-send the chapter |
 | **Human-in-the-loop** (generate vs. refine, per section) | event carries the mode; `refine-section` |
 | **Multi-agent chaining via CDI events** | approval fires `LessonApproved` → `PublishAgent` builds the lesson |
-| **Resilience** (`@HandleException`) | LLM outage / invalid request handled; unusable quiz JSON falls back to a placeholder |
+| **Resilience** (`@OnException`) | LLM outage / invalid request handled; unusable quiz JSON falls back to a placeholder |
 | **Per-subject specialisation** | `SubjectRubric` prepends a subject rubric (with LaTeX guidance for maths/physics) |
 | **Live progress (SSE)** | `ProgressTracker` streams each phase to the browser popup |
 | **Polymorphic quiz + LLM grading** | open questions graded by semantic similarity via `POST /api/quiz/grade` (`@Dependent` LLM used directly, no agent) |

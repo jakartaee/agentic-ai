@@ -57,7 +57,7 @@ import java.lang.annotation.Target;
  * {@code @NotNull}, {@code @Email}, {@code @Size}). Validation occurs before
  * the trigger method is invoked. Validation failures raise 
  * {@code jakarta.validation.ConstraintViolationException}, which can be
- * handled by {@link HandleException @HandleException} methods.
+ * handled by {@link OnException @OnException} methods.
  * <p>
  * <b>Return types</b><br>
  * Trigger methods support two return patterns:

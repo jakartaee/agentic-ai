@@ -59,7 +59,7 @@ appropriate concurrency controls.
 
 - **Sequential phases** — within a single workflow context, annotated
   methods (`@Trigger`, `@Decision`, `@Action`, `@Outcome`,
-  `@HandleException`) execute sequentially (see the Execution Order rules
+  `@OnException`) execute sequentially (see the Execution Order rules
   in xref:agent-lifecycle[Annotations and Lifecycle]).
 - **`@WorkflowScoped` agents** — a workflow context typically executes
   on a single thread; the agent instance is therefore not exposed to

@@ -29,7 +29,7 @@
  *   <li>{@link jakarta.ai.agent.Decision @Decision} - Marks a decision point in the workflow</li>
  *   <li>{@link jakarta.ai.agent.Action @Action} - Marks an action execution step</li>
  *   <li>{@link jakarta.ai.agent.Outcome @Outcome} - Marks the workflow outcome phase</li>
- *   <li>{@link jakarta.ai.agent.HandleException @HandleException} - Marks an exception handler</li>
+ *   <li>{@link jakarta.ai.agent.OnException @OnException} - Marks an exception handler</li>
  * </ul>
  *
  * <h3>Core Interfaces</h3>
@@ -95,8 +95,8 @@
  *       {@link jakarta.ai.agent.Outcome @Outcome} method handles finalization, 
  *       state persistence, and downstream notifications. Must return void.</li>
  *   <li><strong>Exception Handling (optional)</strong> - Zero or more
- *       {@link jakarta.ai.agent.HandleException @HandleException}
- *       methods handle exceptions throughout the workflow lifecycle. Handler 
+ *       {@link jakarta.ai.agent.OnException @OnException}
+ *       methods handle exceptions throughout the workflow lifecycle. Handler
  *       returns normally to continue workflow (after recovery), or re-throws 
  *       exception to stop workflow.</li>
  * </ol>
@@ -184,7 +184,7 @@
  * </ul>
  *
  * <p>These exceptions can be handled with try-catch blocks or 
- * {@link jakarta.ai.agent.HandleException @HandleException}
+ * {@link jakarta.ai.agent.OnException @OnException}
  * methods for workflow-level error handling.
  *
  * <h2>Parameter Injection</h2>
