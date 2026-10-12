@@ -39,24 +39,30 @@ are workflow state carried between phases.
 
 **The two decisions sit at different gates:**
 
-- `Result canProcess(IntakeRequest)` runs first and returns a `Result` —
-  `Result(false, "Message is too short to process meaningfully.")` on a
-  trivial submission. Returning `Result` (instead of a plain `boolean`)
-  carries the reason through the Result's `details`, visible in the server
-  log.
+- `boolean canProcess(IntakeRequest)` runs first. It rejects obvious
+  placeholder/test submissions — messages dominated by tokens like
+  `test`, `asdf`, `qwerty`, `lorem ipsum`, `foo`/`bar`/`baz`. The
+  mechanical length floor is handled by `@Size(min = 20)` on the trigger
+  record and never reaches this decision at all.
 - `boolean hasEnoughContent(Identity, IntakeRequest)` runs after
   `enrichIdentity` — it takes an `Identity` as a parameter, so parameter-type
   dataflow places it there. If the message is short and the agent extracted
-  nothing identifying, the workflow stops before `assemble` runs; the
-  resource then returns `422` and the customer is asked to elaborate.
+  nothing identifying, the workflow stops before `assemble` runs.
+
+When either decision returns `false`, it first writes a human-readable
+reason into `IntakeOutput.stopReason`. The resource reads that string back
+out of the request-scoped holder and returns it as the `422` response body,
+so the customer sees the specific reason the workflow stopped rather than a
+generic failure message.
 
 **The surrounding phases:**
 
 - `@Trigger void onSubmit(@Valid IntakeRequest)` — the `@Valid` runs Bean
-  Validation on the record (`@NotBlank` on `message`, `@Email` on `email`,
-  `@Size` on each field). A violation is thrown by the interceptor before
-  the workflow body runs; the resource unwraps the `ObserverException` and
-  returns 400 with the specific field errors.
+  Validation on the record (`@NotBlank` and `@Size(min = 20, max = 5000)`
+  on `message`, `@Email` on `email`, `@Size` on each field). A violation is
+  thrown by the interceptor before the workflow body runs; the resource
+  unwraps the `ObserverException` and returns 400 with the specific field
+  errors.
 - `@Outcome void done(IntakeRequest)` — logs that the record is ready.
 - `@OnException void onLlmFailure(LLMException, IntakeRequest)` — catches
   an LLM failure anywhere in the pipeline and writes a minimal fallback

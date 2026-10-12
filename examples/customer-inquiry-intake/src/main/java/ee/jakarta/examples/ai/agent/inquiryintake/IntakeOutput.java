@@ -21,6 +21,7 @@ import jakarta.enterprise.context.RequestScoped;
 public class IntakeOutput {
 
     private IntakeRecord record;
+    private String stopReason;
 
     public IntakeRecord record() {
         return record;
@@ -28,5 +29,13 @@ public class IntakeOutput {
 
     public void setRecord(IntakeRecord record) {
         this.record = record;
+    }
+
+    public String stopReason() {
+        return stopReason;
+    }
+
+    public void setStopReason(String stopReason) {
+        this.stopReason = stopReason;
     }
 }

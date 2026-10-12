@@ -66,12 +66,10 @@ public class IntakeResource {
 
         IntakeRecord record = output.record();
         if (record == null) {
-            // A mid-pipeline @Decision returned false and the workflow stopped before
-            // @Action assemble could run.
+            String reason = output.stopReason();
             return Response.status(422)
                     .type(MediaType.TEXT_PLAIN)
-                    .entity("We could not route this inquiry. Please add your name or email, "
-                            + "or elaborate on what you are asking for.")
+                    .entity(reason != null ? reason : "We could not process this inquiry.")
                     .build();
         }
         return Response.ok(record).build();

@@ -19,40 +19,18 @@ import jakarta.ai.agent.OnException;
 import jakarta.ai.agent.LLMException;
 import jakarta.ai.agent.LargeLanguageModel;
 import jakarta.ai.agent.Outcome;
-import jakarta.ai.agent.Result;
 import jakarta.ai.agent.Trigger;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 
+import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
  * Processes a raw contact-form submission into a reviewed inquiry record.
- * The agent uses several API features that extend what Example 1 shows:
- *
- * <ul>
- *   <li>{@code @Valid} on the trigger parameter — Bean Validation on
- *       {@link IntakeRequest} runs before the workflow body.</li>
- *   <li>{@code @Decision} returning a {@link Result} so the reason the
- *       workflow stopped is carried as the Result's {@code details}, not
- *       just a boolean.</li>
- *   <li>A second {@code @Decision} that gates mid-pipeline — ordered
- *       after {@link #enrichIdentity} by taking an {@link Identity} as a
- *       parameter.</li>
- *   <li>Four {@code @Action} methods ordered by parameter-type
- *       dataflow (no explicit {@code order=}). {@link #enrichIdentity},
- *       {@link #classify} and {@link #draftTitle} all take only
- *       {@link IntakeRequest} and can run first; {@link #assemble}
- *       declares each of their returned values as a parameter, so the
- *       runtime runs it after.</li>
- *   <li>Typed {@code model.query(Class, ...)} in {@link #enrichIdentity}
- *       — the LLM response binds directly to {@link Identity} via
- *       JSON-B, with no hand-rolled JSON parsing.</li>
- *   <li>{@code @OnException} catching {@link LLMException} with a
- *       fallback record, so the UI always has something to show.</li>
- * </ul>
  */
 @Agent(name = "IntakeAgent",
        description = "Processes a customer contact-form submission into a reviewed inquiry record.")
@@ -68,19 +46,18 @@ public class IntakeAgent {
 
     @Trigger
     void onSubmit(@Valid IntakeRequest request) {
-        LOGGER.info("[TRIGGER] inquiry received");
+        LOGGER.info("[TRIGGER] inquiry received: " + request);
     }
 
     @Decision
-    Result canProcess(IntakeRequest request) {
-        String message = request.message().strip();
-        if (message.length() < 20) {
-            Result stop = new Result(false, "Message is too short to process meaningfully.");
-            LOGGER.info("[DECISION canProcess] stop: " + stop.details());
-            return stop;
+    boolean canProcess(IntakeRequest request) {
+        if (looksLikePlaceholderText(request.message())) {
+            output.setStopReason("This looks like a test or placeholder submission. Please send your actual inquiry.");
+            LOGGER.info("[DECISION canProcess] stop: placeholder/test submission");
+            return false;
         }
         LOGGER.info("[DECISION canProcess] proceed");
-        return new Result(true, null);
+        return true;
     }
 
     @Action
@@ -145,6 +122,10 @@ public class IntakeAgent {
         boolean proceed = anyIdentity || substantive;
         LOGGER.info("[DECISION hasEnoughContent] proceed=" + proceed
                 + " (anyIdentity=" + anyIdentity + ", substantive=" + substantive + ")");
+        if (!proceed) {
+            output.setStopReason("We could not route this inquiry. Please add your name or email, "
+                    + "or elaborate on what you are asking for.");
+        }
         return proceed;
     }
 
@@ -170,6 +151,22 @@ public class IntakeAgent {
     void onLlmFailure(LLMException failure, IntakeRequest request) {
         LOGGER.log(Level.WARNING, "LLM call failed; writing fallback record", failure);
         output.setRecord(IntakeRecord.fallbackFor(request));
+    }
+
+    private static final Set<String> PLACEHOLDER_TOKENS = Set.of(
+            "test", "asdf", "asdfg", "qwerty", "lorem", "ipsum", "foo", "bar", "baz");
+
+    private static boolean looksLikePlaceholderText(String message) {
+        String lower = message.toLowerCase();
+        if (lower.contains("lorem ipsum")) {
+            return true;
+        }
+        String[] words = lower.split("\\W+");
+        if (words.length == 0) {
+            return false;
+        }
+        long placeholders = Arrays.stream(words).filter(PLACEHOLDER_TOKENS::contains).count();
+        return placeholders >= 2 && placeholders * 2 >= words.length;
     }
 
     private static boolean notBlank(String s) {
