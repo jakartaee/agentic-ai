@@ -14,17 +14,17 @@ package ee.jakarta.examples.ai.agent.inquiryintake;
 
 /**
  * The output of the {@link IntakeAgent} pipeline: resolved identity, chosen
- * category, assessed priority, and the polished message. Shown to the
+ * category, drafted subject line, and the polished message. Shown to the
  * customer on the review screen before they confirm.
  */
-public record IntakeRecord(Identity identity, Classification classification, Priority priority, String message) {
+public record IntakeRecord(Identity identity, Classification classification, String title, String message) {
 
     /** Minimal fallback used by the handler when the LLM is unavailable. */
     public static IntakeRecord fallbackFor(IntakeRequest request) {
         return new IntakeRecord(
                 new Identity(nullSafe(request.name()), nullSafe(request.email()), ""),
                 Classification.GENERAL,
-                Priority.NORMAL,
+                "",
                 nullSafe(request.message()));
     }
 

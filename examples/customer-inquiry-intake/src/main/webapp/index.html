@@ -52,7 +52,9 @@
         .field { margin-top: 16px; }
         .field:first-of-type { margin-top: 0; }
         .row { display: flex; gap: 14px; margin-top: 16px; }
-        .row .field { margin-top: 0; flex: 1; min-width: 0; }
+        .row .field { margin-top: 0; min-width: 0; }
+        .row .col-narrow { flex: 1; }
+        .row .col-wide   { flex: 2; }
         label { display: block; margin-bottom: 5px; font-size: 13px; font-weight: 500; color: var(--ink); }
         label small { color: var(--muted); font-weight: 400; font-size: 12px; margin-left: 6px; }
         input, select, textarea {
@@ -123,7 +125,7 @@
         <p class="lede">
             Fill in what you have &mdash; even just the message is enough. Our AI assistant
             will pull your details out of the text, work out your company from the email,
-            pick a category, gauge how urgent it sounds, and tidy the message up before you
+            pick a category, draft a subject line, and tidy the message up before you
             review and send.
         </p>
         <form id="intakeForm" onsubmit="return false;">
@@ -167,7 +169,7 @@
             <div class="diff" id="rCompanyDiff" hidden></div>
         </div>
         <div class="row">
-            <div class="field">
+            <div class="field col-narrow">
                 <label for="rCategory">Routed to</label>
                 <select id="rCategory">
                     <option value="GENERAL">General</option>
@@ -176,14 +178,9 @@
                     <option value="PARTNERSHIP">Partnership</option>
                 </select>
             </div>
-            <div class="field">
-                <label for="rPriority">Priority</label>
-                <select id="rPriority">
-                    <option value="LOW">Low</option>
-                    <option value="NORMAL">Normal</option>
-                    <option value="HIGH">High</option>
-                    <option value="URGENT">Urgent</option>
-                </select>
+            <div class="field col-wide">
+                <label for="rTitle">Subject</label>
+                <input id="rTitle" type="text" maxlength="80"/>
             </div>
         </div>
         <div class="field">
@@ -255,7 +252,7 @@
         $('rEmail').value   = id.email || '';
         $('rCompany').value = id.company || '';
         $('rCategory').value = record.classification || 'GENERAL';
-        $('rPriority').value = record.priority || 'NORMAL';
+        $('rTitle').value    = record.title || '';
         $('rMessage').value  = record.message || '';
         showDiff('rNameDiff',    originalIdentity.name,  id.name,    'Filled in from your message');
         showDiff('rEmailDiff',   originalIdentity.email, id.email,   'Filled in from your message');
@@ -290,7 +287,7 @@
                 company: $('rCompany').value.trim()
             },
             classification: $('rCategory').value,
-            priority:       $('rPriority').value,
+            title:          $('rTitle').value.trim(),
             message:        $('rMessage').value.trim()
         };
         if (!record.message) {

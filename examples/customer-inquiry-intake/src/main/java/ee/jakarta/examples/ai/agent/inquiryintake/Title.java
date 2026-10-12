@@ -13,9 +13,11 @@
 package ee.jakarta.examples.ai.agent.inquiryintake;
 
 /**
- * How urgent the inquiry is. Returned by the {@code assessPriority}
- * action and consumed by {@code assemble} by type.
+ * A short subject line drafted from the message, suitable for a ticketing
+ * system. Returned by the {@code draftTitle} action and consumed by
+ * {@code assemble} by type — a record wrapper (rather than a bare
+ * {@code String}) so the runtime can match the parameter unambiguously
+ * against the polished message, which is also a string.
  */
-public enum Priority {
-    LOW, NORMAL, HIGH, URGENT
+public record Title(String value) {
 }
