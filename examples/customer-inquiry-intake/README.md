@@ -11,7 +11,7 @@ confirming.
 
 ```
 GET  /customer-inquiry-intake/                       the UI
-POST /customer-inquiry-intake/api/intake             { name?, email?, message }              run the pipeline, return the prepared IntakeRecord
+POST /customer-inquiry-intake/api/intake/prepare     { name?, email?, message }                     run the pipeline, return the prepared IntakeRecord
 POST /customer-inquiry-intake/api/intake/confirm     { identity, classification, title, message }   hand the (possibly edited) record off
 ```
 
