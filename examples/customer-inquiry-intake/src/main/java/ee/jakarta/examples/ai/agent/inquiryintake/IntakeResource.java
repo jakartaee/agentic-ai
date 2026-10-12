@@ -34,7 +34,7 @@ import java.util.logging.Logger;
  * (possibly edited by the customer) and stubs the hand-off that would, in a
  * real deployment, reach a CRM, ticketing system or outbound email.
  */
-@Path("")
+@Path("intake")
 @RequestScoped
 public class IntakeResource {
 
@@ -47,7 +47,7 @@ public class IntakeResource {
     IntakeOutput output;
 
     @POST
-    @Path("intake/prepare")
+    @Path("prepare")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response prepare(IntakeRequest request) {
@@ -86,7 +86,7 @@ public class IntakeResource {
     }
 
     @POST
-    @Path("intake/confirm")
+    @Path("confirm")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response confirm(IntakeRecord record) {
