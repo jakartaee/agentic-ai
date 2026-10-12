@@ -50,13 +50,13 @@ public class IntakeAgent {
     }
 
     @Decision
-    boolean canProcess(IntakeRequest request) {
+    boolean looksLikeRealInquiry(IntakeRequest request) {
         if (looksLikePlaceholderText(request.message())) {
             output.setStopReason("This looks like a test or placeholder submission. Please send your actual inquiry.");
-            LOGGER.info("[DECISION canProcess] stop: placeholder/test submission");
+            LOGGER.info("[DECISION looksLikeRealInquiry] stop: placeholder/test submission");
             return false;
         }
-        LOGGER.info("[DECISION canProcess] proceed");
+        LOGGER.info("[DECISION looksLikeRealInquiry] proceed");
         return true;
     }
 
