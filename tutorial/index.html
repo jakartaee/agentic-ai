@@ -639,7 +639,7 @@ the resource reads back inside the same HTTP request. The resource unwraps the
 holds no record means a mid-pipeline <code>@Decision</code> returned false and no
 <code>@Action</code> wrote one, so the resource returns a <strong>422</strong> asking the
 customer to elaborate. The resource exposes just two endpoints
-(<code>POST /api/intake</code> to run the pipeline and
+(<code>POST /api/intake/prepare</code> to run the pipeline and
 <code>POST /api/intake/confirm</code> to hand the (possibly edited) record off) and never
 calls <code>LargeLanguageModel</code> directly.</p>
 <p>The LLM backend and the system prompt are configuration — here Claude on Vertex AI,
