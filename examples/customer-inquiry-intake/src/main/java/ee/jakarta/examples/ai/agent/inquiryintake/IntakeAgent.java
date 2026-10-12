@@ -115,7 +115,9 @@ public class IntakeAgent {
 
     @Decision
     boolean hasEnoughContent(Identity identity, IntakeRequest request) {
-        boolean anyIdentity = notBlank(identity.name()) || notBlank(identity.email());
+        boolean anyIdentity = notBlank(identity.name())
+                || notBlank(identity.email())
+                || notBlank(identity.company());
         boolean substantive = request.message().strip().split("\\s+").length >= 6;
         boolean proceed = anyIdentity || substantive;
         LOGGER.info("[DECISION hasEnoughContent] proceed=" + proceed
