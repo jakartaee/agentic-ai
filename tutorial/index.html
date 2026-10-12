@@ -319,13 +319,13 @@ target="_blank" rel="noopener">Read the specification → the programming model<
 
 <h2>The phases</h2>
 <p>The lifecycle is <code>Trigger → Decision* → Action* → Outcome</code>, with
-<code>HandleException</code> cutting across every phase:</p>
+<code>OnException</code> cutting across every phase:</p>
 <ul>
 <li><code>@Trigger</code> — the single entry point; a CDI event observer that starts the workflow.</li>
 <li><code>@Decision</code> — optional gate(s); returning <code>false</code>/<code>null</code>/<code>Result(false, …)</code> ends the workflow early.</li>
 <li><code>@Action</code> — optional step(s) that do the work (usually an LLM call).</li>
 <li><code>@Outcome</code> — the successful end; afterwards the runtime destroys the workflow context.</li>
-<li><code>@HandleException</code> — recovery: return normally to continue, rethrow to stop.</li>
+<li><code>@OnException</code> — recovery: return normally to continue, rethrow to stop.</li>
 </ul>
 <p>Decisions and actions may be intermixed, and data flows between phases by return type —
 no manual parameter passing. <a
@@ -357,7 +357,7 @@ target="_blank" rel="noopener">Read the specification → LLM integration</a>.</
 <code>query</code> that cannot be mapped to the requested type also raises
 <code>LLMException</code> rather than returning corrupted data. Catch these and any other
 errors (including invalid parameters that Jakarta Validation detects) in an
-<code>@HandleException</code> method with clear semantics: return normally to continue the
+<code>@OnException</code> method with clear semantics: return normally to continue the
 workflow, rethrow to stop it. <a
 href="https://jakarta.ee/specifications/agentic-ai/1.0/jakarta-agentic-ai-1.0.0-M1.html#_exceptions"
 target="_blank" rel="noopener">Read the specification → exceptions</a>.</p>
@@ -462,9 +462,9 @@ deploy and exercise the workflow before wiring a real provider.</li>
 <h1>The Examples</h1>
 <p>Three examples, three levels: the <strong>ask agent</strong> teaches the programming
 model in 5 classes; the <strong>customer inquiry intake</strong> sample runs a short
-multi-phase pipeline inside one agent — three actions and two decisions, all ordered by
+multi-phase pipeline inside one agent — four actions and two decisions, all ordered by
 parameter-type dataflow, with declarative validation on the trigger, typed LLM output and
-an <code>@HandleException</code> fallback for an LLM outage; and the <strong>Course Content
+an <code>@OnException</code> fallback for an LLM outage; and the <strong>Course Content
 Studio</strong> raises the bar to <strong>two agents chained by CDI events</strong>, with a
 human approval gate in the middle and a final student-facing view.</p>
 
@@ -561,34 +561,43 @@ href="https://github.com/jakartaee/agentic-ai/tree/main/examples/customer-inquir
 target="_blank" rel="noopener">examples/customer-inquiry-intake</a></p>
 <p><strong>A real use case:</strong> a customer-facing contact form. The customer types what
 they have — even just the message — and clicks <strong>Prepare inquiry</strong>; the agent
-runs a short pipeline end-to-end (pulling the sender's identity out of the message when it
-isn't already filled in, picking a routing category, and rewriting the message in a tone
-that matches that category) and the customer reviews the prepared record before confirming.</p>
+runs a short pipeline end-to-end (pulling the sender's name and email out of the message
+when they aren't already filled in, inferring the sender's company from the business-email
+domain, picking a routing category, drafting a subject line, and rewriting the message in
+a tone that matches that category) and the customer reviews the prepared record before
+confirming.</p>
 <p><strong>Every phase is ordered by the data it consumes, not by an explicit
-<code>order=</code> on the annotations.</strong> <code>IntakeAgent</code> has three
+<code>order=</code> on the annotations.</strong> <code>IntakeAgent</code> has four
 <code>@Action</code> methods and two <code>@Decision</code> methods; the runtime matches
 parameters by type to figure out what runs when.</p>
 <pre><code class="language-java">@Action
 Identity enrichIdentity(IntakeRequest request) {              // takes only the triggering event
-    if (allPresent(request)) return new Identity(...);        // skip the LLM when nothing to extract
     return model.query(                                       // typed query: the LLM response binds
-            &quot;Extract the sender's identity... {}&quot;,            //   directly to the Identity record
-            Identity.class, request.message());               //   via JSON-B
+            &quot;Extract name and email, infer company from &quot;    //   directly to the Identity record
+          + &quot;the email domain... {}&quot;,                         //   via JSON-B — one call does both
+            Identity.class, request.message());               //   the extraction and the inference
 }
 
 @Action
 Classification classify(IntakeRequest request) { ... }        // takes only the triggering event
 
 @Action
-IntakeRecord assemble(IntakeRequest request,                  // takes the two above as parameters,
+Title draftTitle(IntakeRequest request) { ... }               // takes only the triggering event
+                                                              //   (Title is a record wrapper around
+                                                              //    a String so it matches by type
+                                                              //    distinctly from the polished body)
+
+@Action
+IntakeRecord assemble(IntakeRequest request,                  // takes the three above as parameters,
                       Identity identity,                      //   so the runtime runs this after
-                      Classification classification) { ... }  //   enrichIdentity and classify
+                      Classification classification,          //   enrichIdentity, classify and
+                      Title title) { ... }                    //   draftTitle have all produced
 </code></pre>
-<p>Returning <code>Identity</code> and <code>Classification</code> as typed records is how
-workflow state crosses phase boundaries — no mutable store, nothing to overwrite across
-concurrent workflows. The pattern is the same one Example 1 uses to hand the generated
-<code>Answer</code> from <code>@Action</code> to <code>@Outcome</code>; here it threads a
-real multi-step pipeline.</p>
+<p>Returning <code>Identity</code>, <code>Classification</code> and <code>Title</code> as
+typed records is how workflow state crosses phase boundaries — no mutable store, nothing
+to overwrite across concurrent workflows. The pattern is the same one Example 1 uses to
+hand the generated <code>Answer</code> from <code>@Action</code> to <code>@Outcome</code>;
+here it threads a real multi-step pipeline.</p>
 <p>The two decisions sit at different gates, placed by dataflow:</p>
 <pre><code class="language-java">@Decision
 Result canProcess(IntakeRequest request) {                    // runs first (takes only IntakeRequest)
@@ -617,7 +626,7 @@ void onSubmit(@Valid IntakeRequest request) { ... }           // Bean Validation
 @Outcome
 void done(IntakeRequest request) { ... }                      // logs that the record is ready
 
-@HandleException
+@OnException
 void onLlmFailure(LLMException e, IntakeRequest request) {    // graceful fallback for an LLM outage
     output.setRecord(IntakeRecord.fallbackFor(request));      //   so the review screen always has
 }                                                             //   something to show
@@ -642,15 +651,19 @@ payara.agentic.llm.system=You are an intake assistant for a customer-facing cont
 </code></pre>
 <h3>The strong design ideas</h3>
 <ol>
-<li><strong>Dataflow is ordering.</strong> Three <code>@Action</code> methods and two
+<li><strong>Dataflow is ordering.</strong> Four <code>@Action</code> methods and two
 <code>@Decision</code> methods, no explicit <code>order=</code>. Everything that takes only
-<code>IntakeRequest</code> can run first; the two phases that declare <code>Identity</code>
-or <code>Classification</code> as parameters run after whichever action produced them. This
-is Example 1's parameter-type threading grown up into a real pipeline.</li>
+<code>IntakeRequest</code> can run first; the phases that declare <code>Identity</code>,
+<code>Classification</code> or <code>Title</code> as parameters run after whichever action
+produced them. This is Example 1's parameter-type threading grown up into a real
+pipeline.</li>
 <li><strong>Workflow state is typed records between phases.</strong> <code>Identity</code>,
-<code>Classification</code> and <code>IntakeRecord</code> are immutable records returned
-from one phase and consumed by the next — no mutable store threaded through the agent,
-nothing to accidentally overwrite across concurrent workflows.</li>
+<code>Classification</code>, <code>Title</code> and <code>IntakeRecord</code> are immutable
+records returned from one phase and consumed by the next — no mutable store threaded
+through the agent, nothing to accidentally overwrite across concurrent workflows.
+<code>Title</code> is deliberately a one-field record wrapping a <code>String</code>, so
+the runtime can match it against <code>assemble</code>'s parameter list distinctly from
+the polished message body (also a string).</li>
 <li><strong>Two decisions, two shapes.</strong> <code>canProcess</code> returns the
 <code>Result(success, details)</code> record so the reason the workflow stopped is carried
 on the Result itself. <code>hasEnoughContent</code> returns a plain <code>boolean</code> as
@@ -662,7 +675,7 @@ is bound directly to the <code>Identity</code> record by JSON-B — no hand-roll
 or code-fence stripping. If the LLM returns something JSON-B cannot bind, the facade
 throws <code>LLMException</code> and the handler writes the fallback.</li>
 <li><strong>Declarative validation, declarative fallback.</strong> <code>@Valid</code> on
-the trigger runs Bean Validation on the record before the body; <code>@HandleException</code>
+the trigger runs Bean Validation on the record before the body; <code>@OnException</code>
 catches an <code>LLMException</code> from any phase and writes a minimal fallback
 <code>IntakeRecord</code> so the review screen always has something to show instead of a
 500. Together they cover the two kinds of failure the agent can hit — bad input and bad
@@ -696,7 +709,7 @@ class CourseContentAgent {
     @Action(order = 20)   void writeQuiz(...)  { draft.setQuiz(parseQuiz(model.query(...))); }
     @Action(order = 30)   void writeConclusion(...)               // uses workflow memory
     @Outcome  void publish(...)                                   // writes to PacketStore
-    @HandleException void onLlmFailure(LLMException e)            // resilience
+    @OnException void onLlmFailure(LLMException e)                // resilience
 }
 </code></pre>
 <p>On approval the REST layer fires a <code>LessonApproved</code> event, which is the
@@ -757,7 +770,7 @@ works <strong>offline</strong>.</li>
 proprietary model. The guiding question: &quot;what would the <em>Jakarta Persistence</em>
 of agents look like?&quot;</li>
 <li><strong>The specification.</strong> The phase model (<code>Trigger → Decision* → Action* → Outcome</code> +
-<code>HandleException</code>); a complete agent fits in one class; the <code>LargeLanguageModel</code>
+<code>OnException</code>); a complete agent fits in one class; the <code>LargeLanguageModel</code>
 facade with <code>{}</code> placeholders; <code>@WorkflowScoped</code> — with the specification as the
 authoritative reference for the rules.</li>
 <li><strong>Running on Payara.</strong> Deploy the app and Payara runs the workflow; choosing an
@@ -765,9 +778,10 @@ LLM backend (Ollama, Anthropic, Vertex) is MicroProfile Config, no code change.<
 <li><strong>The ask agent.</strong> POST a real question → <code>[TRIGGER] → [DECISION] → [ACTION] → [OUTCOME]</code> in <code>server.log</code>; POST an empty question → early termination. It runs
 on <strong>local Ollama</strong> (no network, no cost).</li>
 <li><strong>The inquiry intake sample and the studio.</strong> A customer contact form that
-runs a three-step pipeline on submit (enrich identity, classify, assemble &amp; polish) and
-shows the prepared record for review; then two agents chained by CDI events with a human
-approval gate. Switching Ollama↔Claude↔Vertex is <strong>one properties file</strong>.</li>
+runs a four-step pipeline on submit (enrich identity, classify, draft a subject line,
+assemble &amp; polish) and shows the prepared record for review; then two agents chained
+by CDI events with a human approval gate. Switching Ollama↔Claude↔Vertex is
+<strong>one properties file</strong>.</li>
 </ol>
 <h2>Running the examples — checklist</h2>
 <ul>
@@ -795,7 +809,7 @@ target="_blank" rel="noopener">project README FAQ</a>.</p>
 <h2>Key takeaways</h2>
 <ol>
 <li><strong>Agents as CDI beans</strong> — the phase model
-(<code>@Trigger/@Decision/@Action/@Outcome/@HandleException</code>) turns &quot;calling an LLM&quot;
+(<code>@Trigger/@Decision/@Action/@Outcome/@OnException</code>) turns &quot;calling an LLM&quot;
 into a container-managed workflow, with standardized scoping, injection,
 validation and error handling.</li>
 <li><strong>Real vendor neutrality</strong> — the agent's code does not know which LLM serves
