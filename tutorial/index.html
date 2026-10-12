@@ -600,22 +600,35 @@ hand the generated <code>Answer</code> from <code>@Action</code> to <code>@Outco
 here it threads a real multi-step pipeline.</p>
 <p>The two decisions sit at different gates, placed by dataflow:</p>
 <pre><code class="language-java">@Decision
-Result canProcess(IntakeRequest request) {                    // runs first (takes only IntakeRequest)
-    if (request.message().strip().length() &lt; 20) {
-        return new Result(false,                              // Result's details carries the reason
-                &quot;Message is too short to process meaningfully.&quot;);
+boolean canProcess(IntakeRequest request) {                   // runs first (takes only IntakeRequest)
+    if (looksLikePlaceholderText(request.message())) {        // placeholder/test filter — the kind of
+        output.setStopReason(                                 //   check Bean Validation cannot express;
+                &quot;This looks like a test or placeholder &quot;      //   the mechanical length floor is
+              + &quot;submission...&quot;);                             //   @Size(min = 20) on the record
+        return false;
     }
-    return new Result(true, null);
+    return true;
 }
 
 @Decision
 boolean hasEnoughContent(Identity identity,                   // takes Identity, so runs after
                          IntakeRequest request) {             //   enrichIdentity
-    // stop if the message is short and we extracted nothing identifying — the resource
-    // then returns 422 and asks the customer to elaborate
-    return anyPresent(identity) || substantive(request.message());
+    boolean proceed = anyPresent(identity)                    // stop if we extracted nothing
+            || substantive(request.message());                //   identifying and the message is thin
+    if (!proceed) {
+        output.setStopReason(&quot;We could not route this &quot;      // same plumbing — written into
+              + &quot;inquiry. Please add your name or email...&quot;); //   IntakeOutput for the resource to
+    }                                                         //   surface in the 422 response
+    return proceed;
 }
 </code></pre>
+<p>Returning a plain <code>boolean</code> and writing the reason into
+<code>IntakeOutput</code> is deliberate: the built-in <code>Result(success, details)</code>
+record earns its slot when the <em>runtime</em> consumes the details (logging it in a
+standard shape, forwarding it to observability, carrying it to an <code>@OnStop</code>
+hook). In this example the application plumbs the string itself through
+<code>IntakeOutput</code>, so <code>Result</code> would just be a two-field value
+immediately deconstructed — <code>boolean</code> is the honest spelling.</p>
 <p>And the surrounding phases:</p>
 <pre><code class="language-java">@Trigger
 void onSubmit(@Valid IntakeRequest request) { ... }           // Bean Validation on the record runs
@@ -664,11 +677,14 @@ through the agent, nothing to accidentally overwrite across concurrent workflows
 <code>Title</code> is deliberately a one-field record wrapping a <code>String</code>, so
 the runtime can match it against <code>assemble</code>'s parameter list distinctly from
 the polished message body (also a string).</li>
-<li><strong>Two decisions, two shapes.</strong> <code>canProcess</code> returns the
-<code>Result(success, details)</code> record so the reason the workflow stopped is carried
-on the Result itself. <code>hasEnoughContent</code> returns a plain <code>boolean</code> as
-a post-enrichment gate. Both are placed in the pipeline by the data they take, same
-mechanism as the actions.</li>
+<li><strong>Two decisions, two gates.</strong> <code>canProcess</code> rejects obvious
+placeholder/test submissions (the mechanical length floor is handled by
+<code>@Size(min = 20)</code> on the record itself — Bean Validation does that one, not an
+agent decision). <code>hasEnoughContent</code> is a post-enrichment gate: it takes the
+<code>Identity</code> the previous action produced, so the runtime places it after
+<code>enrichIdentity</code>. Both return <code>boolean</code> and write a human-readable
+reason into <code>IntakeOutput</code> before returning false, so the resource surfaces the
+specific reason in the 422 response.</li>
 <li><strong>Typed LLM output.</strong> <code>enrichIdentity</code> calls the typed form of
 the facade, <code>model.query(prompt, Identity.class, args)</code>, and the LLM's response
 is bound directly to the <code>Identity</code> record by JSON-B — no hand-rolled parsing
