@@ -28,12 +28,11 @@ import java.util.Map;
 import java.util.logging.Logger;
 
 /**
- * REST API for the customer intake form. {@link #submit} runs the
- * {@link IntakeAgent} pipeline
- * and hands the prepared {@link IntakeRecord} back for the customer to
- * review. {@link #confirm} takes the final record (possibly edited by the
- * customer) and stubs the hand-off that would, in a real deployment, reach a
- * CRM, ticketing system or outbound email.
+ * REST API for the customer intake form. {@link #prepare} runs the
+ * {@link IntakeAgent} pipeline and hands the prepared {@link IntakeRecord}
+ * back for the customer to review. {@link #confirm} takes the final record
+ * (possibly edited by the customer) and stubs the hand-off that would, in a
+ * real deployment, reach a CRM, ticketing system or outbound email.
  */
 @Path("")
 @RequestScoped
@@ -48,10 +47,10 @@ public class IntakeResource {
     IntakeOutput output;
 
     @POST
-    @Path("intake")
+    @Path("intake/prepare")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response submit(IntakeRequest request) {
+    public Response prepare(IntakeRequest request) {
         if (request == null) {
             return Response.status(Response.Status.BAD_REQUEST)
                     .type(MediaType.TEXT_PLAIN)
@@ -86,7 +85,6 @@ public class IntakeResource {
         return Response.ok(record).build();
     }
 
-    /** Hand the (possibly edited) record off. In this sample, we just log it. */
     @POST
     @Path("intake/confirm")
     @Consumes(MediaType.APPLICATION_JSON)
