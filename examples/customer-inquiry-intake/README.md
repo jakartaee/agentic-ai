@@ -39,7 +39,7 @@ are workflow state carried between phases.
 
 **The two decisions sit at different gates:**
 
-- `boolean canProcess(IntakeRequest)` runs first. It rejects obvious
+- `boolean looksLikeRealInquiry(IntakeRequest)` runs first. It rejects obvious
   placeholder/test submissions — messages dominated by tokens like
   `test`, `asdf`, `qwerty`, `lorem ipsum`, `foo`/`bar`/`baz`. The
   mechanical length floor is handled by `@Size(min = 20)` on the trigger
