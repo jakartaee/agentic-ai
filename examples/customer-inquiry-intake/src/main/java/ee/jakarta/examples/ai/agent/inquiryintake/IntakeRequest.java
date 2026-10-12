@@ -21,10 +21,6 @@ import jakarta.validation.constraints.Size;
  * submission from the contact form: whatever identity fields the customer
  * filled in (all optional), plus the free-text message that is always
  * required.
- *
- * <p>The Bean Validation constraints on the record fields fire via the
- * {@code @Valid} annotation on the {@code @Trigger} parameter; a violation
- * is thrown before the workflow body runs.
  */
 public record IntakeRequest(
         @Size(max = 100) String name,

@@ -19,7 +19,6 @@ package ee.jakarta.examples.ai.agent.inquiryintake;
  */
 public record IntakeRecord(Identity identity, Classification classification, String title, String message) {
 
-    /** Minimal fallback used by the handler when the LLM is unavailable. */
     public static IntakeRecord fallbackFor(IntakeRequest request) {
         return new IntakeRecord(
                 new Identity(nullSafe(request.name()), nullSafe(request.email()), ""),
