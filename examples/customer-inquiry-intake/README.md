@@ -5,14 +5,14 @@ customer types what they have (even just a message) and clicks **Prepare
 inquiry**; the agent runs end-to-end — pulling the sender's name and email
 out of the message if they aren't already filled in, inferring the sender's
 company from the business-email domain, picking a routing category,
-gauging the urgency, and rewriting the message in a tone that matches
+drafting a subject line, and rewriting the message in a tone that matches
 that category — and the customer reviews the prepared record before
 confirming.
 
 ```
 GET  /customer-inquiry-intake/                       the UI
 POST /customer-inquiry-intake/api/intake             { name?, email?, message }              run the pipeline, return the prepared IntakeRecord
-POST /customer-inquiry-intake/api/intake/confirm     { identity, classification, message }   hand the (possibly edited) record off
+POST /customer-inquiry-intake/api/intake/confirm     { identity, classification, title, message }   hand the (possibly edited) record off
 ```
 
 ## How the agent is wired
@@ -24,11 +24,13 @@ one declares as a parameter.
 **Actions, ordered by dataflow:**
 
 - `Identity enrichIdentity(IntakeRequest)`, `Classification classify(IntakeRequest)`
-  and `Priority assessPriority(IntakeRequest)` all take only the triggering
-  event and can run first.
-- `IntakeRecord assemble(IntakeRequest, Identity, Classification, Priority)` runs
+  and `Title draftTitle(IntakeRequest)` all take only the triggering event
+  and can run first.
+- `IntakeRecord assemble(IntakeRequest, Identity, Classification, Title)` runs
   after the three above because it declares each of their returned values as
-  a parameter; the runtime matches parameters by type.
+  a parameter; the runtime matches parameters by type. `Title` is a tiny
+  record wrapping a `String` so the runtime can match it unambiguously
+  against the polished message, which is also a string.
 
 That dataflow-ordering is the same mechanism Example 1 uses to pass the
 generated `Answer` from `@Action` to `@Outcome`; here it threads a real
@@ -112,6 +114,6 @@ Jane Smith from Acme &lt;jane@acme.com&gt; — our EE 8 app on Payara 5 needs
 to be on EE 10 before our audit in three months. Who should we talk to?"*),
 and click **Prepare inquiry**. Watch `server.log` for
 `[TRIGGER]` → `[DECISION]` → `[ACTION] enrichIdentity`,
-`[ACTION] classify` and `[ACTION] assessPriority` (which may run in any
+`[ACTION] classify` and `[ACTION] draftTitle` (which may run in any
 order), then `[ACTION] assemble`, then `[OUTCOME]`, then `[CONFIRM]`
 when you send.

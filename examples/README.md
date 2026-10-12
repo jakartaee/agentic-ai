@@ -16,11 +16,12 @@ Ollama model, so it needs no API key. Start here. See its
 
 Located in `customer-inquiry-intake/`, a deployable web application: a
 customer-facing contact form backed by a single-agent pipeline. On submit,
-the agent enriches the sender's identity from the message, classifies the
-inquiry, and polishes the message in that tone; the customer reviews the
-prepared record before confirming. The three `@Action` methods are ordered
-by the data they declare as parameters, not by explicit `order=`. See its
-[README](customer-inquiry-intake/README.md).
+the agent enriches the sender's identity from the message, infers the
+sender's company from the business-email domain, classifies the inquiry,
+drafts a subject line, and polishes the message in that tone; the customer
+reviews the prepared record before confirming. The four `@Action` methods
+are ordered by the data they declare as parameters, not by explicit
+`order=`. See its [README](customer-inquiry-intake/README.md).
 
 ### Fraud Detection Agent
 

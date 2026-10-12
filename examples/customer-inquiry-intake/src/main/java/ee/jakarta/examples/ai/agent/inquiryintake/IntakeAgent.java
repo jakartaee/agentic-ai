@@ -43,7 +43,7 @@ import java.util.logging.Logger;
  *       parameter.</li>
  *   <li>Four {@code @Action} methods ordered by parameter-type
  *       dataflow (no explicit {@code order=}). {@link #enrichIdentity},
- *       {@link #classify} and {@link #assessPriority} all take only
+ *       {@link #classify} and {@link #draftTitle} all take only
  *       {@link IntakeRequest} and can run first; {@link #assemble}
  *       declares each of their returned values as a parameter, so the
  *       runtime runs it after.</li>
@@ -122,21 +122,18 @@ public class IntakeAgent {
     }
 
     @Action
-    Priority assessPriority(IntakeRequest request) {
-        LOGGER.info("[ACTION assessPriority]");
+    Title draftTitle(IntakeRequest request) {
+        LOGGER.info("[ACTION draftTitle]");
         String raw = model.query(
-                "Assess the urgency of this customer inquiry on a 4-level scale: {}. "
-                        + "Use URGENT only for stated outages, security incidents, or hard "
-                        + "deadlines inside two weeks. Use HIGH for stated deadlines or audits "
-                        + "in the next few months, or clearly stuck production work. Use LOW "
-                        + "for research questions and casual pings. NORMAL otherwise. Return "
-                        + "only the single word.\n\n{}",
-                List.of(Priority.values()), request.message());
-        try {
-            return Priority.valueOf(raw.strip().replaceAll("[^A-Za-z]", "").toUpperCase());
-        } catch (IllegalArgumentException notInEnum) {
-            return Priority.NORMAL;
+                "Write a short subject line for this customer inquiry, suitable for a "
+                        + "ticketing system. Keep it under 60 characters, focus on the main "
+                        + "ask, and use title case. Return only the subject line text — no "
+                        + "quotes, no prefix, no trailing punctuation.\n\n{}",
+                request.message()).strip();
+        if (raw.length() > 80) {
+            raw = raw.substring(0, 77) + "...";
         }
+        return new Title(raw);
     }
 
     @Decision
@@ -152,14 +149,14 @@ public class IntakeAgent {
     }
 
     @Action
-    IntakeRecord assemble(IntakeRequest request, Identity identity, Classification classification, Priority priority) {
-        LOGGER.info("[ACTION assemble] (" + classification + ", " + priority + ")");
+    IntakeRecord assemble(IntakeRequest request, Identity identity, Classification classification, Title title) {
+        LOGGER.info("[ACTION assemble] (" + classification + ", \"" + title.value() + "\")");
         String polished = model.query(
                 "Rewrite the following customer inquiry to be clear, concise, and professional. "
                         + "The inquiry is categorised as {}, so adopt that register. Keep the "
                         + "sender's voice and intent. Return only the revised message text.\n\n{}",
                 classification, request.message()).strip();
-        IntakeRecord record = new IntakeRecord(identity, classification, priority, polished);
+        IntakeRecord record = new IntakeRecord(identity, classification, title.value(), polished);
         output.setRecord(record);
         return record;
     }
