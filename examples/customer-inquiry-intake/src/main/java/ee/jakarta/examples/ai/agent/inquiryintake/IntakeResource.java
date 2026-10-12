@@ -17,6 +17,7 @@ import jakarta.enterprise.event.Event;
 import jakarta.enterprise.event.ObserverException;
 import jakarta.inject.Inject;
 import jakarta.validation.ConstraintViolationException;
+import jakarta.validation.constraints.NotNull;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
@@ -50,12 +51,7 @@ public class IntakeResource {
     @Path("prepare")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response prepare(IntakeRequest request) {
-        if (request == null) {
-            return Response.status(Response.Status.BAD_REQUEST)
-                    .type(MediaType.TEXT_PLAIN)
-                    .entity("A submission is required.").build();
-        }
+    public Response prepare(@NotNull IntakeRequest request) {
         try {
             trigger.fire(request);
         } catch (ObserverException wrapper) {
@@ -89,12 +85,7 @@ public class IntakeResource {
     @Path("confirm")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response confirm(IntakeRecord record) {
-        if (record == null) {
-            return Response.status(Response.Status.BAD_REQUEST)
-                    .type(MediaType.TEXT_PLAIN)
-                    .entity("A record is required.").build();
-        }
+    public Response confirm(@NotNull IntakeRecord record) {
         LOGGER.info("[CONFIRM] inquiry sent: " + record);
         return Response.ok(Map.of("status", "sent")).build();
     }
