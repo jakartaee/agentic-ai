@@ -51,6 +51,8 @@
 
         .field { margin-top: 16px; }
         .field:first-of-type { margin-top: 0; }
+        .row { display: flex; gap: 14px; margin-top: 16px; }
+        .row .field { margin-top: 0; flex: 1; min-width: 0; }
         label { display: block; margin-bottom: 5px; font-size: 13px; font-weight: 500; color: var(--ink); }
         label small { color: var(--muted); font-weight: 400; font-size: 12px; margin-left: 6px; }
         input, select, textarea {
@@ -110,7 +112,7 @@
 
 <header>
     <div class="logo">Contact<span>·</span>Us</div>
-    <p class="header-sub">Customer inquiry &mdash; prepared with Jakarta Agentic AI</p>
+    <p class="header-sub">Customer inquiry &mdash; powered by Jakarta Agentic AI</p>
 </header>
 
 <div class="toast" id="toast"></div>
@@ -119,9 +121,10 @@
     <section class="card" id="intakeCard">
         <h2>Contact us</h2>
         <p class="lede">
-            Fill in what you have &mdash; even just the message is enough. The assistant will
-            pull your details out of the text, pick a category, and tidy the message up before
-            you review and send.
+            Fill in what you have &mdash; even just the message is enough. Our AI assistant
+            will pull your details out of the text, work out your company from the email,
+            pick a category, gauge how urgent it sounds, and tidy the message up before you
+            review and send.
         </p>
         <form id="intakeForm" onsubmit="return false;">
             <div class="field">
@@ -133,12 +136,8 @@
                 <input id="email" type="email" autocomplete="email"/>
             </div>
             <div class="field">
-                <label for="company">Company <small>optional</small></label>
-                <input id="company" type="text" autocomplete="organization"/>
-            </div>
-            <div class="field">
                 <label for="message">Your message</label>
-                <textarea id="message" placeholder="Describe what you need. Mention your name, email and company if they are not already filled in — the assistant will pick them up."></textarea>
+                <textarea id="message" placeholder="Describe what you need. Mention your name and email if they are not already filled in — the assistant will pick them up."></textarea>
             </div>
         </form>
         <div class="actions">
@@ -167,14 +166,25 @@
             <input id="rCompany" type="text"/>
             <div class="diff" id="rCompanyDiff" hidden></div>
         </div>
-        <div class="field">
-            <label for="rCategory">Routed to</label>
-            <select id="rCategory">
-                <option value="GENERAL">General</option>
-                <option value="SALES">Sales</option>
-                <option value="SUPPORT">Support</option>
-                <option value="PARTNERSHIP">Partnership</option>
-            </select>
+        <div class="row">
+            <div class="field">
+                <label for="rCategory">Routed to</label>
+                <select id="rCategory">
+                    <option value="GENERAL">General</option>
+                    <option value="SALES">Sales</option>
+                    <option value="SUPPORT">Support</option>
+                    <option value="PARTNERSHIP">Partnership</option>
+                </select>
+            </div>
+            <div class="field">
+                <label for="rPriority">Priority</label>
+                <select id="rPriority">
+                    <option value="LOW">Low</option>
+                    <option value="NORMAL">Normal</option>
+                    <option value="HIGH">High</option>
+                    <option value="URGENT">Urgent</option>
+                </select>
+            </div>
         </div>
         <div class="field">
             <label for="rMessage">Message</label>
@@ -190,7 +200,7 @@
 
 <script>
     const $ = (id) => document.getElementById(id);
-    let originalIdentity = { name: '', email: '', company: '' };
+    let originalIdentity = { name: '', email: '' };
 
     function showToast(msg, duration = 3500) {
         const t = $('toast');
@@ -213,10 +223,9 @@
         const payload = {
             name:    $('name').value.trim() || null,
             email:   $('email').value.trim() || null,
-            company: $('company').value.trim() || null,
             message
         };
-        originalIdentity = { name: payload.name || '', email: payload.email || '', company: payload.company || '' };
+        originalIdentity = { name: payload.name || '', email: payload.email || '' };
         busy($('submitBtn'), $('intakeStatus'), true, 'Preparing…');
         try {
             const res = await fetch('api/intake', {
@@ -246,20 +255,21 @@
         $('rEmail').value   = id.email || '';
         $('rCompany').value = id.company || '';
         $('rCategory').value = record.classification || 'GENERAL';
+        $('rPriority').value = record.priority || 'NORMAL';
         $('rMessage').value  = record.message || '';
-        showDiff('rNameDiff',    originalIdentity.name,    id.name);
-        showDiff('rEmailDiff',   originalIdentity.email,   id.email);
-        showDiff('rCompanyDiff', originalIdentity.company, id.company);
+        showDiff('rNameDiff',    originalIdentity.name,  id.name,    'Filled in from your message');
+        showDiff('rEmailDiff',   originalIdentity.email, id.email,   'Filled in from your message');
+        showDiff('rCompanyDiff', '',                     id.company, 'Inferred from your email');
     }
 
-    function showDiff(elId, originalValue, finalValue) {
+    function showDiff(elId, originalValue, finalValue, label) {
         const el = $(elId);
         if (originalValue || !finalValue) {
             el.hidden = true;
             return;
         }
         el.hidden = false;
-        el.innerHTML = 'Filled in from your message: <code>' + escapeHtml(finalValue) + '</code>';
+        el.innerHTML = label + ': <code>' + escapeHtml(finalValue) + '</code>';
     }
 
     function escapeHtml(s) {
@@ -280,6 +290,7 @@
                 company: $('rCompany').value.trim()
             },
             classification: $('rCategory').value,
+            priority:       $('rPriority').value,
             message:        $('rMessage').value.trim()
         };
         if (!record.message) {
@@ -301,7 +312,7 @@
             $('reviewCard').hidden = true;
             $('intakeCard').hidden = false;
             $('intakeForm').reset();
-            originalIdentity = { name: '', email: '', company: '' };
+            originalIdentity = { name: '', email: '' };
         } catch (e) {
             $('reviewStatus').textContent = 'Error: ' + e;
         } finally {

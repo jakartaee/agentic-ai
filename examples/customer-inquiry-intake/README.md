@@ -2,30 +2,33 @@
 
 A customer-facing contact form backed by a single-agent pipeline. The
 customer types what they have (even just a message) and clicks **Prepare
-inquiry**; the agent runs end-to-end — pulling the sender's identity out of
-the message if it isn't already filled in, picking a routing category, and
-rewriting the message in a tone that matches that category — and the
-customer reviews the prepared record before confirming.
+inquiry**; the agent runs end-to-end — pulling the sender's name and email
+out of the message if they aren't already filled in, inferring the sender's
+company from the business-email domain, picking a routing category,
+gauging the urgency, and rewriting the message in a tone that matches
+that category — and the customer reviews the prepared record before
+confirming.
 
 ```
 GET  /customer-inquiry-intake/                       the UI
-POST /customer-inquiry-intake/api/intake             { name?, email?, company?, message }    run the pipeline, return the prepared IntakeRecord
+POST /customer-inquiry-intake/api/intake             { name?, email?, message }              run the pipeline, return the prepared IntakeRecord
 POST /customer-inquiry-intake/api/intake/confirm     { identity, classification, message }   hand the (possibly edited) record off
 ```
 
 ## How the agent is wired
 
-`IntakeAgent` has three `@Action` methods and two `@Decision` methods, with no
+`IntakeAgent` has four `@Action` methods and two `@Decision` methods, with no
 explicit `order=` anywhere. The runtime orders every phase by the data each
 one declares as a parameter.
 
 **Actions, ordered by dataflow:**
 
-- `Identity enrichIdentity(IntakeRequest)` and `Classification classify(IntakeRequest)`
-  both take only the triggering event and can run first.
-- `IntakeRecord assemble(IntakeRequest, Identity, Classification)` runs after
-  the two above because it declares their returned records as parameters; the
-  runtime matches parameters by type.
+- `Identity enrichIdentity(IntakeRequest)`, `Classification classify(IntakeRequest)`
+  and `Priority assessPriority(IntakeRequest)` all take only the triggering
+  event and can run first.
+- `IntakeRecord assemble(IntakeRequest, Identity, Classification, Priority)` runs
+  after the three above because it declares each of their returned values as
+  a parameter; the runtime matches parameters by type.
 
 That dataflow-ordering is the same mechanism Example 1 uses to pass the
 generated `Answer` from `@Action` to `@Outcome`; here it threads a real
@@ -108,6 +111,7 @@ fields blank, type a message that mentions you by name (for example *"Hi, I'm
 Jane Smith from Acme &lt;jane@acme.com&gt; — our EE 8 app on Payara 5 needs
 to be on EE 10 before our audit in three months. Who should we talk to?"*),
 and click **Prepare inquiry**. Watch `server.log` for
-`[TRIGGER]` → `[DECISION]` → `[ACTION] enrichIdentity` and
-`[ACTION] classify` (which may run in either order), then
-`[ACTION] assemble`, then `[OUTCOME]`, then `[CONFIRM]` when you send.
+`[TRIGGER]` → `[DECISION]` → `[ACTION] enrichIdentity`,
+`[ACTION] classify` and `[ACTION] assessPriority` (which may run in any
+order), then `[ACTION] assemble`, then `[OUTCOME]`, then `[CONFIRM]`
+when you send.

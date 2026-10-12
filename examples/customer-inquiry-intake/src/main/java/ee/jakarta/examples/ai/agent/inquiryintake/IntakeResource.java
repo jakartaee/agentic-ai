@@ -80,8 +80,8 @@ public class IntakeResource {
             // @Action assemble could run.
             return Response.status(422)
                     .type(MediaType.TEXT_PLAIN)
-                    .entity("We could not route this inquiry. Please add your name, email, "
-                            + "or company, or elaborate on what you are asking for.")
+                    .entity("We could not route this inquiry. Please add your name or email, "
+                            + "or elaborate on what you are asking for.")
                     .build();
         }
         return Response.ok(record).build();

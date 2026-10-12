@@ -41,11 +41,12 @@ import java.util.logging.Logger;
  *   <li>A second {@code @Decision} that gates mid-pipeline — ordered
  *       after {@link #enrichIdentity} by taking an {@link Identity} as a
  *       parameter.</li>
- *   <li>Three {@code @Action} methods ordered by parameter-type
- *       dataflow (no explicit {@code order=}). {@link #enrichIdentity} and
- *       {@link #classify} both take only {@link IntakeRequest} and can run
- *       first; {@link #assemble} declares both of their returned records
- *       as parameters, so the runtime runs it after.</li>
+ *   <li>Four {@code @Action} methods ordered by parameter-type
+ *       dataflow (no explicit {@code order=}). {@link #enrichIdentity},
+ *       {@link #classify} and {@link #assessPriority} all take only
+ *       {@link IntakeRequest} and can run first; {@link #assemble}
+ *       declares each of their returned values as a parameter, so the
+ *       runtime runs it after.</li>
  *   <li>Typed {@code model.query(Class, ...)} in {@link #enrichIdentity}
  *       — the LLM response binds directly to {@link Identity} via
  *       JSON-B, with no hand-rolled JSON parsing.</li>
@@ -84,22 +85,27 @@ public class IntakeAgent {
 
     @Action
     Identity enrichIdentity(IntakeRequest request) {
-        if (notBlank(request.name()) && notBlank(request.email()) && notBlank(request.company())) {
-            LOGGER.info("[ACTION enrichIdentity] all fields present, skipping LLM");
-            return new Identity(request.name(), request.email(), request.company());
-        }
-        LOGGER.info("[ACTION enrichIdentity] filling gaps from the message");
+        LOGGER.info("[ACTION enrichIdentity] extracting identity and inferring company from email domain");
         Identity extracted = model.query(
-                "Extract the sender's identity from the text below. Return a JSON object with "
-                        + "exactly these keys: \"name\", \"email\", \"company\". Use empty strings "
-                        + "for anything not clearly present. Return only the JSON object, no "
-                        + "markdown or commentary.\n\n{}",
+                "Extract the sender's identity from the inquiry below. Return a JSON object "
+                        + "with exactly these keys: \"name\", \"email\", \"company\". For "
+                        + "\"name\" and \"email\", pull them from the message text (empty "
+                        + "string if not clearly present). For \"company\", infer it from the "
+                        + "business email domain — map the domain to the real company name "
+                        + "(e.g. \"acme.com\" -> \"Acme\"). If the email is from a free "
+                        + "consumer provider (gmail, yahoo, outlook, hotmail, icloud, proton) "
+                        + "or no email is available, return an empty string for company. "
+                        + "Return only the JSON object, no markdown or commentary.\n\n"
+                        + "Already-provided name: {}\nAlready-provided email: {}\n\n"
+                        + "Message:\n{}",
                 Identity.class,
+                request.name() == null ? "" : request.name(),
+                request.email() == null ? "" : request.email(),
                 request.message());
         return new Identity(
-                preferGiven(request.name(),    extracted.name()),
-                preferGiven(request.email(),   extracted.email()),
-                preferGiven(request.company(), extracted.company()));
+                preferGiven(request.name(),  extracted.name()),
+                preferGiven(request.email(), extracted.email()),
+                extracted.company() == null ? "" : extracted.company());
     }
 
     @Action
@@ -112,6 +118,24 @@ public class IntakeAgent {
             return Classification.valueOf(raw.strip().replaceAll("[^A-Za-z]", "").toUpperCase());
         } catch (IllegalArgumentException notInEnum) {
             return Classification.GENERAL;
+        }
+    }
+
+    @Action
+    Priority assessPriority(IntakeRequest request) {
+        LOGGER.info("[ACTION assessPriority]");
+        String raw = model.query(
+                "Assess the urgency of this customer inquiry on a 4-level scale: {}. "
+                        + "Use URGENT only for stated outages, security incidents, or hard "
+                        + "deadlines inside two weeks. Use HIGH for stated deadlines or audits "
+                        + "in the next few months, or clearly stuck production work. Use LOW "
+                        + "for research questions and casual pings. NORMAL otherwise. Return "
+                        + "only the single word.\n\n{}",
+                List.of(Priority.values()), request.message());
+        try {
+            return Priority.valueOf(raw.strip().replaceAll("[^A-Za-z]", "").toUpperCase());
+        } catch (IllegalArgumentException notInEnum) {
+            return Priority.NORMAL;
         }
     }
 
@@ -128,14 +152,14 @@ public class IntakeAgent {
     }
 
     @Action
-    IntakeRecord assemble(IntakeRequest request, Identity identity, Classification classification) {
-        LOGGER.info("[ACTION assemble] (" + classification + ")");
+    IntakeRecord assemble(IntakeRequest request, Identity identity, Classification classification, Priority priority) {
+        LOGGER.info("[ACTION assemble] (" + classification + ", " + priority + ")");
         String polished = model.query(
                 "Rewrite the following customer inquiry to be clear, concise, and professional. "
                         + "The inquiry is categorised as {}, so adopt that register. Keep the "
                         + "sender's voice and intent. Return only the revised message text.\n\n{}",
                 classification, request.message()).strip();
-        IntakeRecord record = new IntakeRecord(identity, classification, polished);
+        IntakeRecord record = new IntakeRecord(identity, classification, priority, polished);
         output.setRecord(record);
         return record;
     }
