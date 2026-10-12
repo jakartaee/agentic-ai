@@ -28,8 +28,8 @@ import java.util.Map;
 import java.util.logging.Logger;
 
 /**
- * REST API for the customer intake form. {@link #submit} runs the whole
- * {@link IntakeAgent} pipeline (synchronously, via {@code Event.fire(...)})
+ * REST API for the customer intake form. {@link #submit} runs the
+ * {@link IntakeAgent} pipeline
  * and hands the prepared {@link IntakeRecord} back for the customer to
  * review. {@link #confirm} takes the final record (possibly edited by the
  * customer) and stubs the hand-off that would, in a real deployment, reach a
@@ -47,7 +47,6 @@ public class IntakeResource {
     @Inject
     IntakeOutput output;
 
-    /** Run the pipeline on the raw submission; return the prepared record for review. */
     @POST
     @Path("intake")
     @Consumes(MediaType.APPLICATION_JSON)
