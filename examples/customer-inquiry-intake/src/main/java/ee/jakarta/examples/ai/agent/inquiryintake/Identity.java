@@ -14,8 +14,7 @@ package ee.jakarta.examples.ai.agent.inquiryintake;
 
 /**
  * Resolved sender identity: the customer's own values where supplied, with
- * anything missing pulled out of the message by the agent. Returned by the
- * {@code enrichIdentity} action and consumed by {@code assemble} by type.
+ * anything missing pulled out of the message by the agent.
  */
 public record Identity(String name, String email, String company) {
 }

@@ -13,8 +13,7 @@
 package ee.jakarta.examples.ai.agent.inquiryintake;
 
 /**
- * Which team should pick the inquiry up. Returned by the {@code classify}
- * action and consumed by {@code assemble} by type.
+ * Which team should pick the inquiry up.
  */
 public enum Classification {
     GENERAL, SALES, SUPPORT, PARTNERSHIP

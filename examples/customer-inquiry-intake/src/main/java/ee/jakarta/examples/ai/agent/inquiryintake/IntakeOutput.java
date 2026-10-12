@@ -15,10 +15,7 @@ package ee.jakarta.examples.ai.agent.inquiryintake;
 import jakarta.enterprise.context.RequestScoped;
 
 /**
- * Per-request holder for the {@link IntakeRecord} the pipeline produced
- * (either from the normal {@code assemble} action, or from the exception
- * handler's fallback). The resource reads this after
- * {@code trigger.fire(...)} returns, in the same HTTP request.
+ * Per-request holder for the {@link IntakeRecord} the pipeline produced.
  */
 @RequestScoped
 public class IntakeOutput {

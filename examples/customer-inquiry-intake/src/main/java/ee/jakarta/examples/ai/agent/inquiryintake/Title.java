@@ -14,10 +14,7 @@ package ee.jakarta.examples.ai.agent.inquiryintake;
 
 /**
  * A short subject line drafted from the message, suitable for a ticketing
- * system. Returned by the {@code draftTitle} action and consumed by
- * {@code assemble} by type — a record wrapper (rather than a bare
- * {@code String}) so the runtime can match the parameter unambiguously
- * against the polished message, which is also a string.
+ * system.
  */
 public record Title(String value) {
 }
