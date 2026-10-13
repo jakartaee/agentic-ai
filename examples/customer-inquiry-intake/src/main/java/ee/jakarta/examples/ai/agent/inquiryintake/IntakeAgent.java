@@ -166,11 +166,11 @@ public class IntakeAgent {
         return placeholders >= 2 && placeholders * 2 >= words.length;
     }
 
-    private static boolean notBlank(String s) {
-        return s != null && !s.isBlank();
-    }
-
     private static String preferGiven(String given, String extracted) {
         return notBlank(given) ? given : (extracted == null ? "" : extracted);
+    }
+
+    private static boolean notBlank(String s) {
+        return s != null && !s.isBlank();
     }
 }
