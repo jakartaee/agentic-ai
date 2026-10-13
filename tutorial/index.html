@@ -438,7 +438,7 @@ message naming exactly which key/env var to set — fail fast with a diagnosis.<
 <h2>The backends</h2>
 <ul>
 <li><strong>Ollama</strong> — local models over HTTP; the <strong>no-API-key, zero-cost</strong> option for
-offline demos (the ask-agent sample uses <code>gemma3:4b</code>). Set <code>provider=ollama</code> and, if
+offline demos (the ask-agent example uses <code>gemma3:4b</code>). Set <code>provider=ollama</code> and, if
 needed, <code>ollama.base-url</code>.</li>
 <li><strong>Anthropic</strong> — Claude via the Messages API. Provide the API key via
 <code>anthropic.api-key</code> or the <code>ANTHROPIC_API_KEY</code> env var (export it in the same
@@ -461,7 +461,7 @@ deploy and exercise the workflow before wiring a real provider.</li>
 <section class="chapter" id="ch-4" data-num="4">
 <h1>The Examples</h1>
 <p>Three examples, three levels: the <strong>ask agent</strong> teaches the programming
-model in 5 classes; the <strong>customer inquiry intake</strong> sample runs a short
+model in 5 classes; the <strong>customer inquiry intake</strong> example runs a short
 multi-phase pipeline inside one agent — four actions and two decisions, all ordered by
 parameter-type dataflow, with declarative validation on the trigger, typed LLM output and
 an <code>@OnException</code> fallback for an LLM outage; and the <strong>Course Content
@@ -806,7 +806,7 @@ authoritative reference for the rules.</li>
 LLM backend (Ollama, Anthropic, Vertex) is MicroProfile Config, no code change.</li>
 <li><strong>The ask agent.</strong> POST a real question → <code>[TRIGGER] → [DECISION] → [ACTION] → [OUTCOME]</code> in <code>server.log</code>; POST an empty question → early termination. It runs
 on <strong>local Ollama</strong> (no network, no cost).</li>
-<li><strong>The inquiry intake sample and the studio.</strong> A customer contact form that
+<li><strong>The inquiry intake example and the studio.</strong> A customer contact form that
 runs a four-step pipeline on submit (enrich identity, classify, draft a subject line,
 polish the message) and shows the prepared record for review; then two agents chained
 by CDI events with a human approval gate. Switching Ollama↔Claude↔Vertex is
@@ -825,7 +825,7 @@ domain</strong> (<code>$env:ANTHROPIC_API_KEY = &quot;sk-ant-...&quot;</code> be
 environment.</li>
 <li><input disabled="" type="checkbox"> Both WARs deployed and tested.</li>
 <li><input disabled="" type="checkbox"> <code>server.log</code> open in a terminal (<code>Get-Content -Wait -Tail 0</code>).</li>
-<li><input disabled="" type="checkbox"> Fully-local option: the ask agent runs on Ollama; the inquiry intake sample
+<li><input disabled="" type="checkbox"> Fully-local option: the ask agent runs on Ollama; the inquiry intake example
 can also fall back to <code>provider=ollama</code> / <code>model=gemma3:12b</code> (pull the model
 first).</li>
 <li><input disabled="" type="checkbox"> Requests ready (no typing JSON by hand): a script/<code>.http</code> file with the
