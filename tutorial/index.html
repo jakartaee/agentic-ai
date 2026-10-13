@@ -583,21 +583,24 @@ Classification classify(IntakeRequest request) { ... }        // takes only the 
 
 @Action
 Title draftTitle(IntakeRequest request) { ... }               // takes only the triggering event
-                                                              //   (Title is a record wrapper around
-                                                              //    a String so it matches by type
-                                                              //    distinctly from the polished body)
 
 @Action
-IntakeRecord assemble(IntakeRequest request,                  // takes the three above as parameters,
-                      Identity identity,                      //   so the runtime runs this after
-                      Classification classification,          //   enrichIdentity, classify and
-                      Title title) { ... }                    //   draftTitle have all produced
+PolishedMessage polish(IntakeRequest request,                 // takes Classification, so the runtime
+                       Classification classification) {       //   places it after classify
+    String text = model.query(... classification ...).strip();
+    return new PolishedMessage(text);
+}
 </code></pre>
-<p>Returning <code>Identity</code>, <code>Classification</code> and <code>Title</code> as
-typed records is how workflow state crosses phase boundaries — no mutable store, nothing
-to overwrite across concurrent workflows. The pattern is the same one Example 1 uses to
-hand the generated <code>Answer</code> from <code>@Action</code> to <code>@Outcome</code>;
-here it threads a real multi-step pipeline.</p>
+<p>Each <code>@Action</code> does exactly one LLM call and returns one typed record. There
+is no "assemble" step — the four typed records flow into <code>@Outcome</code>, which
+packages them into the final <code>IntakeRecord</code> and publishes it. <code>Title</code>
+and <code>PolishedMessage</code> are both one-field records wrapping a <code>String</code>;
+using distinct wrapper types (rather than two bare <code>String</code> parameters) lets the
+runtime match them unambiguously by type.</p>
+<p>That dataflow-ordering is the same mechanism Example 1 uses to hand the generated
+<code>Answer</code> from <code>@Action</code> to <code>@Outcome</code>; here it threads
+a real multi-step pipeline, with every typed record returned by an action flowing into
+the <code>@Outcome</code> as workflow state.</p>
 <p>The two decisions sit at different gates, placed by dataflow:</p>
 <pre><code class="language-java">@Decision
 boolean looksLikeRealInquiry(IntakeRequest request) {         // runs first (takes only IntakeRequest)
@@ -637,7 +640,14 @@ void onSubmit(@Valid IntakeRequest request) { ... }           // Bean Validation
                                                               //   on each field
 
 @Outcome
-void done(IntakeRequest request) { ... }                      // logs that the record is ready
+void done(Identity identity,                                  // the four typed records produced by
+          Classification classification,                      //   the actions upstream — the Outcome
+          Title title,                                        //   packages them into the IntakeRecord
+          PolishedMessage polished) {                         //   and writes it to IntakeOutput for
+    output.setRecord(new IntakeRecord(                        //   the resource to read back inside
+            identity, classification,                         //   the same HTTP request
+            title.value(), polished.value()));
+}
 
 @OnException
 void onLlmFailure(LLMException e, IntakeRequest request) {    // graceful fallback for an LLM outage
@@ -666,17 +676,20 @@ payara.agentic.llm.system=You are an intake assistant for a customer-facing cont
 <ol>
 <li><strong>Dataflow is ordering.</strong> Four <code>@Action</code> methods and two
 <code>@Decision</code> methods, no explicit <code>order=</code>. Everything that takes only
-<code>IntakeRequest</code> can run first; the phases that declare <code>Identity</code>,
-<code>Classification</code> or <code>Title</code> as parameters run after whichever action
-produced them. This is Example 1's parameter-type threading grown up into a real
+<code>IntakeRequest</code> can run first; <code>polish</code> declares
+<code>Classification</code> and so is scheduled after <code>classify</code>;
+<code>@Outcome done</code> declares all four typed records produced upstream and so runs
+after every action. This is Example 1's parameter-type threading grown up into a real
 pipeline.</li>
-<li><strong>Workflow state is typed records between phases.</strong> <code>Identity</code>,
-<code>Classification</code>, <code>Title</code> and <code>IntakeRecord</code> are immutable
-records returned from one phase and consumed by the next — no mutable store threaded
-through the agent, nothing to accidentally overwrite across concurrent workflows.
-<code>Title</code> is deliberately a one-field record wrapping a <code>String</code>, so
-the runtime can match it against <code>assemble</code>'s parameter list distinctly from
-the polished message body (also a string).</li>
+<li><strong>Each action does one thing.</strong> <code>enrichIdentity</code>,
+<code>classify</code>, <code>draftTitle</code> and <code>polish</code> each make a single
+LLM call and return a single typed record (<code>Identity</code>, <code>Classification</code>,
+<code>Title</code>, <code>PolishedMessage</code>). The <code>@Outcome</code> packages them
+into the final <code>IntakeRecord</code>, which keeps the "polish-the-body" step cleanly
+separated from the "assemble-the-shipping-container" step — the latter is pure data, so
+it belongs in the Outcome, not an action. <code>Title</code> and <code>PolishedMessage</code>
+are both one-field records wrapping a <code>String</code>, so the runtime can tell them
+apart by type on the <code>@Outcome</code>'s parameter list.</li>
 <li><strong>Two decisions, two gates.</strong> <code>looksLikeRealInquiry</code> rejects obvious
 placeholder/test submissions (the mechanical length floor is handled by
 <code>@Size(min = 20)</code> on the record itself — Bean Validation does that one, not an
@@ -795,7 +808,7 @@ LLM backend (Ollama, Anthropic, Vertex) is MicroProfile Config, no code change.<
 on <strong>local Ollama</strong> (no network, no cost).</li>
 <li><strong>The inquiry intake sample and the studio.</strong> A customer contact form that
 runs a four-step pipeline on submit (enrich identity, classify, draft a subject line,
-assemble &amp; polish) and shows the prepared record for review; then two agents chained
+polish the message) and shows the prepared record for review; then two agents chained
 by CDI events with a human approval gate. Switching Ollama↔Claude↔Vertex is
 <strong>one properties file</strong>.</li>
 </ol>
