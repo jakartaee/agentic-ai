@@ -640,10 +640,10 @@ void onSubmit(@Valid IntakeRequest request) { ... }           // Bean Validation
                                                               //   on each field
 
 @Outcome
-void done(Identity identity,                                  // the four typed records produced by
-          Classification classification,                      //   the actions upstream — the Outcome
-          Title title,                                        //   packages them into the IntakeRecord
-          PolishedMessage polished) {                         //   and writes it to IntakeOutput for
+void publishPreparedInquiry(Identity identity,                // the four typed records produced by
+                            Classification classification,    //   the actions upstream — the Outcome
+                            Title title,                      //   packages them into the IntakeRecord
+                            PolishedMessage polished) {       //   and writes it to IntakeOutput for
     output.setRecord(new IntakeRecord(                        //   the resource to read back inside
             identity, classification,                         //   the same HTTP request
             title.value(), polished.value()));
