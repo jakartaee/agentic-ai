@@ -1,13 +1,13 @@
-# Course Content Studio — Jakarta Agentic AI sample
+# Course Content Studio — Jakarta Agentic AI example
 
-An **education** sample for the Jakarta Agentic AI API. A teacher pastes a
+An **education** example for the Jakarta Agentic AI API. A teacher pastes a
 chapter and picks a subject; an agent generates an
 **introduction**, a **quiz** and a **conclusion**; the teacher **refines** any
 part by chat and then **approves & publishes**, which triggers a **second agent**
 that builds the student-facing lesson.
 
-It is a deliberately "advanced" sample — it exercises features the basic
-ask-agent sample does not:
+It is a deliberately "advanced" example — it exercises features the basic
+ask-agent example does not:
 
 | Feature | Where |
 |---|---|

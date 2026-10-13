@@ -15,7 +15,7 @@
 
     <name>Ask Agent Example</name>
     <description>
-        The smallest Jakarta Agentic AI sample: a single @Agent that answers a
+        The smallest Jakarta Agentic AI example: a single @Agent that answers a
         question, exercising the four specification phases (@Trigger, @Decision,
         @Action, @Outcome) over a synchronous REST call.
     </description>
