@@ -139,7 +139,7 @@ public class IntakeAgent {
     }
 
     @Outcome
-    void done(Identity identity, Classification classification, Title title, PolishedMessage polished) {
+    void publishPreparedInquiry(Identity identity, Classification classification, Title title, PolishedMessage polished) {
         output.setRecord(new IntakeRecord(identity, classification, title.value(), polished.value()));
         LOGGER.info("[OUTCOME] inquiry prepared");
     }
