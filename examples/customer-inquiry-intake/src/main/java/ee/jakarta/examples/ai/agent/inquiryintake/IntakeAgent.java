@@ -128,20 +128,19 @@ public class IntakeAgent {
     }
 
     @Action
-    IntakeRecord assemble(IntakeRequest request, Identity identity, Classification classification, Title title) {
-        LOGGER.info("[ACTION assemble] (" + classification + ", \"" + title.value() + "\")");
-        String polished = model.query(
+    PolishedMessage polish(IntakeRequest request, Classification classification) {
+        LOGGER.info("[ACTION polish] (" + classification + ")");
+        String text = model.query(
                 "Rewrite the following customer inquiry to be clear, concise, and professional. "
                         + "The inquiry is categorised as {}, so adopt that register. Keep the "
                         + "sender's voice and intent. Return only the revised message text.\n\n{}",
                 classification, request.message()).strip();
-        IntakeRecord record = new IntakeRecord(identity, classification, title.value(), polished);
-        output.setRecord(record);
-        return record;
+        return new PolishedMessage(text);
     }
 
     @Outcome
-    void done(IntakeRequest request) {
+    void done(Identity identity, Classification classification, Title title, PolishedMessage polished) {
+        output.setRecord(new IntakeRecord(identity, classification, title.value(), polished.value()));
         LOGGER.info("[OUTCOME] inquiry prepared");
     }
 

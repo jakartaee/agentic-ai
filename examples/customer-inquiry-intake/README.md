@@ -26,16 +26,22 @@ one declares as a parameter.
 - `Identity enrichIdentity(IntakeRequest)`, `Classification classify(IntakeRequest)`
   and `Title draftTitle(IntakeRequest)` all take only the triggering event
   and can run first.
-- `IntakeRecord assemble(IntakeRequest, Identity, Classification, Title)` runs
-  after the three above because it declares each of their returned values as
-  a parameter; the runtime matches parameters by type. `Title` is a tiny
-  record wrapping a `String` so the runtime can match it unambiguously
-  against the polished message, which is also a string.
+- `PolishedMessage polish(IntakeRequest, Classification)` takes
+  `Classification` as a parameter, so parameter-type dataflow places it
+  after `classify`.
+
+Each `@Action` does exactly one LLM call and returns one typed record.
+There is no "assemble" action — the four typed records (`Identity`,
+`Classification`, `Title`, `PolishedMessage`) are consumed by `@Outcome`,
+which packages them into the final `IntakeRecord` and publishes it. `Title`
+and `PolishedMessage` are both one-field records wrapping a `String`; using
+distinct wrapper types (rather than two bare `String` parameters) lets the
+runtime match them unambiguously by type.
 
 That dataflow-ordering is the same mechanism Example 1 uses to pass the
 generated `Answer` from `@Action` to `@Outcome`; here it threads a real
-pipeline together, and the returned `Identity` and `Classification` records
-are workflow state carried between phases.
+pipeline together, with every typed record returned by an action flowing
+into the `@Outcome` as workflow state.
 
 **The two decisions sit at different gates:**
 
@@ -47,7 +53,7 @@ are workflow state carried between phases.
 - `boolean hasEnoughContent(Identity, IntakeRequest)` runs after
   `enrichIdentity` — it takes an `Identity` as a parameter, so parameter-type
   dataflow places it there. If the message is short and the agent extracted
-  nothing identifying, the workflow stops before `assemble` runs.
+  nothing identifying, the workflow stops before `polish` runs.
 
 When either decision returns `false`, it first writes a human-readable
 reason into `IntakeOutput.stopReason`. The resource reads that string back
@@ -63,7 +69,10 @@ generic failure message.
   thrown by the interceptor before the workflow body runs; the resource
   unwraps the `ObserverException` and returns 400 with the specific field
   errors.
-- `@Outcome void done(IntakeRequest)` — logs that the record is ready.
+- `@Outcome void done(Identity, Classification, Title, PolishedMessage)` —
+  packages the four typed records produced upstream into the final
+  `IntakeRecord`, writes it to the request-scoped `IntakeOutput` holder for
+  the resource to read back, and logs that the record is ready.
 - `@OnException void onLlmFailure(LLMException, IntakeRequest)` — catches
   an LLM failure anywhere in the pipeline and writes a minimal fallback
   record (the customer's own values + the unpolished original message), so
@@ -121,5 +130,5 @@ to be on EE 10 before our audit in three months. Who should we talk to?"*),
 and click **Prepare inquiry**. Watch `server.log` for
 `[TRIGGER]` → `[DECISION]` → `[ACTION] enrichIdentity`,
 `[ACTION] classify` and `[ACTION] draftTitle` (which may run in any
-order), then `[ACTION] assemble`, then `[OUTCOME]`, then `[CONFIRM]`
+order), then `[ACTION] polish`, then `[OUTCOME]`, then `[CONFIRM]`
 when you send.
