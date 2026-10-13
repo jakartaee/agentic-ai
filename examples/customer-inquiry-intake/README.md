@@ -69,7 +69,7 @@ generic failure message.
   thrown by the interceptor before the workflow body runs; the resource
   unwraps the `ObserverException` and returns 400 with the specific field
   errors.
-- `@Outcome void done(Identity, Classification, Title, PolishedMessage)` —
+- `@Outcome void publishPreparedInquiry(Identity, Classification, Title, PolishedMessage)` —
   packages the four typed records produced upstream into the final
   `IntakeRecord`, writes it to the request-scoped `IntakeOutput` holder for
   the resource to read back, and logs that the record is ready.
