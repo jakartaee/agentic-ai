@@ -1,4 +1,4 @@
-# Customer Inquiry Intake — Jakarta Agentic AI sample
+# Customer Inquiry Intake — Jakarta Agentic AI example
 
 A customer-facing contact form backed by a single-agent pipeline. The
 customer types what they have (even just a message) and clicks **Prepare
@@ -87,7 +87,7 @@ fallback.
 
 ## Configure the LLM
 
-The LLM provider is selected via MicroProfile Config. The sample defaults to
+The LLM provider is selected via MicroProfile Config. The example defaults to
 **Anthropic (Claude) on Google Cloud Vertex AI**; the system prompt lives in
 config and is reused as the Anthropic prompt-cache prefix:
 
@@ -99,7 +99,7 @@ payara.agentic.llm.system=You are an intake assistant for a customer-facing cont
 ```
 
 > The `payara.agentic.llm.*` keys are the configuration surface of the Payara
-> implementation used to run this sample. On another Jakarta Agentic AI
+> implementation used to run this example. On another Jakarta Agentic AI
 > implementation, configure the provider the way that implementation
 > documents. To run fully local instead of Claude, switch to
 > `payara.agentic.llm.provider=ollama` / `model=gemma3:12b` — a 12B-class

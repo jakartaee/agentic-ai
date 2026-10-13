@@ -1,4 +1,4 @@
-# Ask Agent — Jakarta Agentic AI sample
+# Ask Agent — Jakarta Agentic AI example
 
 A compact Jakarta Agentic AI example: a single `@Agent` answers a question,
 exercising the four specification phases (`@Trigger`, `@Decision`, `@Action`,
@@ -12,7 +12,7 @@ POST /ask-agent/api/ask   { "question": "..." }  ->  { "question", "answer" }
 ## Configure the LLM
 
 The LLM provider is selected by the runtime through MicroProfile Config. This
-sample ships `src/main/resources/META-INF/microprofile-config.properties`
+example ships `src/main/resources/META-INF/microprofile-config.properties`
 pointing at a small local **Ollama** model (no API key, no cost):
 
 ```properties
@@ -22,7 +22,7 @@ payara.agentic.llm.ollama.base-url=http://localhost:11434
 ```
 
 > The `payara.agentic.llm.*` keys are the configuration surface of the Payara
-> implementation used to run this sample. On another Jakarta Agentic AI
+> implementation used to run this example. On another Jakarta Agentic AI
 > implementation, configure the provider the way that implementation documents.
 
 ## Prerequisites

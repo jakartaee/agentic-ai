@@ -59,7 +59,7 @@ Located in `course-content-studio/`, this deployable web application demonstrate
 
 **Purpose:**
 A teacher generates, refines and publishes a lesson (introduction, quiz and
-conclusion) for a chapter. It is a deliberately advanced, end-to-end sample that
+conclusion) for a chapter. It is a deliberately advanced, end-to-end example that
 exercises features the basic examples do not. See its
 [README](course-content-studio/README.md) for how to run it on a Jakarta EE
 runtime with a Jakarta Agentic AI implementation.
