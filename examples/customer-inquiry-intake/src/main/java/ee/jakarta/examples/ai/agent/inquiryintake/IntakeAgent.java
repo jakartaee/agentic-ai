@@ -15,9 +15,9 @@ package ee.jakarta.examples.ai.agent.inquiryintake;
 import jakarta.ai.agent.Action;
 import jakarta.ai.agent.Agent;
 import jakarta.ai.agent.Decision;
-import jakarta.ai.agent.OnException;
 import jakarta.ai.agent.LLMException;
 import jakarta.ai.agent.LargeLanguageModel;
+import jakarta.ai.agent.OnException;
 import jakarta.ai.agent.Outcome;
 import jakarta.ai.agent.Trigger;
 import jakarta.inject.Inject;
@@ -37,6 +37,9 @@ import java.util.logging.Logger;
 public class IntakeAgent {
 
     private static final Logger LOGGER = Logger.getLogger(IntakeAgent.class.getName());
+
+    private static final Set<String> PLACEHOLDER_TOKENS = Set.of(
+            "test", "asdf", "asdfg", "qwerty", "lorem", "ipsum", "foo", "bar", "baz");
 
     @Inject
     LargeLanguageModel model;
@@ -149,9 +152,6 @@ public class IntakeAgent {
         LOGGER.log(Level.WARNING, "LLM call failed; writing fallback record", failure);
         output.setRecord(IntakeRecord.fallbackFor(request));
     }
-
-    private static final Set<String> PLACEHOLDER_TOKENS = Set.of(
-            "test", "asdf", "asdfg", "qwerty", "lorem", "ipsum", "foo", "bar", "baz");
 
     private static boolean looksLikePlaceholderText(String message) {
         String lower = message.toLowerCase();
