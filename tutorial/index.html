@@ -566,152 +566,46 @@ when they aren't already filled in, inferring the sender's company from the busi
 domain, picking a routing category, drafting a subject line, and rewriting the message in
 a tone that matches that category) and the customer reviews the prepared record before
 confirming.</p>
-<p><strong>Every phase is ordered by the data it consumes, not by an explicit
-<code>order=</code> on the annotations.</strong> <code>IntakeAgent</code> has four
-<code>@Action</code> methods and two <code>@Decision</code> methods; the runtime matches
-parameters by type to figure out what runs when.</p>
-<pre><code class="language-java">@Action
-Identity enrichIdentity(IntakeRequest request) {              // takes only the triggering event
-    return model.query(                                       // typed query: the LLM response binds
-            &quot;Extract name and email, infer company from &quot;    //   directly to the Identity record
-          + &quot;the email domain... {}&quot;,                         //   via JSON-B — one call does both
-            Identity.class, request.message());               //   the extraction and the inference
+<p>The whole agent fits in one class — four actions, two decisions, no explicit
+<code>order=</code> anywhere; the runtime chains the phases by matching each method's
+parameters by type (full source at the <strong>Source</strong> link above):</p>
+<pre><code class="language-java">@Agent(name = &quot;IntakeAgent&quot;)
+public class IntakeAgent {
+    @Inject LargeLanguageModel model;
+    @Inject IntakeOutput output;
+
+    @Trigger      void onSubmit(@Valid IntakeRequest r)                     // Bean Validation gates it
+    @Decision     boolean looksLikeRealInquiry(IntakeRequest r)              // placeholder/test filter
+    @Action       Identity        enrichIdentity(IntakeRequest r)            // extract name/email, infer company
+    @Action       Classification  classify(IntakeRequest r)                  // route the inquiry
+    @Action       Title           draftTitle(IntakeRequest r)                // short ticketing subject
+    @Decision     boolean hasEnoughContent(Identity id, IntakeRequest r)     // post-enrichment gate
+    @Action       PolishedMessage polish(IntakeRequest r, Classification c)  // rewrite in matching tone
+    @Outcome      void publishPreparedInquiry(Identity i, Classification c,  // packages the four typed
+                                              Title t, PolishedMessage p)    //   records into IntakeRecord
+    @OnException  void onLlmFailure(LLMException e, IntakeRequest r)         // fallback record
 }
-
-@Action
-Classification classify(IntakeRequest request) { ... }        // takes only the triggering event
-
-@Action
-Title draftTitle(IntakeRequest request) { ... }               // takes only the triggering event
-
-@Action
-PolishedMessage polish(IntakeRequest request,                 // takes Classification, so the runtime
-                       Classification classification) {       //   places it after classify
-    String text = model.query(... classification ...).strip();
-    return new PolishedMessage(text);
-}
-</code></pre>
-<p>Each <code>@Action</code> does exactly one LLM call and returns one typed record. There
-is no "assemble" step — the four typed records flow into <code>@Outcome</code>, which
-packages them into the final <code>IntakeRecord</code> and publishes it. <code>Title</code>
-and <code>PolishedMessage</code> are both one-field records wrapping a <code>String</code>;
-using distinct wrapper types (rather than two bare <code>String</code> parameters) lets the
-runtime match them unambiguously by type.</p>
-<p>That dataflow-ordering is the same mechanism Example 1 uses to hand the generated
-<code>Answer</code> from <code>@Action</code> to <code>@Outcome</code>; here it threads
-a real multi-step pipeline, with every typed record returned by an action flowing into
-the <code>@Outcome</code> as workflow state.</p>
-<p>The two decisions sit at different gates, placed by dataflow:</p>
-<pre><code class="language-java">@Decision
-boolean looksLikeRealInquiry(IntakeRequest request) {         // runs first (takes only IntakeRequest)
-    if (looksLikePlaceholderText(request.message())) {        // placeholder/test filter — the kind of
-        output.setStopReason(                                 //   check Bean Validation cannot express;
-                &quot;This looks like a test or placeholder &quot;      //   the mechanical length floor is
-              + &quot;submission...&quot;);                             //   @Size(min = 20) on the record
-        return false;
-    }
-    return true;
-}
-
-@Decision
-boolean hasEnoughContent(Identity identity,                   // takes Identity, so runs after
-                         IntakeRequest request) {             //   enrichIdentity
-    boolean proceed = anyPresent(identity)                    // stop if we extracted nothing
-            || substantive(request.message());                //   identifying and the message is thin
-    if (!proceed) {
-        output.setStopReason(&quot;We could not route this &quot;      // same plumbing — written into
-              + &quot;inquiry. Please add your name or email...&quot;); //   IntakeOutput for the resource to
-    }                                                         //   surface in the 422 response
-    return proceed;
-}
-</code></pre>
-<p>Returning a plain <code>boolean</code> and writing the reason into
-<code>IntakeOutput</code> is deliberate: the built-in <code>Result(success, details)</code>
-record earns its slot when the <em>runtime</em> consumes the details (logging it in a
-standard shape, forwarding it to observability, carrying it to an <code>@OnStop</code>
-hook). In this example the application plumbs the string itself through
-<code>IntakeOutput</code>, so <code>Result</code> would just be a two-field value
-immediately deconstructed — <code>boolean</code> is the honest spelling.</p>
-<p>And the surrounding phases:</p>
-<pre><code class="language-java">@Trigger
-void onSubmit(@Valid IntakeRequest request) { ... }           // Bean Validation on the record runs
-                                                              //   before the body — @NotBlank on
-                                                              //   message, @Email on email, @Size
-                                                              //   on each field
-
-@Outcome
-void publishPreparedInquiry(Identity identity,                // the four typed records produced by
-                            Classification classification,    //   the actions upstream — the Outcome
-                            Title title,                      //   packages them into the IntakeRecord
-                            PolishedMessage polished) {       //   and writes it to IntakeOutput for
-    output.setRecord(new IntakeRecord(                        //   the resource to read back inside
-            identity, classification,                         //   the same HTTP request
-            title.value(), polished.value()));
-}
-
-@OnException
-void onLlmFailure(LLMException e, IntakeRequest request) {    // graceful fallback for an LLM outage
-    output.setRecord(IntakeRecord.fallbackFor(request));      //   so the review screen always has
-}                                                             //   something to show
-</code></pre>
-<p>The pipeline writes its result to a <code>@RequestScoped IntakeOutput</code> holder that
-the resource reads back inside the same HTTP request. The resource unwraps the
-<code>ObserverException</code> CDI uses to carry things out of a synchronous observer: a
-<code>ConstraintViolationException</code> from the <code>@Valid</code> interceptor becomes a
-<strong>400</strong> with the per-field errors; an <code>IntakeOutput</code> that still
-holds no record means a mid-pipeline <code>@Decision</code> returned false and no
-<code>@Action</code> wrote one, so the resource returns a <strong>422</strong> asking the
-customer to elaborate. The resource exposes just two endpoints
-(<code>POST /api/intake/prepare</code> to run the pipeline and
-<code>POST /api/intake/confirm</code> to hand the (possibly edited) record off) and never
-calls <code>LargeLanguageModel</code> directly.</p>
-<p>The LLM backend and the system prompt are configuration — here Claude on Vertex AI,
-switchable to local Ollama without touching code:</p>
-<pre><code class="language-properties">payara.agentic.llm.provider=vertex
-payara.agentic.llm.model=claude-sonnet-4-6
-payara.agentic.llm.max-tokens=4096
-payara.agentic.llm.system=You are an intake assistant for a customer-facing contact form...
 </code></pre>
 <h3>The strong design ideas</h3>
 <ol>
-<li><strong>Dataflow is ordering.</strong> Four <code>@Action</code> methods and two
-<code>@Decision</code> methods, no explicit <code>order=</code>. Everything that takes only
+<li><strong>Dataflow is ordering.</strong> Everything that takes only
 <code>IntakeRequest</code> can run first; <code>polish</code> declares
-<code>Classification</code> and so is scheduled after <code>classify</code>;
-<code>@Outcome done</code> declares all four typed records produced upstream and so runs
-after every action. This is Example 1's parameter-type threading grown up into a real
-pipeline.</li>
-<li><strong>Each action does one thing.</strong> <code>enrichIdentity</code>,
-<code>classify</code>, <code>draftTitle</code> and <code>polish</code> each make a single
-LLM call and return a single typed record (<code>Identity</code>, <code>Classification</code>,
-<code>Title</code>, <code>PolishedMessage</code>). The <code>@Outcome</code> packages them
-into the final <code>IntakeRecord</code>, which keeps the "polish-the-body" step cleanly
-separated from the "assemble-the-shipping-container" step — the latter is pure data, so
-it belongs in the Outcome, not an action. <code>Title</code> and <code>PolishedMessage</code>
-are both one-field records wrapping a <code>String</code>, so the runtime can tell them
-apart by type on the <code>@Outcome</code>'s parameter list.</li>
-<li><strong>Two decisions, two gates.</strong> <code>looksLikeRealInquiry</code> rejects obvious
-placeholder/test submissions (the mechanical length floor is handled by
-<code>@Size(min = 20)</code> on the record itself — Bean Validation does that one, not an
-agent decision). <code>hasEnoughContent</code> is a post-enrichment gate: it takes the
-<code>Identity</code> the previous action produced, so the runtime places it after
-<code>enrichIdentity</code>. Both return <code>boolean</code> and write a human-readable
-reason into <code>IntakeOutput</code> before returning false, so the resource surfaces the
-specific reason in the 422 response.</li>
-<li><strong>Typed LLM output.</strong> <code>enrichIdentity</code> calls the typed form of
-the facade, <code>model.query(prompt, Identity.class, args)</code>, and the LLM's response
-is bound directly to the <code>Identity</code> record by JSON-B — no hand-rolled parsing
-or code-fence stripping. If the LLM returns something JSON-B cannot bind, the facade
-throws <code>LLMException</code> and the handler writes the fallback.</li>
-<li><strong>Declarative validation, declarative fallback.</strong> <code>@Valid</code> on
-the trigger runs Bean Validation on the record before the body; <code>@OnException</code>
-catches an <code>LLMException</code> from any phase and writes a minimal fallback
-<code>IntakeRecord</code> so the review screen always has something to show instead of a
-500. Together they cover the two kinds of failure the agent can hit — bad input and bad
-LLM — with annotations rather than hand-rolled try/catch.</li>
-<li><strong>The agent owns LLM interaction.</strong> Every LLM call lives in the agent; the
-resource fires an event, reads from a request-scoped holder, and translates workflow
-outcomes into HTTP responses. The resource is a thin REST adapter, not an LLM caller.</li>
+<code>Classification</code>, so the runtime places it after <code>classify</code>; the
+<code>@Outcome</code> declares all four typed records and so runs after every action.
+This is Example 1's parameter-type threading grown up into a real pipeline.</li>
+<li><strong>Each action does one thing.</strong> Enrich, classify, draft, polish — one
+LLM call each, one typed record out (<code>Identity</code>, <code>Classification</code>,
+<code>Title</code>, <code>PolishedMessage</code>). The <code>@Outcome</code> packages the
+four into the final <code>IntakeRecord</code>; assembly is pure data, so it belongs there,
+not in another action.</li>
+<li><strong>Declarative validation plus an agent-level gate.</strong>
+<code>@Size(min = 20)</code> on the message handles the mechanical length floor through
+Bean Validation. <code>looksLikeRealInquiry</code> catches obvious placeholder/test
+submissions — the kind of check validation can't express.</li>
+<li><strong>Declarative fallback.</strong> <code>@OnException</code> catches an
+<code>LLMException</code> from any phase and writes a minimal fallback
+<code>IntakeRecord</code>, so the review screen always has something to show instead of
+a 500.</li>
 </ol>
 <hr>
 <h2>Example 3 — Course Content Studio</h2>
