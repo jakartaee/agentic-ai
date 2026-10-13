@@ -9,82 +9,6 @@ drafting a subject line, and rewriting the message in a tone that matches
 that category — and the customer reviews the prepared record before
 confirming.
 
-```
-GET  /customer-inquiry-intake/                       the UI
-POST /customer-inquiry-intake/api/intake/prepare     { name?, email?, message }                     run the pipeline, return the prepared IntakeRecord
-POST /customer-inquiry-intake/api/intake/confirm     { identity, classification, title, message }   hand the (possibly edited) record off
-```
-
-## How the agent is wired
-
-`IntakeAgent` has four `@Action` methods and two `@Decision` methods, with no
-explicit `order=` anywhere. The runtime orders every phase by the data each
-one declares as a parameter.
-
-**Actions, ordered by dataflow:**
-
-- `Identity enrichIdentity(IntakeRequest)`, `Classification classify(IntakeRequest)`
-  and `Title draftTitle(IntakeRequest)` all take only the triggering event
-  and can run first.
-- `PolishedMessage polish(IntakeRequest, Classification)` takes
-  `Classification` as a parameter, so parameter-type dataflow places it
-  after `classify`.
-
-Each `@Action` does exactly one LLM call and returns one typed record.
-There is no "assemble" action — the four typed records (`Identity`,
-`Classification`, `Title`, `PolishedMessage`) are consumed by `@Outcome`,
-which packages them into the final `IntakeRecord` and publishes it. `Title`
-and `PolishedMessage` are both one-field records wrapping a `String`; using
-distinct wrapper types (rather than two bare `String` parameters) lets the
-runtime match them unambiguously by type.
-
-That dataflow-ordering is the same mechanism Example 1 uses to pass the
-generated `Answer` from `@Action` to `@Outcome`; here it threads a real
-pipeline together, with every typed record returned by an action flowing
-into the `@Outcome` as workflow state.
-
-**The two decisions sit at different gates:**
-
-- `boolean looksLikeRealInquiry(IntakeRequest)` runs first. It rejects obvious
-  placeholder/test submissions — messages dominated by tokens like
-  `test`, `asdf`, `qwerty`, `lorem ipsum`, `foo`/`bar`/`baz`. The
-  mechanical length floor is handled by `@Size(min = 20)` on the trigger
-  record and never reaches this decision at all.
-- `boolean hasEnoughContent(Identity, IntakeRequest)` runs after
-  `enrichIdentity` — it takes an `Identity` as a parameter, so parameter-type
-  dataflow places it there. If the message is short and the agent extracted
-  nothing identifying, the workflow stops before `polish` runs.
-
-When either decision returns `false`, it first writes a human-readable
-reason into `IntakeOutput.stopReason`. The resource reads that string back
-out of the request-scoped holder and returns it as the `422` response body,
-so the customer sees the specific reason the workflow stopped rather than a
-generic failure message.
-
-**The surrounding phases:**
-
-- `@Trigger void onSubmit(@Valid IntakeRequest)` — the `@Valid` runs Bean
-  Validation on the record (`@NotBlank` and `@Size(min = 20, max = 5000)`
-  on `message`, `@Email` on `email`, `@Size` on each field). A violation is
-  thrown by the interceptor before the workflow body runs; the resource
-  unwraps the `ObserverException` and returns 400 with the specific field
-  errors.
-- `@Outcome void publishPreparedInquiry(Identity, Classification, Title, PolishedMessage)` —
-  packages the four typed records produced upstream into the final
-  `IntakeRecord`, writes it to the request-scoped `IntakeOutput` holder for
-  the resource to read back, and logs that the record is ready.
-- `@OnException void onLlmFailure(LLMException, IntakeRequest)` — catches
-  an LLM failure anywhere in the pipeline and writes a minimal fallback
-  record (the customer's own values + the unpolished original message), so
-  the UI always shows a review screen instead of a 500.
-
-**Typed LLM output.** `enrichIdentity` uses the typed form of the facade,
-`model.query(prompt, Identity.class, args)`, so the LLM's JSON response is
-bound directly to the `Identity` record by JSON-B. No hand-rolled parsing,
-no manual code-fence stripping. If the LLM returns something JSON-B cannot
-bind, the facade throws `LLMException` and the exception handler writes the
-fallback.
-
 ## Configure the LLM
 
 The LLM provider is selected via MicroProfile Config. The example defaults to
@@ -127,8 +51,4 @@ Open <http://localhost:8080/customer-inquiry-intake/>, leave the identity
 fields blank, type a message that mentions you by name (for example *"Hi, I'm
 Jane Smith from Acme &lt;jane@acme.com&gt; — our EE 8 app on Payara 5 needs
 to be on EE 10 before our audit in three months. Who should we talk to?"*),
-and click **Prepare inquiry**. Watch `server.log` for
-`[TRIGGER]` → `[DECISION]` → `[ACTION] enrichIdentity`,
-`[ACTION] classify` and `[ACTION] draftTitle` (which may run in any
-order), then `[ACTION] polish`, then `[OUTCOME]`, then `[CONFIRM]`
-when you send.
+and click **Prepare inquiry**.
