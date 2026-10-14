@@ -12,31 +12,80 @@
  *****************************************************************************/
 package ee.jakarta.tck.ai.agent.framework.junit.extensions;
 
+import ee.jakarta.tck.ai.agent.framework.junit.anno.RequiresImplementation;
+import ee.jakarta.tck.ai.agent.framework.junit.anno.RequiresNoImplementation;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ConditionEvaluationResult;
+
+import java.lang.reflect.Method;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * Unit tests for the Issue 51 run-mode default.
+ * Unit tests for the Issue 51 run-mode selection.
  *
  * <p>These exercise the TCK's own infrastructure, not the specification.
- * They are tagged {@code internal} so they do not inflate spec assertion
- * counts.</p>
+ * They are tagged {@code internal} so they do not inflate specification
+ * assertion counts.</p>
  */
 @Tag("internal")
 public class ImplementationPresentConditionTests {
 
     @Test
-    void implementationModeIsTheDefault() {
-        assertTrue(ImplementationPresentCondition.runAgainstImplementation(false),
-                "an omitted baseline opt-out must run implementation assertions");
+    void implementationTestIsEnabledByDefault() throws Exception {
+        ConditionEvaluationResult result = evaluate("implementationTest", false);
+        assertFalse(result.isDisabled(),
+                "implementation assertions must run when baseline is not selected");
     }
 
     @Test
-    void explicitBaselineDisablesImplementationMode() {
-        assertFalse(ImplementationPresentCondition.runAgainstImplementation(true),
-                "the explicit baseline opt-out must select plain-CDI assertions");
+    void implementationTestIsDisabledInBaselineMode() throws Exception {
+        ConditionEvaluationResult result = evaluate("implementationTest", true);
+        assertTrue(result.isDisabled(),
+                "implementation assertions must skip in explicit baseline mode");
+    }
+
+    @Test
+    void baselineTestIsDisabledByDefault() throws Exception {
+        ConditionEvaluationResult result = evaluate("baselineTest", false);
+        assertTrue(result.isDisabled(),
+                "plain-CDI assertions must skip in default implementation mode");
+    }
+
+    @Test
+    void baselineTestIsEnabledInBaselineMode() throws Exception {
+        ConditionEvaluationResult result = evaluate("baselineTest", true);
+        assertFalse(result.isDisabled(),
+                "plain-CDI assertions must run in explicit baseline mode");
+    }
+
+    @Test
+    void unannotatedTestIsAlwaysEnabled() throws Exception {
+        assertFalse(evaluate("unannotatedTest", false).isDisabled());
+        assertFalse(evaluate("unannotatedTest", true).isDisabled());
+    }
+
+    private static ConditionEvaluationResult evaluate(
+            String methodName, boolean baselineRequested) throws Exception {
+        Method method = ConditionFixtures.class.getDeclaredMethod(methodName);
+        return ImplementationPresentCondition.evaluateCondition(
+                Optional.of(method), baselineRequested);
+    }
+
+    private static final class ConditionFixtures {
+
+        @RequiresImplementation
+        void implementationTest() {
+        }
+
+        @RequiresNoImplementation
+        void baselineTest() {
+        }
+
+        void unannotatedTest() {
+        }
     }
 }
