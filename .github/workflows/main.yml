@@ -36,6 +36,68 @@ jobs:
             - name: Build
               run: mvn clean install -Pweld-embedded,baseline
 
+            - name: Verify implementation mode fails closed
+              shell: bash
+              run: |
+                  set -euo pipefail
+
+                  verify_failure() {
+                      label="$1"
+                      shift
+                      rm -rf tck/target/failsafe-reports
+
+                      set +e
+                      mvn --projects tck --also-make verify -Pweld-embedded "$@" \
+                          > "${label}.log" 2>&1
+                      status=$?
+                      set -e
+
+                      if [ "$status" -eq 0 ]; then
+                          echo "::error title=Fail-closed check passed unexpectedly::${label} returned BUILD SUCCESS without an implementation."
+                          cat "${label}.log"
+                          exit 1
+                      fi
+
+                      python3 - "$label" <<'PY'
+                  import pathlib
+                  import sys
+                  import xml.etree.ElementTree as ET
+
+                  checks = {
+                      "tck/target/failsafe-reports/TEST-ee.jakarta.tck.ai.agent.core.behavior.OrchestrationTests.xml": [
+                          "triggerIsAlwaysFirstPhaseRegardlessOfPosition",
+                      ],
+                      "tck/target/failsafe-reports/TEST-ee.jakarta.tck.ai.agent.core.behavior.WorkflowScopeLifecycleTests.xml": [
+                          "agentDefaultNamingFollowsCamelCase",
+                          "customAgentNameIsResolvableViaBeanManager",
+                          "defaultScopeProducesDistinctInstancePerWorkflow",
+                      ],
+                  }
+
+                  for report_name, method_names in checks.items():
+                      report = pathlib.Path(report_name)
+                      if not report.is_file():
+                          raise SystemExit(f"{sys.argv[1]}: missing report {report}")
+                      cases = {
+                          case.attrib.get("name"): case
+                          for case in ET.parse(report).getroot().iter("testcase")
+                      }
+                      for method_name in method_names:
+                          case = cases.get(method_name)
+                          if case is None:
+                              raise SystemExit(f"{sys.argv[1]}: missing test {method_name}")
+                          if case.find("failure") is None and case.find("error") is None:
+                              raise SystemExit(f"{sys.argv[1]}: {method_name} did not fail")
+
+                  print(f"{sys.argv[1]}: representative implementation assertions failed as required")
+                  PY
+                  }
+
+                  verify_failure default
+                  verify_failure direct-properties \
+                      -Djakarta.ai.agent.tck.baseline=true \
+                      -Dtck.baseline=true
+
             - name: License Check
               run: |
                   set -euo pipefail

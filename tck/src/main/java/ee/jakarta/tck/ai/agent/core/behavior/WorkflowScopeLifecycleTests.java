@@ -22,7 +22,10 @@ import ee.jakarta.tck.ai.agent.framework.junit.anno.Deployed;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.RequiresImplementation;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder.Phase;
+import jakarta.ai.agent.WorkflowScoped;
 import jakarta.enterprise.event.Event;
+import jakarta.enterprise.inject.spi.Bean;
+import jakarta.enterprise.inject.spi.BeanManager;
 import jakarta.inject.Inject;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.shrinkwrap.api.Archive;
@@ -32,6 +35,7 @@ import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.jupiter.api.TestInstance;
 
 import java.util.List;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -67,14 +71,21 @@ public class WorkflowScopeLifecycleTests {
     @Inject Event<ScopeDefaultEvent>  scopeDefaultEvents;
     @Inject ExecutionTraceRecorder    trace;
     @Inject LifecycleCallbackRecorder lifecycleRecorder;
+    @Inject BeanManager               beanManager;
 
     @RequiresImplementation
     @Assertion(id = "AGENTICAI-CDI-BHV-001",
                section = "agent-lifecycle",
-               strategy = "An @Agent with no explicit scope behaves as @WorkflowScoped: two independent "
-                        + "workflow executions dispatch every phase and yield two distinct bean instances. "
+               strategy = "An @Agent with no explicit scope is registered as @WorkflowScoped, uses one "
+                        + "instance across every phase, and creates a distinct instance for each workflow. "
                         + "Sequential events are used as a v1 proxy for concurrent workflows.")
     public void defaultScopeProducesDistinctInstancePerWorkflow() {
+        Set<Bean<?>> beans = beanManager.getBeans(ScopeDefaultAgent.class);
+        assertThat(beans).hasSize(1);
+        Bean<?> bean = beanManager.resolve(beans);
+        assertThat(bean).isNotNull();
+        assertThat(bean.getScope()).isEqualTo(WorkflowScoped.class);
+
         lifecycleRecorder.reset();
         trace.reset();
         scopeDefaultEvents.fire(new ScopeDefaultEvent("workflow-1"));
@@ -87,6 +98,13 @@ public class WorkflowScopeLifecycleTests {
         List<String> ids = lifecycleRecorder.getInstanceIds();
         assertThat(ids).hasSize(2);
         assertThat(ids.get(0)).isNotEqualTo(ids.get(1));
+
+        List<String> phaseInstanceIds = trace.entries().stream()
+                .map(entry -> (String) entry.args()[1])
+                .toList();
+        assertThat(phaseInstanceIds).containsExactly(
+                ids.get(0), ids.get(0), ids.get(0),
+                ids.get(1), ids.get(1), ids.get(1));
     }
 
     @RequiresImplementation
