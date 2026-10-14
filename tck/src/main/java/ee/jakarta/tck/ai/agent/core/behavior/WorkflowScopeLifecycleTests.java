@@ -72,14 +72,18 @@ public class WorkflowScopeLifecycleTests {
     @Assertion(id = "AGENTICAI-CDI-BHV-001",
                section = "agent-lifecycle",
                strategy = "An @Agent with no explicit scope behaves as @WorkflowScoped: two independent "
-                        + "workflow executions yield two distinct bean instances. Verified via ScopeDefaultAgent "
-                        + "(no scope) recording a unique instanceId per workflow. NOTE: sequential events used as a "
-                        + "v1 proxy for concurrent workflows.")
+                        + "workflow executions dispatch every phase and yield two distinct bean instances. "
+                        + "Sequential events are used as a v1 proxy for concurrent workflows.")
     public void defaultScopeProducesDistinctInstancePerWorkflow() {
         lifecycleRecorder.reset();
         trace.reset();
         scopeDefaultEvents.fire(new ScopeDefaultEvent("workflow-1"));
         scopeDefaultEvents.fire(new ScopeDefaultEvent("workflow-2"));
+
+        assertThat(trace.phases()).containsExactly(
+                Phase.TRIGGER, Phase.ACTION, Phase.OUTCOME,
+                Phase.TRIGGER, Phase.ACTION, Phase.OUTCOME);
+
         List<String> ids = lifecycleRecorder.getInstanceIds();
         assertThat(ids).hasSize(2);
         assertThat(ids.get(0)).isNotEqualTo(ids.get(1));
@@ -88,29 +92,32 @@ public class WorkflowScopeLifecycleTests {
     @RequiresImplementation
     @Assertion(id = "AGENTICAI-CDI-BHV-002",
                section = "agent-lifecycle",
-               strategy = "When @Agent.name() is empty, the compatible implementation derives the name as the simple class name with "
-                        + "the first letter lowercased. ScopeDefaultAgent must be resolvable by the EL/bean name "
-                        + "\"scopeDefaultAgent\" via BeanManager.getBeans(String). Depends on the compatible implementation registering "
-                        + "agents under their derived name; update once that registry API is specified.")
+               strategy = "When @Agent.name() is empty, the derived name is the simple class name with "
+                        + "the first letter lowercased (scopeDefaultAgent). A trigger-only plain-CDI run cannot "
+                        + "satisfy this assertion because the implementation must also dispatch @Action and @Outcome.")
     public void agentDefaultNamingFollowsCamelCase() {
-        // Pseudocode for when a compatible implementation is available:
-        //   assertThat(beanManager.getBeans("scopeDefaultAgent")).hasSize(1);
-        // Kept disabled and intentionally not asserting a placeholder truth.
-        assertThat(ScopeDefaultAgent.class.getSimpleName()).isEqualTo("ScopeDefaultAgent");
+        String simpleName = ScopeDefaultAgent.class.getSimpleName();
+        String derived = Character.toLowerCase(simpleName.charAt(0)) + simpleName.substring(1);
+        assertThat(derived).isEqualTo("scopeDefaultAgent");
+
+        trace.reset();
+        scopeDefaultEvents.fire(new ScopeDefaultEvent("naming"));
+        assertThat(trace.phases()).containsExactly(Phase.TRIGGER, Phase.ACTION, Phase.OUTCOME);
     }
 
     @RequiresImplementation
     @Assertion(id = "AGENTICAI-CDI-BHV-002",
                section = "agent-lifecycle",
-               strategy = "An explicit @Agent(name = \"lifecycleSpy\") overrides the derived default; the compatible implementation must "
-                        + "register the bean under that name, resolvable via BeanManager.getBeans(\"lifecycleSpy\"). "
-                        + "Depends on the implementation's name-registration API; update once specified.")
+               strategy = "An explicit @Agent(name = \"lifecycleSpy\") overrides the derived default. "
+                        + "A trigger-only plain-CDI run cannot satisfy this assertion because the implementation "
+                        + "must also dispatch @Action and @Outcome. The name is not asserted as a CDI bean name.")
     public void customAgentNameIsResolvableViaBeanManager() {
-        // Pseudocode for when a compatible implementation is available:
-        //   assertThat(beanManager.getBeans("lifecycleSpy")).hasSize(1);
-        // LifecycleSpyAgent declares @Agent(name = "lifecycleSpy"); assert the source-of-truth in the interim.
         assertThat(LifecycleSpyAgent.class.getAnnotation(jakarta.ai.agent.Agent.class).name())
                 .isEqualTo("lifecycleSpy");
+
+        trace.reset();
+        lifecycleSpyEvents.fire(new LifecycleSpyEvent("naming"));
+        assertThat(trace.phases()).containsExactly(Phase.TRIGGER, Phase.ACTION, Phase.OUTCOME);
     }
 
     @RequiresImplementation

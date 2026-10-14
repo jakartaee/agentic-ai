@@ -24,7 +24,7 @@ import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.EmptyAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
+import org.junit.jupiter.api.condition.DisabledIfSystemProperty;
 
 /**
  * Deployment-error case G3a (<em>One Phase per Method</em>): an agent whose
@@ -35,19 +35,18 @@ import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
  * implementation the deployment does not fail. Unlike the behavioral
  * {@code @RequiresImplementation} tests, the guard here cannot be a per-method
  * condition: the {@link ShouldThrowException} check runs at deployment time, in
- * the client JVM, before the in-container implementation probe. The whole class
- * is therefore gated at the class level with {@link EnabledIfSystemProperty},
- * which reads {@value ImplementationPresentCondition#IMPLEMENTATION_PRESENT_PROPERTY}
- * directly in the client JVM so the deployment is skipped entirely when no
- * compatible implementation is present.</p>
+ * the client JVM, before an in-container condition can run. The whole class is
+ * therefore gated with {@link DisabledIfSystemProperty} on
+ * {@value ImplementationPresentCondition#BASELINE_PROPERTY}. Implementation mode
+ * is the default, so the deployment runs unless {@code -Pbaseline} is selected.</p>
  *
  * <p>The verification is the deployment itself: {@link ShouldThrowException}
  * declares that building the container for this archive must fail with a
  * {@link DeploymentException}; the test body is therefore empty.</p>
  */
 @Deployed
-@EnabledIfSystemProperty(named = ImplementationPresentCondition.IMPLEMENTATION_PRESENT_PROPERTY,
-                         matches = "true")
+@DisabledIfSystemProperty(named = ImplementationPresentCondition.BASELINE_PROPERTY,
+                          matches = "true")
 public class DeploymentErrorTwoPhaseTests {
 
     @Deployment
