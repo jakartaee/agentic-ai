@@ -34,9 +34,11 @@ import java.util.Optional;
  * context, so selection uses an explicit baseline opt-out.</p>
  *
  * <p>The project plain-CDI baseline is selected only with the {@code baseline}
- * Maven profile ({@code -Pbaseline}). The profile passes an internal marker to
- * the test JVM. Baseline mode enables {@link RequiresNoImplementation}
- * assertions and disables {@link RequiresImplementation} assertions.</p>
+ * Maven profile ({@code -Pbaseline}). That profile adds
+ * {@value #BASELINE_MARKER_RESOURCE} to the test classpath. The marker is not
+ * a system property, so a Maven {@code -D} cannot select baseline mode.
+ * Baseline mode enables {@link RequiresNoImplementation} assertions and
+ * disables {@link RequiresImplementation} assertions.</p>
  *
  * @see RequiresImplementation
  * @see RequiresNoImplementation
@@ -44,16 +46,22 @@ import java.util.Optional;
 public class ImplementationPresentCondition implements ExecutionCondition {
 
     /**
-     * Internal test-JVM marker set by the {@code baseline} Maven profile.
+     * Classpath resource present only when the {@code baseline} profile added it.
+     * A Maven user property cannot create this resource.
      */
-    public static final String BASELINE_PROPERTY =
-            "jakarta.ai.agent.tck.internal.baseline-profile-active";
+    public static final String BASELINE_MARKER_RESOURCE = "META-INF/jakarta.ai.agent.tck.baseline";
 
     @Override
     public ConditionEvaluationResult evaluateExecutionCondition(ExtensionContext context) {
-        return evaluateCondition(
-                context.getElement(),
-                Boolean.getBoolean(BASELINE_PROPERTY));
+        return evaluateCondition(context.getElement(), baselineProfileActive());
+    }
+
+    /**
+     * @return {@code true} when the baseline profile's classpath marker is visible
+     */
+    static boolean baselineProfileActive() {
+        ClassLoader loader = ImplementationPresentCondition.class.getClassLoader();
+        return loader != null && loader.getResource(BASELINE_MARKER_RESOURCE) != null;
     }
 
     /**

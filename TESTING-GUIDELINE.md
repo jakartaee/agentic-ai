@@ -49,7 +49,7 @@ mvn --projects tck --also-make verify -Pweld-embedded,baseline
 
 The `baseline` profile is what selects this mode. In baseline mode, `@RequiresNoImplementation` assertions run and `@RequiresImplementation` assertions are skipped. This is also the project CI path.
 
-Passing `-Djakarta.ai.agent.tck.baseline=true` or `-Dtck.baseline=true` on the Maven command line does not select baseline mode. Failsafe receives a private baseline marker only when the `baseline` profile is active.
+Passing `-Djakarta.ai.agent.tck.baseline=true`, `-Dtck.baseline=true`, or `-Djakarta.ai.agent.tck.internal.baseline-profile-active=true` does not select baseline mode. The profile adds a classpath marker rather than a system property. Other Maven `-D` settings are still passed through to the test JVM.
 
 ## Reporting Issues
 

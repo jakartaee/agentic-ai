@@ -16,7 +16,7 @@ import ee.jakarta.tck.ai.agent.core.behavior.agents.deploymenterror.TwoPhaseMeth
 import ee.jakarta.tck.ai.agent.core.behavior.agents.deploymenterror.TwoPhaseMethodEvent;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Assertion;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Deployed;
-import ee.jakarta.tck.ai.agent.framework.junit.extensions.ImplementationPresentCondition;
+import ee.jakarta.tck.ai.agent.framework.junit.anno.SkipWhenBaseline;
 import jakarta.enterprise.inject.spi.DeploymentException;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.ShouldThrowException;
@@ -24,7 +24,6 @@ import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.EmptyAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.jupiter.api.condition.DisabledIfSystemProperty;
 
 /**
  * Deployment-error case G3a (<em>One Phase per Method</em>): an agent whose
@@ -36,17 +35,16 @@ import org.junit.jupiter.api.condition.DisabledIfSystemProperty;
  * {@code @RequiresImplementation} tests, the guard here cannot be a per-method
  * condition: the {@link ShouldThrowException} check runs at deployment time, in
  * the client JVM, before an in-container condition can run. The whole class is
- * therefore gated with {@link DisabledIfSystemProperty} on
- * {@value ImplementationPresentCondition#BASELINE_PROPERTY}. Implementation mode
- * is the default, so the deployment runs unless {@code -Pbaseline} is selected.</p>
+ * therefore gated with {@link SkipWhenBaseline}, which sees the baseline
+ * profile's classpath marker. Implementation mode is the default, so the
+ * deployment runs unless {@code -Pbaseline} is selected.</p>
  *
  * <p>The verification is the deployment itself: {@link ShouldThrowException}
  * declares that building the container for this archive must fail with a
  * {@link DeploymentException}; the test body is therefore empty.</p>
  */
 @Deployed
-@DisabledIfSystemProperty(named = ImplementationPresentCondition.BASELINE_PROPERTY,
-                          matches = "true")
+@SkipWhenBaseline
 public class DeploymentErrorTwoPhaseTests {
 
     @Deployment

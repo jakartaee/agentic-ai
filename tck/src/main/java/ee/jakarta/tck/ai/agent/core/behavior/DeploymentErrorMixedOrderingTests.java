@@ -16,7 +16,7 @@ import ee.jakarta.tck.ai.agent.core.behavior.agents.deploymenterror.DeploymentEr
 import ee.jakarta.tck.ai.agent.core.behavior.agents.deploymenterror.MixedOrderingAgent;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Assertion;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Deployed;
-import ee.jakarta.tck.ai.agent.framework.junit.extensions.ImplementationPresentCondition;
+import ee.jakarta.tck.ai.agent.framework.junit.anno.SkipWhenBaseline;
 import jakarta.enterprise.inject.spi.DeploymentException;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.ShouldThrowException;
@@ -24,7 +24,6 @@ import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.EmptyAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.jupiter.api.condition.DisabledIfSystemProperty;
 
 /**
  * Deployment-error case G3b (<em>Consistency Requirement</em>): mixing explicitly
@@ -32,13 +31,12 @@ import org.junit.jupiter.api.condition.DisabledIfSystemProperty;
  * at deployment time.
  *
  * <p>See {@link DeploymentErrorTwoPhaseTests} for why this class is gated at the
- * class level with {@link DisabledIfSystemProperty} rather than a per-method
+ * class level with {@link SkipWhenBaseline} rather than a per-method
  * {@code @RequiresImplementation} condition. It runs in the default
  * implementation mode and is skipped when {@code -Pbaseline} is selected.</p>
  */
 @Deployed
-@DisabledIfSystemProperty(named = ImplementationPresentCondition.BASELINE_PROPERTY,
-                          matches = "true")
+@SkipWhenBaseline
 public class DeploymentErrorMixedOrderingTests {
 
     @Deployment

@@ -68,6 +68,12 @@ public class ImplementationPresentConditionTests {
         assertFalse(evaluate("unannotatedTest", true).isDisabled());
     }
 
+    @Test
+    void baselineMarkerIsAbsentWithoutTheProfile() {
+        assertFalse(ImplementationPresentCondition.baselineProfileActive(),
+                "a Maven -D must not create the baseline classpath marker");
+    }
+
     private static ConditionEvaluationResult evaluate(
             String methodName, boolean baselineRequested) throws Exception {
         Method method = ConditionFixtures.class.getDeclaredMethod(methodName);

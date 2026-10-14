@@ -97,6 +97,8 @@ jobs:
                   verify_failure direct-properties \
                       -Djakarta.ai.agent.tck.baseline=true \
                       -Dtck.baseline=true
+                  verify_failure internal-marker \
+                      -Djakarta.ai.agent.tck.internal.baseline-profile-active=true
 
             - name: License Check
               run: |
