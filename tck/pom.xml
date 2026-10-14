@@ -218,11 +218,34 @@
                 <plugins>
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-resources-plugin</artifactId>
+                        <version>3.3.0</version>
+                        <executions>
+                            <execution>
+                                <id>tck-baseline-marker</id>
+                                <phase>generate-test-resources</phase>
+                                <goals>
+                                    <goal>copy-resources</goal>
+                                </goals>
+                                <configuration>
+                                    <outputDirectory>${project.build.directory}/tck-baseline-marker</outputDirectory>
+                                    <resources>
+                                        <resource>
+                                            <directory>${project.basedir}/src/baseline-marker</directory>
+                                            <filtering>false</filtering>
+                                        </resource>
+                                    </resources>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-failsafe-plugin</artifactId>
                         <configuration>
-                            <systemPropertyVariables>
-                                <jakarta.ai.agent.tck.internal.baseline-profile-active>true</jakarta.ai.agent.tck.internal.baseline-profile-active>
-                            </systemPropertyVariables>
+                            <additionalClasspathElements>
+                                <additionalClasspathElement>${project.build.directory}/tck-baseline-marker</additionalClasspathElement>
+                            </additionalClasspathElements>
                         </configuration>
                     </plugin>
                 </plugins>
