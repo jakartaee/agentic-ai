@@ -145,11 +145,13 @@ public class OrchestrationTests {
     @Assertion(id = "AGENTICAI-ORCHESTRATION-BHV-001",
                section = "agent-lifecycle",
                strategy = "@Trigger is always the first phase invoked even when declared at the bottom "
-                        + "of the source file — verified via AnchoredAgent where @Trigger is the LAST method declared")
+                        + "of the source file. The complete implementation-dispatched workflow proves "
+                        + "that a trigger-only plain-CDI observation cannot satisfy this assertion.")
     public void triggerIsAlwaysFirstPhaseRegardlessOfPosition() {
         trace.reset();
         anchoredEvents.fire(new AnchoredEvent("test"));
-        assertThat(trace.phases()).startsWith(Phase.TRIGGER);
+        assertThat(trace.phases())
+                .containsExactly(Phase.TRIGGER, Phase.ACTION, Phase.DECISION, Phase.OUTCOME);
     }
 
     @RequiresImplementation
