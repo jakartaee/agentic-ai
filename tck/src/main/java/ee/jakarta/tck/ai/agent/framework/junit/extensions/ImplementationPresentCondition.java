@@ -19,6 +19,9 @@ import org.junit.jupiter.api.extension.ExecutionCondition;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.platform.commons.support.AnnotationSupport;
 
+import java.lang.reflect.AnnotatedElement;
+import java.util.Optional;
+
 /**
  * Selects implementation-dependent or plain-CDI baseline tests.
  *
@@ -27,15 +30,13 @@ import org.junit.platform.commons.support.AnnotationSupport;
  * {@link RequiresImplementation} assertion and reporting false compliance.
  * A run with no compatible implementation fails those assertions; there is no
  * separate "implementation present" flag and no crafted missing-implementation
- * message. CDI 4.0 provides no portable way to probe for a registered
- * workflow context, so selection stays a declared opt-out rather than a
- * structural detection.</p>
+ * message. CDI 4.0 provides no portable way to probe for a registered workflow
+ * context, so selection uses an explicit baseline opt-out.</p>
  *
  * <p>The project plain-CDI baseline is selected only with the {@code baseline}
- * Maven profile ({@code -Pbaseline}). That profile sets
- * {@value #BASELINE_PROPERTY}, which Failsafe passes into the test JVM.
- * Baseline mode enables {@link RequiresNoImplementation} assertions and
- * disables {@link RequiresImplementation} assertions.</p>
+ * Maven profile ({@code -Pbaseline}). The profile passes an internal marker to
+ * the test JVM. Baseline mode enables {@link RequiresNoImplementation}
+ * assertions and disables {@link RequiresImplementation} assertions.</p>
  *
  * @see RequiresImplementation
  * @see RequiresNoImplementation
@@ -43,49 +44,49 @@ import org.junit.platform.commons.support.AnnotationSupport;
 public class ImplementationPresentCondition implements ExecutionCondition {
 
     /**
-     * System property set by the {@code baseline} Maven profile. Not a
-     * supported command-line substitute for {@code -Pbaseline}: Maven does not
-     * forward an arbitrary {@code -D} of this name into Failsafe unless the
-     * profile property {@code tck.baseline} is set.
+     * Internal test-JVM marker set by the {@code baseline} Maven profile.
      */
-    public static final String BASELINE_PROPERTY = "jakarta.ai.agent.tck.baseline";
+    public static final String BASELINE_PROPERTY =
+            "jakarta.ai.agent.tck.internal.baseline-profile-active";
 
     @Override
     public ConditionEvaluationResult evaluateExecutionCondition(ExtensionContext context) {
+        return evaluateCondition(
+                context.getElement(),
+                Boolean.getBoolean(BASELINE_PROPERTY));
+    }
+
+    /**
+     * Resolves a condition without container or system-property access.
+     *
+     * @param element annotated test element
+     * @param baselineRequested whether the plain-CDI baseline profile is active
+     * @return the JUnit execution decision
+     */
+    static ConditionEvaluationResult evaluateCondition(
+            Optional<? extends AnnotatedElement> element,
+            boolean baselineRequested) {
         boolean requiresImplementation = AnnotationSupport.isAnnotated(
-                context.getElement(), RequiresImplementation.class);
+                element, RequiresImplementation.class);
         boolean requiresNoImplementation = AnnotationSupport.isAnnotated(
-                context.getElement(), RequiresNoImplementation.class);
+                element, RequiresNoImplementation.class);
 
         if (!requiresImplementation && !requiresNoImplementation) {
             return ConditionEvaluationResult.enabled("No implementation condition present");
         }
 
-        boolean runAgainstImplementation = runAgainstImplementation(
-                Boolean.getBoolean(BASELINE_PROPERTY));
-
         if (requiresImplementation) {
-            return runAgainstImplementation
-                    ? ConditionEvaluationResult.enabled(
-                            "Implementation mode is the TCK default")
-                    : ConditionEvaluationResult.disabled(
-                            "Plain-CDI baseline explicitly selected");
+            return baselineRequested
+                    ? ConditionEvaluationResult.disabled(
+                            "Plain-CDI baseline explicitly selected")
+                    : ConditionEvaluationResult.enabled(
+                            "Implementation mode is the TCK default");
         }
 
-        return runAgainstImplementation
-                ? ConditionEvaluationResult.disabled(
-                        "Plain-CDI baseline assertions are disabled in implementation mode")
-                : ConditionEvaluationResult.enabled(
-                        "Plain-CDI baseline explicitly selected");
-    }
-
-    /**
-     * Resolves the effective mode without container or system-property access.
-     *
-     * @param baselineRequested whether the plain-CDI baseline was explicitly selected
-     * @return {@code true} for the default implementation mode
-     */
-    static boolean runAgainstImplementation(boolean baselineRequested) {
-        return !baselineRequested;
+        return baselineRequested
+                ? ConditionEvaluationResult.enabled(
+                        "Plain-CDI baseline explicitly selected")
+                : ConditionEvaluationResult.disabled(
+                        "Plain-CDI baseline assertions are disabled in implementation mode");
     }
 }

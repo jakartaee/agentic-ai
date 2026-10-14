@@ -33,8 +33,6 @@
         <assertj.version>3.27.7</assertj.version>
         <yasson.version>3.0.3</yasson.version>
         <cyclonedx.skip>false</cyclonedx.skip>
-        <!-- Implementation mode is the default. Baseline is an explicit opt-out. -->
-        <tck.baseline>false</tck.baseline>
         <!-- Deployed groups stay excluded unless a container profile includes them. -->
         <tck.failsafe.excludedGroups>deployed</tck.failsafe.excludedGroups>
     </properties>
@@ -157,9 +155,6 @@
                         <include>**/*Test.java</include>
                     </includes>
                     <excludedGroups>${tck.failsafe.excludedGroups}</excludedGroups>
-                    <systemPropertyVariables>
-                        <jakarta.ai.agent.tck.baseline>${tck.baseline}</jakarta.ai.agent.tck.baseline>
-                    </systemPropertyVariables>
                 </configuration>
                 <executions>
                     <execution>
@@ -219,9 +214,19 @@
         -->
         <profile>
             <id>baseline</id>
-            <properties>
-                <tck.baseline>true</tck.baseline>
-            </properties>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-failsafe-plugin</artifactId>
+                        <configuration>
+                            <systemPropertyVariables>
+                                <jakarta.ai.agent.tck.internal.baseline-profile-active>true</jakarta.ai.agent.tck.internal.baseline-profile-active>
+                            </systemPropertyVariables>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
         </profile>
         <profile>
             <id>weld-embedded</id>

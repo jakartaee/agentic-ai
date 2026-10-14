@@ -27,27 +27,29 @@ tck/
     └── ee/jakarta/tck/ai/agent/framework/signature/
 ```
 
-## Building the TCK
+## Building and running the TCK
+
+Commands without an Arquillian container profile build the API-level TCK checks only. They are not compatibility results:
 
 ```bash
-# Build the entire project including TCK
 mvn clean install
-
-# Build the TCK module together with required upstream modules
 mvn --projects tck --also-make clean install
+mvn --projects tck --also-make verify
 ```
 
-## Running Tests
-
-Tests are executed using Maven Failsafe, which provides useful pre-integration-test and post-integration-test lifecycle phases:
+A compatibility run requires the implementation under test and its Arquillian container configuration. This repository uses Weld Embedded to prove the fail-closed default. With no compatible implementation present, this command must fail its implementation-dependent assertions:
 
 ```bash
-# Run integration tests
-mvn --projects tck --also-make verify
-
-# Or run the full clean build for the TCK and required upstream modules
-mvn --projects tck --also-make clean install
+mvn --projects tck --also-make verify -Pweld-embedded
 ```
+
+Specification and TCK contributors can explicitly request the plain-CDI baseline. This is the only supported baseline selector:
+
+```bash
+mvn --projects tck --also-make verify -Pweld-embedded,baseline
+```
+
+The baseline command must succeed while skipping implementation-dependent assertions.
 
 ## Test Assertions
 
