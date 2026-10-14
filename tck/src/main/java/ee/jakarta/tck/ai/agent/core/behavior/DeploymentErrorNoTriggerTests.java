@@ -15,7 +15,7 @@ package ee.jakarta.tck.ai.agent.core.behavior;
 import ee.jakarta.tck.ai.agent.core.behavior.agents.deploymenterror.NoTriggerAgent;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Assertion;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Deployed;
-import ee.jakarta.tck.ai.agent.framework.junit.extensions.ImplementationPresentCondition;
+import ee.jakarta.tck.ai.agent.framework.junit.anno.SkipWhenBaseline;
 import jakarta.enterprise.inject.spi.DeploymentException;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.ShouldThrowException;
@@ -23,19 +23,18 @@ import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.EmptyAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 
 /**
  * Deployment-error case G3c (<em>@Trigger cardinality</em>): an agent with no
  * {@code @Trigger} method must be rejected at deployment time.
  *
  * <p>See {@link DeploymentErrorTwoPhaseTests} for why this class is gated at the
- * class level with {@link EnabledIfSystemProperty} rather than a per-method
- * {@code @RequiresImplementation} condition.</p>
+ * class level with {@link SkipWhenBaseline} rather than a per-method
+ * {@code @RequiresImplementation} condition. It runs in the default
+ * implementation mode and is skipped when {@code -Pbaseline} is selected.</p>
  */
 @Deployed
-@EnabledIfSystemProperty(named = ImplementationPresentCondition.IMPLEMENTATION_PRESENT_PROPERTY,
-                         matches = "true")
+@SkipWhenBaseline
 public class DeploymentErrorNoTriggerTests {
 
     @Deployment

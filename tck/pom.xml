@@ -33,6 +33,8 @@
         <assertj.version>3.27.7</assertj.version>
         <yasson.version>3.0.3</yasson.version>
         <cyclonedx.skip>false</cyclonedx.skip>
+        <!-- Deployed groups stay excluded unless a container profile includes them. -->
+        <tck.failsafe.excludedGroups>deployed</tck.failsafe.excludedGroups>
     </properties>
 
     <dependencyManagement>
@@ -152,7 +154,7 @@
                         <include>**/*Tests.java</include>
                         <include>**/*Test.java</include>
                     </includes>
-                    <excludedGroups>deployed</excludedGroups>
+                    <excludedGroups>${tck.failsafe.excludedGroups}</excludedGroups>
                 </configuration>
                 <executions>
                     <execution>
@@ -206,8 +208,58 @@
     </build>
 
     <profiles>
+        <!--
+            Plain-CDI baseline for specification and TCK development.
+            Combine with a container profile such as weld-embedded.
+        -->
+        <profile>
+            <id>baseline</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-resources-plugin</artifactId>
+                        <version>3.3.0</version>
+                        <executions>
+                            <execution>
+                                <id>tck-baseline-marker</id>
+                                <phase>generate-test-resources</phase>
+                                <goals>
+                                    <goal>copy-resources</goal>
+                                </goals>
+                                <configuration>
+                                    <outputDirectory>${project.build.directory}/tck-baseline-marker</outputDirectory>
+                                    <resources>
+                                        <resource>
+                                            <directory>${project.basedir}/src/baseline-marker</directory>
+                                            <filtering>false</filtering>
+                                        </resource>
+                                    </resources>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-failsafe-plugin</artifactId>
+                        <configuration>
+                            <additionalClasspathElements>
+                                <additionalClasspathElement>${project.build.directory}/tck-baseline-marker</additionalClasspathElement>
+                            </additionalClasspathElements>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
         <profile>
             <id>weld-embedded</id>
+            <!--
+                Supplies the plain-CDI container and includes the deployed
+                integration groups. Use with -Pbaseline for the project baseline.
+            -->
+            <properties>
+                <tck.failsafe.excludedGroups></tck.failsafe.excludedGroups>
+            </properties>
             <dependencies>
                 <dependency>
                     <groupId>org.jboss.arquillian.container</groupId>
@@ -222,23 +274,6 @@
                     <scope>test</scope>
                 </dependency>
             </dependencies>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-failsafe-plugin</artifactId>
-                        <version>3.5.2</version>
-                        <configuration combine.self="override">
-                            <testSourceDirectory>src/main/java</testSourceDirectory>
-                            <testClassesDirectory>${project.build.outputDirectory}</testClassesDirectory>
-                            <includes>
-                                <include>**/*Tests.java</include>
-                                <include>**/*Test.java</include>
-                            </includes>
-                        </configuration>
-                    </plugin>
-                </plugins>
-            </build>
         </profile>
         <profile>
             <id>signature-generation</id>
