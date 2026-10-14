@@ -25,11 +25,11 @@ import java.lang.annotation.Target;
  * compatible implementation is dispatching phases — i.e. plain CDI observes the
  * {@code @Trigger} and nothing else runs.
  *
- * <p>When a compatible implementation is present (detected automatically by
- * {@link ImplementationPresentCondition}) it also dispatches the downstream phases, so
- * these trigger-only assertions no longer hold and are superseded by the
- * corresponding {@link RequiresImplementation} behavior tests. They are therefore
- * skipped in implementation mode.</p>
+ * <p>Implementation mode is the TCK default, so
+ * {@link ImplementationPresentCondition} skips these assertions unless the
+ * plain-CDI baseline is selected explicitly with {@code -Pbaseline}. In that
+ * mode they run, and the corresponding {@link RequiresImplementation}
+ * behavior tests are skipped.</p>
  */
 @Target({ ElementType.METHOD, ElementType.TYPE })
 @Retention(RetentionPolicy.RUNTIME)

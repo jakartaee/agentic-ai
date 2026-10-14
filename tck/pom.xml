@@ -33,6 +33,10 @@
         <assertj.version>3.27.7</assertj.version>
         <yasson.version>3.0.3</yasson.version>
         <cyclonedx.skip>false</cyclonedx.skip>
+        <!-- Implementation mode is the default. Baseline is an explicit opt-out. -->
+        <tck.baseline>false</tck.baseline>
+        <!-- Deployed groups stay excluded unless a container profile includes them. -->
+        <tck.failsafe.excludedGroups>deployed</tck.failsafe.excludedGroups>
     </properties>
 
     <dependencyManagement>
@@ -152,7 +156,10 @@
                         <include>**/*Tests.java</include>
                         <include>**/*Test.java</include>
                     </includes>
-                    <excludedGroups>deployed</excludedGroups>
+                    <excludedGroups>${tck.failsafe.excludedGroups}</excludedGroups>
+                    <systemPropertyVariables>
+                        <jakarta.ai.agent.tck.baseline>${tck.baseline}</jakarta.ai.agent.tck.baseline>
+                    </systemPropertyVariables>
                 </configuration>
                 <executions>
                     <execution>
@@ -206,8 +213,25 @@
     </build>
 
     <profiles>
+        <!--
+            Plain-CDI baseline for specification and TCK development.
+            Combine with a container profile such as weld-embedded.
+        -->
+        <profile>
+            <id>baseline</id>
+            <properties>
+                <tck.baseline>true</tck.baseline>
+            </properties>
+        </profile>
         <profile>
             <id>weld-embedded</id>
+            <!--
+                Supplies the plain-CDI container and includes the deployed
+                integration groups. Use with -Pbaseline for the project baseline.
+            -->
+            <properties>
+                <tck.failsafe.excludedGroups></tck.failsafe.excludedGroups>
+            </properties>
             <dependencies>
                 <dependency>
                     <groupId>org.jboss.arquillian.container</groupId>
@@ -222,23 +246,6 @@
                     <scope>test</scope>
                 </dependency>
             </dependencies>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-failsafe-plugin</artifactId>
-                        <version>3.5.2</version>
-                        <configuration combine.self="override">
-                            <testSourceDirectory>src/main/java</testSourceDirectory>
-                            <testClassesDirectory>${project.build.outputDirectory}</testClassesDirectory>
-                            <includes>
-                                <include>**/*Tests.java</include>
-                                <include>**/*Test.java</include>
-                            </includes>
-                        </configuration>
-                    </plugin>
-                </plugins>
-            </build>
         </profile>
         <profile>
             <id>signature-generation</id>

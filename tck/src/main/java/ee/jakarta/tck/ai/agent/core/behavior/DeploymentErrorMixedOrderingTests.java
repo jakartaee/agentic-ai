@@ -24,7 +24,7 @@ import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.EmptyAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
+import org.junit.jupiter.api.condition.DisabledIfSystemProperty;
 
 /**
  * Deployment-error case G3b (<em>Consistency Requirement</em>): mixing explicitly
@@ -32,12 +32,13 @@ import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
  * at deployment time.
  *
  * <p>See {@link DeploymentErrorTwoPhaseTests} for why this class is gated at the
- * class level with {@link EnabledIfSystemProperty} rather than a per-method
- * {@code @RequiresImplementation} condition.</p>
+ * class level with {@link DisabledIfSystemProperty} rather than a per-method
+ * {@code @RequiresImplementation} condition. It runs in the default
+ * implementation mode and is skipped when {@code -Pbaseline} is selected.</p>
  */
 @Deployed
-@EnabledIfSystemProperty(named = ImplementationPresentCondition.IMPLEMENTATION_PRESENT_PROPERTY,
-                         matches = "true")
+@DisabledIfSystemProperty(named = ImplementationPresentCondition.BASELINE_PROPERTY,
+                          matches = "true")
 public class DeploymentErrorMixedOrderingTests {
 
     @Deployment

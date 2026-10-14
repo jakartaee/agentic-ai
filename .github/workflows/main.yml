@@ -30,8 +30,11 @@ jobs:
                   key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
                   restore-keys: ${{ runner.os }}-m2
 
+            # Implementation testing is the TCK default. This project build
+            # explicitly opts into its plain-CDI baseline and supplies the
+            # embedded CDI container.
             - name: Build
-              run: mvn clean install -Pweld-embedded
+              run: mvn clean install -Pweld-embedded,baseline
 
             - name: License Check
               run: |
