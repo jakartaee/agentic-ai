@@ -596,7 +596,7 @@ public class IntakeAgent {
     @Outcome void publishPreparedInquiry(Identity i, Classification c,
                                          Title t, PolishedMessage p) { /* ... */ }
 
-    // on failure, return a minimal record instead of an error
+    // on failure, return a minimal record
     @OnException void onLlmFailure(LLMException e, IntakeRequest r) { /* ... */ }
 }
 </code></pre>
