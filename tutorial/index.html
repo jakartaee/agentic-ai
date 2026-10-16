@@ -574,16 +574,31 @@ public class IntakeAgent {
     @Inject LargeLanguageModel model;
     @Inject IntakeOutput output;
 
-    @Trigger      void onSubmit(@Valid IntakeRequest r)                     // Bean Validation gates it
-    @Decision     boolean looksLikeRealInquiry(IntakeRequest r)              // placeholder/test filter
-    @Action       Identity        enrichIdentity(IntakeRequest r)            // extract name/email, infer company
-    @Action       Classification  classify(IntakeRequest r)                  // route the inquiry
-    @Action       Title           draftTitle(IntakeRequest r)                // short ticketing subject
-    @Decision     boolean hasEnoughContent(Identity id, IntakeRequest r)     // post-enrichment gate
-    @Action       PolishedMessage polish(IntakeRequest r, Classification c)  // rewrite in matching tone
-    @Outcome      void publishPreparedInquiry(Identity i, Classification c,  // packages the four typed
-                                              Title t, PolishedMessage p)    //   records into IntakeRecord
-    @OnException  void onLlmFailure(LLMException e, IntakeRequest r)         // fallback record
+    @Trigger void onSubmit(@Valid IntakeRequest r) { /* ... */ }
+
+    // placeholder/test filter
+    @Decision boolean looksLikeRealInquiry(IntakeRequest r) { return true; }
+
+    // extract name/email, infer company
+    @Action Identity enrichIdentity(IntakeRequest r) { return null; }
+
+    // route the inquiry
+    @Action Classification classify(IntakeRequest r) { return null; }
+
+    // short ticketing subject
+    @Action Title draftTitle(IntakeRequest r) { return null; }
+
+    // post-enrichment gate
+    @Decision boolean hasEnoughContent(Identity id, IntakeRequest r) { return true; }
+
+    // rewrite in matching tone
+    @Action PolishedMessage polish(IntakeRequest r, Classification c) { return null; }
+
+    // packages the four typed records into IntakeRecord
+    @Outcome void publishPreparedInquiry(Identity i, Classification c, Title t, PolishedMessage p) { /* ... */ }
+
+    // fallback record
+    @OnException void onLlmFailure(LLMException e, IntakeRequest r) { /* ... */ }
 }
 </code></pre>
 <h3>The strong design ideas</h3>
