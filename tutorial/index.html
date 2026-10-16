@@ -600,6 +600,18 @@ public class IntakeAgent {
     @OnException void onLlmFailure(LLMException e, IntakeRequest r) { /* ... */ }
 }
 </code></pre>
+<p>Where Example 1 made a single string-in/string-out call, <code>enrichIdentity</code>
+binds the model's JSON reply straight to a typed record via JSON Binding — the
+<code>Identity.class</code> argument tells the runtime what shape to expect:</p>
+<pre><code class="language-java">@Action
+Identity enrichIdentity(IntakeRequest r) {
+    return model.query(
+            "Extract the sender's identity from the inquiry below. Return a JSON "
+                    + "object with keys \"name\", \"email\", \"company\". ...",
+            Identity.class,
+            r.name(), r.email(), r.message());
+}
+</code></pre>
 <h3>The strong design ideas</h3>
 <ol>
 <li><strong>Dataflow is ordering.</strong> Everything that takes only
