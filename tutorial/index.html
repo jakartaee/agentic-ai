@@ -577,26 +577,26 @@ public class IntakeAgent {
     // drop junk submissions before any LLM call
     @Decision boolean looksLikeRealInquiry(IntakeRequest r) { /* ... */ }
 
-    // extract name/email, infer company
+    // fill in missing name/email; infer company from the email domain
     @Action Identity enrichIdentity(IntakeRequest r) { /* ... */ }
 
     // pick which team should handle it
     @Action Classification classify(IntakeRequest r) { /* ... */ }
 
-    // short ticketing subject
+    // draft a short subject line for ticketing
     @Action Title draftTitle(IntakeRequest r) { /* ... */ }
 
-    // post-enrichment gate
+    // stop if there's still no identity and no substantive content
     @Decision boolean hasEnoughContent(Identity id, IntakeRequest r) { /* ... */ }
 
-    // rewrite in matching tone
+    // rewrite the message in a tone that fits the category
     @Action PolishedMessage polish(IntakeRequest r, Classification c) { /* ... */ }
 
-    // packages the four typed records into IntakeRecord
+    // assemble the reviewed record from the four phase results
     @Outcome void publishPreparedInquiry(Identity i, Classification c,
                                          Title t, PolishedMessage p) { /* ... */ }
 
-    // fallback record
+    // write a fallback record if the LLM throws
     @OnException void onLlmFailure(LLMException e, IntakeRequest r) { /* ... */ }
 }
 </code></pre>
