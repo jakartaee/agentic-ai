@@ -568,8 +568,7 @@ domain, picking a routing category, drafting a subject line, and rewriting the m
 a tone that matches that category) and the customer reviews the prepared record before
 confirming.</p>
 <p>The whole agent fits in one class — four actions, two decisions; the runtime chains
-the phases by matching each method's parameters by type (full source at the
-<strong>Source</strong> link above):</p>
+the phases by matching each method's parameters by type:</p>
 <pre><code class="language-java">@Agent(name = &quot;IntakeAgent&quot;)
 public class IntakeAgent {
     @Inject LargeLanguageModel model;
@@ -621,8 +620,7 @@ lesson</strong> that the student sees. It is the example that exercises almost t
 specification and shows the architectural differentiator: <strong>agent composition
 through CDI events</strong>.</p>
 <p>The authoring agent shows ordered phases, per-workflow state, workflow memory,
-defensive JSON-B parsing and an exception handler — all in one class (full source at the
-<strong>Source</strong> link above):</p>
+defensive JSON-B parsing and an exception handler — all in one class:</p>
 <pre><code class="language-java">// Agent 1 — authoring (ordered, workflow memory, defensive parsing)
 @Agent(name = &quot;CourseContentAgent&quot;)
 class CourseContentAgent {
