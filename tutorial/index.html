@@ -595,7 +595,8 @@ public class IntakeAgent {
     @Action PolishedMessage polish(IntakeRequest r, Classification c) { /* ... */ }
 
     // packages the four typed records into IntakeRecord
-    @Outcome void publishPreparedInquiry(Identity i, Classification c, Title t, PolishedMessage p) { /* ... */ }
+    @Outcome void publishPreparedInquiry(Identity i, Classification c,
+                                         Title t, PolishedMessage p) { /* ... */ }
 
     // fallback record
     @OnException void onLlmFailure(LLMException e, IntakeRequest r) { /* ... */ }
