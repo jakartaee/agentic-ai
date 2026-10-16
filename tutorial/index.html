@@ -569,7 +569,7 @@ a tone that matches that category) and the customer reviews the prepared record 
 confirming.</p>
 <p>The whole agent fits in one class — four actions, two decisions; the runtime chains
 the phases by matching each method's parameters by type:</p>
-<pre><code class="language-java">@Agent(name = &quot;IntakeAgent&quot;)
+<pre><code class="language-java">@Agent
 public class IntakeAgent {
 
     @Trigger void onSubmit(@Valid IntakeRequest r) { /* ... */ }
