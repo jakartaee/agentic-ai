@@ -574,7 +574,7 @@ public class IntakeAgent {
 
     @Trigger void onSubmit(@Valid IntakeRequest r) { /* ... */ }
 
-    // placeholder/test filter
+    // drop junk submissions before any LLM call
     @Decision boolean looksLikeRealInquiry(IntakeRequest r) { /* ... */ }
 
     // extract name/email, infer company
