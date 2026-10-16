@@ -613,27 +613,36 @@ Identity enrichIdentity(IntakeRequest r) {
             r.name(), r.email(), r.message());
 }
 </code></pre>
-<h3>The strong design ideas</h3>
-<ol>
-<li><strong>Dataflow is ordering.</strong> Everything that takes only
-<code>IntakeRequest</code> can run first; <code>polish</code> declares
-<code>Classification</code>, so the runtime places it after <code>classify</code>; the
-<code>@Outcome</code> declares all four typed records and so runs after every action.
-This is Example 1's parameter-type threading grown up into a real pipeline.</li>
-<li><strong>Each action does one thing.</strong> Enrich, classify, draft, polish — one
-LLM call each, one typed record out (<code>Identity</code>, <code>Classification</code>,
-<code>Title</code>, <code>PolishedMessage</code>). The <code>@Outcome</code> packages the
-four into the final <code>IntakeRecord</code>; assembly is pure data, so it belongs there,
-not in another action.</li>
-<li><strong>Declarative validation plus an agent-level gate.</strong>
-<code>@Size(min = 20)</code> on the message handles the mechanical length floor through
-Bean Validation. <code>looksLikeRealInquiry</code> catches obvious placeholder/test
-submissions — the kind of check validation can't express.</li>
-<li><strong>Declarative fallback.</strong> <code>@OnException</code> catches an
-<code>LLMException</code> from any phase and writes a minimal fallback
-<code>IntakeRecord</code>, so the review screen always has something to show instead of
-a 500.</li>
-</ol>
+<h3>What it teaches</h3>
+<ul>
+<li><strong>Real workflows are multi-stage pipelines composed from typed data.</strong>
+Each <code>@Action</code> produces one typed record (<code>Identity</code>,
+<code>Classification</code>, <code>Title</code>, <code>PolishedMessage</code>); later
+phases declare only the records they need and the runtime threads them through by type.
+The <code>@Outcome</code> depends on all four and packs them into the final
+<code>IntakeRecord</code> — pure data, no logic.</li>
+<li><strong>The LLM facade returns typed records, not just strings.</strong>
+<code>enrichIdentity</code> calls <code>model.query(prompt, Identity.class, …)</code> and
+the model's JSON reply is bound to an <code>Identity</code> record via JSON Binding — no
+manual parsing. Prompts also take multiple <code>{}</code> arguments of mixed types
+(strings, enums, a <code>List</code>). This is what makes the typed pipeline above
+possible: without typed responses, each stage would have to parse strings itself.</li>
+<li><strong>Validation and <code>@Decision</code> form two independent layers of defense
+on input.</strong> Bean Validation on <code>IntakeRequest</code> (<code>@NotBlank</code>,
+<code>@Size</code>, <code>@Email</code>) rejects malformed submissions automatically,
+before the agent even starts. <code>looksLikeRealInquiry</code> catches obvious
+placeholder submissions that annotations can't easily express. Together they stop junk
+from ever reaching the LLM — no custom code at the REST boundary.</li>
+<li><strong>Decisions aren't limited to the top of the workflow.</strong>
+<code>looksLikeRealInquiry</code> sits before any LLM call, saving work.
+<code>hasEnoughContent</code> sits mid-pipeline, so it can look at both the raw request
+and what <code>enrichIdentity</code> pulled out before deciding whether to continue. A
+<code>@Decision</code> can go wherever the information it needs is available.</li>
+<li><strong><code>@OnException</code> gives the whole agent declarative recovery.</strong>
+A single method, matched by exception type, catches <code>LLMException</code> from any
+phase and hands back a minimal fallback record. The caller always gets a response — no
+try/catch anywhere in the pipeline, no 500, no partial state leaking out.</li>
+</ul>
 <hr>
 <h2>Example 3 — Course Content Studio</h2>
 <p>📦 Source: <a
