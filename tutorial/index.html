@@ -577,22 +577,22 @@ public class IntakeAgent {
     @Trigger void onSubmit(@Valid IntakeRequest r) { /* ... */ }
 
     // placeholder/test filter
-    @Decision boolean looksLikeRealInquiry(IntakeRequest r) { return true; }
+    @Decision boolean looksLikeRealInquiry(IntakeRequest r) { /* ... */ }
 
     // extract name/email, infer company
-    @Action Identity enrichIdentity(IntakeRequest r) { return null; }
+    @Action Identity enrichIdentity(IntakeRequest r) { /* ... */ }
 
     // route the inquiry
-    @Action Classification classify(IntakeRequest r) { return null; }
+    @Action Classification classify(IntakeRequest r) { /* ... */ }
 
     // short ticketing subject
-    @Action Title draftTitle(IntakeRequest r) { return null; }
+    @Action Title draftTitle(IntakeRequest r) { /* ... */ }
 
     // post-enrichment gate
-    @Decision boolean hasEnoughContent(Identity id, IntakeRequest r) { return true; }
+    @Decision boolean hasEnoughContent(Identity id, IntakeRequest r) { /* ... */ }
 
     // rewrite in matching tone
-    @Action PolishedMessage polish(IntakeRequest r, Classification c) { return null; }
+    @Action PolishedMessage polish(IntakeRequest r, Classification c) { /* ... */ }
 
     // packages the four typed records into IntakeRecord
     @Outcome void publishPreparedInquiry(Identity i, Classification c, Title t, PolishedMessage p) { /* ... */ }
