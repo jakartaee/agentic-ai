@@ -600,9 +600,10 @@ public class IntakeAgent {
     @OnException void onLlmFailure(LLMException e, IntakeRequest r) { /* ... */ }
 }
 </code></pre>
-<p>Where Example 1 made a single string-in/string-out call, <code>enrichIdentity</code>
-binds the model's JSON reply straight to a typed record via JSON Binding — the
-<code>Identity.class</code> argument tells the runtime what shape to expect:</p>
+<p>Both examples call the same <code>LargeLanguageModel.query(...)</code> facade, but
+where Example 1 took the plain <code>String</code> overload, <code>enrichIdentity</code>
+passes <code>Identity.class</code> as a target type so the model's JSON reply is bound
+straight to the <code>Identity</code> record via JSON Binding:</p>
 <pre><code class="language-java">@Action
 Identity enrichIdentity(IntakeRequest r) {
     return model.query(
