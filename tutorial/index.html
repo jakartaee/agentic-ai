@@ -571,8 +571,6 @@ confirming.</p>
 the phases by matching each method's parameters by type:</p>
 <pre><code class="language-java">@Agent(name = &quot;IntakeAgent&quot;)
 public class IntakeAgent {
-    @Inject LargeLanguageModel model;
-    @Inject IntakeOutput output;
 
     @Trigger void onSubmit(@Valid IntakeRequest r) { /* ... */ }
 
