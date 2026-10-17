@@ -49,15 +49,15 @@ Automatically generates and applies documentation updates based on code changes,
 
 ### Course Content Studio
 
-Located in `course-content-studio/`, a deployable web application that chains
-two agents through CDI events with a teacher's approval in between. The first
-agent writes a chapter's introduction, quiz and conclusion as ordered
-`@Action`s over a `@WorkflowScoped` draft, binding the quiz to a record with
-the typed `LargeLanguageModel` overload, and rewrites any one section on
-request; on **Approve & publish**, a second agent turns the approved packet
-into the student-facing lesson. Each phase streams to the browser over
-Server-Sent Events, and the student view grades open answers by calling the
-LLM directly from the REST resource. See its
+Located in `course-content-studio/`, a deployable web application with one
+agent per teacher request, each triggered by its own CDI event. The first
+writes a chapter's introduction, quiz and conclusion as ordered `@Action`s
+over a draft its `@Trigger` returns, binding the quiz to a record with the
+typed `LargeLanguageModel` overload; the second rewrites any one section on
+request; on **Approve & publish**, the third checks the packet is complete and
+turns it into the student-facing lesson. Each phase streams to the browser
+over Server-Sent Events, and the student view grades open answers by calling
+the LLM directly from the REST resource. See its
 [README](course-content-studio/README.md).
 
 ## Building

@@ -12,12 +12,14 @@
  *****************************************************************************/
 package ee.jakarta.examples.ai.agent.coursecontentstudio;
 
+import ee.jakarta.examples.ai.agent.coursecontentstudio.model.ChapterSubmitted;
 import ee.jakarta.examples.ai.agent.coursecontentstudio.model.CoursePacket;
-import ee.jakarta.examples.ai.agent.coursecontentstudio.model.CoursePacketRequest;
 import ee.jakarta.examples.ai.agent.coursecontentstudio.model.LessonApproved;
 import ee.jakarta.examples.ai.agent.coursecontentstudio.model.PublishedLesson;
 import ee.jakarta.examples.ai.agent.coursecontentstudio.model.Quiz;
 import ee.jakarta.examples.ai.agent.coursecontentstudio.model.QuizQuestion;
+import ee.jakarta.examples.ai.agent.coursecontentstudio.model.Section;
+import ee.jakarta.examples.ai.agent.coursecontentstudio.model.SectionRefineRequested;
 import jakarta.ai.agent.LLMException;
 import jakarta.ai.agent.LargeLanguageModel;
 import jakarta.enterprise.context.RequestScoped;
@@ -46,10 +48,9 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 /**
- * REST surface for the studio: generate and refine fire the
- * {@link CoursePacketRequest} event and return the resulting packet, approve
- * fires {@link LessonApproved}, and the lesson and grading endpoints serve the
- * student view.
+ * REST surface for the studio: generate, refine and approve each fire the
+ * event of one agent and return the resulting packet; the lesson and grading
+ * endpoints serve the student view.
  */
 @Path("/")
 @RequestScoped
@@ -58,7 +59,10 @@ public class CourseResource {
     private static final Logger LOGGER = Logger.getLogger(CourseResource.class.getName());
 
     @Inject
-    Event<CoursePacketRequest> trigger;
+    Event<ChapterSubmitted> chapters;
+
+    @Inject
+    Event<SectionRefineRequested> refinements;
 
     @Inject
     Event<LessonApproved> approvals;
@@ -68,6 +72,9 @@ public class CourseResource {
 
     @Inject
     PublishedLessonStore publishedLessons;
+
+    @Inject
+    PublishOutput publishOutput;
 
     @Inject
     LargeLanguageModel model;
@@ -105,9 +112,8 @@ public class CourseResource {
     @Path("packet/generate")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response generate(@NotNull GenerateRequest body) {
-        fire(body.runId(), () -> trigger.fire(CoursePacketRequest.generate(
-                body.subject(), body.chapterTitle(), body.chapterBody(), body.runId())));
+    public Response generate(@NotNull ChapterSubmitted chapter) {
+        fire(chapter.runId(), () -> chapters.fire(chapter));
         return respond(store.current());
     }
 
@@ -122,14 +128,8 @@ public class CourseResource {
                     .entity(new Message("Nothing to refine yet — generate a packet first."))
                     .build();
         }
-        if (body.instruction() == null || body.instruction().isBlank()) {
-            return Response.status(Response.Status.BAD_REQUEST)
-                    .entity(new Message("A refine instruction is required.")).build();
-        }
-        String section = body.section() == null || body.section().isBlank()
-                ? "all" : body.section();
-        fire(body.runId(), () -> trigger.fire(CoursePacketRequest.refine(
-                base, section, body.instruction(), body.runId())));
+        fire(body.runId(), () -> refinements.fire(
+                new SectionRefineRequested(base, body.section(), body.instruction(), body.runId())));
         return respond(store.current());
     }
 
@@ -138,12 +138,15 @@ public class CourseResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response approve(@NotNull ApproveRequest body) {
-        CoursePacket approved = store.approve();
-        if (approved == null) {
+        CoursePacket packet = store.current();
+        if (packet == null) {
             return respond(null);
         }
-        fire(body.runId(), () -> approvals.fire(new LessonApproved(approved, body.runId())));
-        return respond(approved);
+        fire(body.runId(), () -> approvals.fire(new LessonApproved(packet, body.runId())));
+        if (publishOutput.stopReason() != null) {
+            return Response.status(422).entity(new Message(publishOutput.stopReason())).build();
+        }
+        return respond(store.approve());
     }
 
     @GET
@@ -242,11 +245,7 @@ public class CourseResource {
         return Response.ok(packet).build();
     }
 
-    public record GenerateRequest(String subject, String chapterTitle, String chapterBody,
-                                  String runId) {
-    }
-
-    public record RefineSectionRequest(String section, String instruction, String runId) {
+    public record RefineSectionRequest(Section section, String instruction, String runId) {
     }
 
     public record ApproveRequest(String runId) {

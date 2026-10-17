@@ -18,12 +18,15 @@ import ee.jakarta.examples.ai.agent.coursecontentstudio.model.Objectives;
 import ee.jakarta.examples.ai.agent.coursecontentstudio.model.PublishedLesson;
 import jakarta.ai.agent.Action;
 import jakarta.ai.agent.Agent;
+import jakarta.ai.agent.Decision;
 import jakarta.ai.agent.LargeLanguageModel;
 import jakarta.ai.agent.Outcome;
 import jakarta.ai.agent.Trigger;
 import jakarta.inject.Inject;
 
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Logger;
 
 /**
@@ -36,13 +39,13 @@ public class PublishAgent {
     private static final Logger LOGGER = Logger.getLogger(PublishAgent.class.getName());
 
     @Inject
-    LargeLanguageModel model;
-
-    @Inject
     SubjectRubric rubric;
 
     @Inject
     PublishedLessonStore published;
+
+    @Inject
+    PublishOutput output;
 
     @Inject
     ProgressTracker progress;
@@ -53,8 +56,33 @@ public class PublishAgent {
         progress.publish(event.runId(), "Publish agent — approved lesson received");
     }
 
+    @Decision
+    boolean isComplete(LessonApproved event) {
+        CoursePacket packet = event.packet();
+        List<String> missing = new ArrayList<>();
+        if (packet.getIntro() == null) {
+            missing.add("introduction");
+        }
+        if (packet.getQuiz() == null) {
+            missing.add("quiz");
+        }
+        if (packet.getConclusion() == null) {
+            missing.add("conclusion");
+        }
+        if (missing.isEmpty()) {
+            LOGGER.info("[DECISION] isComplete: proceed");
+            progress.publish(event.runId(), "Publish agent — packet is complete");
+            return true;
+        }
+        output.setStopReason("Not published: the packet has no " + String.join(" or ", missing)
+                + " yet. Refine it first.");
+        LOGGER.info("[DECISION] isComplete: stop, missing " + missing);
+        progress.publish(event.runId(), "Publish agent — not published, the packet is incomplete");
+        return false;
+    }
+
     @Action
-    Objectives writeObjectives(LessonApproved event) {
+    Objectives writeObjectives(LessonApproved event, LargeLanguageModel model) {
         LOGGER.info("[ACTION] writeObjectives");
         progress.publish(event.runId(), "Publish agent — writing learning objectives…");
         CoursePacket packet = event.packet();
