@@ -47,9 +47,9 @@ Located in `docs-agent/`, this example demonstrates:
 **Purpose:**
 Automatically generates and applies documentation updates based on code changes, showcasing advanced workflow branching and exception handling.
 
-### Course Content Studio
+### Course Planner
 
-Located in `course-content-studio/`, a deployable web application with two
+Located in `course-planner/`, a deployable web application with two
 agents and the teacher in between. The first writes a chapter's introduction,
 quiz and conclusion as ordered `@Action`s over a draft its `@Trigger` returns,
 binding the quiz to a record with the typed `LargeLanguageModel` overload; the
@@ -57,7 +57,7 @@ teacher edits and publishes the lesson; the publication event triggers the
 second, which works out what the lesson teaches and assumes, decides whether
 the syllabus already covers what it assumes, and schedules it in the next week
 — or sends the teacher back to write the prerequisite first. See its
-[README](course-content-studio/README.md).
+[README](course-planner/README.md).
 
 ## Building
 
