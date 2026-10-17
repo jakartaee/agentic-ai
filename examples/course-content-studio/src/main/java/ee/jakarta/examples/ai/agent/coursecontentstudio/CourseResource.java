@@ -46,13 +46,10 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 /**
- * REST surface for the Course Content Studio.
- * <p>
- * Every write endpoint fires the {@link CoursePacketRequest} CDI event. Because
- * {@code Event.fire(...)} is synchronous, the whole agent workflow (all LLM
- * calls) completes before it returns, so the resource can read the finished
- * packet back from the {@link PacketStore} and return it in the same response.
- * Live progress is streamed separately over {@code /api/progress/{runId}}.
+ * REST surface for the studio: generate and refine fire the
+ * {@link CoursePacketRequest} event and return the resulting packet, approve
+ * fires {@link LessonApproved}, and the lesson and grading endpoints serve the
+ * student view.
  */
 @Path("/")
 @RequestScoped
@@ -88,7 +85,6 @@ public class CourseResource {
         return rubric.subjects();
     }
 
-    /** Live phase progress for one run, as Server-Sent Events. */
     @GET
     @Path("progress/{runId}")
     @Produces(MediaType.SERVER_SENT_EVENTS)
@@ -146,13 +142,10 @@ public class CourseResource {
         if (approved == null) {
             return respond(null);
         }
-        // Chain to the second agent: firing this event triggers PublishAgent,
-        // which builds the student-facing lesson synchronously.
         fire(body.runId(), () -> approvals.fire(new LessonApproved(approved, body.runId())));
         return respond(approved);
     }
 
-    /** The student-facing published lesson (produced by PublishAgent). */
     @GET
     @Path("lesson")
     @Produces(MediaType.APPLICATION_JSON)
@@ -165,11 +158,6 @@ public class CourseResource {
         return Response.ok(lesson).build();
     }
 
-    /**
-     * Grades a student's free-text answer to an open question by asking the LLM
-     * for a 0–100 semantic-similarity score against the model answer, then maps
-     * it to a verdict: >= 70 correct, 50–69 partial, &lt; 50 incorrect.
-     */
     @POST
     @Path("quiz/grade")
     @Consumes(MediaType.APPLICATION_JSON)
@@ -214,11 +202,6 @@ public class CourseResource {
         return Math.max(0, Math.min(100, similarity.similarity()));
     }
 
-    /**
-     * Runs one agent workflow and maps what escapes it: a validation failure
-     * on the trigger becomes a 400, an unreachable or failing LLM a 503. The
-     * run's progress stream is closed either way.
-     */
     private void fire(String runId, Runnable workflow) {
         try {
             workflow.run();

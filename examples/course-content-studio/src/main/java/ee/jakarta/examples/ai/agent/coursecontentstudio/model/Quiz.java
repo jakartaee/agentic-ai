@@ -15,11 +15,7 @@ package ee.jakarta.examples.ai.agent.coursecontentstudio.model;
 import java.util.List;
 
 /**
- * A quiz: the typed result of an LLM query. Using a record (instead of parsing
- * a raw String) lets the agent ask for {@code Quiz.class} and receive structured
- * data straight from Jakarta JSON Binding.
- *
- * @param questions the quiz questions
+ * A chapter quiz, bound from the model's JSON reply.
  */
 public record Quiz(List<QuizQuestion> questions) {
 }

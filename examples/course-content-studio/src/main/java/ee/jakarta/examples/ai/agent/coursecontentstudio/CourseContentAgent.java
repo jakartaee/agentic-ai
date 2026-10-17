@@ -26,32 +26,8 @@ import jakarta.validation.Valid;
 import java.util.logging.Logger;
 
 /**
- * Generates a chapter's introduction, quiz and conclusion, and refines them on
- * the teacher's request.
- * <p>
- * No scope annotation is present, so the runtime applies {@code @WorkflowScoped}
- * (the specification default). That is what makes the {@link #draft} instance
- * field safe as per-workflow state: one agent instance exists per workflow
- * execution, so the ordered actions build the packet up incrementally without
- * leaking across concurrent requests.
- * <p>
- * Features on show:
- * <ul>
- *   <li><b>Ordered phases</b> — the {@code @Action} methods carry an explicit
- *       {@code order}, so intro &rarr; quiz &rarr; conclusion run in a
- *       guaranteed sequence (all phases must be ordered once any is).</li>
- *   <li><b>Typed result via JSON-B</b> — the quiz is bound straight to a
- *       {@link Quiz} record by the facade's typed overload.</li>
- *   <li><b>Per-workflow conversational memory</b> — the conclusion query does
- *       not re-send the chapter; it relies on the earlier turns of the same
- *       workflow.</li>
- *   <li><b>Human-in-the-loop</b> — the event carries the mode (generate vs.
- *       refine) and a target section, so the teacher can refine one part.</li>
- *   <li><b>Live progress</b> — each phase reports to {@link ProgressTracker} so
- *       the browser popup shows what the agent is doing.</li>
- * </ul>
- * An {@code LLMException} has no handler here, so it propagates to the
- * container and the REST layer maps it to a 503.
+ * Writes a chapter's introduction, quiz and conclusion in that order, building
+ * the draft up as per-workflow state, and rewrites any one section on request.
  */
 @Agent(name = "CourseContentAgent",
         description = "Generates and refines an intro, quiz and conclusion for a course chapter.")
@@ -80,7 +56,6 @@ public class CourseContentAgent {
     @Inject
     ProgressTracker progress;
 
-    /** Per-workflow state. */
     private CoursePacket draft;
 
     @Trigger
@@ -146,11 +121,9 @@ public class CourseContentAgent {
         if (!request.targets("conclusion")) {
             return;
         }
-        LOGGER.info("[ACTION] writeConclusion (uses workflow memory)");
+        LOGGER.info("[ACTION] writeConclusion");
         progress.publish(request.runId(), "Writing the conclusion (from workflow memory)…");
         if (request.isGenerate()) {
-            // No chapter re-sent: relies on the intro and quiz produced earlier
-            // in this same workflow (per-workflow conversational state).
             draft.setConclusion(model.query(
                     "Based on the chapter and the introduction and quiz you just produced, "
                             + "write a concise one-paragraph conclusion that ties them together. "

@@ -13,14 +13,7 @@
 package ee.jakarta.examples.ai.agent.coursecontentstudio.model;
 
 /**
- * The CDI event fired when the teacher approves a packet. It triggers the
- * second agent ({@code PublishAgent}) — this is agent-to-agent chaining through
- * plain CDI events: the approval gate (human-in-the-loop) decouples the
- * authoring agent from the publishing agent, and each keeps its own workflow
- * and LLM conversation.
- *
- * @param packet the approved {@link CoursePacket}
- * @param runId  correlation id for the live-progress SSE stream
+ * Fired when the teacher approves a packet; triggers {@code PublishAgent}.
  */
 public record LessonApproved(CoursePacket packet, String runId) {
 }

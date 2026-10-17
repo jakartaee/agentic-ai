@@ -13,15 +13,8 @@
 package ee.jakarta.examples.ai.agent.coursecontentstudio.model;
 
 /**
- * The generated learning packet for one chapter: an introduction, a quiz and a
- * conclusion, plus an approval flag.
- * <p>
- * It is a mutable JavaBean on purpose: the agent builds it incrementally across
- * its ordered {@code @Action} phases (intro &rarr; quiz &rarr; conclusion),
- * holding it as per-workflow instance state, then publishes it in the
- * {@code @Outcome}. Jakarta JSON Binding uses the no-arg constructor and the
- * getters/setters to (de)serialize it for the refine round-trip and the REST
- * response.
+ * The learning packet for one chapter, built up section by section by
+ * {@code CourseContentAgent}.
  */
 public class CoursePacket {
 

@@ -18,30 +18,21 @@ import jakarta.enterprise.context.ApplicationScoped;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
- * Holds the single "current" packet the teacher is authoring, and bridges the
- * synchronous CDI event (fired by the REST layer) to the HTTP response: the
- * agent writes the finished packet here in its {@code @Outcome}, and the
- * resource reads it back after {@code Event.fire(...)} returns.
- * <p>
- * This is a single-author demo, so one latest packet is enough. A multi-user
- * app would key packets by author/session.
+ * Holds the packet the teacher is currently authoring.
  */
 @ApplicationScoped
 public class PacketStore {
 
     private final AtomicReference<CoursePacket> current = new AtomicReference<>();
 
-    /** The agent publishes the finished (or refined) packet here. */
     public void publish(CoursePacket packet) {
         current.set(packet);
     }
 
-    /** The latest packet, or {@code null} if nothing has been generated yet. */
     public CoursePacket current() {
         return current.get();
     }
 
-    /** Marks the current packet as approved by the teacher. */
     public CoursePacket approve() {
         CoursePacket packet = current.get();
         if (packet != null) {
