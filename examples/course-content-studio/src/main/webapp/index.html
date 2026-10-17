@@ -10,13 +10,15 @@
   h2 { font-size: 17px; margin: 24px 0 8px; }
   h3 { font-size: 15px; margin: 16px 0 4px; }
   label { display: block; margin: 10px 0 4px; font-weight: 600; }
-  input, select, textarea { width: 100%; box-sizing: border-box; padding: 8px; font: inherit; }
-  textarea { min-height: 140px; }
+  input[type=text], select, textarea { width: 100%; box-sizing: border-box; padding: 8px; font: inherit; }
+  textarea { min-height: 120px; }
   button { margin: 10px 8px 0 0; padding: 8px 14px; font: inherit; cursor: pointer; }
   button:disabled { opacity: .5; cursor: default; }
   .status { margin-top: 8px; color: #555; min-height: 1.5em; }
   .panel { border: 1px solid #ddd; border-radius: 8px; padding: 16px; margin-top: 16px; }
-  .q { margin: 10px 0; }
+  .q { margin: 14px 0; padding: 10px; border: 1px solid #eee; border-radius: 6px; }
+  .q .opt { display: flex; gap: 8px; align-items: center; margin: 4px 0; }
+  .q .opt input[type=text] { flex: 1; }
   .q ul { margin: 4px 0 0 20px; padding: 0; }
   .correct { font-weight: 600; }
   .exp { color: #555; font-size: 14px; }
@@ -35,7 +37,7 @@
     <option>English</option>
   </select>
   <label for="title">Chapter title</label>
-  <input id="title" placeholder="Newton's Second Law">
+  <input type="text" id="title" placeholder="Newton's Second Law">
   <label for="body">Chapter text</label>
   <textarea id="body" placeholder="Paste a few paragraphs of the chapter…"></textarea>
   <button id="generate">Generate packet</button>
@@ -43,22 +45,14 @@
 </section>
 
 <section class="panel" id="packet" hidden>
-  <h2>Packet</h2>
+  <h2>Packet — edit anything, then approve</h2>
   <p class="notice" id="notice" hidden></p>
-  <h3>Introduction</h3><p id="intro"></p>
-  <h3>Quiz</h3><div id="quiz"></div>
-  <h3>Conclusion</h3><p id="conclusion"></p>
-
-  <h2>Refine</h2>
-  <label for="section">Section</label>
-  <select id="section">
-    <option value="INTRO">Introduction</option>
-    <option value="QUIZ">Quiz</option>
-    <option value="CONCLUSION">Conclusion</option>
-  </select>
-  <label for="instruction">Instruction</label>
-  <input id="instruction" placeholder="make the questions harder">
-  <button id="refine">Refine</button>
+  <label for="intro">Introduction</label>
+  <textarea id="intro"></textarea>
+  <label>Quiz</label>
+  <div id="quiz"></div>
+  <label for="conclusion">Conclusion</label>
+  <textarea id="conclusion"></textarea>
   <button id="approve">Approve &amp; publish</button>
   <div class="status" id="packetStatus"></div>
 </section>
@@ -74,6 +68,7 @@
 <script>
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;'}[c]));
+let packet = null;
 
 async function post(url, body, statusEl, btn) {
   btn.disabled = true;
@@ -82,7 +77,7 @@ async function post(url, body, statusEl, btn) {
     const res = await fetch(url, {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
-      body: body ? JSON.stringify(body) : null
+      body: JSON.stringify(body)
     });
     const data = await res.json();
     statusEl.textContent = res.ok ? '' : (data.message || 'Error ' + res.status);
@@ -95,49 +90,60 @@ async function post(url, body, statusEl, btn) {
   }
 }
 
-function renderQuiz(el, quiz) {
-  const questions = (quiz && quiz.questions) || [];
-  el.innerHTML = questions.map((q, i) => `<div class="q">${i + 1}. ${esc(q.prompt)}<ul>${
-    (q.options || []).map((o, j) => `<li class="${j === q.correctIndex ? 'correct' : ''}">${esc(o)}</li>`).join('')
-  }</ul><div class="exp">${esc(q.explanation)}</div></div>`).join('') || '<p class="exp">No questions.</p>';
-}
-
 function renderPacket(p) {
+  packet = p;
   $('packet').hidden = false;
   $('notice').hidden = !p.notice;
   $('notice').textContent = p.notice || '';
-  $('intro').textContent = p.intro || '';
-  renderQuiz($('quiz'), p.quiz);
-  $('conclusion').textContent = p.conclusion || '';
+  $('intro').value = p.intro || '';
+  $('conclusion').value = p.conclusion || '';
+  const questions = (p.quiz && p.quiz.questions) || [];
+  $('quiz').innerHTML = questions.map((q, i) => `<div class="q">
+    <input type="text" class="prompt" value="${esc(q.prompt)}">
+    ${(q.options || []).map((o, j) => `<div class="opt">
+      <input type="radio" name="correct${i}" value="${j}" ${j === q.correctIndex ? 'checked' : ''} title="correct answer">
+      <input type="text" class="option" value="${esc(o)}">
+    </div>`).join('')}
+    <input type="text" class="explanation" value="${esc(q.explanation)}" placeholder="Explanation">
+  </div>`).join('') || '<p class="exp">No questions were generated.</p>';
+}
+
+function editedPacket() {
+  const questions = [...$('quiz').querySelectorAll('.q')].map((el, i) => ({
+    prompt: el.querySelector('.prompt').value,
+    options: [...el.querySelectorAll('.option')].map(o => o.value),
+    correctIndex: Number((el.querySelector(`input[name=correct${i}]:checked`) || {value: 0}).value),
+    explanation: el.querySelector('.explanation').value
+  }));
+  return {
+    subject: packet.subject,
+    chapterTitle: packet.chapterTitle,
+    intro: $('intro').value,
+    quiz: questions.length ? {questions} : null,
+    conclusion: $('conclusion').value
+  };
 }
 
 function renderLesson(l) {
   $('lesson').hidden = false;
   $('objectives').innerHTML = (l.objectives || []).map(o => `<li>${esc(o)}</li>`).join('');
   $('lessonIntro').textContent = l.intro || '';
-  renderQuiz($('lessonQuiz'), l.quiz);
+  const questions = (l.quiz && l.quiz.questions) || [];
+  $('lessonQuiz').innerHTML = questions.map((q, i) => `<div class="q">${i + 1}. ${esc(q.prompt)}<ul>${
+    (q.options || []).map((o, j) => `<li class="${j === q.correctIndex ? 'correct' : ''}">${esc(o)}</li>`).join('')
+  }</ul><div class="exp">${esc(q.explanation)}</div></div>`).join('');
   $('lessonConclusion').textContent = l.conclusion || '';
 }
 
 $('generate').onclick = async () => {
-  const packet = await post('api/packet/generate',
+  const p = await post('api/packet/generate',
     {subject: $('subject').value, chapterTitle: $('title').value, chapterBody: $('body').value},
     $('generateStatus'), $('generate'));
-  if (packet) renderPacket(packet);
-};
-
-$('refine').onclick = async () => {
-  const packet = await post('api/packet/refine-section',
-    {section: $('section').value, instruction: $('instruction').value},
-    $('packetStatus'), $('refine'));
-  if (packet) {
-    renderPacket(packet);
-    $('instruction').value = '';
-  }
+  if (p) renderPacket(p);
 };
 
 $('approve').onclick = async () => {
-  const lesson = await post('api/packet/approve', null, $('packetStatus'), $('approve'));
+  const lesson = await post('api/packet/approve', editedPacket(), $('packetStatus'), $('approve'));
   if (lesson) {
     $('packetStatus').textContent = 'Published.';
     renderLesson(lesson);

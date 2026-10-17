@@ -15,8 +15,6 @@ package ee.jakarta.examples.ai.agent.coursecontentstudio;
 import ee.jakarta.examples.ai.agent.coursecontentstudio.model.ChapterSubmitted;
 import ee.jakarta.examples.ai.agent.coursecontentstudio.model.CoursePacket;
 import ee.jakarta.examples.ai.agent.coursecontentstudio.model.LessonApproved;
-import ee.jakarta.examples.ai.agent.coursecontentstudio.model.Section;
-import ee.jakarta.examples.ai.agent.coursecontentstudio.model.SectionRefineRequested;
 import jakarta.ai.agent.LLMException;
 import jakarta.enterprise.context.RequestScoped;
 import jakarta.enterprise.event.Event;
@@ -39,8 +37,8 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 /**
- * REST surface for the studio: generate, refine and approve each fire the
- * event of one agent and return what it produced.
+ * REST surface for the studio: generate and approve each fire the event of
+ * one agent and return what it produced.
  */
 @Path("/")
 @RequestScoped
@@ -50,9 +48,6 @@ public class CourseResource {
 
     @Inject
     Event<ChapterSubmitted> chapters;
-
-    @Inject
-    Event<SectionRefineRequested> refinements;
 
     @Inject
     Event<LessonApproved> approvals;
@@ -83,27 +78,10 @@ public class CourseResource {
     }
 
     @POST
-    @Path("packet/refine-section")
+    @Path("packet/approve")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response refineSection(@NotNull RefineSectionRequest body) {
-        CoursePacket base = store.current();
-        if (base == null) {
-            return error(Response.Status.BAD_REQUEST, "Nothing to refine yet — generate a packet first.");
-        }
-        fire(() -> refinements.fire(
-                new SectionRefineRequested(base, body.section(), body.instruction())));
-        return Response.ok(store.current()).build();
-    }
-
-    @POST
-    @Path("packet/approve")
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response approve() {
-        CoursePacket packet = store.current();
-        if (packet == null) {
-            return error(Response.Status.BAD_REQUEST, "Nothing to approve yet — generate a packet first.");
-        }
+    public Response approve(@NotNull CoursePacket packet) {
         fire(() -> approvals.fire(new LessonApproved(packet)));
         if (publishOutput.stopReason() != null) {
             return error(Response.Status.fromStatusCode(422), publishOutput.stopReason());
@@ -147,9 +125,6 @@ public class CourseResource {
 
     private static Response error(Response.StatusType status, String message) {
         return Response.status(status).entity(new Message(message)).build();
-    }
-
-    public record RefineSectionRequest(Section section, String instruction) {
     }
 
     public record Message(String message) {

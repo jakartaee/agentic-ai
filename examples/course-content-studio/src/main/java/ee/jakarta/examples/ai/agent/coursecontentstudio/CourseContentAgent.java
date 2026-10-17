@@ -90,6 +90,6 @@ public class CourseContentAgent {
         }
         LOGGER.log(Level.WARNING, "LLM call failed; keeping the sections written so far", failure);
         draft.setNotice("The model failed on one section (" + failure.getMessage()
-                + "). What it had already written is kept; use Refine to write the rest.");
+                + "). What it had already written is kept; fill in the rest before you approve.");
     }
 }

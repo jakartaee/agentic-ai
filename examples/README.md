@@ -49,14 +49,13 @@ Automatically generates and applies documentation updates based on code changes,
 
 ### Course Content Studio
 
-Located in `course-content-studio/`, a deployable web application with one
-agent per teacher request, each triggered by its own CDI event. The first
-writes a chapter's introduction, quiz and conclusion as ordered `@Action`s
-over a draft its `@Trigger` returns, binding the quiz to a record with the
-typed `LargeLanguageModel` overload; the second rewrites any one section on
-request; on **Approve & publish**, the third has the model review the packet
-and, if it passes, publishes the lesson with learning objectives. See its
-[README](course-content-studio/README.md).
+Located in `course-content-studio/`, a deployable web application with two
+agents and the teacher in between. The first writes a chapter's introduction,
+quiz and conclusion as ordered `@Action`s over a draft its `@Trigger` returns,
+binding the quiz to a record with the typed `LargeLanguageModel` overload; the
+teacher edits the packet; on **Approve & publish**, the second has the model
+review it and, if it passes, publishes the lesson with learning objectives. See
+its [README](course-content-studio/README.md).
 
 ## Building
 
