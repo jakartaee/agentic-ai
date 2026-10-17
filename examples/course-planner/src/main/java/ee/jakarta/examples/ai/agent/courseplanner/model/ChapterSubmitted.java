@@ -16,7 +16,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
 /**
- * The event that triggers {@code CourseContentAgent}: a chapter the teacher
+ * The event that triggers {@code LessonAgent}: a chapter the teacher
  * wants a packet written for.
  */
 public record ChapterSubmitted(
