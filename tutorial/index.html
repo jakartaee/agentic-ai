@@ -647,7 +647,7 @@ href="https://github.com/jakartaee/agentic-ai/tree/main/examples/course-planner"
 target="_blank" rel="noopener">examples/course-planner</a></p>
 <p><strong>Two agents with two different jobs, chained by a CDI event, with the teacher
 editing and publishing in between.</strong> The teacher pastes a chapter and picks a
-subject; <code>CourseContentAgent</code> writes an introduction, a quiz and a conclusion.
+subject; <code>LessonAgent</code> writes an introduction, a quiz and a conclusion.
 The teacher edits anything and publishes; the REST layer stores the lesson and fires
 <code>LessonPublished</code>, which triggers <code>SyllabusAgent</code> — a planning job the
 author would never do for itself: work out what the lesson teaches and what it assumes,
@@ -656,7 +656,7 @@ send the teacher back to write the prerequisite first.</p>
 <p>The authoring agent's <code>@Trigger</code> returns the new lesson, and every later
 phase receives it by type. Shown in full apart from the logging:</p>
 <pre><code class="language-java">@Agent
-public class CourseContentAgent {
+public class LessonAgent {
 
     @Inject LargeLanguageModel model;
     @Inject DraftStore drafts;
@@ -673,7 +673,7 @@ public class CourseContentAgent {
     // sends no chapter: the intro and quiz are already in this conversation
     @Action(order = 3) void writeConclusion(Lesson draft) { /* ... */ }
 
-    @Outcome void publish(Lesson draft) { drafts.publish(draft); }
+    @Outcome void storeDraft(Lesson draft) { drafts.set(draft); }
 
     // keep what was written and continue, or re-throw if nothing was
     @OnException void onLlmFailure(LLMException e, Lesson draft) { /* ... */ }
@@ -696,9 +696,9 @@ public class SyllabusAgent {
     @Decision Result prerequisitesCovered(LessonPublished e, Topics topics, LargeLanguageModel model) { /* ... */ }
 
     // minutes of class time and difficulty
-    @Action Slot place(LessonPublished e, Topics topics, LargeLanguageModel model) { /* ... */ }
+    @Action Estimate estimate(LessonPublished e, Topics topics, LargeLanguageModel model) { /* ... */ }
 
-    @Outcome void schedule(LessonPublished e, Topics topics, Slot slot) { /* ... */ }
+    @Outcome void schedule(LessonPublished e, Topics topics, Estimate estimate) { /* ... */ }
 }
 </code></pre>
 <h3>What it teaches</h3>
