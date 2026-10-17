@@ -176,7 +176,7 @@ public class CourseResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response grade(GradeRequest body) {
         PublishedLesson lesson = publishedLessons.current();
-        Quiz quiz = lesson == null ? null : lesson.getQuiz();
+        Quiz quiz = lesson == null ? null : lesson.quiz();
         if (quiz == null || quiz.questions() == null
                 || body == null || body.questionIndex() < 0
                 || body.questionIndex() >= quiz.questions().size()) {
