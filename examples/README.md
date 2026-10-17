@@ -49,20 +49,16 @@ Automatically generates and applies documentation updates based on code changes,
 
 ### Course Content Studio
 
-Located in `course-content-studio/`, this deployable web application demonstrates:
-
-- Ordered `@Decision`/`@Action` phases (intro → quiz → conclusion)
-- Typed LLM results bound with Jakarta JSON Binding
-- Per-workflow conversational memory via `@WorkflowScoped` agents
-- Multi-agent chaining through CDI events with a human-in-the-loop approval gate
-- Resilience with `@OnException`, plus live phase progress over Server-Sent Events
-
-**Purpose:**
-A teacher generates, refines and publishes a lesson (introduction, quiz and
-conclusion) for a chapter. It is a deliberately advanced, end-to-end example that
-exercises features the basic examples do not. See its
-[README](course-content-studio/README.md) for how to run it on a Jakarta EE
-runtime with a Jakarta Agentic AI implementation.
+Located in `course-content-studio/`, a deployable web application that chains
+two agents through CDI events with a teacher's approval in between. The first
+agent writes a chapter's introduction, quiz and conclusion as ordered
+`@Action`s over a `@WorkflowScoped` draft, binding the quiz to a record with
+the typed `LargeLanguageModel` overload, and rewrites any one section on
+request; on **Approve & publish**, a second agent turns the approved packet
+into the student-facing lesson. Each phase streams to the browser over
+Server-Sent Events, and the student view grades open answers by calling the
+LLM directly from the REST resource. See its
+[README](course-content-studio/README.md).
 
 ## Building
 
