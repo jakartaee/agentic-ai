@@ -1,10 +1,10 @@
 # Course Content Studio — Jakarta Agentic AI example
 
-A teacher pastes a chapter, picks a subject and clicks **Generate packet**; an
-agent writes an introduction, a quiz and a conclusion, and the teacher can have
-any one section rewritten from an instruction. On **Approve & publish**, a
-second agent turns the packet into the student-facing lesson, adding learning
-objectives, and a student can take the quiz.
+A teacher pastes a chapter, picks a subject and clicks **Generate packet**; one
+agent writes an introduction, a quiz and a conclusion, another rewrites any one
+section from an instruction, and on **Approve & publish** a third turns the
+packet into the student-facing lesson, adding learning objectives, so a student
+can take the quiz.
 
 ## Configure the LLM
 

@@ -15,10 +15,10 @@
 
     <name>Course Content Studio Example</name>
     <description>
-        Two agents chained through CDI events with a teacher's approval in
-        between: the first writes a chapter's introduction, quiz and conclusion
-        as ordered actions and rewrites any one section on request; the second
-        turns the approved packet into the student-facing lesson.
+        Three agents, one per teacher request, each triggered by its own CDI
+        event: one writes a chapter's introduction, quiz and conclusion as
+        ordered actions, one rewrites any one section on request, and one turns
+        the approved packet into the student-facing lesson.
     </description>
 
     <licenses>
