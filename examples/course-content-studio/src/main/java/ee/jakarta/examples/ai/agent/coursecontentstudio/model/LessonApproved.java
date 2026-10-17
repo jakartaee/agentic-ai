@@ -15,5 +15,5 @@ package ee.jakarta.examples.ai.agent.coursecontentstudio.model;
 /**
  * Fired when the teacher approves a packet; triggers {@code PublishAgent}.
  */
-public record LessonApproved(CoursePacket packet, String runId) {
+public record LessonApproved(CoursePacket packet) {
 }

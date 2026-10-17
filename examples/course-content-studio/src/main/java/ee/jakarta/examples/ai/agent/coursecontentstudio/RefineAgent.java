@@ -23,7 +23,6 @@ import jakarta.ai.agent.Trigger;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 
-import java.util.Locale;
 import java.util.logging.Logger;
 
 /**
@@ -41,19 +40,14 @@ public class RefineAgent {
     @Inject
     PacketStore store;
 
-    @Inject
-    ProgressTracker progress;
-
     @Trigger
     void onRefine(@Valid SectionRefineRequested request) {
         LOGGER.info("[TRIGGER] refine " + request.section() + ": " + request.instruction());
-        progress.publish(request.runId(), "Trigger — refine the " + name(request));
     }
 
     @Action
     CoursePacket rewrite(SectionRefineRequested request) {
         LOGGER.info("[ACTION] rewrite " + request.section());
-        progress.publish(request.runId(), "Rewriting the " + name(request) + "…");
         CoursePacket updated = new CoursePacket(request.draft());
         switch (request.section()) {
             case INTRO -> updated.setIntro(model.query(
@@ -73,13 +67,8 @@ public class RefineAgent {
     }
 
     @Outcome
-    void publish(SectionRefineRequested request, CoursePacket updated) {
+    void publish(CoursePacket updated) {
         store.publish(updated);
-        LOGGER.info("[OUTCOME] " + request.section() + " rewritten for " + updated.getChapterTitle());
-        progress.publish(request.runId(), "Outcome — packet updated");
-    }
-
-    private static String name(SectionRefineRequested request) {
-        return request.section().name().toLowerCase(Locale.ROOT);
+        LOGGER.info("[OUTCOME] packet updated for " + updated.getChapterTitle());
     }
 }

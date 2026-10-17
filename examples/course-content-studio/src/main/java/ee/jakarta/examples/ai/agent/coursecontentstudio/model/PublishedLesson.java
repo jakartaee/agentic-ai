@@ -15,7 +15,7 @@ package ee.jakarta.examples.ai.agent.coursecontentstudio.model;
 import java.util.List;
 
 /**
- * The student-facing lesson: the approved packet plus generated objectives.
+ * The published lesson: the approved packet plus generated objectives.
  */
 public record PublishedLesson(
         String subject,
@@ -23,6 +23,5 @@ public record PublishedLesson(
         List<String> objectives,
         String intro,
         Quiz quiz,
-        String conclusion,
-        String publishedAt) {
+        String conclusion) {
 }

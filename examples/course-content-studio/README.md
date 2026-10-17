@@ -2,9 +2,9 @@
 
 A teacher pastes a chapter, picks a subject and clicks **Generate packet**; one
 agent writes an introduction, a quiz and a conclusion, another rewrites any one
-section from an instruction, and on **Approve & publish** a third turns the
-packet into the student-facing lesson, adding learning objectives, so a student
-can take the quiz.
+section from an instruction, and on **Approve & publish** a third has the model
+review the packet and, if it passes, publishes the lesson with learning
+objectives.
 
 ## Configure the LLM
 
@@ -24,7 +24,7 @@ payara.agentic.llm.system=You are an expert curriculum designer and teacher...
 > implementation, configure the provider the way that implementation
 > documents. To run fully local instead of Claude, switch to
 > `payara.agentic.llm.provider=ollama` / `model=gemma3:12b` — a 12B-class
-> model is recommended so the quiz, objectives and grading steps produce
+> model is recommended so the quiz, review and objectives steps produce
 > well-formed JSON.
 
 ## Prerequisites
@@ -47,6 +47,5 @@ asadmin deploy examples/course-content-studio/target/course-content-studio.war
 
 Open <http://localhost:8080/course-content-studio/>, pick **Physics**, title it
 *Newton's Second Law*, paste a few paragraphs and click **Generate packet**.
-Under **Refine**, choose **Quiz**, ask for *"a final open question the student
-answers in free text"* and click **Refine**. Click **Approve & publish**, then
-**View published lesson** to take the quiz as a student.
+Under **Refine**, choose **Quiz**, type *"make the questions harder"* and click
+**Refine**. Click **Approve & publish**; the published lesson appears below.

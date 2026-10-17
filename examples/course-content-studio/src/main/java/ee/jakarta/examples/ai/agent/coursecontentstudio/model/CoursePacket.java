@@ -22,7 +22,6 @@ public class CoursePacket {
     private String intro;
     private Quiz quiz;
     private String conclusion;
-    private boolean approved;
     private String notice;
 
     public CoursePacket() {
@@ -38,7 +37,6 @@ public class CoursePacket {
         intro = other.intro;
         quiz = other.quiz;
         conclusion = other.conclusion;
-        approved = other.approved;
     }
 
     public String getSubject() {
@@ -79,14 +77,6 @@ public class CoursePacket {
 
     public void setConclusion(String conclusion) {
         this.conclusion = conclusion;
-    }
-
-    public boolean isApproved() {
-        return approved;
-    }
-
-    public void setApproved(boolean approved) {
-        this.approved = approved;
     }
 
     public String getNotice() {
