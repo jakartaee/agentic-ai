@@ -19,9 +19,9 @@ customer-facing contact form backed by a single-agent pipeline. On submit,
 the agent enriches the sender's identity from the message, infers the
 sender's company from the business-email domain, classifies the inquiry,
 drafts a subject line, and polishes the message in that tone; the customer
-reviews the prepared record before confirming. The four `@Action` methods
-are ordered by the data they declare as parameters, not by explicit
-`order=`. See its [README](customer-inquiry-intake/README.md).
+reviews the prepared record before confirming. Each phase receives the
+earlier results it declares as parameters. See its
+[README](customer-inquiry-intake/README.md).
 
 ### Fraud Detection Agent
 
