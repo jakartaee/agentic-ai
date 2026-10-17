@@ -18,7 +18,6 @@ import ee.jakarta.examples.ai.agent.coursecontentstudio.model.Quiz;
 import ee.jakarta.examples.ai.agent.coursecontentstudio.model.QuizQuestion;
 import jakarta.ai.agent.Action;
 import jakarta.ai.agent.Agent;
-import jakarta.ai.agent.Decision;
 import jakarta.ai.agent.LargeLanguageModel;
 import jakarta.ai.agent.Outcome;
 import jakarta.ai.agent.Trigger;
@@ -41,8 +40,8 @@ import java.util.logging.Logger;
  * <p>
  * Features on show:
  * <ul>
- *   <li><b>Ordered phases</b> — {@code @Decision}/{@code @Action} carry an
- *       explicit {@code order}, so intro &rarr; quiz &rarr; conclusion run in a
+ *   <li><b>Ordered phases</b> — the {@code @Action} methods carry an explicit
+ *       {@code order}, so intro &rarr; quiz &rarr; conclusion run in a
  *       guaranteed sequence (all phases must be ordered once any is).</li>
  *   <li><b>Typed result via JSON-B</b> — the quiz is deserialized into a
  *       {@link Quiz} record. Small local models often wrap JSON in code fences,
@@ -104,18 +103,7 @@ public class CourseContentAgent {
         }
     }
 
-    @Decision(order = 1)
-    boolean hasTeachableContent(CoursePacketRequest request) {
-        boolean ok = request.isGenerate()
-                ? request.chapterBody() != null && request.chapterBody().strip().length() >= 80
-                : draft != null;
-        LOGGER.info("[DECISION] hasTeachableContent=" + ok);
-        progress.publish(request.runId(), ok ? "Decision — content looks teachable"
-                : "Decision — not enough content, stopping");
-        return ok;
-    }
-
-    @Action(order = 2)
+    @Action(order = 1)
     void writeIntro(CoursePacketRequest request) {
         if (!request.targets("intro")) {
             return;
@@ -136,7 +124,7 @@ public class CourseContentAgent {
         }
     }
 
-    @Action(order = 3)
+    @Action(order = 2)
     void writeQuiz(CoursePacketRequest request) {
         if (!request.targets("quiz")) {
             return;
@@ -158,7 +146,7 @@ public class CourseContentAgent {
         draft.setQuiz(parseQuiz(request.runId(), raw));
     }
 
-    @Action(order = 4)
+    @Action(order = 3)
     void writeConclusion(CoursePacketRequest request) {
         if (!request.targets("conclusion")) {
             return;

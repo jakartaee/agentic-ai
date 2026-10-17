@@ -19,14 +19,8 @@ package ee.jakarta.examples.ai.agent.coursecontentstudio.model;
  * authoring agent from the publishing agent, and each keeps its own workflow
  * and LLM conversation.
  *
- * @param subject      the subject area
- * @param chapterTitle the chapter title
- * @param packetJson   JSON of the approved {@link CoursePacket}
- * @param runId        correlation id for the live-progress SSE stream
+ * @param packetJson JSON of the approved {@link CoursePacket}
+ * @param runId      correlation id for the live-progress SSE stream
  */
-public record LessonApproved(
-        String subject,
-        String chapterTitle,
-        String packetJson,
-        String runId) {
+public record LessonApproved(String packetJson, String runId) {
 }

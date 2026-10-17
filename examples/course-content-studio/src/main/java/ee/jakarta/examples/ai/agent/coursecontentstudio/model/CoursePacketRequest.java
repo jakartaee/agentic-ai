@@ -13,6 +13,7 @@
 package ee.jakarta.examples.ai.agent.coursecontentstudio.model;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 
 /**
  * The CDI event that triggers the {@code CourseContentAgent} workflow.
@@ -42,7 +43,7 @@ import jakarta.validation.constraints.NotBlank;
 public record CoursePacketRequest(
         @NotBlank String subject,
         String chapterTitle,
-        String chapterBody,
+        @Size(min = 80, message = "paste at least 80 characters of chapter text") String chapterBody,
         String instruction,
         String section,
         String currentDraftJson,

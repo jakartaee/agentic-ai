@@ -17,7 +17,6 @@ import ee.jakarta.examples.ai.agent.coursecontentstudio.model.LessonApproved;
 import ee.jakarta.examples.ai.agent.coursecontentstudio.model.PublishedLesson;
 import jakarta.ai.agent.Action;
 import jakarta.ai.agent.Agent;
-import jakarta.ai.agent.Decision;
 import jakarta.ai.agent.LargeLanguageModel;
 import jakarta.ai.agent.Outcome;
 import jakarta.ai.agent.Trigger;
@@ -71,15 +70,6 @@ public class PublishAgent {
         lesson.setConclusion(packet.getConclusion());
         LOGGER.info("[TRIGGER] publishing approved lesson: " + packet.getChapterTitle());
         progress.publish(event.runId(), "Publish agent — approved lesson received");
-    }
-
-    @Decision
-    boolean hasApprovedContent(LessonApproved event) {
-        boolean ok = lesson != null && lesson.getIntro() != null;
-        LOGGER.info("[DECISION] hasApprovedContent=" + ok);
-        progress.publish(event.runId(), ok ? "Publish agent — content OK"
-                : "Publish agent — nothing to publish");
-        return ok;
     }
 
     @Action

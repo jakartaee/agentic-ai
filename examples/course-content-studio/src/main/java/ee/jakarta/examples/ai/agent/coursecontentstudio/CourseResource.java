@@ -119,14 +119,6 @@ public class CourseResource {
     }
 
     @POST
-    @Path("packet/refine")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response refine(@NotNull RefineRequest body) {
-        return refineSection(new RefineSectionRequest("all", body.instruction(), body.runId()));
-    }
-
-    @POST
     @Path("packet/refine-section")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
@@ -160,9 +152,8 @@ public class CourseResource {
         }
         // Chain to the second agent: firing this event triggers PublishAgent,
         // which builds the student-facing lesson synchronously.
-        fire(body.runId(), () -> approvals.fire(new LessonApproved(
-                approved.getSubject(), approved.getChapterTitle(),
-                store.currentJson(), body.runId())));
+        fire(body.runId(), () -> approvals.fire(
+                new LessonApproved(store.currentJson(), body.runId())));
         return respond(approved);
     }
 
@@ -274,9 +265,6 @@ public class CourseResource {
 
     public record GenerateRequest(String subject, String chapterTitle, String chapterBody,
                                   String runId) {
-    }
-
-    public record RefineRequest(String instruction, String runId) {
     }
 
     public record RefineSectionRequest(String section, String instruction, String runId) {
