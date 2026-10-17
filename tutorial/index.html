@@ -649,68 +649,68 @@ target="_blank" rel="noopener">examples/course-content-studio</a></p>
 editing and publishing in between.</strong> The teacher pastes a chapter and picks a
 subject; <code>CourseContentAgent</code> writes an introduction, a quiz and a conclusion.
 The teacher edits anything and publishes; the REST layer stores the lesson and fires
-<code>LessonPublished</code>, which triggers <code>CatalogueAgent</code> — a back-office
-job the author would never do for itself: work out what the lesson teaches, check it
-doesn't duplicate one already in the course catalogue, and file it by grade level,
-strand, duration and difficulty.</p>
-<p>The authoring agent's <code>@Trigger</code> returns the new packet, and every later
+<code>LessonPublished</code>, which triggers <code>SyllabusAgent</code> — a planning job the
+author would never do for itself: work out what the lesson teaches and what it assumes,
+decide whether the course has taught that yet, and schedule it in the next week, or
+send the teacher back to write the prerequisite first.</p>
+<p>The authoring agent's <code>@Trigger</code> returns the new lesson, and every later
 phase receives it by type. Shown in full apart from the logging:</p>
 <pre><code class="language-java">@Agent
 public class CourseContentAgent {
 
     @Inject LargeLanguageModel model;
-    @Inject PacketStore store;
+    @Inject DraftStore drafts;
 
-    @Trigger CoursePacket onChapter(@Valid ChapterSubmitted c) {
-        return new CoursePacket(c.subject(), c.chapterTitle());
+    @Trigger Lesson onChapter(@Valid ChapterSubmitted c) {
+        return new Lesson(c.subject(), c.chapterTitle());
     }
 
-    @Action(order = 1) void writeIntro(ChapterSubmitted c, CoursePacket draft) { /* ... */ }
+    @Action(order = 1) void writeIntro(ChapterSubmitted c, Lesson draft) { /* ... */ }
 
     // the reply is bound straight to a Quiz record
-    @Action(order = 2) void writeQuiz(ChapterSubmitted c, CoursePacket draft) { /* ... */ }
+    @Action(order = 2) void writeQuiz(ChapterSubmitted c, Lesson draft) { /* ... */ }
 
     // sends no chapter: the intro and quiz are already in this conversation
-    @Action(order = 3) void writeConclusion(CoursePacket draft) { /* ... */ }
+    @Action(order = 3) void writeConclusion(Lesson draft) { /* ... */ }
 
-    @Outcome void publish(CoursePacket draft) { store.publish(draft); }
+    @Outcome void publish(Lesson draft) { drafts.publish(draft); }
 
     // keep what was written and continue, or re-throw if nothing was
-    @OnException void onLlmFailure(LLMException e, CoursePacket draft) { /* ... */ }
+    @OnException void onLlmFailure(LLMException e, Lesson draft) { /* ... */ }
 }
 </code></pre>
-<p>The publish endpoint stores the edited packet as the lesson and fires
-<code>publications.fire(new LessonPublished(lesson))</code>; the catalogue agent declares
+<p>The publish endpoint stores the edited lesson and fires
+<code>publications.fire(new LessonPublished(lesson))</code>; the syllabus agent declares
 that event as its trigger and moves its data from phase to phase by type:</p>
 <pre><code class="language-java">@Agent
-public class CatalogueAgent {
+public class SyllabusAgent {
 
-    @Inject Catalogue catalogue;
+    @Inject Syllabus syllabus;
 
     @Trigger void onPublished(LessonPublished e) { /* ... */ }
 
-    // what the lesson teaches and what a student needs first
+    // what the lesson teaches and what it assumes a student already knows
     @Action Topics extractTopics(LessonPublished e, LargeLanguageModel model) { /* ... */ }
 
-    // the model compares title and topics with the catalogue; a duplicate stops here
-    @Decision Result novel(LessonPublished e, Topics topics, LargeLanguageModel model) { /* ... */ }
+    // the model checks the assumptions against what the syllabus has covered; a gap stops here
+    @Decision Result prerequisitesCovered(LessonPublished e, Topics topics, LargeLanguageModel model) { /* ... */ }
 
-    // grade level, curriculum strand, minutes, difficulty
-    @Action Placement place(LessonPublished e, Topics topics, LargeLanguageModel model) { /* ... */ }
+    // minutes of class time and difficulty
+    @Action Slot place(LessonPublished e, Topics topics, LargeLanguageModel model) { /* ... */ }
 
-    @Outcome void file(LessonPublished e, Topics topics, Placement placement) { /* ... */ }
+    @Outcome void schedule(LessonPublished e, Topics topics, Slot slot) { /* ... */ }
 }
 </code></pre>
 <h3>What it teaches</h3>
 <ul>
-<li><strong>A back-end task triggered by an event.</strong> <code>CatalogueAgent</code> runs
+<li><strong>A back-end task triggered by an event.</strong> <code>SyllabusAgent</code> runs
 because a lesson was published — it observes <code>LessonPublished</code> as its
 <code>@Trigger</code>. Nothing orchestrates the two agents; the teacher's edit-and-publish
 is the step between their workflows, and each has its own LLM conversation.</li>
 <li><strong>State flows from the trigger.</strong> <code>onChapter</code> returns the new
-packet and it becomes workflow state: the three actions, the <code>@Outcome</code> and
-the handler all declare <code>CoursePacket draft</code> and receive the same object. No
-field, no scope annotation.</li>
+lesson and it becomes workflow state: the three actions, the <code>@Outcome</code> and
+the handler all declare <code>Lesson draft</code> and receive the same object. No field,
+no scope annotation.</li>
 <li><strong>Explicit order.</strong> The actions carry <code>order = 1, 2, 3</code>, so
 intro → quiz → conclusion is guaranteed. Once one phase declares an order, all must.</li>
 <li><strong>Conversational memory.</strong> <code>writeConclusion</code> sends no chapter and
@@ -724,14 +724,17 @@ to fill in. When nothing was written yet, it re-throws and the resource answers 
 <code>Topics</code> record, and the decision, the next action and the outcome each declare
 it as a parameter and receive it — the Example 2 shape, next to the author's
 trigger-returned state.</li>
-<li><strong>The model makes a decision, mid-pipeline.</strong> <code>novel</code> sits between
-the two actions and asks the model whether the lesson duplicates one already catalogued,
-returning <code>Result(success, details)</code>: <code>false</code> stops the workflow, the
-lesson stays published, and the teacher is told which entry it duplicates and why; on
-success the <code>Novelty</code> details become workflow state.</li>
-<li><strong>An agent reads application state.</strong> The decision's prompt includes the
-catalogue's existing entries, injected like any CDI bean; an agent isn't limited to its
-event.</li>
+<li><strong>The model makes a decision, mid-pipeline.</strong>
+<code>prerequisitesCovered</code> sits between the two actions and asks the model whether
+what the lesson assumes has already been taught — separating background a student brings
+from earlier schooling from topics this course must teach first — and returns
+<code>Result(success, details)</code>: <code>false</code> stops the workflow, the lesson
+stays published but unscheduled, and the teacher is told which prerequisite to write
+first; on success the <code>Coverage</code> details become workflow state.</li>
+<li><strong>An agent reads state that grows.</strong> The decision's prompt includes the
+syllabus so far, injected like any CDI bean, so each publication changes what the next
+decision can conclude: the second law is refused on an empty syllabus and scheduled once
+the first law is on it.</li>
 <li><strong>The model as a parameter.</strong> All three model-using phases declare
 <code>LargeLanguageModel</code> as a parameter instead of a field; the resolution rules
 supply it like any other.</li>
