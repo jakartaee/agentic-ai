@@ -18,16 +18,22 @@ import ee.jakarta.examples.ai.agent.coursecontentstudio.model.LessonApproved;
 import ee.jakarta.examples.ai.agent.coursecontentstudio.model.PublishedLesson;
 import ee.jakarta.examples.ai.agent.coursecontentstudio.model.Quiz;
 import ee.jakarta.examples.ai.agent.coursecontentstudio.model.QuizQuestion;
+import jakarta.ai.agent.LLMException;
 import jakarta.ai.agent.LargeLanguageModel;
 import jakarta.enterprise.context.RequestScoped;
 import jakarta.enterprise.event.Event;
+import jakarta.enterprise.event.ObserverException;
 import jakarta.inject.Inject;
+import jakarta.validation.ConstraintViolationException;
+import jakarta.validation.constraints.NotNull;
+import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.ServiceUnavailableException;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
@@ -35,8 +41,11 @@ import jakarta.ws.rs.sse.Sse;
 import jakarta.ws.rs.sse.SseEventSink;
 
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * REST surface for the Course Content Studio.
@@ -50,6 +59,8 @@ import java.util.regex.Pattern;
 @Path("/")
 @RequestScoped
 public class CourseResource {
+
+    private static final Logger LOGGER = Logger.getLogger(CourseResource.class.getName());
 
     @Inject
     Event<CoursePacketRequest> trigger;
@@ -100,14 +111,10 @@ public class CourseResource {
     @Path("packet/generate")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response generate(GenerateRequest body) {
-        if (body == null || body.subject() == null || body.subject().isBlank()) {
-            return Response.status(Response.Status.BAD_REQUEST)
-                    .entity(new Message("A subject is required.")).build();
-        }
-        trigger.fire(new CoursePacketRequest(
+    public Response generate(@NotNull GenerateRequest body) {
+        fire(body.runId(), () -> trigger.fire(new CoursePacketRequest(
                 body.subject(), body.chapterTitle(), body.chapterBody(),
-                null, "all", null, body.runId()));
+                null, "all", null, body.runId())));
         return respond(store.current());
     }
 
@@ -115,32 +122,30 @@ public class CourseResource {
     @Path("packet/refine")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response refine(RefineRequest body) {
-        return refineSection(new RefineSectionRequest("all",
-                body == null ? null : body.instruction(),
-                body == null ? null : body.runId()));
+    public Response refine(@NotNull RefineRequest body) {
+        return refineSection(new RefineSectionRequest("all", body.instruction(), body.runId()));
     }
 
     @POST
     @Path("packet/refine-section")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response refineSection(RefineSectionRequest body) {
+    public Response refineSection(@NotNull RefineSectionRequest body) {
         CoursePacket base = store.current();
         if (base == null) {
             return Response.status(Response.Status.BAD_REQUEST)
                     .entity(new Message("Nothing to refine yet — generate a packet first."))
                     .build();
         }
-        if (body == null || body.instruction() == null || body.instruction().isBlank()) {
+        if (body.instruction() == null || body.instruction().isBlank()) {
             return Response.status(Response.Status.BAD_REQUEST)
                     .entity(new Message("A refine instruction is required.")).build();
         }
         String section = body.section() == null || body.section().isBlank()
                 ? "all" : body.section();
-        trigger.fire(new CoursePacketRequest(
+        fire(body.runId(), () -> trigger.fire(new CoursePacketRequest(
                 base.getSubject(), base.getChapterTitle(), null,
-                body.instruction(), section, store.currentJson(), body.runId()));
+                body.instruction(), section, store.currentJson(), body.runId())));
         return respond(store.current());
     }
 
@@ -148,16 +153,16 @@ public class CourseResource {
     @Path("packet/approve")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response approve(ApproveRequest body) {
+    public Response approve(@NotNull ApproveRequest body) {
         CoursePacket approved = store.approve();
         if (approved == null) {
             return respond(null);
         }
         // Chain to the second agent: firing this event triggers PublishAgent,
         // which builds the student-facing lesson synchronously.
-        approvals.fire(new LessonApproved(
+        fire(body.runId(), () -> approvals.fire(new LessonApproved(
                 approved.getSubject(), approved.getChapterTitle(),
-                store.currentJson(), body == null ? null : body.runId()));
+                store.currentJson(), body.runId())));
         return respond(approved);
     }
 
@@ -224,6 +229,39 @@ public class CourseResource {
             }
             return 0;
         }
+    }
+
+    /**
+     * Runs one agent workflow and maps what escapes it: a validation failure
+     * on the trigger becomes a 400, an unreachable or failing LLM a 503. The
+     * run's progress stream is closed either way.
+     */
+    private void fire(String runId, Runnable workflow) {
+        try {
+            workflow.run();
+        } catch (ObserverException wrapper) {
+            Throwable cause = wrapper.getCause();
+            if (cause instanceof ConstraintViolationException violations) {
+                throw new BadRequestException(Response.status(Response.Status.BAD_REQUEST)
+                        .entity(new Message(describe(violations))).build());
+            }
+            if (cause instanceof LLMException) {
+                LOGGER.log(Level.WARNING, "LLM call failed", cause);
+                throw new ServiceUnavailableException(
+                        Response.status(Response.Status.SERVICE_UNAVAILABLE)
+                                .entity(new Message("The LLM backend failed: " + cause.getMessage()))
+                                .build());
+            }
+            throw wrapper;
+        } finally {
+            progress.complete(runId);
+        }
+    }
+
+    private static String describe(ConstraintViolationException e) {
+        return e.getConstraintViolations().stream()
+                .map(v -> v.getPropertyPath() + ": " + v.getMessage())
+                .collect(Collectors.joining("; "));
     }
 
     private Response respond(CoursePacket packet) {
