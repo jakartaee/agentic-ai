@@ -645,75 +645,73 @@ phase.</li>
 <p>📦 Source: <a
 href="https://github.com/jakartaee/agentic-ai/tree/main/examples/course-content-studio"
 target="_blank" rel="noopener">examples/course-content-studio</a></p>
-<p><strong>An advanced use case:</strong> the teacher pastes a chapter's content and picks
-a subject (mathematics, physics, English); an agent generates an <strong>introduction, a
-quiz and a conclusion</strong>; the teacher <strong>refines</strong> by section and, on
-<strong>approval</strong>, a <strong>second agent</strong> builds the <strong>published
-lesson</strong> that the student sees. It is the example that exercises almost the whole
-specification and shows the architectural differentiator: <strong>agent composition
-through CDI events</strong>.</p>
-<p>The authoring agent shows ordered phases, per-workflow state, workflow memory,
-defensive JSON-B parsing and an exception handler — all in one class:</p>
-<pre><code class="language-java">// Agent 1 — authoring (ordered, workflow memory, defensive parsing)
-@Agent(name = &quot;CourseContentAgent&quot;)
-class CourseContentAgent {
-    private CoursePacket draft;                                   // @WorkflowScoped state
-    @Trigger  void onRequest(@Valid CoursePacketRequest r)        // generate | refine
-    @Decision(order = 5)  boolean hasTeachableContent(...)        // gate
-    @Action(order = 10)   void writeIntro(...)                    // prose (per-subject rubric)
-    @Action(order = 20)   void writeQuiz(...)  { draft.setQuiz(parseQuiz(model.query(...))); }
-    @Action(order = 30)   void writeConclusion(...)               // uses workflow memory
-    @Outcome  void publish(...)                                   // writes to PacketStore
-    @OnException void onLlmFailure(LLMException e)                // resilience
+<p><strong>Two agents chained by a CDI event, with the teacher's approval between
+them.</strong> The teacher pastes a chapter and picks a subject;
+<code>CourseContentAgent</code> writes an introduction, a quiz and a conclusion, and
+rewrites any one section on request. On approval the REST layer fires
+<code>LessonApproved</code>, which triggers <code>PublishAgent</code> to add learning
+objectives and publish the lesson a student sees.</p>
+<p>The authoring agent builds one packet across three ordered actions, holding it as
+per-workflow state rather than passing records between phases. Shown here apart from
+the subject rubric and the progress reporting:</p>
+<pre><code class="language-java">@Agent
+public class CourseContentAgent {
+
+    @Inject LargeLanguageModel model;
+    @Inject PacketStore store;
+
+    private CoursePacket draft;
+
+    // generate: start a new packet; refine: copy the current one
+    @Trigger void onRequest(@Valid CoursePacketRequest r) { /* ... */ }
+
+    @Action(order = 1) void writeIntro(CoursePacketRequest r) { /* ... */ }
+
+    // the reply is bound straight to a Quiz record
+    @Action(order = 2) void writeQuiz(CoursePacketRequest r) { /* ... */ }
+
+    // sends no chapter: the intro and quiz are already in this conversation
+    @Action(order = 3) void writeConclusion(CoursePacketRequest r) { /* ... */ }
+
+    @Outcome void publish(CoursePacketRequest r) { store.publish(draft); }
+
+    // keep what was written and continue, or re-throw if nothing was
+    @OnException void onLlmFailure(LLMException e, CoursePacketRequest r) { /* ... */ }
 }
 </code></pre>
-<p>On approval the REST layer fires a <code>LessonApproved</code> event, which is the
-<code>@Trigger</code> of a <strong>second</strong> agent (<code>PublishAgent</code>) — the
-two are composed purely through CDI events, with the human approval as the gate between
-them.</p>
-<h3>The strong design ideas</h3>
-<ol>
-<li><strong>Two agents, chained only by CDI events.</strong> <code>CourseContentAgent</code> generates/
-refines the packet; on approval, the REST layer fires the <code>LessonApproved</code>
-event, which is the <strong><code>@Trigger</code></strong> of a second <code>@Agent</code> (<code>PublishAgent</code>). There
-is no orchestrator: the <strong>human approval</strong> is the gate between them. Each agent
-has its own workflow and its own LLM conversation.</li>
-<li><strong>Truly ordered phases.</strong> The phases carry an explicit <code>order</code>
-(<code>@Decision(order=5)</code>, <code>@Action(order=10/20/30)</code>), guaranteeing intro → quiz →
-conclusion. Note: if <strong>one</strong> phase is ordered, <strong>all</strong> must be, otherwise the
-deploy fails with &quot;Inconsistent order&quot;.</li>
-<li><strong>Per-workflow state in the agent itself.</strong> No scope annotation → the runtime
-applies <code>@WorkflowScoped</code>, so the <code>draft</code> instance field accumulates the packet
-across phases safely (one instance per execution).</li>
-<li><strong>Workflow conversational memory.</strong> The conclusion does <strong>not</strong> re-send the
-chapter: it relies on the earlier turns (intro and quiz) of the same workflow
-conversation.</li>
-<li><strong>Typed result via JSON-B, with defensive parsing.</strong> The quiz becomes a <code>Quiz</code>
-record. Because small models wrap JSON in code fences, <code>parseQuiz</code> <strong>strips the
-fences and extracts the object</strong> before binding, with a placeholder quiz as a
-last resort — the workflow never aborts on bad JSON.</li>
-<li><strong>Per-section HITL.</strong> The event carries the mode (<code>currentDraftJson</code> blank →
-generate; filled → refine) and the <code>section</code>, so <code>refine-section</code> rewrites
-<strong>only the quiz</strong> (or only the intro), preserving the rest.</li>
-<li><strong>Live progress (SSE).</strong> Since <code>Event.fire</code> is synchronous, each phase reports
-to a <code>ProgressTracker</code> that streams over Server-Sent Events; the browser popup
-evolves with the agent's real steps.</li>
-<li><strong>Polymorphic quiz + LLM grading.</strong> <code>QuizQuestion</code> has a <code>type</code>
-(<code>multiple_choice</code> | <code>open</code>). For an <strong>open</strong> question the student answers in a
-<code>&lt;textarea&gt;</code> and the <code>quiz/grade</code> endpoint asks the LLM for a semantic-similarity
-score against the <code>sampleAnswer</code>, mapped on the server to a verdict. A specification
-detail worth citing: this endpoint <strong>injects the <code>LargeLanguageModel</code> directly</strong>
-into a <code>@RequestScoped</code> resource — it works because the runtime's LLM is
-<code>@Dependent</code> (it needs no active workflow), so not every use of the model must be
-inside an agent.</li>
-</ol>
-<h3>Details worth highlighting</h3>
+<p>The hand-off to the second agent is one event: the approval endpoint fires it, and
+<code>PublishAgent</code> declares it as its trigger.</p>
+<pre><code class="language-java">// CourseResource, on "Approve &amp; publish"
+approvals.fire(new LessonApproved(approved, runId));
+
+// PublishAgent
+@Trigger void onApproved(LessonApproved event) { /* ... */ }
+@Action Objectives writeObjectives(LessonApproved event) { /* ... */ }
+@Outcome void publish(LessonApproved event, Objectives objectives) { /* ... */ }
+</code></pre>
+<h3>What it teaches</h3>
 <ul>
-<li>The student view (<code>student.html</code>) shows the lesson with an <strong>interactive quiz</strong>
-that closes the generate → review → <strong>publish</strong> → consume narrative.</li>
-<li>Maths/physics formulas are rendered with <strong>self-hosted MathJax</strong>, so rendering
-works <strong>offline</strong>.</li>
-<li>Everything is single-author (single-slot stores), consistent with a live demo.</li>
+<li><strong>Agents compose through CDI events.</strong> <code>PublishAgent</code> observes
+<code>LessonApproved</code> as its <code>@Trigger</code>; nothing orchestrates the two, and
+the teacher's approval is the step between their workflows. Each has its own LLM
+conversation.</li>
+<li><strong>Per-workflow state in the agent itself.</strong> With no scope annotation the
+agent is <code>@WorkflowScoped</code>, so <code>draft</code> is one instance per execution:
+the actions fill it in and the <code>@Outcome</code> publishes it. The same event drives
+both modes — with a draft present, the trigger copies it and only the targeted section
+is rewritten.</li>
+<li><strong>Explicit order.</strong> The actions carry <code>order = 1, 2, 3</code>, so
+intro → quiz → conclusion is guaranteed. Once one phase declares an order, all must.</li>
+<li><strong>Conversational memory.</strong> <code>writeConclusion</code> sends no chapter and
+has no <code>{}</code>; its prompt refers to "the introduction and quiz you just
+produced", which the per-workflow conversation still holds.</li>
+<li><strong>Recovery that continues or stops.</strong> When a section fails after others
+were written, <code>onLlmFailure</code> returns normally: the remaining actions and the
+<code>@Outcome</code> still run, and the packet carries a notice naming what to retry.
+When nothing was written yet, it re-throws and the resource answers 503.</li>
+<li><strong>The model outside an agent.</strong> The quiz-grading endpoint injects
+<code>LargeLanguageModel</code> directly into a <code>@RequestScoped</code> resource to
+score a student's open answer; the facade needs no active workflow.</li>
 </ul>
 </section>
 <section class="chapter" id="ch-5" data-num="5">
