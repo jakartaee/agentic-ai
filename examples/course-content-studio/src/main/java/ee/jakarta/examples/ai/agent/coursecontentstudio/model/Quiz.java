@@ -14,8 +14,5 @@ package ee.jakarta.examples.ai.agent.coursecontentstudio.model;
 
 import java.util.List;
 
-/**
- * A chapter quiz, bound from the model's JSON reply.
- */
 public record Quiz(List<QuizQuestion> questions) {
 }

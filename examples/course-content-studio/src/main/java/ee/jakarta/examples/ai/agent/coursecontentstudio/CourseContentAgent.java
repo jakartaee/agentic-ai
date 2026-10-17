@@ -29,8 +29,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * Writes a chapter's introduction, quiz and conclusion in that order, building
- * the draft up as per-workflow state, and rewrites any one section on request.
+ * Writes a chapter's introduction, quiz and conclusion, and rewrites any one
+ * section on request.
  */
 @Agent(name = "CourseContentAgent",
         description = "Generates and refines an intro, quiz and conclusion for a course chapter.")

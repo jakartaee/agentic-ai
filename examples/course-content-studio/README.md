@@ -1,12 +1,10 @@
 # Course Content Studio — Jakarta Agentic AI example
 
 A teacher pastes a chapter, picks a subject and clicks **Generate packet**; an
-agent writes an introduction, a quiz and a conclusion, in that order, and the
-teacher can have any one section rewritten from an instruction. On **Approve &
-publish**, a second agent — triggered by the approval event — turns the packet
-into the student-facing lesson, adding learning objectives. The student view
-checks multiple-choice answers locally and grades open questions by asking the
-LLM directly from the REST resource.
+agent writes an introduction, a quiz and a conclusion, and the teacher can have
+any one section rewritten from an instruction. On **Approve & publish**, a
+second agent turns the packet into the student-facing lesson, adding learning
+objectives, and a student can take the quiz.
 
 ## Configure the LLM
 
@@ -48,8 +46,7 @@ asadmin deploy examples/course-content-studio/target/course-content-studio.war
 ```
 
 Open <http://localhost:8080/course-content-studio/>, pick **Physics**, title it
-*Newton's Second Law*, paste a few paragraphs and click **Generate packet**;
-the popup streams the phases as they run. Under **Refine**, choose **Quiz** and
-ask for *"a final open question the student answers in free text"* — only the
-quiz changes. Click **Approve & publish**, then **View published lesson** to
-take the quiz as a student; the open question is graded by the LLM.
+*Newton's Second Law*, paste a few paragraphs and click **Generate packet**.
+Under **Refine**, choose **Quiz**, ask for *"a final open question the student
+answers in free text"* and click **Refine**. Click **Approve & publish**, then
+**View published lesson** to take the quiz as a student.
