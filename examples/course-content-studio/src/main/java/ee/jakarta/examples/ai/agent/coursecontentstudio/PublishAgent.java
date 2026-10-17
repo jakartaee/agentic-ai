@@ -18,9 +18,7 @@ import ee.jakarta.examples.ai.agent.coursecontentstudio.model.PublishedLesson;
 import jakarta.ai.agent.Action;
 import jakarta.ai.agent.Agent;
 import jakarta.ai.agent.Decision;
-import jakarta.ai.agent.LLMException;
 import jakarta.ai.agent.LargeLanguageModel;
-import jakarta.ai.agent.OnException;
 import jakarta.ai.agent.Outcome;
 import jakarta.ai.agent.Trigger;
 import jakarta.inject.Inject;
@@ -61,11 +59,9 @@ public class PublishAgent {
     ProgressTracker progress;
 
     private PublishedLesson lesson;
-    private String runId;
 
     @Trigger
     void onApproved(LessonApproved event) {
-        runId = event.runId();
         CoursePacket packet = Json.instance().fromJson(event.packetJson(), CoursePacket.class);
         lesson = new PublishedLesson();
         lesson.setSubject(packet.getSubject());
@@ -74,14 +70,14 @@ public class PublishAgent {
         lesson.setQuiz(packet.getQuiz());
         lesson.setConclusion(packet.getConclusion());
         LOGGER.info("[TRIGGER] publishing approved lesson: " + packet.getChapterTitle());
-        progress.publish(runId, "Publish agent — approved lesson received");
+        progress.publish(event.runId(), "Publish agent — approved lesson received");
     }
 
     @Decision
     boolean hasApprovedContent(LessonApproved event) {
         boolean ok = lesson != null && lesson.getIntro() != null;
         LOGGER.info("[DECISION] hasApprovedContent=" + ok);
-        progress.publish(runId, ok ? "Publish agent — content OK"
+        progress.publish(event.runId(), ok ? "Publish agent — content OK"
                 : "Publish agent — nothing to publish");
         return ok;
     }
@@ -89,7 +85,7 @@ public class PublishAgent {
     @Action
     void writeObjectives(LessonApproved event) {
         LOGGER.info("[ACTION] writeObjectives");
-        progress.publish(runId, "Publish agent — writing learning objectives…");
+        progress.publish(event.runId(), "Publish agent — writing learning objectives…");
         String raw = model.query(
                 rubric.forSubject(lesson.getSubject())
                         + "\nWrite exactly three short 'What you'll learn' bullet points for a "
@@ -104,22 +100,7 @@ public class PublishAgent {
         lesson.setPublishedAt(Instant.now().toString());
         published.publish(lesson);
         LOGGER.info("[OUTCOME] lesson published: " + lesson.getChapterTitle());
-        progress.publish(runId, "Publish agent — lesson is live");
-        progress.complete(runId);
-    }
-
-    @OnException
-    void onLlmFailure(LLMException e) {
-        LOGGER.warning("[HANDLE] publish LLM failure: " + e.getMessage());
-        if (lesson != null) {
-            if (lesson.getObjectives() == null) {
-                lesson.setObjectives(List.of("Review the chapter and complete the quiz."));
-            }
-            lesson.setPublishedAt(Instant.now().toString());
-            published.publish(lesson);
-        }
-        progress.publish(runId, "Publish agent — published without generated objectives");
-        progress.complete(runId);
+        progress.publish(event.runId(), "Publish agent — lesson is live");
     }
 
     /** Splits model output into clean, non-empty lines, dropping bullet markers. */
