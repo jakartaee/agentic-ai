@@ -27,7 +27,6 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 
 import java.util.Map;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -64,11 +63,7 @@ public class IntakeResource {
                         .entity(new Message(describe(violations))).build();
             }
             if (cause instanceof LLMException) {
-                LOGGER.log(Level.WARNING, "LLM call failed", cause);
-                return Response.status(Response.Status.SERVICE_UNAVAILABLE)
-                        .entity(new Message("We could not prepare your inquiry right now. "
-                                + "Please try again in a moment."))
-                        .build();
+                return Response.ok(output.record()).build();
             }
             throw wrapper;
         }

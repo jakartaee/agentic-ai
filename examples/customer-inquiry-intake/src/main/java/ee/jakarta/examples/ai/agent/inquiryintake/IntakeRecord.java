@@ -12,10 +12,24 @@
  *****************************************************************************/
 package ee.jakarta.examples.ai.agent.inquiryintake;
 
+import java.util.Objects;
+
 /**
  * The output of the {@link IntakeAgent} pipeline: resolved identity, chosen
  * category, drafted subject line, and the polished message. Shown to the
  * customer on the review screen before they confirm.
  */
-public record IntakeRecord(Identity identity, Classification classification, String title, String message) {
+public record IntakeRecord(Identity identity, Classification classification, String title, String message,
+                           String notice) {
+
+    public static IntakeRecord asTyped(IntakeRequest request) {
+        return new IntakeRecord(
+                new Identity(Objects.requireNonNullElse(request.name(), ""),
+                             Objects.requireNonNullElse(request.email(), ""), ""),
+                Classification.GENERAL,
+                "",
+                request.message(),
+                "We could not prepare your inquiry automatically, so here it is as you typed it. "
+                        + "You can still edit and send it.");
+    }
 }

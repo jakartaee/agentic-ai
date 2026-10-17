@@ -52,3 +52,8 @@ fields blank, type a message that mentions you by name (for example *"Hi, I'm
 Jane Smith from Acme &lt;jane@acme.com&gt; — our EE 8 app on Payara 5 needs
 to be on EE 10 before our audit in three months. Who should we talk to?"*),
 and click **Prepare inquiry**.
+
+If the model is unreachable, the agent's `@OnException` hands the inquiry
+back as typed — identity as entered, routed as `GENERAL`, no subject line —
+with a notice on the review screen, and re-throws so none of the remaining
+phases run. The customer can still edit and send it.

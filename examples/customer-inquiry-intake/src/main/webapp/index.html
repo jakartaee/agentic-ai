@@ -236,6 +236,7 @@
             }
             const record = await res.json();
             fillReview(record);
+            $('reviewStatus').textContent = record.notice || '';
             $('intakeCard').hidden = true;
             $('reviewCard').hidden = false;
             window.scrollTo({ top: 0, behavior: 'smooth' });
