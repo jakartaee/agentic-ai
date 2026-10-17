@@ -41,12 +41,6 @@ public class PacketStore {
         return current.get();
     }
 
-    /** JSON of the current packet, used as the refine round-trip payload. */
-    public String currentJson() {
-        CoursePacket packet = current.get();
-        return packet == null ? null : Json.instance().toJson(packet);
-    }
-
     /** Marks the current packet as approved by the teacher. */
     public CoursePacket approve() {
         CoursePacket packet = current.get();

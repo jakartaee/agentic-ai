@@ -40,6 +40,14 @@ public class CoursePacket {
         this.chapterTitle = chapterTitle;
     }
 
+    public CoursePacket(CoursePacket other) {
+        this(other.subject, other.chapterTitle);
+        intro = other.intro;
+        quiz = other.quiz;
+        conclusion = other.conclusion;
+        approved = other.approved;
+    }
+
     public String getSubject() {
         return subject;
     }
