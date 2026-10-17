@@ -32,12 +32,4 @@ public class PacketStore {
     public CoursePacket current() {
         return current.get();
     }
-
-    public CoursePacket approve() {
-        CoursePacket packet = current.get();
-        if (packet != null) {
-            packet.setApproved(true);
-        }
-        return packet;
-    }
 }

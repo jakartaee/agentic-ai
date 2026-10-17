@@ -18,11 +18,6 @@ public record Quiz(List<QuizQuestion> questions) {
 
     /** The JSON shape a model reply must have to bind to this record. */
     public static final String SCHEMA =
-            "Return ONLY valid JSON, no markdown fences. Each question has a \"type\". "
-            + "Multiple-choice: {\"type\":\"multiple_choice\",\"prompt\":\"...\","
-            + "\"options\":[\"a\",\"b\",\"c\",\"d\"],\"correctIndex\":0,\"explanation\":\"...\"}. "
-            + "Open/subjective (student answers in free text): "
-            + "{\"type\":\"open\",\"prompt\":\"...\",\"sampleAnswer\":\"a concise model answer\"}. "
-            + "Wrap them as {\"questions\":[ ... ]}. Use \"multiple_choice\" unless an open "
-            + "question is explicitly requested.";
+            "Return ONLY valid JSON of the form {\"questions\":[{\"prompt\":\"...\","
+            + "\"options\":[\"a\",\"b\",\"c\",\"d\"],\"correctIndex\":0,\"explanation\":\"...\"}]}.";
 }

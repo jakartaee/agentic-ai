@@ -22,6 +22,5 @@ import jakarta.validation.constraints.NotNull;
 public record SectionRefineRequested(
         @NotNull CoursePacket draft,
         @NotNull Section section,
-        @NotBlank String instruction,
-        String runId) {
+        @NotBlank String instruction) {
 }

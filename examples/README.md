@@ -55,9 +55,7 @@ writes a chapter's introduction, quiz and conclusion as ordered `@Action`s
 over a draft its `@Trigger` returns, binding the quiz to a record with the
 typed `LargeLanguageModel` overload; the second rewrites any one section on
 request; on **Approve & publish**, the third has the model review the packet
-and, if it passes, turns it into the student-facing lesson. Each phase streams to the browser
-over Server-Sent Events, and the student view grades open answers by calling
-the LLM directly from the REST resource. See its
+and, if it passes, publishes the lesson with learning objectives. See its
 [README](course-content-studio/README.md).
 
 ## Building

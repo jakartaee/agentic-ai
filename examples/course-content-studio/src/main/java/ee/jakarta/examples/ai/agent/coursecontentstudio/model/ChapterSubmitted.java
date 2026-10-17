@@ -21,7 +21,6 @@ import jakarta.validation.constraints.Size;
  */
 public record ChapterSubmitted(
         @NotBlank String subject,
-        String chapterTitle,
-        @NotBlank @Size(min = 80, message = "paste at least 80 characters of chapter text") String chapterBody,
-        String runId) {
+        @NotBlank String chapterTitle,
+        @NotBlank @Size(min = 80, message = "paste at least 80 characters of chapter text") String chapterBody) {
 }
