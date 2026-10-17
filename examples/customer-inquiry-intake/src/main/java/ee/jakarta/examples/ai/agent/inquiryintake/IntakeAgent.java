@@ -53,16 +53,16 @@ public class IntakeAgent {
     boolean looksLikeRealInquiry(IntakeRequest request) {
         if (looksLikePlaceholderText(request.message())) {
             output.setStopReason("This looks like a test or placeholder submission. Please send your actual inquiry.");
-            LOGGER.info("[DECISION looksLikeRealInquiry] stop: placeholder/test submission");
+            LOGGER.info("[DECISION] looksLikeRealInquiry: stop, placeholder/test submission");
             return false;
         }
-        LOGGER.info("[DECISION looksLikeRealInquiry] proceed");
+        LOGGER.info("[DECISION] looksLikeRealInquiry: proceed");
         return true;
     }
 
     @Action
     Identity enrichIdentity(IntakeRequest request) {
-        LOGGER.info("[ACTION enrichIdentity] extracting identity and inferring company from email domain");
+        LOGGER.info("[ACTION] enrichIdentity");
         Identity extracted = model.query(
                 "Extract the sender's identity from the inquiry below. Return a JSON object "
                         + "with exactly these keys: \"name\", \"email\", \"company\". For "
@@ -87,7 +87,7 @@ public class IntakeAgent {
 
     @Action
     Classification classify(IntakeRequest request) {
-        LOGGER.info("[ACTION classify]");
+        LOGGER.info("[ACTION] classify");
         String raw = model.query(
                 "Classify this customer inquiry into exactly one of: {}. Return only the single word.\n\n{}",
                 List.of(Classification.values()), request.message());
@@ -100,7 +100,7 @@ public class IntakeAgent {
 
     @Action
     Title draftTitle(IntakeRequest request) {
-        LOGGER.info("[ACTION draftTitle]");
+        LOGGER.info("[ACTION] draftTitle");
         String raw = model.query(
                 "Write a short subject line for this customer inquiry, suitable for a "
                         + "ticketing system. Keep it under 60 characters, focus on the main "
@@ -118,7 +118,7 @@ public class IntakeAgent {
         boolean anyIdentity = notBlank(identity.name()) || notBlank(identity.email());
         boolean substantive = request.message().strip().split("\\s+").length >= 6;
         boolean proceed = anyIdentity || substantive;
-        LOGGER.info("[DECISION hasEnoughContent] proceed=" + proceed
+        LOGGER.info("[DECISION] hasEnoughContent: proceed=" + proceed
                 + " (anyIdentity=" + anyIdentity + ", substantive=" + substantive + ")");
         if (!proceed) {
             output.setStopReason("We could not route this inquiry. Please add your name or email, "
@@ -129,7 +129,7 @@ public class IntakeAgent {
 
     @Action
     PolishedMessage polish(IntakeRequest request, Classification classification) {
-        LOGGER.info("[ACTION polish] (" + classification + ")");
+        LOGGER.info("[ACTION] polish (" + classification + ")");
         String text = model.query(
                 "Rewrite the following customer inquiry to be clear, concise, and professional. "
                         + "The inquiry is categorised as {}, so adopt that register. Keep the "
