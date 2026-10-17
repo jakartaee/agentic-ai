@@ -39,7 +39,7 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 /**
- * REST surface for the studio: generate fires the authoring agent and returns
+ * REST surface for the planner: generate fires the authoring agent and returns
  * the draft; publish stores the edited lesson, fires the syllabus agent and
  * returns the lesson with its week on the syllabus.
  */
