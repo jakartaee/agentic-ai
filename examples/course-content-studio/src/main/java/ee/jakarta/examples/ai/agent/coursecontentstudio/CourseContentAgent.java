@@ -13,7 +13,7 @@
 package ee.jakarta.examples.ai.agent.coursecontentstudio;
 
 import ee.jakarta.examples.ai.agent.coursecontentstudio.model.ChapterSubmitted;
-import ee.jakarta.examples.ai.agent.coursecontentstudio.model.CoursePacket;
+import ee.jakarta.examples.ai.agent.coursecontentstudio.model.Lesson;
 import ee.jakarta.examples.ai.agent.coursecontentstudio.model.Quiz;
 import jakarta.ai.agent.Action;
 import jakarta.ai.agent.Agent;
@@ -41,16 +41,16 @@ public class CourseContentAgent {
     LargeLanguageModel model;
 
     @Inject
-    PacketStore store;
+    DraftStore drafts;
 
     @Trigger
-    CoursePacket onChapter(@Valid ChapterSubmitted chapter) {
+    Lesson onChapter(@Valid ChapterSubmitted chapter) {
         LOGGER.info("[TRIGGER] new " + chapter.subject() + " chapter: " + chapter.chapterTitle());
-        return new CoursePacket(chapter.subject(), chapter.chapterTitle());
+        return new Lesson(chapter.subject(), chapter.chapterTitle());
     }
 
     @Action(order = 1)
-    void writeIntro(ChapterSubmitted chapter, CoursePacket draft) {
+    void writeIntro(ChapterSubmitted chapter, Lesson draft) {
         LOGGER.info("[ACTION] writeIntro");
         draft.setIntro(model.query(
                 "You are a {} teacher. Write an engaging two-paragraph introduction for this "
@@ -59,7 +59,7 @@ public class CourseContentAgent {
     }
 
     @Action(order = 2)
-    void writeQuiz(ChapterSubmitted chapter, CoursePacket draft) {
+    void writeQuiz(ChapterSubmitted chapter, Lesson draft) {
         LOGGER.info("[ACTION] writeQuiz");
         draft.setQuiz(model.query(
                 "You are a {} teacher. Create exactly 4 multiple-choice questions on this "
@@ -69,7 +69,7 @@ public class CourseContentAgent {
     }
 
     @Action(order = 3)
-    void writeConclusion(CoursePacket draft) {
+    void writeConclusion(Lesson draft) {
         LOGGER.info("[ACTION] writeConclusion");
         draft.setConclusion(model.query(
                 "Based on the chapter and the introduction and quiz you just produced, write a "
@@ -78,18 +78,18 @@ public class CourseContentAgent {
     }
 
     @Outcome
-    void publish(CoursePacket draft) {
-        store.publish(draft);
-        LOGGER.info("[OUTCOME] packet ready for " + draft.getChapterTitle());
+    void publish(Lesson draft) {
+        drafts.publish(draft);
+        LOGGER.info("[OUTCOME] draft ready for " + draft.getChapterTitle());
     }
 
     @OnException
-    void onLlmFailure(LLMException failure, CoursePacket draft) {
+    void onLlmFailure(LLMException failure, Lesson draft) {
         if (!draft.hasContent()) {
             throw failure;
         }
         LOGGER.log(Level.WARNING, "LLM call failed; keeping the sections written so far", failure);
         draft.setNotice("The model failed on one section (" + failure.getMessage()
-                + "). What it had already written is kept; fill in the rest before you approve.");
+                + "). What it had already written is kept; fill in the rest before you publish.");
     }
 }

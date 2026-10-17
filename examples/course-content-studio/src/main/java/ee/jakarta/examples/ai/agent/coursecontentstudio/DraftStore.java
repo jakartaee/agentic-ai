@@ -10,10 +10,26 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  *****************************************************************************/
-package ee.jakarta.examples.ai.agent.coursecontentstudio.model;
+package ee.jakarta.examples.ai.agent.coursecontentstudio;
+
+import ee.jakarta.examples.ai.agent.coursecontentstudio.model.Lesson;
+import jakarta.enterprise.context.ApplicationScoped;
+
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
- * Where a lesson sits in a curriculum.
+ * Holds the draft the teacher is currently editing.
  */
-public record Placement(String gradeLevel, String strand, int minutes, String difficulty) {
+@ApplicationScoped
+public class DraftStore {
+
+    private final AtomicReference<Lesson> current = new AtomicReference<>();
+
+    public void publish(Lesson draft) {
+        current.set(draft);
+    }
+
+    public Lesson current() {
+        return current.get();
+    }
 }

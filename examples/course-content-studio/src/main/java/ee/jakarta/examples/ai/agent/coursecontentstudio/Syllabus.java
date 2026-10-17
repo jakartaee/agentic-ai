@@ -12,24 +12,29 @@
  *****************************************************************************/
 package ee.jakarta.examples.ai.agent.coursecontentstudio;
 
-import ee.jakarta.examples.ai.agent.coursecontentstudio.model.CoursePacket;
+import ee.jakarta.examples.ai.agent.coursecontentstudio.model.ScheduledLesson;
 import jakarta.enterprise.context.ApplicationScoped;
 
-import java.util.concurrent.atomic.AtomicReference;
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
- * Holds the packet the teacher is currently authoring.
+ * The course syllabus: every lesson scheduled so far, in week order.
  */
 @ApplicationScoped
-public class PacketStore {
+public class Syllabus {
 
-    private final AtomicReference<CoursePacket> current = new AtomicReference<>();
+    private final List<ScheduledLesson> lessons = new CopyOnWriteArrayList<>();
 
-    public void publish(CoursePacket packet) {
-        current.set(packet);
+    public void add(ScheduledLesson lesson) {
+        lessons.add(lesson);
     }
 
-    public CoursePacket current() {
-        return current.get();
+    public List<ScheduledLesson> lessons() {
+        return List.copyOf(lessons);
+    }
+
+    public int nextWeek() {
+        return lessons.size() + 1;
     }
 }

@@ -12,7 +12,7 @@
  *****************************************************************************/
 package ee.jakarta.examples.ai.agent.coursecontentstudio;
 
-import ee.jakarta.examples.ai.agent.coursecontentstudio.model.CoursePacket;
+import ee.jakarta.examples.ai.agent.coursecontentstudio.model.Lesson;
 import jakarta.enterprise.context.ApplicationScoped;
 
 import java.util.concurrent.atomic.AtomicReference;
@@ -23,13 +23,13 @@ import java.util.concurrent.atomic.AtomicReference;
 @ApplicationScoped
 public class PublishedLessonStore {
 
-    private final AtomicReference<CoursePacket> current = new AtomicReference<>();
+    private final AtomicReference<Lesson> current = new AtomicReference<>();
 
-    public void publish(CoursePacket lesson) {
+    public void publish(Lesson lesson) {
         current.set(lesson);
     }
 
-    public CoursePacket current() {
+    public Lesson current() {
         return current.get();
     }
 }

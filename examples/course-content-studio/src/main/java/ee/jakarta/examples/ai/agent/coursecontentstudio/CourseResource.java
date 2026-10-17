@@ -12,10 +12,10 @@
  *****************************************************************************/
 package ee.jakarta.examples.ai.agent.coursecontentstudio;
 
-import ee.jakarta.examples.ai.agent.coursecontentstudio.model.CatalogueEntry;
 import ee.jakarta.examples.ai.agent.coursecontentstudio.model.ChapterSubmitted;
-import ee.jakarta.examples.ai.agent.coursecontentstudio.model.CoursePacket;
+import ee.jakarta.examples.ai.agent.coursecontentstudio.model.Lesson;
 import ee.jakarta.examples.ai.agent.coursecontentstudio.model.LessonPublished;
+import ee.jakarta.examples.ai.agent.coursecontentstudio.model.ScheduledLesson;
 import jakarta.ai.agent.LLMException;
 import jakarta.enterprise.context.RequestScoped;
 import jakarta.enterprise.event.Event;
@@ -40,8 +40,8 @@ import java.util.stream.Collectors;
 
 /**
  * REST surface for the studio: generate fires the authoring agent and returns
- * the packet; publish stores the edited packet as the lesson, fires the
- * catalogue agent and returns the lesson with its catalogue entry.
+ * the draft; publish stores the edited lesson, fires the syllabus agent and
+ * returns the lesson with its week on the syllabus.
  */
 @Path("/")
 @RequestScoped
@@ -56,26 +56,26 @@ public class CourseResource {
     Event<LessonPublished> publications;
 
     @Inject
-    PacketStore store;
+    DraftStore drafts;
 
     @Inject
     PublishedLessonStore lessons;
 
     @Inject
-    Catalogue catalogue;
+    Syllabus syllabus;
 
     @Inject
-    CatalogueOutput catalogueOutput;
+    SyllabusOutput syllabusOutput;
 
     @GET
-    @Path("packet")
+    @Path("draft")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response packet() {
-        return found(store.current(), "No packet yet.");
+    public Response draft() {
+        return found(drafts.current(), "No draft yet.");
     }
 
     @POST
-    @Path("packet/generate")
+    @Path("draft/generate")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response generate(@NotNull ChapterSubmitted chapter) {
@@ -93,14 +93,14 @@ public class CourseResource {
             }
             throw wrapper;
         }
-        return Response.ok(store.current()).build();
+        return Response.ok(drafts.current()).build();
     }
 
     @POST
     @Path("lesson/publish")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response publish(@NotNull CoursePacket lesson) {
+    public Response publish(@NotNull Lesson lesson) {
         lessons.publish(lesson);
         try {
             publications.fire(new LessonPublished(lesson));
@@ -108,10 +108,10 @@ public class CourseResource {
             if (!(wrapper.getCause() instanceof LLMException)) {
                 throw wrapper;
             }
-            LOGGER.log(Level.WARNING, "cataloguing failed", wrapper.getCause());
-            catalogueOutput.setStopReason("Published, but not catalogued: the LLM backend failed.");
+            LOGGER.log(Level.WARNING, "scheduling failed", wrapper.getCause());
+            syllabusOutput.setStopReason("Published, but not scheduled: the LLM backend failed.");
         }
-        return Response.ok(new Published(lesson, catalogueOutput.entry(), catalogueOutput.stopReason()))
+        return Response.ok(new Published(lesson, syllabusOutput.scheduled(), syllabusOutput.stopReason()))
                 .build();
     }
 
@@ -123,10 +123,10 @@ public class CourseResource {
     }
 
     @GET
-    @Path("catalogue")
+    @Path("syllabus")
     @Produces(MediaType.APPLICATION_JSON)
-    public List<CatalogueEntry> catalogue() {
-        return catalogue.entries();
+    public List<ScheduledLesson> syllabus() {
+        return syllabus.lessons();
     }
 
     private static String describe(ConstraintViolationException e) {
@@ -143,7 +143,7 @@ public class CourseResource {
         return Response.status(status).entity(new Message(message)).build();
     }
 
-    public record Published(CoursePacket lesson, CatalogueEntry entry, String notice) {
+    public record Published(Lesson lesson, ScheduledLesson scheduled, String notice) {
     }
 
     public record Message(String message) {

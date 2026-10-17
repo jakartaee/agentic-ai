@@ -13,7 +13,7 @@
 package ee.jakarta.examples.ai.agent.coursecontentstudio.model;
 
 /**
- * Fired when the teacher publishes a lesson; triggers {@code CatalogueAgent}.
+ * Fired when the teacher publishes a lesson; triggers {@code SyllabusAgent}.
  */
-public record LessonPublished(CoursePacket lesson) {
+public record LessonPublished(Lesson lesson) {
 }

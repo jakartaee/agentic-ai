@@ -17,8 +17,8 @@
     <description>
         Two agents chained by a CDI event with the teacher in between: one
         writes a chapter's introduction, quiz and conclusion as ordered
-        actions; the teacher edits and publishes the packet; the other files
-        the published lesson in the course catalogue, refusing duplicates.
+        actions; the teacher edits and publishes the lesson; the other
+        schedules it on the course syllabus once its prerequisites are taught.
     </description>
 
     <licenses>

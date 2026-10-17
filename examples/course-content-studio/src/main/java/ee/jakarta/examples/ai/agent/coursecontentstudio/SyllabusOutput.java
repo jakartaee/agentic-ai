@@ -12,25 +12,25 @@
  *****************************************************************************/
 package ee.jakarta.examples.ai.agent.coursecontentstudio;
 
-import ee.jakarta.examples.ai.agent.coursecontentstudio.model.CatalogueEntry;
+import ee.jakarta.examples.ai.agent.coursecontentstudio.model.ScheduledLesson;
 import jakarta.enterprise.context.RequestScoped;
 
 /**
- * Per-request holder for what {@code CatalogueAgent} did with the lesson:
- * the entry it filed, or why it declined.
+ * Per-request holder for what {@code SyllabusAgent} did with the lesson: the
+ * week it scheduled, or why it declined.
  */
 @RequestScoped
-public class CatalogueOutput {
+public class SyllabusOutput {
 
-    private CatalogueEntry entry;
+    private ScheduledLesson scheduled;
     private String stopReason;
 
-    public CatalogueEntry entry() {
-        return entry;
+    public ScheduledLesson scheduled() {
+        return scheduled;
     }
 
-    public void setEntry(CatalogueEntry entry) {
-        this.entry = entry;
+    public void setScheduled(ScheduledLesson scheduled) {
+        this.scheduled = scheduled;
     }
 
     public String stopReason() {
