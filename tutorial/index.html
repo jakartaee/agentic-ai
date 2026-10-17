@@ -650,8 +650,9 @@ target="_blank" rel="noopener">examples/course-content-studio</a></p>
 approval before the last.</strong> The teacher pastes a chapter and picks a subject;
 <code>CourseContentAgent</code> writes an introduction, a quiz and a conclusion.
 <code>RefineAgent</code> rewrites any one section on request. On approval the REST layer
-fires <code>LessonApproved</code>, which triggers <code>PublishAgent</code> to check the
-packet is complete, add learning objectives and publish the lesson a student sees.</p>
+fires <code>LessonApproved</code>, which triggers <code>PublishAgent</code> to have the
+model review the packet, add learning objectives and publish the lesson a student
+sees.</p>
 <p>The authoring agent's <code>@Trigger</code> returns the new packet, and every later
 phase receives it by type. Shown here apart from the subject rubric and the progress
 reporting:</p>
@@ -690,7 +691,7 @@ publish agent is fired by the approval endpoint with
 
 // PublishAgent
 @Trigger void onApproved(LessonApproved e) { /* ... */ }
-@Decision boolean isComplete(LessonApproved e) { /* ... */ }
+@Decision Result readyToPublish(LessonApproved e, LargeLanguageModel model) { /* ... */ }
 @Action Objectives writeObjectives(LessonApproved e, LargeLanguageModel model) { /* ... */ }
 @Outcome void publish(LessonApproved e, Objectives objectives) { /* ... */ }
 </code></pre>
@@ -713,12 +714,15 @@ produced", which the per-workflow conversation still holds.</li>
 were written, <code>onLlmFailure</code> returns normally: the remaining actions and the
 <code>@Outcome</code> still run, and the packet carries a notice naming what to write.
 When nothing was written yet, it re-throws and the resource answers 503.</li>
-<li><strong>A decision that gates publishing.</strong> Because a packet can be published
-incomplete, <code>isComplete</code> stops the publish workflow when a section is
-missing, and the approval endpoint returns the reason as a 422.</li>
+<li><strong>The model makes a decision.</strong> <code>readyToPublish</code> asks the model to
+review the packet as an editor and returns <code>Result(success, details)</code> with
+the review as the details: <code>false</code> stops the workflow and the approval
+endpoint returns the model's reasons as a 422; on success the details become workflow
+state. The teacher's approval sits on top of the machine's review.</li>
 <li><strong>The model as a parameter, and outside an agent.</strong>
-<code>writeObjectives</code> declares <code>LargeLanguageModel</code> as a parameter
-instead of a field — the resolution rules supply it — and the quiz-grading endpoint
+<code>readyToPublish</code> and <code>writeObjectives</code> declare
+<code>LargeLanguageModel</code> as a parameter instead of a field — the resolution rules
+supply it — and the quiz-grading endpoint
 injects it directly into a <code>@RequestScoped</code> resource; the facade needs no
 active workflow.</li>
 </ul>
