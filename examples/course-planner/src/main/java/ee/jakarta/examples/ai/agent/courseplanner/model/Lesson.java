@@ -13,12 +13,12 @@
 package ee.jakarta.examples.ai.agent.courseplanner.model;
 
 /**
- * A lesson for one chapter: introduction, quiz and conclusion.
+ * A lesson on one topic: introduction, quiz and conclusion.
  */
 public class Lesson {
 
     private String subject;
-    private String chapterTitle;
+    private String title;
     private String intro;
     private Quiz quiz;
     private String conclusion;
@@ -27,9 +27,9 @@ public class Lesson {
     public Lesson() {
     }
 
-    public Lesson(String subject, String chapterTitle) {
+    public Lesson(String subject, String title) {
         this.subject = subject;
-        this.chapterTitle = chapterTitle;
+        this.title = title;
     }
 
     public String getSubject() {
@@ -40,12 +40,12 @@ public class Lesson {
         this.subject = subject;
     }
 
-    public String getChapterTitle() {
-        return chapterTitle;
+    public String getTitle() {
+        return title;
     }
 
-    public void setChapterTitle(String chapterTitle) {
-        this.chapterTitle = chapterTitle;
+    public void setTitle(String title) {
+        this.title = title;
     }
 
     public String getIntro() {

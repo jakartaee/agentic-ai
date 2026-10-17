@@ -12,9 +12,9 @@
  *****************************************************************************/
 package ee.jakarta.examples.ai.agent.courseplanner;
 
-import ee.jakarta.examples.ai.agent.courseplanner.model.ChapterSubmitted;
 import ee.jakarta.examples.ai.agent.courseplanner.model.Lesson;
 import ee.jakarta.examples.ai.agent.courseplanner.model.Quiz;
+import ee.jakarta.examples.ai.agent.courseplanner.model.Topic;
 import jakarta.ai.agent.Action;
 import jakarta.ai.agent.Agent;
 import jakarta.ai.agent.LLMException;
@@ -29,10 +29,11 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * Writes a chapter's introduction, quiz and conclusion.
+ * Writes a lesson's introduction, quiz and conclusion from a topic and its
+ * material.
  */
 @Agent(name = "LessonAgent",
-        description = "Writes an introduction, quiz and conclusion for a course chapter.")
+        description = "Writes a lesson's introduction, quiz and conclusion from a topic and its material.")
 public class LessonAgent {
 
     private static final Logger LOGGER = Logger.getLogger(LessonAgent.class.getName());
@@ -44,35 +45,35 @@ public class LessonAgent {
     DraftStore drafts;
 
     @Trigger
-    Lesson onChapter(@Valid ChapterSubmitted chapter) {
-        LOGGER.info("[TRIGGER] new " + chapter.subject() + " chapter: " + chapter.chapterTitle());
-        return new Lesson(chapter.subject(), chapter.chapterTitle());
+    Lesson onTopic(@Valid Topic topic) {
+        LOGGER.info("[TRIGGER] new " + topic.subject() + " topic: " + topic.title());
+        return new Lesson(topic.subject(), topic.title());
     }
 
     @Action(order = 1)
-    void writeIntro(ChapterSubmitted chapter, Lesson draft) {
+    void writeIntro(Topic topic, Lesson draft) {
         LOGGER.info("[ACTION] writeIntro");
         draft.setIntro(model.query(
-                "You are a {} teacher. Write an engaging two-paragraph introduction for this "
-                        + "chapter. Return plain prose only:\n{}",
-                chapter.subject(), chapter.chapterBody()));
+                "You are a {} teacher. Write an engaging two-paragraph introduction for a lesson "
+                        + "on {}, based on this material. Return plain prose only:\n{}",
+                topic.subject(), topic.title(), topic.material()));
     }
 
     @Action(order = 2)
-    void writeQuiz(ChapterSubmitted chapter, Lesson draft) {
+    void writeQuiz(Topic topic, Lesson draft) {
         LOGGER.info("[ACTION] writeQuiz");
         draft.setQuiz(model.query(
-                "You are a {} teacher. Create exactly 4 multiple-choice questions on this "
-                        + "chapter. " + Quiz.SCHEMA + "\nChapter:\n{}",
+                "You are a {} teacher. Create exactly 4 multiple-choice questions for a lesson "
+                        + "on {}, based on this material. " + Quiz.SCHEMA + "\nMaterial:\n{}",
                 Quiz.class,
-                chapter.subject(), chapter.chapterBody()));
+                topic.subject(), topic.title(), topic.material()));
     }
 
     @Action(order = 3)
     void writeConclusion(Lesson draft) {
         LOGGER.info("[ACTION] writeConclusion");
         draft.setConclusion(model.query(
-                "Based on the chapter and the introduction and quiz you just produced, write a "
+                "Based on the material and the introduction and quiz you just produced, write a "
                         + "concise one-paragraph conclusion that ties them together. Return plain "
                         + "prose only."));
     }
@@ -80,7 +81,7 @@ public class LessonAgent {
     @Outcome
     void storeDraft(Lesson draft) {
         drafts.set(draft);
-        LOGGER.info("[OUTCOME] draft ready for " + draft.getChapterTitle());
+        LOGGER.info("[OUTCOME] draft ready for " + draft.getTitle());
     }
 
     @OnException

@@ -12,10 +12,10 @@
  *****************************************************************************/
 package ee.jakarta.examples.ai.agent.courseplanner;
 
-import ee.jakarta.examples.ai.agent.courseplanner.model.ChapterSubmitted;
 import ee.jakarta.examples.ai.agent.courseplanner.model.Lesson;
 import ee.jakarta.examples.ai.agent.courseplanner.model.LessonPublished;
 import ee.jakarta.examples.ai.agent.courseplanner.model.ScheduledLesson;
+import ee.jakarta.examples.ai.agent.courseplanner.model.Topic;
 import jakarta.ai.agent.LLMException;
 import jakarta.enterprise.context.RequestScoped;
 import jakarta.enterprise.event.Event;
@@ -39,7 +39,7 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 /**
- * REST surface for the planner: generate fires the authoring agent and returns
+ * REST surface for the planner: generate fires the lesson agent and returns
  * the draft; publish stores the edited lesson, fires the syllabus agent and
  * returns the lesson with its week on the syllabus.
  */
@@ -50,7 +50,7 @@ public class PlannerResource {
     private static final Logger LOGGER = Logger.getLogger(PlannerResource.class.getName());
 
     @Inject
-    Event<ChapterSubmitted> chapters;
+    Event<Topic> topics;
 
     @Inject
     Event<LessonPublished> publications;
@@ -78,9 +78,9 @@ public class PlannerResource {
     @Path("draft/generate")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response generate(@NotNull ChapterSubmitted chapter) {
+    public Response generate(@NotNull Topic topic) {
         try {
-            chapters.fire(chapter);
+            topics.fire(topic);
         } catch (ObserverException wrapper) {
             Throwable cause = wrapper.getCause();
             if (cause instanceof ConstraintViolationException violations) {

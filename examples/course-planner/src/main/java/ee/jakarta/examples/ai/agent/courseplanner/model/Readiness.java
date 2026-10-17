@@ -12,15 +12,11 @@
  *****************************************************************************/
 package ee.jakarta.examples.ai.agent.courseplanner.model;
 
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
+import java.util.List;
 
 /**
- * The event that triggers {@code LessonAgent}: a chapter the teacher
- * wants a packet written for.
+ * The model's verdict on whether the course is ready for a lesson: whether
+ * everything it assumes has already been taught.
  */
-public record ChapterSubmitted(
-        @NotBlank String subject,
-        @NotBlank String chapterTitle,
-        @NotBlank @Size(min = 80, message = "paste at least 80 characters of chapter text") String chapterBody) {
+public record Readiness(boolean ready, List<String> missing, String reason) {
 }

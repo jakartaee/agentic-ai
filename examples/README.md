@@ -50,14 +50,14 @@ Automatically generates and applies documentation updates based on code changes,
 ### Course Planner
 
 Located in `course-planner/`, a deployable web application with two
-agents and the teacher in between. The first writes a chapter's introduction,
-quiz and conclusion as ordered `@Action`s over a draft its `@Trigger` returns,
-binding the quiz to a record with the typed `LargeLanguageModel` overload; the
-teacher edits and publishes the lesson; the publication event triggers the
-second, which works out what the lesson teaches and assumes, decides whether
-the syllabus already covers what it assumes, and schedules it in the next week
-— or sends the teacher back to write the prerequisite first. See its
-[README](course-planner/README.md).
+agents and the teacher in between. The first writes a lesson's introduction,
+quiz and conclusion from a topic and its material, as ordered `@Action`s over
+a draft its `@Trigger` returns, binding the quiz to a record with the typed
+`LargeLanguageModel` overload; the teacher edits and publishes the lesson; the
+publication event triggers the second, which works out what the lesson covers
+and assumes, decides whether the syllabus has taught what it assumes, and
+schedules it in the next week — or sends the teacher back to write the
+prerequisite first. See its [README](course-planner/README.md).
 
 ## Building
 
