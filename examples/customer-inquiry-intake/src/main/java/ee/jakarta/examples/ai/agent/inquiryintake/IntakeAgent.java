@@ -15,9 +15,7 @@ package ee.jakarta.examples.ai.agent.inquiryintake;
 import jakarta.ai.agent.Action;
 import jakarta.ai.agent.Agent;
 import jakarta.ai.agent.Decision;
-import jakarta.ai.agent.LLMException;
 import jakarta.ai.agent.LargeLanguageModel;
-import jakarta.ai.agent.OnException;
 import jakarta.ai.agent.Outcome;
 import jakarta.ai.agent.Trigger;
 import jakarta.inject.Inject;
@@ -26,7 +24,6 @@ import jakarta.validation.Valid;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -145,12 +142,6 @@ public class IntakeAgent {
     void publishPreparedInquiry(Identity identity, Classification classification, Title title, PolishedMessage polished) {
         output.setRecord(new IntakeRecord(identity, classification, title.value(), polished.value()));
         LOGGER.info("[OUTCOME] inquiry prepared");
-    }
-
-    @OnException
-    void onLlmFailure(LLMException failure, IntakeRequest request) {
-        LOGGER.log(Level.WARNING, "LLM call failed; writing fallback record", failure);
-        output.setRecord(IntakeRecord.fallbackFor(request));
     }
 
     private static boolean looksLikePlaceholderText(String message) {
