@@ -55,39 +55,34 @@ public class PublishAgent {
     @Inject
     ProgressTracker progress;
 
-    private PublishedLesson lesson;
-
     @Trigger
     void onApproved(LessonApproved event) {
-        CoursePacket packet = event.packet();
-        lesson = new PublishedLesson();
-        lesson.setSubject(packet.getSubject());
-        lesson.setChapterTitle(packet.getChapterTitle());
-        lesson.setIntro(packet.getIntro());
-        lesson.setQuiz(packet.getQuiz());
-        lesson.setConclusion(packet.getConclusion());
-        LOGGER.info("[TRIGGER] publishing approved lesson: " + packet.getChapterTitle());
+        LOGGER.info("[TRIGGER] publishing approved lesson: " + event.packet().getChapterTitle());
         progress.publish(event.runId(), "Publish agent — approved lesson received");
     }
 
     @Action
-    void writeObjectives(LessonApproved event) {
+    Objectives writeObjectives(LessonApproved event) {
         LOGGER.info("[ACTION] writeObjectives");
         progress.publish(event.runId(), "Publish agent — writing learning objectives…");
-        lesson.setObjectives(model.query(
-                rubric.forSubject(lesson.getSubject())
+        CoursePacket packet = event.packet();
+        return model.query(
+                rubric.forSubject(packet.getSubject())
                         + "\nWrite exactly three short 'What you'll learn' bullet points for a "
                         + "student, based on this introduction. Return ONLY JSON: "
                         + "{\"lines\":[\"...\",\"...\",\"...\"]}\n{}",
                 Objectives.class,
-                lesson.getIntro()).lines());
+                packet.getIntro());
     }
 
     @Outcome
-    void publish(LessonApproved event) {
-        lesson.setPublishedAt(Instant.now().toString());
-        published.publish(lesson);
-        LOGGER.info("[OUTCOME] lesson published: " + lesson.getChapterTitle());
+    void publish(LessonApproved event, Objectives objectives) {
+        CoursePacket packet = event.packet();
+        published.publish(new PublishedLesson(
+                packet.getSubject(), packet.getChapterTitle(), objectives.lines(),
+                packet.getIntro(), packet.getQuiz(), packet.getConclusion(),
+                Instant.now().toString()));
+        LOGGER.info("[OUTCOME] lesson published: " + packet.getChapterTitle());
         progress.publish(event.runId(), "Publish agent — lesson is live");
     }
 }
