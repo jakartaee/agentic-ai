@@ -18,6 +18,7 @@ import jakarta.enterprise.event.Event;
 import jakarta.enterprise.event.ObserverException;
 import jakarta.inject.Inject;
 import jakarta.validation.ConstraintViolationException;
+import jakarta.validation.constraints.NotNull;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
@@ -51,7 +52,7 @@ public class AskResource {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response ask(AskRequest request) {
+    public Response ask(@NotNull AskRequest request) {
         String text = request.question();
 
         try {
@@ -60,15 +61,14 @@ public class AskResource {
             Throwable cause = wrapper.getCause();
             if (cause instanceof ConstraintViolationException) {
                 return Response.status(Response.Status.BAD_REQUEST)
-                        .entity(new AskResponse(text, "A question is required."))
+                        .entity(new Message("A question is required."))
                         .build();
             }
             if (cause instanceof LLMException) {
                 LOGGER.log(Level.WARNING, "LLM call failed", cause);
                 return Response.status(Response.Status.SERVICE_UNAVAILABLE)
-                        .entity(new AskResponse(text,
-                                "The LLM backend is unavailable. Check that the provider "
-                                        + "configured in microprofile-config.properties is running."))
+                        .entity(new Message("The LLM backend is unavailable. Check that the provider "
+                                + "configured in microprofile-config.properties is running."))
                         .build();
             }
             throw wrapper;
@@ -81,5 +81,8 @@ public class AskResource {
     }
 
     public record AskResponse(String question, String answer) {
+    }
+
+    public record Message(String message) {
     }
 }

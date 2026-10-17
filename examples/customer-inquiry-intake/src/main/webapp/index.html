@@ -231,7 +231,7 @@
                 body: JSON.stringify(payload)
             });
             if (!res.ok) {
-                $('intakeStatus').textContent = (await res.text()) || 'Something went wrong.';
+                $('intakeStatus').textContent = (await res.json()).message || 'Something went wrong.';
                 return;
             }
             const record = await res.json();
@@ -302,7 +302,7 @@
                 body: JSON.stringify(record)
             });
             if (!res.ok) {
-                $('reviewStatus').textContent = (await res.text()) || 'Could not send.';
+                $('reviewStatus').textContent = (await res.json()).message || 'Could not send.';
                 return;
             }
             showToast('✓ Inquiry sent — we will be in touch');
