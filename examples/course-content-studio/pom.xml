@@ -15,10 +15,10 @@
 
     <name>Course Content Studio Example</name>
     <description>
-        An education-domain agent that generates an introduction, a quiz and a
-        conclusion for a chapter, and lets the teacher approve or refine the
-        result. Built on the Jakarta Agentic AI API and deployable to a Jakarta
-        EE 10 runtime.
+        Two agents chained through CDI events with a teacher's approval in
+        between: the first writes a chapter's introduction, quiz and conclusion
+        as ordered actions and rewrites any one section on request; the second
+        turns the approved packet into the student-facing lesson.
     </description>
 
     <licenses>
@@ -34,7 +34,6 @@
     </properties>
 
     <dependencies>
-        <!-- Jakarta Agentic AI API — provided by the target runtime. -->
         <dependency>
             <groupId>jakarta.agentic-ai</groupId>
             <artifactId>jakarta.agentic-ai-api</artifactId>
@@ -42,7 +41,6 @@
             <scope>provided</scope>
         </dependency>
 
-        <!-- Jakarta EE 10 umbrella API — provided by the target runtime. -->
         <dependency>
             <groupId>jakarta.platform</groupId>
             <artifactId>jakarta.jakartaee-api</artifactId>
@@ -50,8 +48,7 @@
     </dependencies>
 
     <build>
-        <!-- War name -> default context root: /course -->
-        <finalName>course</finalName>
+        <finalName>course-content-studio</finalName>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
