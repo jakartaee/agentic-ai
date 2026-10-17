@@ -231,6 +231,7 @@
         $('intro').textContent = p.intro ?? '';
         $('conclusion').textContent = p.conclusion ?? '';
         $('approvedBadge').style.display = p.approved ? 'inline-block' : 'none';
+        if (p.notice) $('leftStatus').textContent = p.notice;
         const questions = (p.quiz && p.quiz.questions) || [];
         $('quiz').innerHTML = questions.map((q, i) => {
             if (q.type === 'open') {

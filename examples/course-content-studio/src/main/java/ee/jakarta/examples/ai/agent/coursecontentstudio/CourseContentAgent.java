@@ -17,12 +17,15 @@ import ee.jakarta.examples.ai.agent.coursecontentstudio.model.CoursePacketReques
 import ee.jakarta.examples.ai.agent.coursecontentstudio.model.Quiz;
 import jakarta.ai.agent.Action;
 import jakarta.ai.agent.Agent;
+import jakarta.ai.agent.LLMException;
 import jakarta.ai.agent.LargeLanguageModel;
+import jakarta.ai.agent.OnException;
 import jakarta.ai.agent.Outcome;
 import jakarta.ai.agent.Trigger;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -142,5 +145,16 @@ public class CourseContentAgent {
         store.publish(draft);
         LOGGER.info("[OUTCOME] packet published for " + draft.getChapterTitle());
         progress.publish(request.runId(), "Outcome — packet ready");
+    }
+
+    @OnException
+    void onLlmFailure(LLMException failure, CoursePacketRequest request) {
+        if (!draft.hasContent()) {
+            throw failure;
+        }
+        LOGGER.log(Level.WARNING, "LLM call failed; keeping the sections written so far", failure);
+        draft.setNotice("The model failed on one section (" + failure.getMessage()
+                + "). What it had already written is kept; use Refine to retry the rest.");
+        progress.publish(request.runId(), "LLM error — keeping the sections written so far");
     }
 }

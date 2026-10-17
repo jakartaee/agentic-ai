@@ -24,6 +24,7 @@ public class CoursePacket {
     private Quiz quiz;
     private String conclusion;
     private boolean approved;
+    private String notice;
 
     public CoursePacket() {
     }
@@ -87,5 +88,17 @@ public class CoursePacket {
 
     public void setApproved(boolean approved) {
         this.approved = approved;
+    }
+
+    public String getNotice() {
+        return notice;
+    }
+
+    public void setNotice(String notice) {
+        this.notice = notice;
+    }
+
+    public boolean hasContent() {
+        return intro != null || quiz != null || conclusion != null;
     }
 }
