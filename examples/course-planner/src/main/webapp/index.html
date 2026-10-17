@@ -38,10 +38,10 @@
     <option>Physics</option>
     <option>English</option>
   </select>
-  <label for="title">Chapter title</label>
+  <label for="title">Topic</label>
   <input type="text" id="title" placeholder="Newton's Second Law">
-  <label for="body">Chapter text</label>
-  <textarea id="body" placeholder="Paste a few paragraphs of the chapter…"></textarea>
+  <label for="material">Material</label>
+  <textarea id="material" placeholder="Paste the reading, the chapter, or your notes…"></textarea>
   <button id="generate">Generate lesson</button>
   <div class="status" id="generateStatus"></div>
 </section>
@@ -124,7 +124,7 @@ function editedLesson() {
   }));
   return {
     subject: draft.subject,
-    chapterTitle: draft.chapterTitle,
+    title: draft.title,
     intro: $('intro').value,
     quiz: questions.length ? {questions} : null,
     conclusion: $('conclusion').value
@@ -146,11 +146,11 @@ function renderSyllabus(weeks, notice) {
   $('syllabusNotice').hidden = !notice;
   $('syllabusNotice').textContent = notice || '';
   $('weeks').innerHTML = weeks.map(w => {
-    const t = w.topics || {}, s = w.estimate || {};
-    return `<div class="week"><b>Week ${w.week}: ${esc(w.chapterTitle)}</b> — ${esc(w.subject)}
-      <div class="meta">${esc(s.minutes)} min · ${esc(s.difficulty)}</div>
-      <div class="meta">Teaches: ${(t.teaches || []).map(esc).join(', ')}</div>
-      <div class="meta">Assumes: ${(t.assumes || []).map(esc).join(', ') || 'nothing'}</div>
+    const c = w.coverage || {}, e = w.estimate || {};
+    return `<div class="week"><b>Week ${w.week}: ${esc(w.title)}</b> — ${esc(w.subject)}
+      <div class="meta">${esc(e.minutes)} min · ${esc(e.difficulty)}</div>
+      <div class="meta">Covers: ${(c.covers || []).map(esc).join(', ')}</div>
+      <div class="meta">Assumes: ${(c.assumes || []).map(esc).join(', ') || 'nothing'}</div>
     </div>`;
   }).join('');
 }
@@ -162,7 +162,7 @@ async function loadSyllabus(notice) {
 
 $('generate').onclick = async () => {
   const d = await post('api/draft/generate',
-    {subject: $('subject').value, chapterTitle: $('title').value, chapterBody: $('body').value},
+    {subject: $('subject').value, title: $('title').value, material: $('material').value},
     $('generateStatus'), $('generate'));
   if (d) renderDraft(d);
 };

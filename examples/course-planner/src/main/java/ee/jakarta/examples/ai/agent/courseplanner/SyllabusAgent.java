@@ -16,8 +16,8 @@ import ee.jakarta.examples.ai.agent.courseplanner.model.Coverage;
 import ee.jakarta.examples.ai.agent.courseplanner.model.Estimate;
 import ee.jakarta.examples.ai.agent.courseplanner.model.Lesson;
 import ee.jakarta.examples.ai.agent.courseplanner.model.LessonPublished;
+import ee.jakarta.examples.ai.agent.courseplanner.model.Readiness;
 import ee.jakarta.examples.ai.agent.courseplanner.model.ScheduledLesson;
-import ee.jakarta.examples.ai.agent.courseplanner.model.Topics;
 import jakarta.ai.agent.Action;
 import jakarta.ai.agent.Agent;
 import jakarta.ai.agent.Decision;
@@ -31,10 +31,10 @@ import java.util.logging.Logger;
 
 /**
  * Schedules a published lesson on the course syllabus, once everything it
- * assumes has been scheduled before it.
+ * assumes has been taught before it.
  */
 @Agent(name = "SyllabusAgent",
-        description = "Schedules a published lesson on the course syllabus after its prerequisites.")
+        description = "Schedules a published lesson on the course syllabus once its prerequisites are taught.")
 public class SyllabusAgent {
 
     private static final Logger LOGGER = Logger.getLogger(SyllabusAgent.class.getName());
@@ -47,58 +47,58 @@ public class SyllabusAgent {
 
     @Trigger
     void onPublished(LessonPublished event) {
-        LOGGER.info("[TRIGGER] lesson published: " + event.lesson().getChapterTitle());
+        LOGGER.info("[TRIGGER] lesson published: " + event.lesson().getTitle());
     }
 
     @Action
-    Topics extractTopics(LessonPublished event, LargeLanguageModel model) {
-        LOGGER.info("[ACTION] extractTopics");
+    Coverage extractCoverage(LessonPublished event, LargeLanguageModel model) {
+        LOGGER.info("[ACTION] extractCoverage");
         return model.query(
-                "List the key topics this lesson teaches and the topics it assumes a student "
-                        + "already knows, each as a short phrase. Return ONLY JSON: "
-                        + "{\"teaches\":[\"...\"],\"assumes\":[\"...\"]}\n{}",
-                Topics.class,
+                "List what this lesson covers and what it assumes a student already knows, each "
+                        + "as a short phrase. Return ONLY JSON: "
+                        + "{\"covers\":[\"...\"],\"assumes\":[\"...\"]}\n{}",
+                Coverage.class,
                 event.lesson());
     }
 
     @Decision
-    Result prerequisitesCovered(LessonPublished event, Topics topics, LargeLanguageModel model) {
-        Coverage coverage = model.query(
+    Result prerequisitesCovered(LessonPublished event, Coverage coverage, LargeLanguageModel model) {
+        Readiness readiness = model.query(
                 "A lesson is about to be scheduled on a {} course syllabus. It assumes: {}\n"
-                        + "Topics already scheduled on the syllabus, in week order: {}\n"
+                        + "What the syllabus already covers, in week order: {}\n"
                         + "Separate what a student at this level brings from earlier schooling "
-                        + "(background) from topics this course itself must teach first. The "
-                        + "lesson is covered only if every course-level prerequisite is already "
-                        + "on the syllabus. Return ONLY JSON: "
-                        + "{\"covered\":true|false,\"missing\":[\"...\"],\"reason\":\"one sentence\"}",
-                Coverage.class,
-                event.lesson().getSubject(), topics.assumes(), syllabus.lessons());
-        if (!coverage.covered()) {
+                        + "(background) from what this course itself must teach first. The course "
+                        + "is ready for the lesson only if everything it must teach first is "
+                        + "already on the syllabus. Return ONLY JSON: "
+                        + "{\"ready\":true|false,\"missing\":[\"...\"],\"reason\":\"one sentence\"}",
+                Readiness.class,
+                event.lesson().getSubject(), coverage.assumes(), syllabus.lessons());
+        if (!readiness.ready()) {
             output.setStopReason("Published, but not scheduled: schedule a lesson covering "
-                    + String.join(" and ", coverage.missing()) + " first — " + coverage.reason());
+                    + String.join(" and ", readiness.missing()) + " first — " + readiness.reason());
         }
-        LOGGER.info("[DECISION] prerequisitesCovered: " + coverage.covered() + " — " + coverage.reason());
-        return new Result(coverage.covered(), coverage);
+        LOGGER.info("[DECISION] prerequisitesCovered: " + readiness.ready() + " — " + readiness.reason());
+        return new Result(readiness.ready(), readiness);
     }
 
     @Action
-    Estimate estimate(LessonPublished event, Topics topics, LargeLanguageModel model) {
+    Estimate estimate(LessonPublished event, Coverage coverage, LargeLanguageModel model) {
         LOGGER.info("[ACTION] estimate");
         return model.query(
                 "Estimate the minutes of class time this lesson needs and its difficulty "
-                        + "(introductory, intermediate or advanced). It teaches: {}\n"
+                        + "(introductory, intermediate or advanced). It covers: {}\n"
                         + "Return ONLY JSON: {\"minutes\":45,\"difficulty\":\"...\"}\n{}",
                 Estimate.class,
-                topics.teaches(), event.lesson());
+                coverage.covers(), event.lesson());
     }
 
     @Outcome
-    void schedule(LessonPublished event, Topics topics, Estimate estimate) {
+    void schedule(LessonPublished event, Coverage coverage, Estimate estimate) {
         Lesson lesson = event.lesson();
         ScheduledLesson scheduled = new ScheduledLesson(
-                syllabus.nextWeek(), lesson.getSubject(), lesson.getChapterTitle(), topics, estimate);
+                syllabus.nextWeek(), lesson.getSubject(), lesson.getTitle(), coverage, estimate);
         syllabus.add(scheduled);
         output.setScheduled(scheduled);
-        LOGGER.info("[OUTCOME] week " + scheduled.week() + ": " + lesson.getChapterTitle());
+        LOGGER.info("[OUTCOME] week " + scheduled.week() + ": " + lesson.getTitle());
     }
 }

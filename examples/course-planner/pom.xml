@@ -16,9 +16,10 @@
     <name>Course Planner Example</name>
     <description>
         Two agents chained by a CDI event with the teacher in between: one
-        writes a chapter's introduction, quiz and conclusion as ordered
-        actions; the teacher edits and publishes the lesson; the other
-        schedules it on the course syllabus once its prerequisites are taught.
+        writes a lesson's introduction, quiz and conclusion from a topic and
+        its material, as ordered actions; the teacher edits and publishes the
+        lesson; the other schedules it on the course syllabus once everything
+        it assumes has been taught.
     </description>
 
     <licenses>

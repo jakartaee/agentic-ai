@@ -15,8 +15,7 @@ package ee.jakarta.examples.ai.agent.courseplanner.model;
 import java.util.List;
 
 /**
- * The model's verdict on whether the syllabus already covers what a lesson
- * assumes.
+ * What a lesson covers and what it assumes a student already knows.
  */
-public record Coverage(boolean covered, List<String> missing, String reason) {
+public record Coverage(List<String> covers, List<String> assumes) {
 }

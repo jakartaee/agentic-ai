@@ -12,10 +12,15 @@
  *****************************************************************************/
 package ee.jakarta.examples.ai.agent.courseplanner.model;
 
-import java.util.List;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 
 /**
- * What a lesson teaches and what it assumes a student already knows.
+ * The event that triggers {@code LessonAgent}: a topic the teacher wants a
+ * lesson on, with the material to base it on.
  */
-public record Topics(List<String> teaches, List<String> assumes) {
+public record Topic(
+        @NotBlank String subject,
+        @NotBlank String title,
+        @NotBlank @Size(min = 80, message = "paste at least 80 characters of material") String material) {
 }

@@ -1,6 +1,6 @@
 # Course Planner — Jakarta Agentic AI example
 
-A teacher pastes a chapter, picks a subject and clicks **Generate lesson**; an
+A teacher names a topic, pastes the material and clicks **Generate lesson**; an
 agent writes an introduction, a quiz and a conclusion. The teacher edits
 anything and clicks **Approve & publish**; the lesson goes live and a second
 agent schedules it on the course syllabus — in the first week after everything
@@ -45,7 +45,7 @@ mvn -pl examples/course-planner -am package
 asadmin deploy examples/course-planner/target/course-planner.war
 ```
 
-Open <http://localhost:8080/course-planner/>, pick **Physics**, title it
-*Newton's Second Law*, paste a few paragraphs and click **Generate lesson**.
-Edit anything in the draft and click **Approve & publish**. Then do the same
-for a chapter on *Newton's First Law*, and once more for the second law.
+Open <http://localhost:8080/course-planner/>, pick **Physics**, enter the topic
+*Newton's Second Law*, paste a few paragraphs of material and click **Generate
+lesson**. Edit anything in the draft and click **Approve & publish**. Then do
+the same for *Newton's First Law*, and once more for the second law.
