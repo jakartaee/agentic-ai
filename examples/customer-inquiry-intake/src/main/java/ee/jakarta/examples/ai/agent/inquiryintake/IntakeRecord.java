@@ -18,16 +18,4 @@ package ee.jakarta.examples.ai.agent.inquiryintake;
  * customer on the review screen before they confirm.
  */
 public record IntakeRecord(Identity identity, Classification classification, String title, String message) {
-
-    public static IntakeRecord fallbackFor(IntakeRequest request) {
-        return new IntakeRecord(
-                new Identity(nullSafe(request.name()), nullSafe(request.email()), ""),
-                Classification.GENERAL,
-                "",
-                nullSafe(request.message()));
-    }
-
-    private static String nullSafe(String s) {
-        return s == null ? "" : s;
-    }
 }

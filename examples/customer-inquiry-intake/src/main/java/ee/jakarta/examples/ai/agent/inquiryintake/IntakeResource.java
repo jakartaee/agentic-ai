@@ -12,6 +12,7 @@
  *****************************************************************************/
 package ee.jakarta.examples.ai.agent.inquiryintake;
 
+import jakarta.ai.agent.LLMException;
 import jakarta.enterprise.context.RequestScoped;
 import jakarta.enterprise.event.Event;
 import jakarta.enterprise.event.ObserverException;
@@ -26,6 +27,7 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 
 import java.util.Map;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -60,6 +62,13 @@ public class IntakeResource {
                 return Response.status(Response.Status.BAD_REQUEST)
                         .type(MediaType.TEXT_PLAIN)
                         .entity(formatViolations(cve)).build();
+            }
+            if (cause instanceof LLMException) {
+                LOGGER.log(Level.WARNING, "LLM call failed", cause);
+                return Response.status(Response.Status.SERVICE_UNAVAILABLE)
+                        .type(MediaType.TEXT_PLAIN)
+                        .entity("We could not prepare your inquiry right now. Please try again in a moment.")
+                        .build();
             }
             throw wrapper;
         }
