@@ -12,10 +12,8 @@
  *****************************************************************************/
 package ee.jakarta.examples.ai.agent.coursecontentstudio.model;
 
-import java.util.List;
-
 /**
- * The "what you'll learn" bullet points of a published lesson.
+ * The model's verdict on whether a lesson duplicates one already catalogued.
  */
-public record Objectives(List<String> lines) {
+public record Novelty(boolean novel, String duplicateOf, String reason) {
 }

@@ -17,8 +17,8 @@
     <description>
         Two agents chained by a CDI event with the teacher in between: one
         writes a chapter's introduction, quiz and conclusion as ordered
-        actions; the teacher edits the packet; the other has the model review
-        it and publishes the lesson.
+        actions; the teacher edits and publishes the packet; the other files
+        the published lesson in the course catalogue, refusing duplicates.
     </description>
 
     <licenses>

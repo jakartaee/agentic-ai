@@ -12,8 +12,10 @@
  *****************************************************************************/
 package ee.jakarta.examples.ai.agent.coursecontentstudio.model;
 
+import java.util.List;
+
 /**
- * The model's editorial verdict on a packet before it is published.
+ * What a lesson teaches and what a student needs to know first.
  */
-public record Review(boolean ready, String reasons) {
+public record Topics(List<String> topics, List<String> prerequisites) {
 }

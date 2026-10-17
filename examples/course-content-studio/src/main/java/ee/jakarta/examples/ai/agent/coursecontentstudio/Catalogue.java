@@ -10,18 +10,27 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  *****************************************************************************/
-package ee.jakarta.examples.ai.agent.coursecontentstudio.model;
+package ee.jakarta.examples.ai.agent.coursecontentstudio;
+
+import ee.jakarta.examples.ai.agent.coursecontentstudio.model.CatalogueEntry;
+import jakarta.enterprise.context.ApplicationScoped;
 
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
- * The published lesson: the approved packet plus generated objectives.
+ * The course catalogue: every lesson filed so far.
  */
-public record PublishedLesson(
-        String subject,
-        String chapterTitle,
-        List<String> objectives,
-        String intro,
-        Quiz quiz,
-        String conclusion) {
+@ApplicationScoped
+public class Catalogue {
+
+    private final List<CatalogueEntry> entries = new CopyOnWriteArrayList<>();
+
+    public void add(CatalogueEntry entry) {
+        entries.add(entry);
+    }
+
+    public List<CatalogueEntry> entries() {
+        return List.copyOf(entries);
+    }
 }
