@@ -43,8 +43,6 @@ import jakarta.ws.rs.sse.SseEventSink;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -112,9 +110,8 @@ public class CourseResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response generate(@NotNull GenerateRequest body) {
-        fire(body.runId(), () -> trigger.fire(new CoursePacketRequest(
-                body.subject(), body.chapterTitle(), body.chapterBody(),
-                null, "all", null, body.runId())));
+        fire(body.runId(), () -> trigger.fire(CoursePacketRequest.generate(
+                body.subject(), body.chapterTitle(), body.chapterBody(), body.runId())));
         return respond(store.current());
     }
 
@@ -135,9 +132,8 @@ public class CourseResource {
         }
         String section = body.section() == null || body.section().isBlank()
                 ? "all" : body.section();
-        fire(body.runId(), () -> trigger.fire(new CoursePacketRequest(
-                base.getSubject(), base.getChapterTitle(), null,
-                body.instruction(), section, store.currentJson(), body.runId())));
+        fire(body.runId(), () -> trigger.fire(CoursePacketRequest.refine(
+                base, section, body.instruction(), body.runId())));
         return respond(store.current());
     }
 
@@ -152,8 +148,7 @@ public class CourseResource {
         }
         // Chain to the second agent: firing this event triggers PublishAgent,
         // which builds the student-facing lesson synchronously.
-        fire(body.runId(), () -> approvals.fire(
-                new LessonApproved(store.currentJson(), body.runId())));
+        fire(body.runId(), () -> approvals.fire(new LessonApproved(approved, body.runId())));
         return respond(approved);
     }
 
@@ -193,8 +188,13 @@ public class CourseResource {
             return Response.status(Response.Status.BAD_REQUEST)
                     .entity(new Message("That question is not an open question.")).build();
         }
-        int similarity = gradeSimilarity(question.prompt(), question.sampleAnswer(),
-                body.studentAnswer());
+        int similarity;
+        try {
+            similarity = gradeSimilarity(question.prompt(), question.sampleAnswer(),
+                    body.studentAnswer());
+        } catch (LLMException e) {
+            throw llmUnavailable(e);
+        }
         String verdict = similarity >= 70 ? "correct"
                 : similarity >= 50 ? "partial" : "incorrect";
         return Response.ok(new GradeResponse(similarity, verdict, question.sampleAnswer())).build();
@@ -205,21 +205,13 @@ public class CourseResource {
                 || modelAnswer == null || modelAnswer.isBlank()) {
             return 0;
         }
-        String raw = model.query(
+        Similarity similarity = model.query(
                 "Grade a student's open answer. Question: {}\nModel answer: {}\n"
                         + "Student answer: {}\nRate from 0 to 100 how well the student's answer "
                         + "matches the model answer in meaning. Return ONLY JSON: {\"similarity\": N}",
+                Similarity.class,
                 prompt, modelAnswer, studentAnswer);
-        try {
-            Similarity s = Json.instance().fromJson(Json.extractJson(raw), Similarity.class);
-            return Math.max(0, Math.min(100, s.similarity()));
-        } catch (RuntimeException parseFailed) {
-            Matcher m = Pattern.compile("\\d{1,3}").matcher(raw == null ? "" : raw);
-            if (m.find()) {
-                return Math.max(0, Math.min(100, Integer.parseInt(m.group())));
-            }
-            return 0;
-        }
+        return Math.max(0, Math.min(100, similarity.similarity()));
     }
 
     /**
@@ -237,16 +229,20 @@ public class CourseResource {
                         .entity(new Message(describe(violations))).build());
             }
             if (cause instanceof LLMException) {
-                LOGGER.log(Level.WARNING, "LLM call failed", cause);
-                throw new ServiceUnavailableException(
-                        Response.status(Response.Status.SERVICE_UNAVAILABLE)
-                                .entity(new Message("The LLM backend failed: " + cause.getMessage()))
-                                .build());
+                throw llmUnavailable(cause);
             }
             throw wrapper;
         } finally {
             progress.complete(runId);
         }
+    }
+
+    private static ServiceUnavailableException llmUnavailable(Throwable cause) {
+        LOGGER.log(Level.WARNING, "LLM call failed", cause);
+        return new ServiceUnavailableException(
+                Response.status(Response.Status.SERVICE_UNAVAILABLE)
+                        .entity(new Message("The LLM backend failed: " + cause.getMessage()))
+                        .build());
     }
 
     private static String describe(ConstraintViolationException e) {

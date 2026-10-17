@@ -15,7 +15,6 @@ package ee.jakarta.examples.ai.agent.coursecontentstudio;
 import ee.jakarta.examples.ai.agent.coursecontentstudio.model.CoursePacket;
 import ee.jakarta.examples.ai.agent.coursecontentstudio.model.CoursePacketRequest;
 import ee.jakarta.examples.ai.agent.coursecontentstudio.model.Quiz;
-import ee.jakarta.examples.ai.agent.coursecontentstudio.model.QuizQuestion;
 import jakarta.ai.agent.Action;
 import jakarta.ai.agent.Agent;
 import jakarta.ai.agent.LargeLanguageModel;
@@ -24,8 +23,6 @@ import jakarta.ai.agent.Trigger;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.logging.Logger;
 
 /**
@@ -43,10 +40,8 @@ import java.util.logging.Logger;
  *   <li><b>Ordered phases</b> — the {@code @Action} methods carry an explicit
  *       {@code order}, so intro &rarr; quiz &rarr; conclusion run in a
  *       guaranteed sequence (all phases must be ordered once any is).</li>
- *   <li><b>Typed result via JSON-B</b> — the quiz is deserialized into a
- *       {@link Quiz} record. Small local models often wrap JSON in code fences,
- *       so we parse defensively rather than call the facade's typed overload
- *       (which would throw on the fences).</li>
+ *   <li><b>Typed result via JSON-B</b> — the quiz is bound straight to a
+ *       {@link Quiz} record by the facade's typed overload.</li>
  *   <li><b>Per-workflow conversational memory</b> — the conclusion query does
  *       not re-send the chapter; it relies on the earlier turns of the same
  *       workflow.</li>
@@ -96,7 +91,7 @@ public class CourseContentAgent {
                     + " / " + request.chapterTitle());
             progress.publish(request.runId(), "Trigger — new " + request.subject() + " chapter received");
         } else {
-            draft = Json.instance().fromJson(request.currentDraftJson(), CoursePacket.class);
+            draft = new CoursePacket(request.draft());
             LOGGER.info("[TRIGGER] refine section '" + request.section()
                     + "' with instruction: " + request.instruction());
             progress.publish(request.runId(), "Trigger — refine '" + request.section() + "'");
@@ -131,19 +126,19 @@ public class CourseContentAgent {
         }
         LOGGER.info("[ACTION] writeQuiz");
         progress.publish(request.runId(), "Writing the quiz (typed JSON-B)…");
-        String raw;
         if (request.isGenerate()) {
-            raw = model.query(
+            draft.setQuiz(model.query(
                     rubric.forSubject(request.subject())
                             + "\nCreate exactly 4 multiple-choice questions based on this chapter. "
                             + QUIZ_SCHEMA + "\nChapter:\n{}",
-                    request.chapterBody());
+                    Quiz.class,
+                    request.chapterBody()));
         } else {
-            raw = model.query(
+            draft.setQuiz(model.query(
                     "Current quiz JSON:\n{}\n\nApply this change: {}\n" + QUIZ_SCHEMA,
-                    draft.getQuiz(), request.instruction());
+                    Quiz.class,
+                    draft.getQuiz(), request.instruction()));
         }
-        draft.setQuiz(parseQuiz(request.runId(), raw));
     }
 
     @Action(order = 3)
@@ -174,47 +169,5 @@ public class CourseContentAgent {
         store.publish(draft);
         LOGGER.info("[OUTCOME] packet published for " + draft.getChapterTitle());
         progress.publish(request.runId(), "Outcome — packet ready");
-    }
-
-    /**
-     * Deserializes the quiz defensively: strips any markdown code fences and
-     * surrounding prose, extracts the JSON object, and binds it to {@link Quiz}
-     * with Jakarta JSON Binding. Falls back to a placeholder so a bad model
-     * response never aborts the workflow.
-     */
-    private Quiz parseQuiz(String runId, String raw) {
-        try {
-            Quiz quiz = Json.instance().fromJson(Json.extractJson(raw), Quiz.class);
-            if (quiz != null && quiz.questions() != null && !quiz.questions().isEmpty()) {
-                return normalize(quiz);
-            }
-        } catch (RuntimeException parseFailed) {
-            LOGGER.warning("[ACTION] quiz JSON parse failed: " + parseFailed.getMessage());
-        }
-        LOGGER.warning("[ACTION] quiz JSON unusable; using placeholder");
-        progress.publish(runId, "Quiz JSON was unusable — inserted a placeholder");
-        return placeholderQuiz();
-    }
-
-    /** Fills a missing {@code type}: open when there are no options, else MCQ. */
-    private static Quiz normalize(Quiz quiz) {
-        List<QuizQuestion> fixed = new ArrayList<>();
-        for (QuizQuestion q : quiz.questions()) {
-            String type = q.type();
-            if (type == null || type.isBlank()) {
-                boolean hasOptions = q.options() != null && !q.options().isEmpty();
-                type = hasOptions ? QuizQuestion.MULTIPLE_CHOICE : QuizQuestion.OPEN;
-            }
-            fixed.add(new QuizQuestion(q.prompt(), type, q.options(),
-                    q.correctIndex(), q.explanation(), q.sampleAnswer()));
-        }
-        return new Quiz(fixed);
-    }
-
-    private static Quiz placeholderQuiz() {
-        return new Quiz(List.of(new QuizQuestion(
-                "Quiz generation returned no valid JSON — try Refine → Quiz, or a stronger model.",
-                QuizQuestion.MULTIPLE_CHOICE, List.of("OK"), 0,
-                "The model did not produce parseable quiz JSON.", null)));
     }
 }

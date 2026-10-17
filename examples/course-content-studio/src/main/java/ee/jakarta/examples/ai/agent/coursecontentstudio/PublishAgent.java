@@ -14,6 +14,7 @@ package ee.jakarta.examples.ai.agent.coursecontentstudio;
 
 import ee.jakarta.examples.ai.agent.coursecontentstudio.model.CoursePacket;
 import ee.jakarta.examples.ai.agent.coursecontentstudio.model.LessonApproved;
+import ee.jakarta.examples.ai.agent.coursecontentstudio.model.Objectives;
 import ee.jakarta.examples.ai.agent.coursecontentstudio.model.PublishedLesson;
 import jakarta.ai.agent.Action;
 import jakarta.ai.agent.Agent;
@@ -23,10 +24,7 @@ import jakarta.ai.agent.Trigger;
 import jakarta.inject.Inject;
 
 import java.time.Instant;
-import java.util.Arrays;
-import java.util.List;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
 /**
  * The second agent in the pipeline. It is triggered by {@link LessonApproved},
@@ -61,7 +59,7 @@ public class PublishAgent {
 
     @Trigger
     void onApproved(LessonApproved event) {
-        CoursePacket packet = Json.instance().fromJson(event.packetJson(), CoursePacket.class);
+        CoursePacket packet = event.packet();
         lesson = new PublishedLesson();
         lesson.setSubject(packet.getSubject());
         lesson.setChapterTitle(packet.getChapterTitle());
@@ -76,13 +74,13 @@ public class PublishAgent {
     void writeObjectives(LessonApproved event) {
         LOGGER.info("[ACTION] writeObjectives");
         progress.publish(event.runId(), "Publish agent — writing learning objectives…");
-        String raw = model.query(
+        lesson.setObjectives(model.query(
                 rubric.forSubject(lesson.getSubject())
                         + "\nWrite exactly three short 'What you'll learn' bullet points for a "
-                        + "student, one per line, no numbering or bullet characters, based on this "
-                        + "introduction:\n{}",
-                lesson.getIntro());
-        lesson.setObjectives(toLines(raw));
+                        + "student, based on this introduction. Return ONLY JSON: "
+                        + "{\"lines\":[\"...\",\"...\",\"...\"]}\n{}",
+                Objectives.class,
+                lesson.getIntro()).lines());
     }
 
     @Outcome
@@ -91,18 +89,5 @@ public class PublishAgent {
         published.publish(lesson);
         LOGGER.info("[OUTCOME] lesson published: " + lesson.getChapterTitle());
         progress.publish(event.runId(), "Publish agent — lesson is live");
-    }
-
-    /** Splits model output into clean, non-empty lines, dropping bullet markers. */
-    private static List<String> toLines(String raw) {
-        if (raw == null) {
-            return List.of();
-        }
-        return Arrays.stream(raw.split("\\r?\\n"))
-                .map(String::strip)
-                .filter(line -> !line.isBlank())
-                .map(line -> line.replaceFirst("^[-*•\\d.\\)\\s]+", "").strip())
-                .filter(line -> !line.isBlank())
-                .collect(Collectors.toList());
     }
 }
