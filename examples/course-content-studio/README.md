@@ -1,10 +1,10 @@
 # Course Content Studio — Jakarta Agentic AI example
 
-A teacher pastes a chapter, picks a subject and clicks **Generate packet**; an
+A teacher pastes a chapter, picks a subject and clicks **Generate lesson**; an
 agent writes an introduction, a quiz and a conclusion. The teacher edits
 anything and clicks **Approve & publish**; the lesson goes live and a second
-agent files it in the course catalogue by topic, prerequisite and placement,
-unless it duplicates a lesson already there.
+agent schedules it on the course syllabus — in the first week after everything
+it assumes has been taught, or not at all until that has been.
 
 ## Configure the LLM
 
@@ -24,7 +24,7 @@ payara.agentic.llm.system=You are an expert curriculum designer and teacher...
 > implementation, configure the provider the way that implementation
 > documents. To run fully local instead of Claude, switch to
 > `payara.agentic.llm.provider=ollama` / `model=gemma3:12b` — a 12B-class
-> model is recommended so the quiz and catalogue steps produce well-formed
+> model is recommended so the quiz and syllabus steps produce well-formed
 > JSON.
 
 ## Prerequisites
@@ -46,6 +46,6 @@ asadmin deploy examples/course-content-studio/target/course-content-studio.war
 ```
 
 Open <http://localhost:8080/course-content-studio/>, pick **Physics**, title it
-*Newton's Second Law*, paste a few paragraphs and click **Generate packet**.
-Edit anything in the packet and click **Approve & publish**. Then generate and
-publish the same chapter a second time.
+*Newton's Second Law*, paste a few paragraphs and click **Generate lesson**.
+Edit anything in the draft and click **Approve & publish**. Then do the same
+for a chapter on *Newton's First Law*, and once more for the second law.

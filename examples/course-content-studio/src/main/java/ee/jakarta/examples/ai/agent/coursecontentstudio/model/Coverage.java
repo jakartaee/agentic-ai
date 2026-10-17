@@ -10,27 +10,13 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  *****************************************************************************/
-package ee.jakarta.examples.ai.agent.coursecontentstudio;
-
-import ee.jakarta.examples.ai.agent.coursecontentstudio.model.CatalogueEntry;
-import jakarta.enterprise.context.ApplicationScoped;
+package ee.jakarta.examples.ai.agent.coursecontentstudio.model;
 
 import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
- * The course catalogue: every lesson filed so far.
+ * The model's verdict on whether the syllabus already covers what a lesson
+ * assumes.
  */
-@ApplicationScoped
-public class Catalogue {
-
-    private final List<CatalogueEntry> entries = new CopyOnWriteArrayList<>();
-
-    public void add(CatalogueEntry entry) {
-        entries.add(entry);
-    }
-
-    public List<CatalogueEntry> entries() {
-        return List.copyOf(entries);
-    }
+public record Coverage(boolean covered, List<String> missing, String reason) {
 }

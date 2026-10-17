@@ -13,9 +13,9 @@
 package ee.jakarta.examples.ai.agent.coursecontentstudio.model;
 
 /**
- * The learning packet for one chapter: introduction, quiz and conclusion.
+ * A lesson for one chapter: introduction, quiz and conclusion.
  */
-public class CoursePacket {
+public class Lesson {
 
     private String subject;
     private String chapterTitle;
@@ -24,10 +24,10 @@ public class CoursePacket {
     private String conclusion;
     private String notice;
 
-    public CoursePacket() {
+    public Lesson() {
     }
 
-    public CoursePacket(String subject, String chapterTitle) {
+    public Lesson(String subject, String chapterTitle) {
         this.subject = subject;
         this.chapterTitle = chapterTitle;
     }

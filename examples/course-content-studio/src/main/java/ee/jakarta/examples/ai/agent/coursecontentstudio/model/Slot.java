@@ -13,7 +13,7 @@
 package ee.jakarta.examples.ai.agent.coursecontentstudio.model;
 
 /**
- * The model's verdict on whether a lesson duplicates one already catalogued.
+ * How much class time a lesson needs and how hard it is.
  */
-public record Novelty(boolean novel, String duplicateOf, String reason) {
+public record Slot(int minutes, String difficulty) {
 }

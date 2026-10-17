@@ -13,7 +13,7 @@
 package ee.jakarta.examples.ai.agent.coursecontentstudio.model;
 
 /**
- * A published lesson as filed in the course catalogue.
+ * A published lesson in its week on the syllabus.
  */
-public record CatalogueEntry(String subject, String chapterTitle, Topics topics, Placement placement) {
+public record ScheduledLesson(int week, String subject, String chapterTitle, Topics topics, Slot slot) {
 }
