@@ -1,10 +1,9 @@
 # Course Content Studio — Jakarta Agentic AI example
 
-A teacher pastes a chapter, picks a subject and clicks **Generate packet**; one
-agent writes an introduction, a quiz and a conclusion, another rewrites any one
-section from an instruction, and on **Approve & publish** a third has the model
-review the packet and, if it passes, publishes the lesson with learning
-objectives.
+A teacher pastes a chapter, picks a subject and clicks **Generate packet**; an
+agent writes an introduction, a quiz and a conclusion. The teacher edits
+anything, and on **Approve & publish** a second agent has the model review the
+edited packet and, if it passes, publishes the lesson with learning objectives.
 
 ## Configure the LLM
 
@@ -47,5 +46,5 @@ asadmin deploy examples/course-content-studio/target/course-content-studio.war
 
 Open <http://localhost:8080/course-content-studio/>, pick **Physics**, title it
 *Newton's Second Law*, paste a few paragraphs and click **Generate packet**.
-Under **Refine**, choose **Quiz**, type *"make the questions harder"* and click
-**Refine**. Click **Approve & publish**; the published lesson appears below.
+Edit anything in the packet, then click **Approve & publish**; the published
+lesson appears below.
