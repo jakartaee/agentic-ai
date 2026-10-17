@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Course Planner</title>
+<style>
+  body { font: 15px/1.5 system-ui, sans-serif; margin: 0 auto; padding: 24px 16px; max-width: 860px; color: #222; }
+  h1 { font-size: 22px; margin: 0 0 16px; }
+  h2 { font-size: 17px; margin: 24px 0 8px; }
+  h3 { font-size: 15px; margin: 16px 0 4px; }
+  label { display: block; margin: 10px 0 4px; font-weight: 600; }
+  input[type=text], select, textarea { width: 100%; box-sizing: border-box; padding: 8px; font: inherit; }
+  textarea { min-height: 120px; }
+  button { margin: 10px 8px 0 0; padding: 8px 14px; font: inherit; cursor: pointer; }
+  button:disabled { opacity: .5; cursor: default; }
+  .status { margin-top: 8px; color: #555; min-height: 1.5em; }
+  .panel { border: 1px solid #ddd; border-radius: 8px; padding: 16px; margin-top: 16px; }
+  .q { margin: 14px 0; padding: 10px; border: 1px solid #eee; border-radius: 6px; }
+  .q .opt { display: flex; gap: 8px; align-items: center; margin: 4px 0; }
+  .q .opt input[type=text] { flex: 1; }
+  .q ul { margin: 4px 0 0 20px; padding: 0; }
+  .correct { font-weight: 600; }
+  .exp, .meta { color: #555; font-size: 14px; }
+  .notice { color: #a04000; }
+  .week { padding: 10px 0; border-top: 1px solid #eee; }
+  .week:first-child { border-top: none; }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<h1>Course Planner</h1>
+
+<section>
+  <label for="subject">Subject</label>
+  <select id="subject">
+    <option>Mathematics</option>
+    <option>Physics</option>
+    <option>English</option>
+  </select>
+  <label for="title">Chapter title</label>
+  <input type="text" id="title" placeholder="Newton's Second Law">
+  <label for="body">Chapter text</label>
+  <textarea id="body" placeholder="Paste a few paragraphs of the chapter…"></textarea>
+  <button id="generate">Generate lesson</button>
+  <div class="status" id="generateStatus"></div>
+</section>
+
+<section class="panel" id="draft" hidden>
+  <h2>Draft — edit anything, then publish</h2>
+  <p class="notice" id="notice" hidden></p>
+  <label for="intro">Introduction</label>
+  <textarea id="intro"></textarea>
+  <label>Quiz</label>
+  <div id="quiz"></div>
+  <label for="conclusion">Conclusion</label>
+  <textarea id="conclusion"></textarea>
+  <button id="publish">Approve &amp; publish</button>
+  <div class="status" id="draftStatus"></div>
+</section>
+
+<section class="panel" id="lesson" hidden>
+  <h2>Published lesson</h2>
+  <h3>Introduction</h3><p id="lessonIntro"></p>
+  <h3>Quiz</h3><div id="lessonQuiz"></div>
+  <h3>Conclusion</h3><p id="lessonConclusion"></p>
+</section>
+
+<section class="panel" id="syllabus" hidden>
+  <h2>Syllabus</h2>
+  <p class="notice" id="syllabusNotice" hidden></p>
+  <div id="weeks"></div>
+</section>
+
+<script>
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;'}[c]));
+let draft = null;
+
+async function post(url, body, statusEl, btn) {
+  btn.disabled = true;
+  statusEl.textContent = 'Working…';
+  try {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(body)
+    });
+    const data = await res.json();
+    statusEl.textContent = res.ok ? '' : (data.message || 'Error ' + res.status);
+    return res.ok ? data : null;
+  } catch (e) {
+    statusEl.textContent = 'Request failed: ' + e;
+    return null;
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+function renderDraft(d) {
+  draft = d;
+  $('draft').hidden = false;
+  $('notice').hidden = !d.notice;
+  $('notice').textContent = d.notice || '';
+  $('intro').value = d.intro || '';
+  $('conclusion').value = d.conclusion || '';
+  const questions = (d.quiz && d.quiz.questions) || [];
+  $('quiz').innerHTML = questions.map((q, i) => `<div class="q">
+    <input type="text" class="prompt" value="${esc(q.prompt)}">
+    ${(q.options || []).map((o, j) => `<div class="opt">
+      <input type="radio" name="correct${i}" value="${j}" ${j === q.correctIndex ? 'checked' : ''} title="correct answer">
+      <input type="text" class="option" value="${esc(o)}">
+    </div>`).join('')}
+    <input type="text" class="explanation" value="${esc(q.explanation)}" placeholder="Explanation">
+  </div>`).join('') || '<p class="exp">No questions were generated.</p>';
+}
+
+function editedLesson() {
+  const questions = [...$('quiz').querySelectorAll('.q')].map((el, i) => ({
+    prompt: el.querySelector('.prompt').value,
+    options: [...el.querySelectorAll('.option')].map(o => o.value),
+    correctIndex: Number((el.querySelector(`input[name=correct${i}]:checked`) || {value: 0}).value),
+    explanation: el.querySelector('.explanation').value
+  }));
+  return {
+    subject: draft.subject,
+    chapterTitle: draft.chapterTitle,
+    intro: $('intro').value,
+    quiz: questions.length ? {questions} : null,
+    conclusion: $('conclusion').value
+  };
+}
+
+function renderLesson(l) {
+  $('lesson').hidden = false;
+  $('lessonIntro').textContent = l.intro || '';
+  const questions = (l.quiz && l.quiz.questions) || [];
+  $('lessonQuiz').innerHTML = questions.map((q, i) => `<div class="q">${i + 1}. ${esc(q.prompt)}<ul>${
+    (q.options || []).map((o, j) => `<li class="${j === q.correctIndex ? 'correct' : ''}">${esc(o)}</li>`).join('')
+  }</ul><div class="exp">${esc(q.explanation)}</div></div>`).join('');
+  $('lessonConclusion').textContent = l.conclusion || '';
+}
+
+function renderSyllabus(weeks, notice) {
+  $('syllabus').hidden = !(weeks.length || notice);
+  $('syllabusNotice').hidden = !notice;
+  $('syllabusNotice').textContent = notice || '';
+  $('weeks').innerHTML = weeks.map(w => {
+    const t = w.topics || {}, s = w.slot || {};
+    return `<div class="week"><b>Week ${w.week}: ${esc(w.chapterTitle)}</b> — ${esc(w.subject)}
+      <div class="meta">${esc(s.minutes)} min · ${esc(s.difficulty)}</div>
+      <div class="meta">Teaches: ${(t.topics || []).map(esc).join(', ')}</div>
+      <div class="meta">Assumes: ${(t.prerequisites || []).map(esc).join(', ') || 'nothing'}</div>
+    </div>`;
+  }).join('');
+}
+
+async function loadSyllabus(notice) {
+  const res = await fetch('api/syllabus');
+  renderSyllabus(res.ok ? await res.json() : [], notice);
+}
+
+$('generate').onclick = async () => {
+  const d = await post('api/draft/generate',
+    {subject: $('subject').value, chapterTitle: $('title').value, chapterBody: $('body').value},
+    $('generateStatus'), $('generate'));
+  if (d) renderDraft(d);
+};
+
+$('publish').onclick = async () => {
+  const result = await post('api/lesson/publish', editedLesson(), $('draftStatus'), $('publish'));
+  if (result) {
+    $('draftStatus').textContent = 'Published.';
+    renderLesson(result.lesson);
+    await loadSyllabus(result.notice);
+  }
+};
+
+fetch('api/draft').then(r => r.ok ? r.json() : null).then(d => { if (d) renderDraft(d); });
+fetch('api/lesson').then(r => r.ok ? r.json() : null).then(l => { if (l) renderLesson(l); });
+loadSyllabus();
+</script>
+</body>
+</html>
