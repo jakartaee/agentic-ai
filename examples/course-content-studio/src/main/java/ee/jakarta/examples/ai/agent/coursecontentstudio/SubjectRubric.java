@@ -35,7 +35,7 @@ public class SubjectRubric {
     public String forSubject(String subject) {
         String key = subject == null ? "" : subject.trim().toLowerCase(Locale.ROOT);
         return switch (key) {
-            case "mathematics", "math", "maths" -> """
+            case "mathematics" -> """
                     You are a mathematics teacher. Be precise with notation, show
                     worked steps, and prefer concrete numeric examples. Assume the
                     reader has seen the definitions but needs intuition. Write every
