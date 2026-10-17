@@ -33,7 +33,6 @@
     </properties>
 
     <dependencies>
-        <!-- Jakarta Agentic AI API — provided by the target runtime. -->
         <dependency>
             <groupId>jakarta.agentic-ai</groupId>
             <artifactId>jakarta.agentic-ai-api</artifactId>
@@ -41,7 +40,6 @@
             <scope>provided</scope>
         </dependency>
 
-        <!-- Jakarta EE 10 umbrella API — provided by the target runtime. -->
         <dependency>
             <groupId>jakarta.platform</groupId>
             <artifactId>jakarta.jakartaee-api</artifactId>
@@ -49,7 +47,6 @@
     </dependencies>
 
     <build>
-        <!-- War name -> default context root: /ask-agent -->
         <finalName>ask-agent</finalName>
         <plugins>
             <plugin>

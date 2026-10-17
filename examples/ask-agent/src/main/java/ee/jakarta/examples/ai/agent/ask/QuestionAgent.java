@@ -25,12 +25,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * A compact Jakarta Agentic AI agent: answers a question with the configured LLM
- * backend. Exercises all four specification phases &mdash; {@code @Trigger},
- * {@code @Decision}, {@code @Action}, {@code @Outcome} &mdash; and logs each so
- * the workflow is visible in {@code server.log}.
- * <p>
- * Default scope is {@code @WorkflowScoped} (applied by the runtime extension).
+ * Answers a question with the configured LLM backend, unless it has answered
+ * that question before. Each phase logs, so the workflow shows in server.log.
  */
 @Agent(name = "QuestionAgent", description = "Answers a question using the configured LLM backend.")
 public class QuestionAgent {

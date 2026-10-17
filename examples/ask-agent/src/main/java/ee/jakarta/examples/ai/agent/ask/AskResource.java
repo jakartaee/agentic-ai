@@ -30,12 +30,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * Fires the {@link Question} CDI event that triggers the agent workflow.
- * <p>
- * {@code Event.fire(...)} is synchronous, so the whole workflow (including the
- * LLM call) completes before it returns; the answer is then read back from the
- * {@link AnswerStore} and returned in the same HTTP response. Failures from the
- * workflow surface here too, which is why they are caught below.
+ * Fires the {@link Question} event that triggers the agent and returns the
+ * answer it stored.
  */
 @Path("ask")
 @RequestScoped
