@@ -15,7 +15,6 @@ package ee.jakarta.examples.ai.agent.coursecontentstudio;
 import ee.jakarta.examples.ai.agent.coursecontentstudio.model.ChapterSubmitted;
 import ee.jakarta.examples.ai.agent.coursecontentstudio.model.CoursePacket;
 import ee.jakarta.examples.ai.agent.coursecontentstudio.model.LessonApproved;
-import ee.jakarta.examples.ai.agent.coursecontentstudio.model.PublishedLesson;
 import ee.jakarta.examples.ai.agent.coursecontentstudio.model.Section;
 import ee.jakarta.examples.ai.agent.coursecontentstudio.model.SectionRefineRequested;
 import jakarta.ai.agent.LLMException;
@@ -25,11 +24,13 @@ import jakarta.enterprise.event.ObserverException;
 import jakarta.inject.Inject;
 import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.constraints.NotNull;
+import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.ServiceUnavailableException;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 
@@ -117,24 +118,21 @@ public class CourseResource {
         return found(lessons.current(), "No lesson has been published yet.");
     }
 
-    private Response fire(Runnable workflow) {
+    private static void fire(Runnable workflow) {
         try {
             workflow.run();
         } catch (ObserverException wrapper) {
             Throwable cause = wrapper.getCause();
             if (cause instanceof ConstraintViolationException violations) {
-                throw new jakarta.ws.rs.BadRequestException(
-                        error(Response.Status.BAD_REQUEST, describe(violations)));
+                throw new BadRequestException(error(Response.Status.BAD_REQUEST, describe(violations)));
             }
             if (cause instanceof LLMException) {
                 LOGGER.log(Level.WARNING, "LLM call failed", cause);
-                throw new jakarta.ws.rs.ServiceUnavailableException(
-                        error(Response.Status.SERVICE_UNAVAILABLE,
-                                "The LLM backend failed: " + cause.getMessage()));
+                throw new ServiceUnavailableException(error(Response.Status.SERVICE_UNAVAILABLE,
+                        "The LLM backend failed: " + cause.getMessage()));
             }
             throw wrapper;
         }
-        return null;
     }
 
     private static String describe(ConstraintViolationException e) {
