@@ -25,7 +25,7 @@ import java.util.logging.Logger;
 
 /**
  * Answers a question with the configured LLM backend, unless it has answered
- * that question before. Each phase logs, so the workflow shows in server.log.
+ * that question before.
  */
 @Agent(name = "QuestionAgent", description = "Answers a question using the configured LLM backend.")
 public class QuestionAgent {

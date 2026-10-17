@@ -47,19 +47,3 @@ curl -s http://localhost:8080/ask-agent/api/ask \
   -H 'Content-Type: application/json' \
   -d '{"question":"What is Jakarta EE in one sentence?"}'
 ```
-
-Watch `server.log` for `[TRIGGER]` → `[DECISION]` → `[ACTION]` → `[OUTCOME]`.
-
-Ask the **same question again** to see early termination: `@Decision` finds the
-answer already stored, returns `false`, and neither `@Action` nor `@Outcome`
-runs — so the second call never reaches the model. The log stops after
-`[DECISION]` and the answer comes back just as fast.
-
-The question is constrained once, by `@NotBlank` on the `Question` event record.
-`@Valid` on the trigger is what enforces it, so an empty `question` stops the
-workflow before the agent starts; the resource turns the resulting
-`ConstraintViolationException` into a 400.
-
-If the configured backend is not running — Ollama not started, for instance —
-the call returns a 503 saying so, rather than a stack trace. `Event.fire(...)`
-is synchronous, so the `LLMException` surfaces at the resource.

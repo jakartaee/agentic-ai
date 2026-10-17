@@ -12,9 +12,5 @@
  *****************************************************************************/
 package ee.jakarta.examples.ai.agent.ask;
 
-/**
- * The model's reply, returned by the {@code @Action} phase and received by the
- * {@code @Outcome} phase.
- */
 public record Answer(String text) {
 }
