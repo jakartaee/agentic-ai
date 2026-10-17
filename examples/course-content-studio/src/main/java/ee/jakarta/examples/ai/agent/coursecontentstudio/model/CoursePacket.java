@@ -13,8 +13,7 @@
 package ee.jakarta.examples.ai.agent.coursecontentstudio.model;
 
 /**
- * The learning packet for one chapter, built up section by section by
- * {@code CourseContentAgent}.
+ * The learning packet for one chapter: introduction, quiz and conclusion.
  */
 public class CoursePacket {
 

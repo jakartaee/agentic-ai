@@ -27,9 +27,7 @@ import java.time.Instant;
 import java.util.logging.Logger;
 
 /**
- * Turns an approved packet into the student-facing lesson. It is triggered by
- * the {@link LessonApproved} event the REST layer fires on approval, so the two
- * agents are chained through CDI events with the teacher's approval in between.
+ * Turns an approved packet into the student-facing lesson.
  */
 @Agent(name = "PublishAgent",
         description = "Turns an approved packet into a student-facing published lesson.")
