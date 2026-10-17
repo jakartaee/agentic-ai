@@ -15,5 +15,5 @@ package ee.jakarta.examples.ai.agent.courseplanner.model;
 /**
  * A published lesson in its week on the syllabus.
  */
-public record ScheduledLesson(int week, String subject, String chapterTitle, Topics topics, Slot slot) {
+public record ScheduledLesson(int week, String subject, String chapterTitle, Topics topics, Estimate estimate) {
 }

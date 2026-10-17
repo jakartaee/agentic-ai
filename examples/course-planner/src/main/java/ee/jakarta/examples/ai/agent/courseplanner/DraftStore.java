@@ -25,7 +25,7 @@ public class DraftStore {
 
     private final AtomicReference<Lesson> current = new AtomicReference<>();
 
-    public void publish(Lesson draft) {
+    public void set(Lesson draft) {
         current.set(draft);
     }
 

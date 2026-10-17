@@ -45,9 +45,9 @@ import java.util.stream.Collectors;
  */
 @Path("/")
 @RequestScoped
-public class CourseResource {
+public class PlannerResource {
 
-    private static final Logger LOGGER = Logger.getLogger(CourseResource.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(PlannerResource.class.getName());
 
     @Inject
     Event<ChapterSubmitted> chapters;

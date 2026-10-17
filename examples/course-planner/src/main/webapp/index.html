@@ -146,11 +146,11 @@ function renderSyllabus(weeks, notice) {
   $('syllabusNotice').hidden = !notice;
   $('syllabusNotice').textContent = notice || '';
   $('weeks').innerHTML = weeks.map(w => {
-    const t = w.topics || {}, s = w.slot || {};
+    const t = w.topics || {}, s = w.estimate || {};
     return `<div class="week"><b>Week ${w.week}: ${esc(w.chapterTitle)}</b> — ${esc(w.subject)}
       <div class="meta">${esc(s.minutes)} min · ${esc(s.difficulty)}</div>
-      <div class="meta">Teaches: ${(t.topics || []).map(esc).join(', ')}</div>
-      <div class="meta">Assumes: ${(t.prerequisites || []).map(esc).join(', ') || 'nothing'}</div>
+      <div class="meta">Teaches: ${(t.teaches || []).map(esc).join(', ')}</div>
+      <div class="meta">Assumes: ${(t.assumes || []).map(esc).join(', ') || 'nothing'}</div>
     </div>`;
   }).join('');
 }

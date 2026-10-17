@@ -15,7 +15,7 @@ package ee.jakarta.examples.ai.agent.courseplanner.model;
 import java.util.List;
 
 /**
- * What a lesson teaches and what a student needs to know first.
+ * What a lesson teaches and what it assumes a student already knows.
  */
-public record Topics(List<String> topics, List<String> prerequisites) {
+public record Topics(List<String> teaches, List<String> assumes) {
 }
