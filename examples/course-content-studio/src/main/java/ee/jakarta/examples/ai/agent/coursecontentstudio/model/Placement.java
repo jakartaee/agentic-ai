@@ -13,7 +13,7 @@
 package ee.jakarta.examples.ai.agent.coursecontentstudio.model;
 
 /**
- * Fired when the teacher approves a packet; triggers {@code PublishAgent}.
+ * Where a lesson sits in a curriculum.
  */
-public record LessonApproved(CoursePacket packet) {
+public record Placement(String gradeLevel, String strand, int minutes, String difficulty) {
 }

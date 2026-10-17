@@ -21,8 +21,10 @@
   .q .opt input[type=text] { flex: 1; }
   .q ul { margin: 4px 0 0 20px; padding: 0; }
   .correct { font-weight: 600; }
-  .exp { color: #555; font-size: 14px; }
+  .exp, .meta { color: #555; font-size: 14px; }
   .notice { color: #a04000; }
+  .entry { padding: 10px 0; border-top: 1px solid #eee; }
+  .entry:first-child { border-top: none; }
   [hidden] { display: none !important; }
 </style>
 </head>
@@ -45,7 +47,7 @@
 </section>
 
 <section class="panel" id="packet" hidden>
-  <h2>Packet — edit anything, then approve</h2>
+  <h2>Packet — edit anything, then publish</h2>
   <p class="notice" id="notice" hidden></p>
   <label for="intro">Introduction</label>
   <textarea id="intro"></textarea>
@@ -53,16 +55,21 @@
   <div id="quiz"></div>
   <label for="conclusion">Conclusion</label>
   <textarea id="conclusion"></textarea>
-  <button id="approve">Approve &amp; publish</button>
+  <button id="publish">Approve &amp; publish</button>
   <div class="status" id="packetStatus"></div>
 </section>
 
 <section class="panel" id="lesson" hidden>
   <h2>Published lesson</h2>
-  <h3>What you'll learn</h3><ul id="objectives"></ul>
   <h3>Introduction</h3><p id="lessonIntro"></p>
   <h3>Quiz</h3><div id="lessonQuiz"></div>
   <h3>Conclusion</h3><p id="lessonConclusion"></p>
+</section>
+
+<section class="panel" id="catalogue" hidden>
+  <h2>Course catalogue</h2>
+  <p class="notice" id="catalogueNotice" hidden></p>
+  <div id="entries"></div>
 </section>
 
 <script>
@@ -126,13 +133,31 @@ function editedPacket() {
 
 function renderLesson(l) {
   $('lesson').hidden = false;
-  $('objectives').innerHTML = (l.objectives || []).map(o => `<li>${esc(o)}</li>`).join('');
   $('lessonIntro').textContent = l.intro || '';
   const questions = (l.quiz && l.quiz.questions) || [];
   $('lessonQuiz').innerHTML = questions.map((q, i) => `<div class="q">${i + 1}. ${esc(q.prompt)}<ul>${
     (q.options || []).map((o, j) => `<li class="${j === q.correctIndex ? 'correct' : ''}">${esc(o)}</li>`).join('')
   }</ul><div class="exp">${esc(q.explanation)}</div></div>`).join('');
   $('lessonConclusion').textContent = l.conclusion || '';
+}
+
+function renderCatalogue(entries, notice) {
+  $('catalogue').hidden = !(entries.length || notice);
+  $('catalogueNotice').hidden = !notice;
+  $('catalogueNotice').textContent = notice || '';
+  $('entries').innerHTML = entries.map(e => {
+    const t = e.topics || {}, p = e.placement || {};
+    return `<div class="entry"><b>${esc(e.chapterTitle)}</b> — ${esc(e.subject)}
+      <div class="meta">${esc(p.gradeLevel)} · ${esc(p.strand)} · ${esc(p.minutes)} min · ${esc(p.difficulty)}</div>
+      <div class="meta">Topics: ${(t.topics || []).map(esc).join(', ')}</div>
+      <div class="meta">Prerequisites: ${(t.prerequisites || []).map(esc).join(', ') || 'none'}</div>
+    </div>`;
+  }).join('');
+}
+
+async function loadCatalogue(notice) {
+  const res = await fetch('api/catalogue');
+  renderCatalogue(res.ok ? await res.json() : [], notice);
 }
 
 $('generate').onclick = async () => {
@@ -142,16 +167,18 @@ $('generate').onclick = async () => {
   if (p) renderPacket(p);
 };
 
-$('approve').onclick = async () => {
-  const lesson = await post('api/packet/approve', editedPacket(), $('packetStatus'), $('approve'));
-  if (lesson) {
+$('publish').onclick = async () => {
+  const result = await post('api/lesson/publish', editedPacket(), $('packetStatus'), $('publish'));
+  if (result) {
     $('packetStatus').textContent = 'Published.';
-    renderLesson(lesson);
+    renderLesson(result.lesson);
+    await loadCatalogue(result.notice);
   }
 };
 
 fetch('api/packet').then(r => r.ok ? r.json() : null).then(p => { if (p) renderPacket(p); });
 fetch('api/lesson').then(r => r.ok ? r.json() : null).then(l => { if (l) renderLesson(l); });
+loadCatalogue();
 </script>
 </body>
 </html>

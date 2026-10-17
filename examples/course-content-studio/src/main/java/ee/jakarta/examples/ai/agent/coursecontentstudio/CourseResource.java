@@ -12,9 +12,10 @@
  *****************************************************************************/
 package ee.jakarta.examples.ai.agent.coursecontentstudio;
 
+import ee.jakarta.examples.ai.agent.coursecontentstudio.model.CatalogueEntry;
 import ee.jakarta.examples.ai.agent.coursecontentstudio.model.ChapterSubmitted;
 import ee.jakarta.examples.ai.agent.coursecontentstudio.model.CoursePacket;
-import ee.jakarta.examples.ai.agent.coursecontentstudio.model.LessonApproved;
+import ee.jakarta.examples.ai.agent.coursecontentstudio.model.LessonPublished;
 import jakarta.ai.agent.LLMException;
 import jakarta.enterprise.context.RequestScoped;
 import jakarta.enterprise.event.Event;
@@ -32,13 +33,15 @@ import jakarta.ws.rs.ServiceUnavailableException;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 /**
- * REST surface for the studio: generate and approve each fire the event of
- * one agent and return what it produced.
+ * REST surface for the studio: generate fires the authoring agent and returns
+ * the packet; publish stores the edited packet as the lesson, fires the
+ * catalogue agent and returns the lesson with its catalogue entry.
  */
 @Path("/")
 @RequestScoped
@@ -50,7 +53,7 @@ public class CourseResource {
     Event<ChapterSubmitted> chapters;
 
     @Inject
-    Event<LessonApproved> approvals;
+    Event<LessonPublished> publications;
 
     @Inject
     PacketStore store;
@@ -59,7 +62,10 @@ public class CourseResource {
     PublishedLessonStore lessons;
 
     @Inject
-    PublishOutput publishOutput;
+    Catalogue catalogue;
+
+    @Inject
+    CatalogueOutput catalogueOutput;
 
     @GET
     @Path("packet")
@@ -73,32 +79,8 @@ public class CourseResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response generate(@NotNull ChapterSubmitted chapter) {
-        fire(() -> chapters.fire(chapter));
-        return Response.ok(store.current()).build();
-    }
-
-    @POST
-    @Path("packet/approve")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response approve(@NotNull CoursePacket packet) {
-        fire(() -> approvals.fire(new LessonApproved(packet)));
-        if (publishOutput.stopReason() != null) {
-            return error(Response.Status.fromStatusCode(422), publishOutput.stopReason());
-        }
-        return Response.ok(lessons.current()).build();
-    }
-
-    @GET
-    @Path("lesson")
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response lesson() {
-        return found(lessons.current(), "No lesson has been published yet.");
-    }
-
-    private static void fire(Runnable workflow) {
         try {
-            workflow.run();
+            chapters.fire(chapter);
         } catch (ObserverException wrapper) {
             Throwable cause = wrapper.getCause();
             if (cause instanceof ConstraintViolationException violations) {
@@ -111,6 +93,40 @@ public class CourseResource {
             }
             throw wrapper;
         }
+        return Response.ok(store.current()).build();
+    }
+
+    @POST
+    @Path("lesson/publish")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response publish(@NotNull CoursePacket lesson) {
+        lessons.publish(lesson);
+        try {
+            publications.fire(new LessonPublished(lesson));
+        } catch (ObserverException wrapper) {
+            if (!(wrapper.getCause() instanceof LLMException)) {
+                throw wrapper;
+            }
+            LOGGER.log(Level.WARNING, "cataloguing failed", wrapper.getCause());
+            catalogueOutput.setStopReason("Published, but not catalogued: the LLM backend failed.");
+        }
+        return Response.ok(new Published(lesson, catalogueOutput.entry(), catalogueOutput.stopReason()))
+                .build();
+    }
+
+    @GET
+    @Path("lesson")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response lesson() {
+        return found(lessons.current(), "No lesson has been published yet.");
+    }
+
+    @GET
+    @Path("catalogue")
+    @Produces(MediaType.APPLICATION_JSON)
+    public List<CatalogueEntry> catalogue() {
+        return catalogue.entries();
     }
 
     private static String describe(ConstraintViolationException e) {
@@ -125,6 +141,9 @@ public class CourseResource {
 
     private static Response error(Response.StatusType status, String message) {
         return Response.status(status).entity(new Message(message)).build();
+    }
+
+    public record Published(CoursePacket lesson, CatalogueEntry entry, String notice) {
     }
 
     public record Message(String message) {

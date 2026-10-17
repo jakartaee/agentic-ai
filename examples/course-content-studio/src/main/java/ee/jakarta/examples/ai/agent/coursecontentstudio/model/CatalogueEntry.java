@@ -10,23 +10,10 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  *****************************************************************************/
-package ee.jakarta.examples.ai.agent.coursecontentstudio;
-
-import jakarta.enterprise.context.RequestScoped;
+package ee.jakarta.examples.ai.agent.coursecontentstudio.model;
 
 /**
- * Per-request holder for why {@code PublishAgent} declined to publish.
+ * A published lesson as filed in the course catalogue.
  */
-@RequestScoped
-public class PublishOutput {
-
-    private String stopReason;
-
-    public String stopReason() {
-        return stopReason;
-    }
-
-    public void setStopReason(String stopReason) {
-        this.stopReason = stopReason;
-    }
+public record CatalogueEntry(String subject, String chapterTitle, Topics topics, Placement placement) {
 }
