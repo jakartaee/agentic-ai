@@ -31,11 +31,11 @@ import java.util.logging.Logger;
 /**
  * Writes a chapter's introduction, quiz and conclusion.
  */
-@Agent(name = "CourseContentAgent",
+@Agent(name = "LessonAgent",
         description = "Writes an introduction, quiz and conclusion for a course chapter.")
-public class CourseContentAgent {
+public class LessonAgent {
 
-    private static final Logger LOGGER = Logger.getLogger(CourseContentAgent.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(LessonAgent.class.getName());
 
     @Inject
     LargeLanguageModel model;
@@ -78,8 +78,8 @@ public class CourseContentAgent {
     }
 
     @Outcome
-    void publish(Lesson draft) {
-        drafts.publish(draft);
+    void storeDraft(Lesson draft) {
+        drafts.set(draft);
         LOGGER.info("[OUTCOME] draft ready for " + draft.getChapterTitle());
     }
 

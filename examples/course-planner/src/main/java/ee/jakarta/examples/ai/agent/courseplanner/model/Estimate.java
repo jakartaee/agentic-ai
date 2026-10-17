@@ -13,7 +13,7 @@
 package ee.jakarta.examples.ai.agent.courseplanner.model;
 
 /**
- * How much class time a lesson needs and how hard it is.
+ * The model's estimate of the class time a lesson needs and how hard it is.
  */
-public record Slot(int minutes, String difficulty) {
+public record Estimate(int minutes, String difficulty) {
 }
