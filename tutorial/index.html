@@ -645,13 +645,14 @@ phase.</li>
 <p>📦 Source: <a
 href="https://github.com/jakartaee/agentic-ai/tree/main/examples/course-content-studio"
 target="_blank" rel="noopener">examples/course-content-studio</a></p>
-<p><strong>Two agents chained by a CDI event, with the teacher editing and approving in
-between.</strong> The teacher pastes a chapter and picks a subject;
-<code>CourseContentAgent</code> writes an introduction, a quiz and a conclusion. The
-teacher edits anything in the packet, and on approval the REST layer fires
-<code>LessonApproved</code> with the edited packet, which triggers
-<code>PublishAgent</code> to have the model review it, add learning objectives and
-publish the lesson.</p>
+<p><strong>Two agents with two different jobs, chained by a CDI event, with the teacher
+editing and publishing in between.</strong> The teacher pastes a chapter and picks a
+subject; <code>CourseContentAgent</code> writes an introduction, a quiz and a conclusion.
+The teacher edits anything and publishes; the REST layer stores the lesson and fires
+<code>LessonPublished</code>, which triggers <code>CatalogueAgent</code> — a back-office
+job the author would never do for itself: work out what the lesson teaches, check it
+doesn't duplicate one already in the course catalogue, and file it by grade level,
+strand, duration and difficulty.</p>
 <p>The authoring agent's <code>@Trigger</code> returns the new packet, and every later
 phase receives it by type. Shown in full apart from the logging:</p>
 <pre><code class="language-java">@Agent
@@ -678,21 +679,34 @@ public class CourseContentAgent {
     @OnException void onLlmFailure(LLMException e, CoursePacket draft) { /* ... */ }
 }
 </code></pre>
-<p>The approval endpoint receives the edited packet and fires
-<code>approvals.fire(new LessonApproved(packet))</code>; the second agent declares that
-event as its trigger.</p>
-<pre><code class="language-java">// PublishAgent
-@Trigger void onApproved(LessonApproved e) { /* ... */ }
-@Decision Result readyToPublish(LessonApproved e, LargeLanguageModel model) { /* ... */ }
-@Action Objectives writeObjectives(LessonApproved e, LargeLanguageModel model) { /* ... */ }
-@Outcome void publish(LessonApproved e, Objectives objectives) { /* ... */ }
+<p>The publish endpoint stores the edited packet as the lesson and fires
+<code>publications.fire(new LessonPublished(lesson))</code>; the catalogue agent declares
+that event as its trigger and moves its data from phase to phase by type:</p>
+<pre><code class="language-java">@Agent
+public class CatalogueAgent {
+
+    @Inject Catalogue catalogue;
+
+    @Trigger void onPublished(LessonPublished e) { /* ... */ }
+
+    // what the lesson teaches and what a student needs first
+    @Action Topics extractTopics(LessonPublished e, LargeLanguageModel model) { /* ... */ }
+
+    // the model compares title and topics with the catalogue; a duplicate stops here
+    @Decision Result novel(LessonPublished e, Topics topics, LargeLanguageModel model) { /* ... */ }
+
+    // grade level, curriculum strand, minutes, difficulty
+    @Action Placement place(LessonPublished e, Topics topics, LargeLanguageModel model) { /* ... */ }
+
+    @Outcome void file(LessonPublished e, Topics topics, Placement placement) { /* ... */ }
+}
 </code></pre>
 <h3>What it teaches</h3>
 <ul>
-<li><strong>Agents chain through events, with the human in between.</strong>
-<code>PublishAgent</code> observes <code>LessonApproved</code> as its <code>@Trigger</code>;
-nothing orchestrates the two, the teacher's edit-and-approve is the step between their
-workflows, and each has its own LLM conversation.</li>
+<li><strong>A back-end task triggered by an event.</strong> <code>CatalogueAgent</code> runs
+because a lesson was published — it observes <code>LessonPublished</code> as its
+<code>@Trigger</code>. Nothing orchestrates the two agents; the teacher's edit-and-publish
+is the step between their workflows, and each has its own LLM conversation.</li>
 <li><strong>State flows from the trigger.</strong> <code>onChapter</code> returns the new
 packet and it becomes workflow state: the three actions, the <code>@Outcome</code> and
 the handler all declare <code>CoursePacket draft</code> and receive the same object. No
@@ -706,14 +720,21 @@ produced", which the per-workflow conversation still holds.</li>
 were written, <code>onLlmFailure</code> returns normally: the remaining actions and the
 <code>@Outcome</code> still run, and the packet carries a notice telling the teacher what
 to fill in. When nothing was written yet, it re-throws and the resource answers 503.</li>
-<li><strong>The model makes a decision.</strong> <code>readyToPublish</code> asks the model to
-review the teacher's edited packet as an editor and returns
-<code>Result(success, details)</code> with the review as the details: <code>false</code>
-stops the workflow and the approval endpoint returns the model's reasons as a 422; on
-success the details become workflow state. The human edits, the machine reviews.</li>
-<li><strong>The model as a parameter.</strong> <code>readyToPublish</code> and
-<code>writeObjectives</code> declare <code>LargeLanguageModel</code> as a parameter instead
-of a field; the resolution rules supply it like any other.</li>
+<li><strong>Typed results flow between phases.</strong> <code>extractTopics</code> returns a
+<code>Topics</code> record, and the decision, the next action and the outcome each declare
+it as a parameter and receive it — the Example 2 shape, next to the author's
+trigger-returned state.</li>
+<li><strong>The model makes a decision, mid-pipeline.</strong> <code>novel</code> sits between
+the two actions and asks the model whether the lesson duplicates one already catalogued,
+returning <code>Result(success, details)</code>: <code>false</code> stops the workflow, the
+lesson stays published, and the teacher is told which entry it duplicates and why; on
+success the <code>Novelty</code> details become workflow state.</li>
+<li><strong>An agent reads application state.</strong> The decision's prompt includes the
+catalogue's existing entries, injected like any CDI bean; an agent isn't limited to its
+event.</li>
+<li><strong>The model as a parameter.</strong> All three model-using phases declare
+<code>LargeLanguageModel</code> as a parameter instead of a field; the resolution rules
+supply it like any other.</li>
 </ul>
 </section>
 <section class="chapter" id="ch-5" data-num="5">
