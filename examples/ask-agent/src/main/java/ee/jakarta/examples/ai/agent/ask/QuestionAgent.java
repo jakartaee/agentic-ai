@@ -21,7 +21,6 @@ import jakarta.ai.agent.Trigger;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -41,19 +40,19 @@ public class QuestionAgent {
 
     @Trigger
     void onQuestion(@Valid Question question) {
-        LOGGER.log(Level.INFO, "[TRIGGER] question received: {0}", question.text());
+        LOGGER.info("[TRIGGER] question received: " + question.text());
     }
 
     @Decision
     boolean notYetAnswered(Question question) {
         boolean proceed = answers.get(question.text()) == null;
-        LOGGER.log(Level.INFO, "[DECISION] not yet answered: {0}", proceed);
+        LOGGER.info("[DECISION] not yet answered: " + proceed);
         return proceed;
     }
 
     @Action
     Answer generate(Question question) {
-        LOGGER.log(Level.INFO, "[ACTION] querying LLM for: {0}", question.text());
+        LOGGER.info("[ACTION] querying LLM for: " + question.text());
         return new Answer(model.query("Answer concisely in one short paragraph: {}",
                 question.text()));
     }
@@ -61,6 +60,6 @@ public class QuestionAgent {
     @Outcome
     void store(Question question, Answer answer) {
         answers.put(question.text(), answer.text());
-        LOGGER.log(Level.INFO, "[OUTCOME] stored answer: {0}", answer.text());
+        LOGGER.info("[OUTCOME] stored answer: " + answer.text());
     }
 }
