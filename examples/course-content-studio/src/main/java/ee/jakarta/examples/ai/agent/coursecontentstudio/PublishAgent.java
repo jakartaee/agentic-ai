@@ -16,17 +16,17 @@ import ee.jakarta.examples.ai.agent.coursecontentstudio.model.CoursePacket;
 import ee.jakarta.examples.ai.agent.coursecontentstudio.model.LessonApproved;
 import ee.jakarta.examples.ai.agent.coursecontentstudio.model.Objectives;
 import ee.jakarta.examples.ai.agent.coursecontentstudio.model.PublishedLesson;
+import ee.jakarta.examples.ai.agent.coursecontentstudio.model.Review;
 import jakarta.ai.agent.Action;
 import jakarta.ai.agent.Agent;
 import jakarta.ai.agent.Decision;
 import jakarta.ai.agent.LargeLanguageModel;
 import jakarta.ai.agent.Outcome;
+import jakarta.ai.agent.Result;
 import jakarta.ai.agent.Trigger;
 import jakarta.inject.Inject;
 
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.logging.Logger;
 
 /**
@@ -57,28 +57,26 @@ public class PublishAgent {
     }
 
     @Decision
-    boolean isComplete(LessonApproved event) {
+    Result readyToPublish(LessonApproved event, LargeLanguageModel model) {
+        LOGGER.info("[DECISION] readyToPublish");
+        progress.publish(event.runId(), "Publish agent — reviewing the packet…");
         CoursePacket packet = event.packet();
-        List<String> missing = new ArrayList<>();
-        if (packet.getIntro() == null) {
-            missing.add("introduction");
+        Review review = model.query(
+                rubric.forSubject(packet.getSubject())
+                        + "\nYou are the editor reviewing this lesson packet before it is published "
+                        + "to students. It is ready only if it has an introduction, a quiz and a "
+                        + "conclusion, they are accurate, and they agree with each other. Return "
+                        + "ONLY JSON: {\"ready\":true|false,\"reasons\":\"one or two sentences\"}\n{}",
+                Review.class,
+                packet);
+        if (!review.ready()) {
+            output.setStopReason("Not published — " + review.reasons());
         }
-        if (packet.getQuiz() == null) {
-            missing.add("quiz");
-        }
-        if (packet.getConclusion() == null) {
-            missing.add("conclusion");
-        }
-        if (missing.isEmpty()) {
-            LOGGER.info("[DECISION] isComplete: proceed");
-            progress.publish(event.runId(), "Publish agent — packet is complete");
-            return true;
-        }
-        output.setStopReason("Not published: the packet has no " + String.join(" or ", missing)
-                + " yet. Refine it first.");
-        LOGGER.info("[DECISION] isComplete: stop, missing " + missing);
-        progress.publish(event.runId(), "Publish agent — not published, the packet is incomplete");
-        return false;
+        LOGGER.info("[DECISION] readyToPublish: " + review.ready() + " — " + review.reasons());
+        progress.publish(event.runId(), review.ready()
+                ? "Publish agent — review passed"
+                : "Publish agent — review failed, not published");
+        return new Result(review.ready(), review);
     }
 
     @Action
