@@ -29,6 +29,7 @@ import jakarta.ws.rs.core.Response;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 /**
  * REST API for the customer intake form. {@link #prepare} runs the
@@ -58,16 +59,15 @@ public class IntakeResource {
             trigger.fire(request);
         } catch (ObserverException wrapper) {
             Throwable cause = wrapper.getCause();
-            if (cause instanceof ConstraintViolationException cve) {
+            if (cause instanceof ConstraintViolationException violations) {
                 return Response.status(Response.Status.BAD_REQUEST)
-                        .type(MediaType.TEXT_PLAIN)
-                        .entity(formatViolations(cve)).build();
+                        .entity(new Message(describe(violations))).build();
             }
             if (cause instanceof LLMException) {
                 LOGGER.log(Level.WARNING, "LLM call failed", cause);
                 return Response.status(Response.Status.SERVICE_UNAVAILABLE)
-                        .type(MediaType.TEXT_PLAIN)
-                        .entity("We could not prepare your inquiry right now. Please try again in a moment.")
+                        .entity(new Message("We could not prepare your inquiry right now. "
+                                + "Please try again in a moment."))
                         .build();
             }
             throw wrapper;
@@ -77,8 +77,7 @@ public class IntakeResource {
         if (record == null) {
             String reason = output.stopReason();
             return Response.status(422)
-                    .type(MediaType.TEXT_PLAIN)
-                    .entity(reason != null ? reason : "We could not process this inquiry.")
+                    .entity(new Message(reason != null ? reason : "We could not process this inquiry."))
                     .build();
         }
         return Response.ok(record).build();
@@ -93,10 +92,12 @@ public class IntakeResource {
         return Response.ok(Map.of("status", "sent")).build();
     }
 
-    private static String formatViolations(ConstraintViolationException e) {
-        StringBuilder sb = new StringBuilder("The submission has validation errors:");
-        e.getConstraintViolations().forEach(v ->
-                sb.append("\n  - ").append(v.getPropertyPath()).append(": ").append(v.getMessage()));
-        return sb.toString();
+    private static String describe(ConstraintViolationException e) {
+        return e.getConstraintViolations().stream()
+                .map(v -> v.getPropertyPath() + ": " + v.getMessage())
+                .collect(Collectors.joining("; "));
+    }
+
+    public record Message(String message) {
     }
 }
