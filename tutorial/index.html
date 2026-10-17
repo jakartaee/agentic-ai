@@ -465,8 +465,8 @@ model in 5 classes; the <strong>customer inquiry intake</strong> example runs a 
 multi-phase pipeline inside one agent — four actions and two decisions wired together by
 parameter type, with declarative validation on the trigger, typed LLM output and
 an <code>@OnException</code> fallback for an LLM outage; and the <strong>Course Content
-Studio</strong> raises the bar to <strong>three agents, one per request, chained by CDI
-events</strong>, with a human approval gate before the last.</p>
+Studio</strong> raises the bar to <strong>two agents chained by a CDI event</strong>, with
+the human editing and approving in between.</p>
 
 <p>All three live in the <a
 href="https://github.com/jakartaee/agentic-ai/tree/main/examples" target="_blank"
@@ -645,12 +645,13 @@ phase.</li>
 <p>📦 Source: <a
 href="https://github.com/jakartaee/agentic-ai/tree/main/examples/course-content-studio"
 target="_blank" rel="noopener">examples/course-content-studio</a></p>
-<p><strong>One agent per teacher request, chained by CDI events, with the teacher's
-approval before the last.</strong> The teacher pastes a chapter and picks a subject;
-<code>CourseContentAgent</code> writes an introduction, a quiz and a conclusion.
-<code>RefineAgent</code> rewrites any one section on request. On approval the REST layer
-fires <code>LessonApproved</code>, which triggers <code>PublishAgent</code> to have the
-model review the packet, add learning objectives and publish the lesson.</p>
+<p><strong>Two agents chained by a CDI event, with the teacher editing and approving in
+between.</strong> The teacher pastes a chapter and picks a subject;
+<code>CourseContentAgent</code> writes an introduction, a quiz and a conclusion. The
+teacher edits anything in the packet, and on approval the REST layer fires
+<code>LessonApproved</code> with the edited packet, which triggers
+<code>PublishAgent</code> to have the model review it, add learning objectives and
+publish the lesson.</p>
 <p>The authoring agent's <code>@Trigger</code> returns the new packet, and every later
 phase receives it by type. Shown in full apart from the logging:</p>
 <pre><code class="language-java">@Agent
@@ -677,16 +678,10 @@ public class CourseContentAgent {
     @OnException void onLlmFailure(LLMException e, CoursePacket draft) { /* ... */ }
 }
 </code></pre>
-<p>The other two agents are each one request long. The refine agent copies the draft,
-rewrites the one section named in the event and hands the copy to its outcome; the
-publish agent is fired by the approval endpoint with
-<code>approvals.fire(new LessonApproved(packet))</code>.</p>
-<pre><code class="language-java">// RefineAgent
-@Trigger void onRefine(@Valid SectionRefineRequested r) { /* ... */ }
-@Action CoursePacket rewrite(SectionRefineRequested r) { /* ... */ }
-@Outcome void publish(CoursePacket updated) { /* ... */ }
-
-// PublishAgent
+<p>The approval endpoint receives the edited packet and fires
+<code>approvals.fire(new LessonApproved(packet))</code>; the second agent declares that
+event as its trigger.</p>
+<pre><code class="language-java">// PublishAgent
 @Trigger void onApproved(LessonApproved e) { /* ... */ }
 @Decision Result readyToPublish(LessonApproved e, LargeLanguageModel model) { /* ... */ }
 @Action Objectives writeObjectives(LessonApproved e, LargeLanguageModel model) { /* ... */ }
@@ -694,10 +689,10 @@ publish agent is fired by the approval endpoint with
 </code></pre>
 <h3>What it teaches</h3>
 <ul>
-<li><strong>One trigger, one agent.</strong> An agent has exactly one <code>@Trigger</code>,
-so each kind of request is its own agent and its own event. Nothing orchestrates them;
-the teacher's approval is the step before the last, and each has its own LLM
-conversation.</li>
+<li><strong>Agents chain through events, with the human in between.</strong>
+<code>PublishAgent</code> observes <code>LessonApproved</code> as its <code>@Trigger</code>;
+nothing orchestrates the two, the teacher's edit-and-approve is the step between their
+workflows, and each has its own LLM conversation.</li>
 <li><strong>State flows from the trigger.</strong> <code>onChapter</code> returns the new
 packet and it becomes workflow state: the three actions, the <code>@Outcome</code> and
 the handler all declare <code>CoursePacket draft</code> and receive the same object. No
@@ -709,13 +704,13 @@ has no <code>{}</code>; its prompt refers to "the introduction and quiz you just
 produced", which the per-workflow conversation still holds.</li>
 <li><strong>Recovery that continues or stops.</strong> When a section fails after others
 were written, <code>onLlmFailure</code> returns normally: the remaining actions and the
-<code>@Outcome</code> still run, and the packet carries a notice naming what to write.
-When nothing was written yet, it re-throws and the resource answers 503.</li>
+<code>@Outcome</code> still run, and the packet carries a notice telling the teacher what
+to fill in. When nothing was written yet, it re-throws and the resource answers 503.</li>
 <li><strong>The model makes a decision.</strong> <code>readyToPublish</code> asks the model to
-review the packet as an editor and returns <code>Result(success, details)</code> with
-the review as the details: <code>false</code> stops the workflow and the approval
-endpoint returns the model's reasons as a 422; on success the details become workflow
-state. The teacher's approval sits on top of the machine's review.</li>
+review the teacher's edited packet as an editor and returns
+<code>Result(success, details)</code> with the review as the details: <code>false</code>
+stops the workflow and the approval endpoint returns the model's reasons as a 422; on
+success the details become workflow state. The human edits, the machine reviews.</li>
 <li><strong>The model as a parameter.</strong> <code>readyToPublish</code> and
 <code>writeObjectives</code> declare <code>LargeLanguageModel</code> as a parameter instead
 of a field; the resolution rules supply it like any other.</li>
@@ -739,8 +734,8 @@ LLM backend (Ollama, Anthropic, Vertex) is MicroProfile Config, no code change.<
 on <strong>local Ollama</strong> (no network, no cost).</li>
 <li><strong>The inquiry intake example and the studio.</strong> A customer contact form that
 runs a four-step pipeline on submit (enrich identity, classify, draft a subject line,
-polish the message) and shows the prepared record for review; then three agents, one
-per request, chained by CDI events with a human approval gate. Switching Ollama↔Claude↔Vertex is
+polish the message) and shows the prepared record for review; then two agents chained
+by a CDI event with the teacher editing and approving in between. Switching Ollama↔Claude↔Vertex is
 <strong>one properties file</strong>.</li>
 </ol>
 <h2>Running the examples — checklist</h2>
