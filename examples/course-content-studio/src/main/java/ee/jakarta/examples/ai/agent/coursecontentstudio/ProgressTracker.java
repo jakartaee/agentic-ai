@@ -20,12 +20,9 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Bridges the agent's phase progress to the browser over Server-Sent Events.
- * <p>
- * The UI opens {@code GET /api/progress/{runId}} (an SSE stream) before it fires
- * the workflow, passing the same {@code runId} in the request. As each phase
- * runs, the agent calls {@link #publish} and the step is pushed live to the
- * popup; {@link #complete} closes the stream when the workflow ends.
+ * Streams each agent phase to the browser over Server-Sent Events. The page
+ * opens {@code /api/progress/{runId}} first and then sends the same
+ * {@code runId} with its request, so steps published under it reach that stream.
  */
 @ApplicationScoped
 public class ProgressTracker {
@@ -35,14 +32,12 @@ public class ProgressTracker {
 
     private final Map<String, Channel> channels = new ConcurrentHashMap<>();
 
-    /** Registers the SSE connection for a run. */
     public void register(String runId, SseEventSink sink, Sse sse) {
         if (runId != null && !runId.isBlank()) {
             channels.put(runId, new Channel(sink, sse));
         }
     }
 
-    /** Pushes one progress step to the browser (no-op if nobody is listening). */
     public void publish(String runId, String message) {
         Channel channel = runId == null ? null : channels.get(runId);
         if (channel != null && !channel.sink().isClosed()) {
@@ -54,7 +49,6 @@ public class ProgressTracker {
         }
     }
 
-    /** Signals completion and closes the stream. */
     public void complete(String runId) {
         Channel channel = runId == null ? null : channels.remove(runId);
         if (channel != null && !channel.sink().isClosed()) {

@@ -15,9 +15,7 @@ package ee.jakarta.examples.ai.agent.coursecontentstudio.model;
 import java.util.List;
 
 /**
- * The student-facing lesson produced by {@code PublishAgent} from an approved
- * packet: the same intro/quiz/conclusion, plus generated "what you'll learn"
- * objectives and a publication timestamp.
+ * The student-facing lesson: the approved packet plus generated objectives.
  */
 public record PublishedLesson(
         String subject,

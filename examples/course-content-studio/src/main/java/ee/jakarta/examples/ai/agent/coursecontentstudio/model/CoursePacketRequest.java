@@ -16,29 +16,10 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
 /**
- * The CDI event that triggers the {@code CourseContentAgent} workflow.
- * <p>
- * The event carries the <em>mode</em>, exactly like a document-editing agent:
- * <ul>
- *   <li>{@code draft} null &rarr; <strong>generate</strong> a brand-new packet
- *       from {@code chapterBody};</li>
- *   <li>{@code draft} present &rarr; <strong>refine</strong> the existing
- *       packet by applying {@code instruction}.</li>
- * </ul>
- * {@code section} scopes a refinement to a single part ({@code "intro"},
- * {@code "quiz"}, {@code "conclusion"}) or the whole packet ({@code "all"} /
- * null), so refining the quiz never disturbs the introduction.
- * <p>
- * {@code runId} correlates this run with the browser's live-progress SSE stream.
- *
- * @param subject      the subject area (e.g. {@code "Mathematics"}); shapes
- *                     the writing rubric
- * @param chapterTitle the chapter title
- * @param chapterBody  the raw chapter content (used in generate mode)
- * @param instruction  the teacher's refinement instruction (refine mode)
- * @param section      which part to (re)write: {@code intro|quiz|conclusion|all}
- * @param draft        the current packet to refine, or null to generate
- * @param runId        correlation id for the live-progress SSE stream
+ * The event that triggers {@code CourseContentAgent}: with no {@code draft} it
+ * generates a packet from {@code chapterBody}; with one it applies
+ * {@code instruction} to the named {@code section} ({@code intro},
+ * {@code quiz}, {@code conclusion} or {@code all}).
  */
 public record CoursePacketRequest(
         @NotBlank String subject,
@@ -60,12 +41,10 @@ public record CoursePacketRequest(
                 instruction, section, draft, runId);
     }
 
-    /** True when there is no existing draft, i.e. we generate from scratch. */
     public boolean isGenerate() {
         return draft == null;
     }
 
-    /** True when the given section should be (re)written in this run. */
     public boolean targets(String candidate) {
         return section == null || section.isBlank()
                 || section.equalsIgnoreCase("all")

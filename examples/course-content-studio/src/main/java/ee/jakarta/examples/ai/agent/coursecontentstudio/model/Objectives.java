@@ -16,8 +16,6 @@ import java.util.List;
 
 /**
  * The "what you'll learn" bullet points of a published lesson.
- *
- * @param lines the objectives, one per entry
  */
 public record Objectives(List<String> lines) {
 }

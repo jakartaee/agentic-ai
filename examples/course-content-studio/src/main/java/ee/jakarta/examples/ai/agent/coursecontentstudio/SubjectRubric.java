@@ -18,20 +18,15 @@ import java.util.List;
 import java.util.Locale;
 
 /**
- * Supplies a subject-specific writing rubric that is prepended to the LLM
- * prompts. This is how a single agent specialises its output per subject
- * (maths shows worked steps, physics insists on units, English focuses on
- * usage) without branching into multiple agents.
+ * A subject-specific writing rubric prepended to the prompts.
  */
 @ApplicationScoped
 public class SubjectRubric {
 
-    /** Subjects offered in the UI dropdown. */
     public List<String> subjects() {
         return List.of("Mathematics", "Physics", "English");
     }
 
-    /** The guidance prefix for a subject; falls back to a generic rubric. */
     public String forSubject(String subject) {
         String key = subject == null ? "" : subject.trim().toLowerCase(Locale.ROOT);
         return switch (key) {

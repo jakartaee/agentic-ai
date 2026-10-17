@@ -22,7 +22,6 @@ import java.util.List;
  *   <li>{@code "open"} — a subjective question the student answers in free text;
  *       {@link #sampleAnswer()} holds the model answer used to grade it.</li>
  * </ul>
- * Deserialized from the LLM response by Jakarta JSON Binding.
  *
  * @param prompt       the question text
  * @param type         {@code "multiple_choice"} or {@code "open"}

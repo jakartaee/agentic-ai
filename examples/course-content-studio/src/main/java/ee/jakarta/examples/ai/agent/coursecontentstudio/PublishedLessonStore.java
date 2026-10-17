@@ -18,8 +18,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
- * Holds the latest published lesson (the student-facing artifact produced by
- * {@code PublishAgent}). Single-slot for this single-author demo.
+ * Holds the latest published lesson.
  */
 @ApplicationScoped
 public class PublishedLessonStore {

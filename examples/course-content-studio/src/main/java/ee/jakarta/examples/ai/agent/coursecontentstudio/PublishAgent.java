@@ -27,15 +27,9 @@ import java.time.Instant;
 import java.util.logging.Logger;
 
 /**
- * The second agent in the pipeline. It is triggered by {@link LessonApproved},
- * which the REST layer fires when the teacher approves a packet — so the two
- * agents are composed purely through CDI events, with the approval acting as a
- * human-in-the-loop gate between them.
- * <p>
- * It turns the approved packet into a student-facing lesson: it generates
- * "what you'll learn" objectives with its own LLM turn (a separate,
- * per-workflow conversation from the authoring agent) and assembles the
- * published lesson.
+ * Turns an approved packet into the student-facing lesson. It is triggered by
+ * the {@link LessonApproved} event the REST layer fires on approval, so the two
+ * agents are chained through CDI events with the teacher's approval in between.
  */
 @Agent(name = "PublishAgent",
         description = "Turns an approved packet into a student-facing published lesson.")
