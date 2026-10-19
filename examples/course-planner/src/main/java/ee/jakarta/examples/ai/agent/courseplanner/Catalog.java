@@ -12,29 +12,26 @@
  *****************************************************************************/
 package ee.jakarta.examples.ai.agent.courseplanner;
 
-import ee.jakarta.examples.ai.agent.courseplanner.model.ScheduledLesson;
+import ee.jakarta.examples.ai.agent.courseplanner.model.CatalogEntry;
 import jakarta.enterprise.context.ApplicationScoped;
 
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
- * The course syllabus: every lesson scheduled so far, in week order.
+ * The course catalogue: every lesson that has been filed, in the order it
+ * was filed.
  */
 @ApplicationScoped
-public class Syllabus {
+public class Catalog {
 
-    private final List<ScheduledLesson> lessons = new CopyOnWriteArrayList<>();
+    private final List<CatalogEntry> entries = new CopyOnWriteArrayList<>();
 
-    public void add(ScheduledLesson lesson) {
-        lessons.add(lesson);
+    public void add(CatalogEntry entry) {
+        entries.add(entry);
     }
 
-    public List<ScheduledLesson> lessons() {
-        return List.copyOf(lessons);
-    }
-
-    public int nextWeek() {
-        return lessons.size() + 1;
+    public List<CatalogEntry> entries() {
+        return List.copyOf(entries);
     }
 }

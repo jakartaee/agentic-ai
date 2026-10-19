@@ -12,9 +12,9 @@
  *****************************************************************************/
 package ee.jakarta.examples.ai.agent.courseplanner;
 
+import ee.jakarta.examples.ai.agent.courseplanner.model.CatalogEntry;
 import ee.jakarta.examples.ai.agent.courseplanner.model.Lesson;
 import ee.jakarta.examples.ai.agent.courseplanner.model.LessonPublished;
-import ee.jakarta.examples.ai.agent.courseplanner.model.ScheduledLesson;
 import ee.jakarta.examples.ai.agent.courseplanner.model.Topic;
 import jakarta.ai.agent.LLMException;
 import jakarta.enterprise.context.RequestScoped;
@@ -40,8 +40,9 @@ import java.util.stream.Collectors;
 
 /**
  * REST surface for the planner: generate fires the lesson agent and returns
- * the draft; publish stores the edited lesson, fires the syllabus agent and
- * returns the lesson with its week on the syllabus.
+ * the draft; publish stores the edited lesson, fires the catalog agent and
+ * returns the lesson with its catalogue entry (if one was filed) or the
+ * reason the agent declined to file it.
  */
 @Path("/")
 @RequestScoped
@@ -62,10 +63,10 @@ public class PlannerResource {
     PublishedLessonStore lessons;
 
     @Inject
-    Syllabus syllabus;
+    Catalog catalog;
 
     @Inject
-    SyllabusOutput syllabusOutput;
+    CatalogOutput catalogOutput;
 
     @GET
     @Path("draft")
@@ -108,10 +109,10 @@ public class PlannerResource {
             if (!(wrapper.getCause() instanceof LLMException)) {
                 throw wrapper;
             }
-            LOGGER.log(Level.WARNING, "scheduling failed", wrapper.getCause());
-            syllabusOutput.setStopReason("Published, but not scheduled: the LLM backend failed.");
+            LOGGER.log(Level.WARNING, "cataloguing failed", wrapper.getCause());
+            catalogOutput.setStopReason("Published, but not catalogued: the LLM backend failed.");
         }
-        return Response.ok(new Published(lesson, syllabusOutput.scheduled(), syllabusOutput.stopReason()))
+        return Response.ok(new Published(lesson, catalogOutput.filed(), catalogOutput.stopReason()))
                 .build();
     }
 
@@ -123,10 +124,10 @@ public class PlannerResource {
     }
 
     @GET
-    @Path("syllabus")
+    @Path("catalog")
     @Produces(MediaType.APPLICATION_JSON)
-    public List<ScheduledLesson> syllabus() {
-        return syllabus.lessons();
+    public List<CatalogEntry> catalog() {
+        return catalog.entries();
     }
 
     private static String describe(ConstraintViolationException e) {
@@ -143,7 +144,7 @@ public class PlannerResource {
         return Response.status(status).entity(new Message(message)).build();
     }
 
-    public record Published(Lesson lesson, ScheduledLesson scheduled, String notice) {
+    public record Published(Lesson lesson, CatalogEntry filed, String notice) {
     }
 
     public record Message(String message) {

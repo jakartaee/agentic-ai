@@ -12,11 +12,9 @@
  *****************************************************************************/
 package ee.jakarta.examples.ai.agent.courseplanner.model;
 
-import java.util.List;
-
 /**
- * The model's verdict on whether the course is ready for a lesson: whether
- * everything it assumes has already been taught.
+ * One curriculum standard the catalogue tags lessons against: a code and the
+ * one-line description a teacher reading the catalogue would recognise.
  */
-public record Readiness(boolean ready, List<String> missing, String reason) {
+public record Standard(String code, String description) {
 }
