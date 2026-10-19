@@ -28,10 +28,21 @@
   .week { padding: 10px 0; border-top: 1px solid #eee; }
   .week:first-child { border-top: none; }
   [hidden] { display: none !important; }
+  .tabs { display: flex; border-bottom: 1px solid #ddd; margin: 0 0 16px; }
+  .tab { background: none; border: none; border-radius: 0; border-bottom: 2px solid transparent; margin: 0; padding: 8px 14px; cursor: pointer; font: inherit; color: #555; }
+  .tab:hover { color: #222; }
+  .tab.active { color: #222; border-bottom-color: #222; }
 </style>
 </head>
 <body>
 <h1>Course Planner</h1>
+
+<nav class="tabs" role="tablist">
+  <button type="button" class="tab" role="tab" data-view="lesson">Lesson</button>
+  <button type="button" class="tab" role="tab" data-view="syllabus">Syllabus</button>
+</nav>
+
+<div id="viewLesson">
 
 <section>
   <h2>New lesson</h2>
@@ -72,12 +83,19 @@
   <h3>Conclusion</h3><p id="lessonConclusion"></p>
 </section>
 
-<section class="panel" id="syllabus" hidden>
+</div>
+
+<div id="viewSyllabus" hidden>
+
+<section class="panel" id="syllabus">
   <h2>Syllabus</h2>
   <p class="meta">The syllabus agent places each published lesson in the first week after everything it assumes has already been taught, and holds it back until then.</p>
   <p class="notice" id="syllabusNotice" hidden></p>
   <div id="weeks"></div>
+  <p class="exp" id="emptySyllabus" hidden>No lessons scheduled yet.</p>
 </section>
+
+</div>
 
 <script>
 const $ = id => document.getElementById(id);
@@ -153,7 +171,6 @@ function renderLesson(l) {
 }
 
 function renderSyllabus(weeks, notice) {
-  $('syllabus').hidden = !(weeks.length || notice);
   $('syllabusNotice').hidden = !notice;
   $('syllabusNotice').textContent = notice || '';
   $('weeks').innerHTML = weeks.map(w => {
@@ -164,6 +181,7 @@ function renderSyllabus(weeks, notice) {
       <div class="meta">Assumes: ${(c.assumes || []).map(esc).join(', ') || 'nothing'}</div>
     </div>`;
   }).join('');
+  $('emptySyllabus').hidden = weeks.length > 0;
 }
 
 async function loadSyllabus(notice) {
@@ -181,7 +199,13 @@ $('generate').onclick = async () => {
 $('publish').onclick = async () => {
   const result = await post('api/lesson/publish', editedLesson(), $('draftStatus'), $('publish'));
   if (result) {
-    $('draftStatus').textContent = 'Published.';
+    if (result.notice) {
+      $('draftStatus').textContent = result.notice;
+    } else if (result.scheduled) {
+      $('draftStatus').textContent = `Published. Scheduled in week ${result.scheduled.week} on the Syllabus tab.`;
+    } else {
+      $('draftStatus').textContent = 'Published.';
+    }
     renderLesson(result.lesson);
     await loadSyllabus(result.notice);
   }
@@ -217,6 +241,26 @@ $('quiz').addEventListener('click', e => {
 fetch('api/draft').then(r => r.ok ? r.json() : null).then(d => { if (d) renderDraft(d); });
 fetch('api/lesson').then(r => r.ok ? r.json() : null).then(l => { if (l) renderLesson(l); });
 loadSyllabus();
+
+function showTab(view) {
+  if (view !== 'lesson' && view !== 'syllabus') view = 'lesson';
+  $('viewLesson').hidden = view !== 'lesson';
+  $('viewSyllabus').hidden = view !== 'syllabus';
+  document.querySelectorAll('.tab').forEach(t => {
+    const active = t.dataset.view === view;
+    t.classList.toggle('active', active);
+    t.setAttribute('aria-selected', active);
+  });
+  try { localStorage.setItem('course-planner-tab', view); } catch (e) {}
+}
+
+document.querySelectorAll('.tab').forEach(t => {
+  t.onclick = () => showTab(t.dataset.view);
+});
+
+let initialTab = 'lesson';
+try { initialTab = localStorage.getItem('course-planner-tab') || 'lesson'; } catch (e) {}
+showTab(initialTab);
 </script>
 </body>
 </html>
