@@ -8,6 +8,7 @@
   body { font: 15px/1.5 system-ui, sans-serif; margin: 0 auto; padding: 24px 16px; max-width: 860px; color: #222; }
   h1 { font-size: 22px; margin: 0 0 16px; }
   h2 { font-size: 17px; margin: 24px 0 8px; }
+  section:first-of-type h2 { margin-top: 0; }
   h3 { font-size: 15px; margin: 16px 0 4px; }
   label { display: block; margin: 10px 0 4px; font-weight: 600; }
   input[type=text], select, textarea { width: 100%; box-sizing: border-box; padding: 8px; font: inherit; }
@@ -32,6 +33,8 @@
 <h1>Course Planner</h1>
 
 <section>
+  <h2>New lesson</h2>
+  <p class="meta">Paste a chapter, a reading or your notes. The lesson agent writes a two-paragraph introduction, a four-question multiple-choice quiz and a one-paragraph conclusion from it.</p>
   <label for="subject">Subject</label>
   <select id="subject">
     <option>Mathematics</option>
@@ -48,6 +51,7 @@
 
 <section class="panel" id="draft" hidden>
   <h2>Draft — edit anything, then publish</h2>
+  <p class="meta">Nothing is final yet. Change any field below; publishing stores the lesson and hands it to the syllabus agent.</p>
   <p class="notice" id="notice" hidden></p>
   <label for="intro">Introduction</label>
   <textarea id="intro"></textarea>
@@ -68,6 +72,7 @@
 
 <section class="panel" id="syllabus" hidden>
   <h2>Syllabus</h2>
+  <p class="meta">The syllabus agent places each published lesson in the first week after everything it assumes has already been taught, and holds it back until then.</p>
   <p class="notice" id="syllabusNotice" hidden></p>
   <div id="weeks"></div>
 </section>
@@ -106,12 +111,15 @@ function renderDraft(d) {
   $('conclusion').value = d.conclusion || '';
   const questions = (d.quiz && d.quiz.questions) || [];
   $('quiz').innerHTML = questions.map((q, i) => `<div class="q">
+    <label>Question ${i + 1}</label>
     <input type="text" class="prompt" value="${esc(q.prompt)}">
+    <label>Options <span class="exp">(select the correct one)</span></label>
     ${(q.options || []).map((o, j) => `<div class="opt">
       <input type="radio" name="correct${i}" value="${j}" ${j === q.correctIndex ? 'checked' : ''} title="correct answer">
       <input type="text" class="option" value="${esc(o)}">
     </div>`).join('')}
-    <input type="text" class="explanation" value="${esc(q.explanation)}" placeholder="Explanation">
+    <label>Explanation</label>
+    <input type="text" class="explanation" value="${esc(q.explanation)}">
   </div>`).join('') || '<p class="exp">No questions were generated.</p>';
 }
 
