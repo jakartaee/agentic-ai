@@ -41,7 +41,7 @@ import java.util.stream.Collectors;
 /**
  * REST surface for the planner: generate fires the lesson agent and returns
  * the draft; publish stores the edited lesson, fires the catalog agent and
- * returns the lesson with its catalogue entry (if one was filed) or the
+ * returns the lesson with its catalog entry (if one was filed) or the
  * reason the agent declined to file it.
  */
 @Path("/")
@@ -109,8 +109,8 @@ public class BuilderResource {
             if (!(wrapper.getCause() instanceof LLMException)) {
                 throw wrapper;
             }
-            LOGGER.log(Level.WARNING, "cataloguing failed", wrapper.getCause());
-            catalogOutput.setStopReason("Published, but not catalogued: the LLM backend failed.");
+            LOGGER.log(Level.WARNING, "cataloging failed", wrapper.getCause());
+            catalogOutput.setStopReason("Published, but not cataloged: the LLM backend failed.");
         }
         return Response.ok(new Published(lesson, catalogOutput.filed(), catalogOutput.stopReason()))
                 .build();

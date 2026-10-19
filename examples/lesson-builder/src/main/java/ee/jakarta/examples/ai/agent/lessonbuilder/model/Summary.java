@@ -11,7 +11,7 @@
 package ee.jakarta.examples.ai.agent.lessonbuilder.model;
 
 /**
- * A short catalogue abstract another teacher browsing the library can use to
+ * A short catalog abstract another teacher browsing the library can use to
  * decide whether to open the lesson.
  */
 public record Summary(String text) {

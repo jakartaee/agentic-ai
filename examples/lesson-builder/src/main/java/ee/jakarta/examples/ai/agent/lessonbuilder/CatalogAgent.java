@@ -36,15 +36,15 @@ import java.util.Locale;
 import java.util.logging.Logger;
 
 /**
- * Files a published lesson in the course catalogue. Two decisions gate the
+ * Files a published lesson in the course catalog. Two decisions gate the
  * work: the content must match the subject and title the teacher put on it,
- * and the catalogue must not already carry the same lesson. If either fails,
+ * and the catalog must not already carry the same lesson. If either fails,
  * the agent halts with a readable reason for the teacher to act on. If both
  * pass, the agent tags the lesson against the curriculum standards, estimates
  * the class time it needs, writes a short abstract, and files the entry.
  */
 @Agent(name = "CatalogAgent",
-        description = "Files a published lesson in the course catalogue, "
+        description = "Files a published lesson in the course catalog, "
                 + "with coverage, curriculum standards, class-time estimate and a short abstract.")
 public class CatalogAgent {
 
@@ -88,7 +88,7 @@ public class CatalogAgent {
                 ContentCheck.class,
                 lesson.getSubject(), lesson.getTitle(), coverage.covers());
         if (!check.matches()) {
-            output.setStopReason("Published, but not catalogued: the content mostly covers "
+            output.setStopReason("Published, but not cataloged: the content mostly covers "
                     + check.actualTopic() + ", not " + lesson.getTitle()
                     + ". Rename the lesson or paste matching material.");
         }
@@ -100,22 +100,22 @@ public class CatalogAgent {
     Result notDuplicate(LessonPublished event, Coverage coverage, LargeLanguageModel model) {
         List<CatalogEntry> existing = catalog.entries();
         if (existing.isEmpty()) {
-            LOGGER.info("[DECISION] notDuplicate: true (catalogue is empty)");
+            LOGGER.info("[DECISION] notDuplicate: true (catalog is empty)");
             return new Result(true, null);
         }
         DuplicateCheck check = model.query(
-                "Does this lesson substantially duplicate one already in the course catalogue?"
+                "Does this lesson substantially duplicate one already in the course catalog?"
                         + " It is a duplicate only if an existing entry covers the same topic at the"
                         + " same depth; a lesson that extends or revisits an existing one is not a"
                         + " duplicate. Return ONLY JSON: {\"unique\":true|false,"
                         + "\"matchedTitle\":\"title of the overlapping entry, or empty\","
                         + "\"reason\":\"one sentence\"}\n"
                         + "New lesson: {} ({}) covering {}\n"
-                        + "Catalogue: {}",
+                        + "Catalog: {}",
                 DuplicateCheck.class,
                 event.lesson().getTitle(), event.lesson().getSubject(), coverage.covers(), existing);
         if (!check.unique()) {
-            output.setStopReason("Published, but not catalogued: " + check.matchedTitle()
+            output.setStopReason("Published, but not cataloged: " + check.matchedTitle()
                     + " already covers this. " + check.reason() + " Merge, or title this as a variant.");
         }
         LOGGER.info("[DECISION] notDuplicate: " + check.unique() + " — " + check.reason());
@@ -155,7 +155,7 @@ public class CatalogAgent {
     Summary describe(LargeLanguageModel model) {
         LOGGER.info("[ACTION] describe");
         return new Summary(model.query(
-                "Write a three-sentence catalogue abstract for the lesson, in neutral prose that"
+                "Write a three-sentence catalog abstract for the lesson, in neutral prose that"
                         + " another teacher browsing the library could use to decide whether to open"
                         + " it. Name the topic, say what the lesson teaches, and say who it is for."
                         + " Return plain prose only, no quotation marks or markdown."));

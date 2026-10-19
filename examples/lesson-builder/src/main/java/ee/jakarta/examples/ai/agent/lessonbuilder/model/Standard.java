@@ -13,8 +13,8 @@
 package ee.jakarta.examples.ai.agent.lessonbuilder.model;
 
 /**
- * One curriculum standard the catalogue tags lessons against: a code and the
- * one-line description a teacher reading the catalogue would recognise.
+ * One curriculum standard the catalog tags lessons against: a code and the
+ * one-line description a teacher reading the catalog would recognise.
  */
 public record Standard(String code, String description) {
 }
