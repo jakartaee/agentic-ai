@@ -7,13 +7,12 @@
  * This program and the accompanying materials are made available under the
  * terms of the Eclipse Public License v. 2.0 which is available at
  * https://www.eclipse.org/legal/epl-2.0.
- *
- * SPDX-License-Identifier: EPL-2.0
  *****************************************************************************/
 package ee.jakarta.examples.ai.agent.courseplanner.model;
 
 /**
- * A published lesson in its week on the syllabus.
+ * The model's verdict on whether the lesson's content matches the subject
+ * and title the teacher put on it.
  */
-public record ScheduledLesson(int week, String subject, String title, Coverage coverage, Estimate estimate) {
+public record ContentCheck(boolean matches, String actualTopic, String reason) {
 }
