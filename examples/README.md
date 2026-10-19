@@ -47,17 +47,19 @@ Located in `docs-agent/`, this example demonstrates:
 **Purpose:**
 Automatically generates and applies documentation updates based on code changes, showcasing advanced workflow branching and exception handling.
 
-### Course Planner
+### Lesson Builder
 
-Located in `course-planner/`, a deployable web application with two
+Located in `lesson-builder/`, a deployable web application with two
 agents and the teacher in between. The first writes a lesson's introduction,
 quiz and conclusion from a topic and its material, as ordered `@Action`s over
 a draft its `@Trigger` returns, binding the quiz to a record with the typed
 `LargeLanguageModel` overload; the teacher edits and publishes the lesson; the
-publication event triggers the second, which works out what the lesson covers
-and assumes, decides whether the syllabus has taught what it assumes, and
-schedules it in the next week — or sends the teacher back to write the
-prerequisite first. See its [README](course-planner/README.md).
+publication event triggers the second, which works out what the lesson covers,
+decides through two `@Decision`s whether the content matches the stated title
+and whether the catalogue already carries it, then tags curriculum standards,
+estimates class time, writes a short abstract and files the entry — or sends
+the teacher back to fix a mismatch or merge a duplicate. See its
+[README](lesson-builder/README.md).
 
 ## Building
 

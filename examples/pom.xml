@@ -26,7 +26,7 @@
         <module>docs-agent</module>
         <module>ask-agent</module>
         <module>customer-inquiry-intake</module>
-        <module>course-planner</module>
+        <module>lesson-builder</module>
     </modules>
 
     <profiles>
