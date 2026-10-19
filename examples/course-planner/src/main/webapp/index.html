@@ -20,6 +20,7 @@
   .q { margin: 14px 0; padding: 10px; border: 1px solid #eee; border-radius: 6px; }
   .q .opt { display: flex; gap: 8px; align-items: center; margin: 4px 0; }
   .q .opt input[type=text] { flex: 1; }
+  .q .remove-q { margin-top: 10px; font-size: 13px; padding: 4px 10px; }
   .q ul { margin: 4px 0 0 20px; padding: 0; }
   .correct { font-weight: 600; }
   .exp, .meta { color: #555; font-size: 14px; }
@@ -34,7 +35,7 @@
 
 <section>
   <h2>New lesson</h2>
-  <p class="meta">Paste a chapter, a reading or your notes. The lesson agent writes a two-paragraph introduction, a four-question multiple-choice quiz and a one-paragraph conclusion from it.</p>
+  <p class="meta">Paste a chapter, a reading or your notes. The lesson agent writes an introduction, a multiple-choice quiz and a conclusion from it.</p>
   <label for="subject">Subject</label>
   <select id="subject">
     <option>Mathematics</option>
@@ -57,6 +58,7 @@
   <textarea id="intro"></textarea>
   <label>Quiz</label>
   <div id="quiz"></div>
+  <button type="button" id="addQuestion">Add question</button>
   <label for="conclusion">Conclusion</label>
   <textarea id="conclusion"></textarea>
   <button id="publish">Approve &amp; publish</button>
@@ -120,7 +122,8 @@ function renderDraft(d) {
     </div>`).join('')}
     <label>Explanation</label>
     <input type="text" class="explanation" value="${esc(q.explanation)}">
-  </div>`).join('') || '<p class="exp">No questions were generated.</p>';
+    <button type="button" class="remove-q" data-i="${i}">Remove question</button>
+  </div>`).join('') || '<p class="exp">No questions yet. Click <b>Add question</b> below to add one.</p>';
 }
 
 function editedLesson() {
@@ -183,6 +186,33 @@ $('publish').onclick = async () => {
     await loadSyllabus(result.notice);
   }
 };
+
+function captureEdits() {
+  if (!draft) return;
+  const edited = editedLesson();
+  draft.intro = edited.intro;
+  draft.conclusion = edited.conclusion;
+  draft.quiz = edited.quiz;
+}
+
+$('addQuestion').onclick = () => {
+  captureEdits();
+  draft.quiz = draft.quiz || {questions: []};
+  draft.quiz.questions.push({prompt: '', options: ['', '', '', ''], correctIndex: 0, explanation: ''});
+  renderDraft(draft);
+};
+
+$('quiz').addEventListener('click', e => {
+  const btn = e.target.closest('.remove-q');
+  if (!btn || !draft) return;
+  captureEdits();
+  const i = Number(btn.dataset.i);
+  if (draft.quiz && draft.quiz.questions) {
+    draft.quiz.questions.splice(i, 1);
+    if (!draft.quiz.questions.length) draft.quiz = null;
+  }
+  renderDraft(draft);
+});
 
 fetch('api/draft').then(r => r.ok ? r.json() : null).then(d => { if (d) renderDraft(d); });
 fetch('api/lesson').then(r => r.ok ? r.json() : null).then(l => { if (l) renderLesson(l); });
