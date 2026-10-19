@@ -12,7 +12,7 @@ package ee.jakarta.examples.ai.agent.lessonbuilder.model;
 
 /**
  * The model's verdict on whether the lesson substantially duplicates one
- * already in the catalogue: if not unique, which entry overlaps and why.
+ * already in the catalog: if not unique, which entry overlaps and why.
  */
 public record DuplicateCheck(boolean unique, String matchedTitle, String reason) {
 }

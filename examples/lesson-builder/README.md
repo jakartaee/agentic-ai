@@ -3,9 +3,9 @@
 A teacher names a topic, pastes the material and clicks **Generate lesson**; an
 agent writes an introduction, a quiz and a conclusion. The teacher edits
 anything and clicks **Approve & publish**; the lesson goes live and a second
-agent files it in the course catalogue with its topics, curriculum-standard
-tags, class-time estimate and a short abstract. The catalogue agent holds the
-lesson back when its content does not match its title, or when the catalogue
+agent files it in the course catalog with its topics, curriculum-standard
+tags, class-time estimate and a short abstract. The catalog agent holds the
+lesson back when its content does not match its title, or when the catalog
 already carries a lesson covering the same ground.
 
 ## Configure the LLM
@@ -26,7 +26,7 @@ payara.agentic.llm.system=You are an expert curriculum designer and teacher...
 > implementation, configure the provider the way that implementation
 > documents. To run fully local instead of Claude, switch to
 > `payara.agentic.llm.provider=ollama` / `model=gemma3:12b` — a 12B-class
-> model is recommended so the quiz and catalogue steps produce well-formed
+> model is recommended so the quiz and catalog steps produce well-formed
 > JSON.
 
 ## Prerequisites
@@ -50,7 +50,7 @@ asadmin deploy examples/lesson-builder/target/lesson-builder.war
 Open <http://localhost:8080/lesson-builder/>, pick **Physics**, enter the topic
 *Newton's Second Law*, paste a few paragraphs of material and click **Generate
 lesson**. Edit anything in the draft and click **Approve & publish**. Switch
-to the **Catalogue** tab to see the entry the catalogue agent filed, with its
+to the **Catalog** tab to see the entry the catalog agent filed, with its
 coverage, curriculum-standard tags, class-time estimate and abstract. Then
 publish the same lesson a second time to see the duplicate-detection halt, or
 rename it to *Momentum* and publish to see the content-match halt.

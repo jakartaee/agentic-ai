@@ -13,7 +13,7 @@ package ee.jakarta.examples.ai.agent.lessonbuilder.model;
 import java.util.List;
 
 /**
- * One entry in the course catalogue: the lesson's title and subject with the
+ * One entry in the course catalog: the lesson's title and subject with the
  * metadata the agent extracted so another teacher can find and judge it.
  */
 public record CatalogEntry(

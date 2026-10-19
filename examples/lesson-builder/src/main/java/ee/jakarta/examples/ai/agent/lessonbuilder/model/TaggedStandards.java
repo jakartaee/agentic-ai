@@ -14,7 +14,7 @@ import java.util.List;
 
 /**
  * The subset of curriculum standards the model judged a lesson actually
- * meets. Codes only, so the catalogue entry stays compact.
+ * meets. Codes only, so the catalog entry stays compact.
  */
 public record TaggedStandards(List<String> codes) {
 }

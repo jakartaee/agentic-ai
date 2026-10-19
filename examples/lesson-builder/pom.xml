@@ -18,7 +18,7 @@
         Two agents chained by a CDI event with the teacher in between: one
         writes a lesson's introduction, quiz and conclusion from a topic and
         its material, as ordered actions; the teacher edits and publishes the
-        lesson; the other files it in the course catalogue, deciding first
+        lesson; the other files it in the course catalog, deciding first
         whether the content matches the stated title and whether an existing
         entry already covers it, then tagging curriculum standards, estimating
         class time, and writing a short abstract.

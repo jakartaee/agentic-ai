@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
- * The course catalogue: every lesson that has been filed, in the order it
+ * The course catalog: every lesson that has been filed, in the order it
  * was filed.
  */
 @ApplicationScoped

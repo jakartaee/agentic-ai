@@ -40,7 +40,7 @@
 
 <nav class="tabs" role="tablist">
   <button type="button" class="tab" role="tab" data-view="lesson">Lesson</button>
-  <button type="button" class="tab" role="tab" data-view="catalog">Catalogue</button>
+  <button type="button" class="tab" role="tab" data-view="catalog">Catalog</button>
 </nav>
 
 <div id="viewLesson">
@@ -89,11 +89,11 @@
 <div id="viewCatalog" hidden>
 
 <section class="panel" id="catalog">
-  <h2>Catalogue</h2>
+  <h2>Catalog</h2>
   <p class="meta">The catalog agent files each published lesson here with its topics, curriculum standards, class-time estimate and a short abstract. A lesson is held back when its content does not match its title, or when another entry already covers it.</p>
   <p class="notice" id="catalogNotice" hidden></p>
   <div id="entries"></div>
-  <p class="exp" id="emptyCatalog" hidden>No lessons catalogued yet.</p>
+  <p class="exp" id="emptyCatalog" hidden>No lessons cataloged yet.</p>
 </section>
 
 </div>
@@ -206,7 +206,7 @@ $('publish').onclick = async () => {
       $('draftStatus').textContent = result.notice;
     } else if (result.filed) {
       const n = (result.filed.standards || []).length;
-      $('draftStatus').textContent = `Published. Catalogued${n ? ` under ${n} standard${n === 1 ? '' : 's'}` : ''} on the Catalogue tab.`;
+      $('draftStatus').textContent = `Published. Cataloged${n ? ` under ${n} standard${n === 1 ? '' : 's'}` : ''} on the Catalog tab.`;
     } else {
       $('draftStatus').textContent = 'Published.';
     }

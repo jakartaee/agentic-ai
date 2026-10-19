@@ -56,7 +56,7 @@ a draft its `@Trigger` returns, binding the quiz to a record with the typed
 `LargeLanguageModel` overload; the teacher edits and publishes the lesson; the
 publication event triggers the second, which works out what the lesson covers,
 decides through two `@Decision`s whether the content matches the stated title
-and whether the catalogue already carries it, then tags curriculum standards,
+and whether the catalog already carries it, then tags curriculum standards,
 estimates class time, writes a short abstract and files the entry — or sends
 the teacher back to fix a mismatch or merge a duplicate. See its
 [README](lesson-builder/README.md).
