@@ -91,7 +91,6 @@
 <section class="panel" id="catalog">
   <h2>Catalog</h2>
   <p class="meta">The catalog agent files each published lesson here with its topics, curriculum standards, class-time estimate and a short abstract. A lesson is held back when its content does not match its title, or when another entry already covers it.</p>
-  <p class="notice" id="catalogNotice" hidden></p>
   <div id="entries"></div>
   <p class="exp" id="emptyCatalog" hidden>No lessons cataloged yet.</p>
 </section>
@@ -171,9 +170,7 @@ function renderLesson(l) {
   $('lessonConclusion').textContent = l.conclusion || '';
 }
 
-function renderCatalog(entries, notice) {
-  $('catalogNotice').hidden = !notice;
-  $('catalogNotice').textContent = notice || '';
+function renderCatalog(entries) {
   $('entries').innerHTML = entries.map(e => {
     const c = e.coverage || {}, est = e.estimate || {}, st = e.standards || [];
     return `<div class="entry"><b>${esc(e.title)}</b> — ${esc(e.subject)}
@@ -187,9 +184,9 @@ function renderCatalog(entries, notice) {
   $('emptyCatalog').hidden = entries.length > 0;
 }
 
-async function loadCatalog(notice) {
+async function loadCatalog() {
   const res = await fetch('api/catalog');
-  renderCatalog(res.ok ? await res.json() : [], notice);
+  renderCatalog(res.ok ? await res.json() : []);
 }
 
 $('generate').onclick = async () => {
@@ -211,7 +208,7 @@ $('publish').onclick = async () => {
       $('draftStatus').textContent = 'Published.';
     }
     renderLesson(result.lesson);
-    await loadCatalog(result.notice);
+    await loadCatalog();
   }
 };
 
