@@ -49,7 +49,7 @@ mvn --projects tck --also-make verify
 
 In baseline mode, `@RequiresNoImplementation` assertions run and `@RequiresImplementation` assertions are skipped. This is also the project CI path. Implementors do not need to opt out — they consume the published TCK jar from their own test project, where the baseline profile does not exist.
 
-Passing `-Djakarta.ai.agent.tck.baseline=true`, `-Dtck.baseline=true`, or `-Djakarta.ai.agent.tck.internal.baseline-profile-active=true` does not select baseline mode. The profile adds a classpath marker rather than a system property. Other Maven `-D` settings are still passed through to the test JVM.
+Passing `-Djakarta.ai.agent.tck.baseline=true` or `-Dtck.baseline=true` does not select baseline mode. The profile adds a classpath marker rather than a system property. Other Maven `-D` settings are still passed through to the test JVM.
 
 ## Reporting Issues
 
