@@ -209,8 +209,10 @@
 
     <profiles>
         <!--
-            Plain-CDI baseline for specification and TCK development.
-            Combine with a container profile such as weld-embedded.
+            Plain-CDI baseline for specification and TCK development. This
+            reactor has no implementation under test, so baseline and the
+            weld-embedded container both activate unless -Dtck.implementation
+            names one.
         -->
         <profile>
             <id>baseline</id>
@@ -260,8 +262,13 @@
             <id>weld-embedded</id>
             <!--
                 Supplies the plain-CDI container and includes the deployed
-                integration groups. Use with -Pbaseline for the project baseline.
+                integration groups. Auto-activates alongside baseline.
             -->
+            <activation>
+                <property>
+                    <name>!tck.implementation</name>
+                </property>
+            </activation>
             <properties>
                 <tck.failsafe.excludedGroups></tck.failsafe.excludedGroups>
             </properties>

@@ -29,7 +29,7 @@ tck/
 
 ## Building and running the TCK
 
-Commands without an Arquillian container profile build the API-level TCK checks only. They are not compatibility results:
+This repository has no implementation under test, so its plain build runs the TCK's plain-CDI baseline in Weld Embedded. The `baseline` and `weld-embedded` profiles auto-activate whenever the `tck.implementation` property is unset:
 
 ```bash
 mvn clean install
@@ -37,19 +37,13 @@ mvn --projects tck --also-make clean install
 mvn --projects tck --also-make verify
 ```
 
-A compatibility run requires the implementation under test and its Arquillian container configuration. This repository uses Weld Embedded to prove the fail-closed default. With no compatible implementation present, this command must fail its implementation-dependent assertions:
+The baseline run must succeed while skipping implementation-dependent assertions. It is not a compatibility result.
+
+A compatibility run requires the implementation under test and its Arquillian container configuration. Naming the implementation with `-Dtck.implementation` turns off both auto-activated profiles; this repository uses Weld Embedded to prove the fail-closed default. With no compatible implementation present, this command must fail its implementation-dependent assertions:
 
 ```bash
-mvn --projects tck --also-make verify -Pweld-embedded
+mvn --projects tck --also-make verify -Pweld-embedded -Dtck.implementation=none
 ```
-
-Specification and TCK contributors can explicitly request the plain-CDI baseline. This is the only supported baseline selector:
-
-```bash
-mvn --projects tck --also-make verify -Pweld-embedded,baseline
-```
-
-The baseline command must succeed while skipping implementation-dependent assertions.
 
 ## Test Assertions
 

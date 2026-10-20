@@ -9,8 +9,8 @@ This is the **Jakarta Agentic AI** specification project — a vendor-neutral Ja
 ## Build Commands
 
 ```bash
-# Full build (required for CI — activates the weld-embedded profile for Arquillian)
-mvn clean install -Pweld-embedded
+# Full build (what CI runs; the baseline and weld-embedded profiles auto-activate)
+mvn clean install
 
 # Build only the TCK and its required upstream modules
 mvn --projects tck --also-make verify
@@ -21,14 +21,14 @@ mvn --projects tck --also-make clean install
 # Run a single TCK assertion class (tests are compiled from src/main/java and executed by Failsafe)
 mvn -pl tck verify -Dgroups=standalone -Dit.test=AgentAnnotationTests
 
-# Run a single deployed integration test class (requires Arquillian container profile)
-mvn -pl tck verify -Pweld-embedded -Dit.test=AgentSmokeTest
+# Run a single deployed integration test class
+mvn -pl tck verify -Dit.test=AgentSmokeTest
 
 # Generate API signature files
 mvn -pl tck verify -Psignature-generation
 ```
 
-The `weld-embedded` profile must be active when you want to execute deployed TCK integration tests locally (it provides the Arquillian container). Without it, deployed-tagged tests are excluded by default in the TCK Maven configuration.
+The TCK's `baseline` (plain-CDI mode) and `weld-embedded` (Arquillian container) profiles both auto-activate whenever the `tck.implementation` property is unset, so the plain build runs the baseline TCK in Weld. `-Dtck.implementation=<name>` turns both off; CI uses it with an explicit `-Pweld-embedded` to prove the TCK fails closed without an implementation. Without a container profile, deployed-tagged tests are excluded.
 
 ## Architecture
 

@@ -6,7 +6,7 @@ This document describes the testing practices for Jakarta Agentic AI, including 
 
 - The TCK module verifies compatibility of implementations with the Jakarta Agentic AI specification.
 - All implementations must pass the TCK to be considered compliant.
-- A compatibility run requires an Arquillian container profile, such as `-Pweld-embedded` for the embedded CDI container used by this project. `mvn verify` without a container profile excludes the `deployed` group and is an API-only run, not a compatibility result.
+- A compatibility run requires an Arquillian container, such as the `-Pweld-embedded` profile for the embedded CDI container used by this project. Without a container the `deployed` group is excluded and the run is API-only, not a compatibility result.
 
 ## Running Tests
 
@@ -37,14 +37,14 @@ The primary purpose of the TCK is to certify implementations. A container run en
 
 A container run without a compatible implementation is expected to fail its implementation-dependent assertions. This fail-closed default prevents an omitted flag from silently skipping the compatibility suite and reporting false compliance.
 
-The implementation under test supplies its Arquillian container configuration and runtime dependencies. For this repository that container is `-Pweld-embedded`.
+The implementation under test supplies its Arquillian container configuration and runtime dependencies. For this repository that container is the `weld-embedded` profile.
 
 ### Plain-CDI baseline
 
-The plain-CDI baseline is a project-development convenience for specification and TCK contributors. The `baseline` profile selects it by adding a classpath marker, and it auto-activates in this reactor whenever `tck.implementation` is unset:
+The plain-CDI baseline is a project-development convenience for specification and TCK contributors. The `baseline` profile selects it by adding a classpath marker. It and the `weld-embedded` container profile both auto-activate in this reactor whenever `tck.implementation` is unset, so the plain build is the baseline run:
 
 ```
-mvn --projects tck --also-make verify -Pweld-embedded
+mvn --projects tck --also-make verify
 ```
 
 In baseline mode, `@RequiresNoImplementation` assertions run and `@RequiresImplementation` assertions are skipped. This is also the project CI path. Implementors do not need to opt out — they consume the published TCK jar from their own test project, where the baseline profile does not exist.

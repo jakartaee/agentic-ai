@@ -32,10 +32,10 @@ jobs:
 
             # Implementation testing is the TCK default. This project has no
             # implementation under test, so the tck module auto-activates its
-            # baseline profile when the tck.implementation property is unset.
-            # This step supplies the embedded CDI container.
+            # baseline and weld-embedded profiles when tck.implementation is
+            # unset.
             - name: Build
-              run: mvn clean install -Pweld-embedded
+              run: mvn clean install
 
             - name: Verify direct properties cannot select baseline
               shell: bash

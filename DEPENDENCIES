@@ -4,6 +4,7 @@ maven/mavencentral/jakarta.annotation/jakarta.annotation-api/2.1.1, EPL-2.0 OR G
 maven/mavencentral/jakarta.authentication/jakarta.authentication-api/3.0.0, EPL-2.0 OR GPL-2.0-only with Classpath-exception-2.0, approved, ee4j.authentication
 maven/mavencentral/jakarta.authorization/jakarta.authorization-api/2.1.0, EPL-2.0 OR GPL-2.0-only with Classpath-exception-2.0, approved, ee4j.authorization
 maven/mavencentral/jakarta.batch/jakarta.batch-api/2.1.1, Apache-2.0, approved, ee4j.batch
+maven/mavencentral/jakarta.ejb/jakarta.ejb-api/4.0.0, EPL-2.0 OR GPL-2.0-only with Classpath-exception-2.0, approved, ee4j.ejb
 maven/mavencentral/jakarta.ejb/jakarta.ejb-api/4.0.1, EPL-2.0 OR GPL-2.0-only with Classpath-exception-2.0, approved, ee4j.ejb
 maven/mavencentral/jakarta.el/jakarta.el-api/5.0.1, EPL-2.0 OR GPL-2.0-only with Classpath-exception-2.0, approved, ee4j.el
 maven/mavencentral/jakarta.enterprise/jakarta.enterprise.cdi-api/4.0.1, Apache-2.0, approved, #9117
