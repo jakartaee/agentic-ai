@@ -110,14 +110,11 @@ public class WorkflowScopeLifecycleTests {
     @RequiresImplementation
     @Assertion(id = "AGENTICAI-CDI-BHV-002",
                section = "agent-lifecycle",
-               strategy = "When @Agent.name() is empty, the derived name is the simple class name with "
-                        + "the first letter lowercased (scopeDefaultAgent). A trigger-only plain-CDI run cannot "
-                        + "satisfy this assertion because the implementation must also dispatch @Action and @Outcome.")
-    public void agentDefaultNamingFollowsCamelCase() {
-        String simpleName = ScopeDefaultAgent.class.getSimpleName();
-        String derived = Character.toLowerCase(simpleName.charAt(0)) + simpleName.substring(1);
-        assertThat(derived).isEqualTo("scopeDefaultAgent");
-
+               strategy = "An @Agent with no explicit name runs its full workflow. A trigger-only plain-CDI "
+                        + "run cannot satisfy this assertion because the implementation must also dispatch "
+                        + "@Action and @Outcome. The derived name itself is not asserted: the specification does "
+                        + "not yet say how an agent name is exposed.")
+    public void scopeDefaultAgentRunsFullWorkflow() {
         trace.reset();
         scopeDefaultEvents.fire(new ScopeDefaultEvent("naming"));
         assertThat(trace.phases()).containsExactly(Phase.TRIGGER, Phase.ACTION, Phase.OUTCOME);
@@ -126,10 +123,11 @@ public class WorkflowScopeLifecycleTests {
     @RequiresImplementation
     @Assertion(id = "AGENTICAI-CDI-BHV-002",
                section = "agent-lifecycle",
-               strategy = "An explicit @Agent(name = \"lifecycleSpy\") overrides the derived default. "
-                        + "A trigger-only plain-CDI run cannot satisfy this assertion because the implementation "
-                        + "must also dispatch @Action and @Outcome. The name is not asserted as a CDI bean name.")
-    public void customAgentNameIsResolvableViaBeanManager() {
+               strategy = "An @Agent with an explicit name, here @Agent(name = \"lifecycleSpy\"), runs its full "
+                        + "workflow. A trigger-only plain-CDI run cannot satisfy this assertion because the "
+                        + "implementation must also dispatch @Action and @Outcome. The name is not asserted as a "
+                        + "CDI bean name.")
+    public void lifecycleSpyAgentRunsFullWorkflow() {
         assertThat(LifecycleSpyAgent.class.getAnnotation(jakarta.ai.agent.Agent.class).name())
                 .isEqualTo("lifecycleSpy");
 

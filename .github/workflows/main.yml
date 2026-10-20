@@ -69,8 +69,8 @@ jobs:
                           "triggerIsAlwaysFirstPhaseRegardlessOfPosition",
                       ],
                       "tck/target/failsafe-reports/TEST-ee.jakarta.tck.ai.agent.core.behavior.WorkflowScopeLifecycleTests.xml": [
-                          "agentDefaultNamingFollowsCamelCase",
-                          "customAgentNameIsResolvableViaBeanManager",
+                          "scopeDefaultAgentRunsFullWorkflow",
+                          "lifecycleSpyAgentRunsFullWorkflow",
                           "defaultScopeProducesDistinctInstancePerWorkflow",
                       ],
                   }
