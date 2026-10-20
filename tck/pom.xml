@@ -214,6 +214,11 @@
         -->
         <profile>
             <id>baseline</id>
+            <activation>
+                <property>
+                    <name>!tck.implementation</name>
+                </property>
+            </activation>
             <build>
                 <plugins>
                     <plugin>

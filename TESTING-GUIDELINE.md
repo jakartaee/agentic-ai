@@ -39,15 +39,15 @@ A container run without a compatible implementation is expected to fail its impl
 
 The implementation under test supplies its Arquillian container configuration and runtime dependencies. For this repository that container is `-Pweld-embedded`.
 
-### Explicit plain-CDI baseline
+### Plain-CDI baseline
 
-The plain-CDI baseline is a project-development convenience for specification and TCK contributors. Select it only with `-Pbaseline`, together with the embedded container:
+The plain-CDI baseline is a project-development convenience for specification and TCK contributors. The `baseline` profile selects it by adding a classpath marker, and it auto-activates in this reactor whenever `tck.implementation` is unset:
 
 ```
-mvn --projects tck --also-make verify -Pweld-embedded,baseline
+mvn --projects tck --also-make verify -Pweld-embedded
 ```
 
-The `baseline` profile is what selects this mode. In baseline mode, `@RequiresNoImplementation` assertions run and `@RequiresImplementation` assertions are skipped. This is also the project CI path.
+In baseline mode, `@RequiresNoImplementation` assertions run and `@RequiresImplementation` assertions are skipped. This is also the project CI path. Implementors do not need to opt out — they consume the published TCK jar from their own test project, where the baseline profile does not exist.
 
 Passing `-Djakarta.ai.agent.tck.baseline=true`, `-Dtck.baseline=true`, or `-Djakarta.ai.agent.tck.internal.baseline-profile-active=true` does not select baseline mode. The profile adds a classpath marker rather than a system property. Other Maven `-D` settings are still passed through to the test JVM.
 
