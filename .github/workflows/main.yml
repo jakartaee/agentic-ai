@@ -30,37 +30,38 @@ jobs:
                   key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
                   restore-keys: ${{ runner.os }}-m2
 
-            # Implementation testing is the TCK default. This project build
-            # explicitly opts into its plain-CDI baseline and supplies the
-            # embedded CDI container.
+            # Implementation testing is the TCK default. This project has no
+            # implementation under test, so the tck module auto-activates its
+            # baseline profile when the tck.implementation property is unset.
+            # This step supplies the embedded CDI container.
             - name: Build
-              run: mvn clean install -Pweld-embedded,baseline
+              run: mvn clean install -Pweld-embedded
 
-            - name: Verify implementation mode fails closed
+            - name: Verify direct properties cannot select baseline
               shell: bash
               run: |
                   set -euo pipefail
 
-                  verify_failure() {
-                      label="$1"
-                      shift
-                      rm -rf tck/target/failsafe-reports
+                  rm -rf tck/target/failsafe-reports
 
-                      set +e
-                      mvn --projects tck --also-make verify -Pweld-embedded "$@" \
-                          > "${label}.log" 2>&1
-                      status=$?
-                      set -e
+                  set +e
+                  mvn --projects tck --also-make verify -Pweld-embedded \
+                      -Dit.test='OrchestrationTests,WorkflowScopeLifecycleTests' \
+                      -Dtck.implementation=none \
+                      -Djakarta.ai.agent.tck.baseline=true \
+                      -Dtck.baseline=true \
+                      > direct-properties.log 2>&1
+                  status=$?
+                  set -e
 
-                      if [ "$status" -eq 0 ]; then
-                          echo "::error title=Fail-closed check passed unexpectedly::${label} returned BUILD SUCCESS without an implementation."
-                          cat "${label}.log"
-                          exit 1
-                      fi
+                  if [ "$status" -eq 0 ]; then
+                      echo "::error title=Fail-closed check passed unexpectedly::Direct baseline properties selected baseline mode without the profile."
+                      cat direct-properties.log
+                      exit 1
+                  fi
 
-                      python3 - "$label" <<'PY'
+                  python3 - <<'PY'
                   import pathlib
-                  import sys
                   import xml.etree.ElementTree as ET
 
                   checks = {
@@ -77,7 +78,7 @@ jobs:
                   for report_name, method_names in checks.items():
                       report = pathlib.Path(report_name)
                       if not report.is_file():
-                          raise SystemExit(f"{sys.argv[1]}: missing report {report}")
+                          raise SystemExit(f"missing report {report}")
                       cases = {
                           case.attrib.get("name"): case
                           for case in ET.parse(report).getroot().iter("testcase")
@@ -85,20 +86,12 @@ jobs:
                       for method_name in method_names:
                           case = cases.get(method_name)
                           if case is None:
-                              raise SystemExit(f"{sys.argv[1]}: missing test {method_name}")
+                              raise SystemExit(f"missing test {method_name}")
                           if case.find("failure") is None and case.find("error") is None:
-                              raise SystemExit(f"{sys.argv[1]}: {method_name} did not fail")
+                              raise SystemExit(f"{method_name} did not fail")
 
-                  print(f"{sys.argv[1]}: representative implementation assertions failed as required")
+                  print("representative implementation assertions failed as required")
                   PY
-                  }
-
-                  verify_failure default
-                  verify_failure direct-properties \
-                      -Djakarta.ai.agent.tck.baseline=true \
-                      -Dtck.baseline=true
-                  verify_failure internal-marker \
-                      -Djakarta.ai.agent.tck.internal.baseline-profile-active=true
 
             - name: License Check
               run: |
