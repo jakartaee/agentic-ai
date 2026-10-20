@@ -641,18 +641,20 @@ A single method, matched by exception type, catches <code>LLMException</code> fr
 phase.</li>
 </ul>
 <hr>
-<h2>Example 3 — Course Planner</h2>
+<h2>Example 3 — Lesson Builder</h2>
 <p>📦 Source: <a
-href="https://github.com/jakartaee/agentic-ai/tree/main/examples/course-planner"
-target="_blank" rel="noopener">examples/course-planner</a></p>
+href="https://github.com/jakartaee/agentic-ai/tree/main/examples/lesson-builder"
+target="_blank" rel="noopener">examples/lesson-builder</a></p>
 <p><strong>Two agents with two different jobs, chained by a CDI event, with the teacher
 editing and publishing in between.</strong> The teacher names a topic, pastes the material and picks a
 subject; <code>LessonAgent</code> writes an introduction, a quiz and a conclusion.
 The teacher edits anything and publishes; the REST layer stores the lesson and fires
-<code>LessonPublished</code>, which triggers <code>SyllabusAgent</code> — a planning job the
-author would never do for itself: work out what the lesson teaches and what it assumes,
-decide whether the course has taught that yet, and schedule it in the next week, or
-send the teacher back to write the prerequisite first.</p>
+<code>LessonPublished</code>, which triggers <code>CatalogAgent</code> — a cataloging job the
+author would never do for itself: work out what the lesson teaches, decide whether the
+content actually matches the stated subject and title, decide whether the catalog
+already carries a lesson covering the same ground, tag the lesson against the
+curriculum standards it meets, estimate its class time, and write a short abstract — or
+send the teacher back to fix a mismatch or merge a duplicate.</p>
 <p>The authoring agent's <code>@Trigger</code> returns the new lesson, and every later
 phase receives it by type. Shown in full apart from the logging:</p>
 <pre><code class="language-java">@Agent
@@ -680,30 +682,41 @@ public class LessonAgent {
 }
 </code></pre>
 <p>The publish endpoint stores the edited lesson and fires
-<code>publications.fire(new LessonPublished(lesson))</code>; the syllabus agent declares
+<code>publications.fire(new LessonPublished(lesson))</code>; the catalog agent declares
 that event as its trigger and moves its data from phase to phase by type:</p>
 <pre><code class="language-java">@Agent
-public class SyllabusAgent {
+public class CatalogAgent {
 
-    @Inject Syllabus syllabus;
+    @Inject Catalog catalog;
+    @Inject StandardsReference standardsReference;
 
     @Trigger void onPublished(LessonPublished e) { /* ... */ }
 
     // what the lesson covers and what it assumes a student already knows
-    @Action Coverage extractCoverage(LessonPublished e, LargeLanguageModel model) { /* ... */ }
+    @Action(order = 1) Coverage extractCoverage(LessonPublished e, LargeLanguageModel model) { /* ... */ }
 
-    // the model checks the assumptions against what the syllabus has covered; a gap stops here
-    @Decision Result prerequisitesCovered(LessonPublished e, Coverage coverage, LargeLanguageModel model) { /* ... */ }
+    // halt if the content isn't actually about the stated subject and title
+    @Decision Result contentMatchesClaim(LessonPublished e, Coverage coverage, LargeLanguageModel model) { /* ... */ }
+
+    // halt if the catalog already carries a lesson covering the same ground
+    @Decision Result notDuplicate(LessonPublished e, Coverage coverage, LargeLanguageModel model) { /* ... */ }
+
+    // which of the subject's curriculum standards the lesson actually meets
+    @Action(order = 2) TaggedStandards tagStandards(LessonPublished e, Coverage coverage, LargeLanguageModel model) { /* ... */ }
 
     // minutes of class time and difficulty
-    @Action Estimate estimate(LessonPublished e, Coverage coverage, LargeLanguageModel model) { /* ... */ }
+    @Action(order = 3) Estimate classify(LessonPublished e, Coverage coverage, LargeLanguageModel model) { /* ... */ }
 
-    @Outcome void schedule(LessonPublished e, Coverage coverage, Estimate estimate) { /* ... */ }
+    // a three-sentence abstract, written from the per-workflow conversation
+    @Action(order = 4) Summary describe(LargeLanguageModel model) { /* ... */ }
+
+    @Outcome void file(LessonPublished e, Coverage coverage, TaggedStandards tagged,
+                       Estimate estimate, Summary summary) { /* ... */ }
 }
 </code></pre>
 <h3>What it teaches</h3>
 <ul>
-<li><strong>A back-end task triggered by an event.</strong> <code>SyllabusAgent</code> runs
+<li><strong>A back-end task triggered by an event.</strong> <code>CatalogAgent</code> runs
 because a lesson was published — it observes <code>LessonPublished</code> as its
 <code>@Trigger</code>. Nothing orchestrates the two agents; the teacher's edit-and-publish
 is the step between their workflows, and each has its own LLM conversation.</li>
@@ -712,30 +725,36 @@ lesson and it becomes workflow state: the three actions, the <code>@Outcome</cod
 the handler all declare <code>Lesson draft</code> and receive the same object. No field,
 no scope annotation.</li>
 <li><strong>Explicit order.</strong> The actions carry <code>order = 1, 2, 3</code>, so
-intro → quiz → conclusion is guaranteed. Once one phase declares an order, all must.</li>
+intro → quiz → conclusion is guaranteed. Once one phase declares an order, all must.
+<code>CatalogAgent</code> follows the same shape across its four actions.</li>
 <li><strong>Conversational memory.</strong> <code>writeConclusion</code> sends no material and
 has no <code>{}</code>; its prompt refers to "the introduction and quiz you just
-produced", which the per-workflow conversation still holds.</li>
+produced", which the per-workflow conversation still holds. <code>describe</code> uses
+the same trick to write its abstract from the earlier phases' context.</li>
 <li><strong>Recovery that continues or stops.</strong> When a section fails after others
 were written, <code>onLlmFailure</code> returns normally: the remaining actions and the
 <code>@Outcome</code> still run, and the packet carries a notice telling the teacher what
 to fill in. When nothing was written yet, it re-throws and the resource answers 503.</li>
 <li><strong>Typed results flow between phases.</strong> <code>extractCoverage</code> returns a
-<code>Coverage</code> record, and the decision, the next action and the outcome each declare
-it as a parameter and receive it — the Example 2 shape, next to the author's
-trigger-returned state.</li>
-<li><strong>The model makes a decision, mid-pipeline.</strong>
-<code>prerequisitesCovered</code> sits between the two actions and asks the model whether
-what the lesson assumes has already been taught — separating background a student brings
-from earlier schooling from topics this course must teach first — and returns
-<code>Result(success, details)</code>: <code>false</code> stops the workflow, the lesson
-stays published but unscheduled, and the teacher is told which prerequisite to write
-first; on success the <code>Readiness</code> details become workflow state.</li>
-<li><strong>An agent reads state that grows.</strong> The decision's prompt includes the
-syllabus so far, injected like any CDI bean, so each publication changes what the next
-decision can conclude: the second law is refused on an empty syllabus and scheduled once
-the first law is on it.</li>
-<li><strong>The model as a parameter.</strong> All three model-using phases declare
+<code>Coverage</code> record, and both decisions, the three later actions and the outcome
+each declare it as a parameter and receive it — the Example 2 shape, next to the
+author's trigger-returned state.</li>
+<li><strong>Two decisions in a row.</strong> <code>contentMatchesClaim</code> asks the
+model whether what the lesson covers is actually about the stated subject and title; a
+mismatch stops the workflow, the lesson stays published but uncataloged, and the teacher
+is told what the content is really about. <code>notDuplicate</code> then asks whether an
+existing catalog entry already covers the same ground; a duplicate also stops, with a
+pointer to the entry to merge with. Both return <code>Result(success, details)</code>, and
+the details become workflow state for anything downstream that wants them.</li>
+<li><strong>An agent reads state that grows.</strong> <code>notDuplicate</code>'s prompt
+includes the catalog so far, injected like any CDI bean, so each new entry changes what
+the next duplicate check can conclude. A second attempt to file the same lesson is
+refused on a catalog that already carries it.</li>
+<li><strong>Reference data as a collaborator.</strong> <code>tagStandards</code> injects a
+<code>StandardsReference</code> alongside the <code>LargeLanguageModel</code> and passes
+the subject's standards into the prompt, so the model picks only from a known list of
+codes. The agent reasons against a known rubric, not freeform.</li>
+<li><strong>The model as a parameter.</strong> Every model-using phase declares
 <code>LargeLanguageModel</code> as a parameter instead of a field; the resolution rules
 supply it like any other.</li>
 </ul>
@@ -756,7 +775,7 @@ authoritative reference for the rules.</li>
 LLM backend (Ollama, Anthropic, Vertex) is MicroProfile Config, no code change.</li>
 <li><strong>The ask agent.</strong> POST a real question → <code>[TRIGGER] → [DECISION] → [ACTION] → [OUTCOME]</code> in <code>server.log</code>; POST an empty question → early termination. It runs
 on <strong>local Ollama</strong> (no network, no cost).</li>
-<li><strong>The inquiry intake example and the course planner.</strong> A customer contact form that
+<li><strong>The inquiry intake example and the lesson builder.</strong> A customer contact form that
 runs a four-step pipeline on submit (enrich identity, classify, draft a subject line,
 polish the message) and shows the prepared record for review; then two agents chained
 by a CDI event with the teacher editing and approving in between. Switching Ollama↔Claude↔Vertex is
