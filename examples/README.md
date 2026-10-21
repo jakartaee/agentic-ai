@@ -51,11 +51,9 @@ Automatically generates and applies documentation updates based on code changes,
 
 Located in `lesson-builder/`, a deployable web application with two
 agents and the teacher in between. The first writes a lesson's introduction,
-quiz and conclusion from a topic and its material, as ordered `@Action`s over
-a draft its `@Trigger` returns, binding the quiz to a record with the typed
-`LargeLanguageModel` overload; the teacher edits and publishes the lesson; the
-publication event triggers the second, which works out what the lesson covers,
-decides through two `@Decision`s whether the content matches the stated title
+quiz and conclusion from a topic and its material. The teacher edits and
+publishes the lesson. The publication event triggers the second agent, which
+works out what the lesson covers, decides whether the content matches the stated title
 and whether the catalog already carries it, then tags curriculum standards,
 estimates class time, writes a short abstract and files the entry — or sends
 the teacher back to fix a mismatch or merge a duplicate. See its
