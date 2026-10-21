@@ -1,8 +1,8 @@
 # Lesson Builder — Jakarta Agentic AI example
 
-A teacher names a topic, pastes the material and clicks **Generate lesson**; an
+A teacher names a topic, pastes the material and clicks **Generate lesson**. An
 agent writes an introduction, a quiz and a conclusion. The teacher edits
-anything and clicks **Approve & publish**; the lesson goes live and a second
+anything and clicks **Approve & publish**. The lesson goes live and a second
 agent files it in the course catalog with its topics, curriculum-standard
 tags, class-time estimate and a short abstract. The catalog agent holds the
 lesson back when its content does not match its title, or when the catalog
