@@ -20,7 +20,7 @@ import java.util.Map;
 
 /**
  * The curriculum standards the catalog tags against, by subject. A small
- * built-in set is enough for the example; a real deployment would read a
+ * built-in set is enough for the example. A real deployment would read a
  * school's own standards from configuration or a database.
  */
 @ApplicationScoped
