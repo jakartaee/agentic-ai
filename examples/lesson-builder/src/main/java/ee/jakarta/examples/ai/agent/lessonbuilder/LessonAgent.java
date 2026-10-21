@@ -63,8 +63,10 @@ public class LessonAgent {
     void writeQuiz(Topic topic, Lesson draft) {
         LOGGER.info("[ACTION] writeQuiz");
         draft.setQuiz(model.query(
-                "You are a {} teacher. Create exactly 4 multiple-choice questions for a lesson "
-                        + "on {}, based on this material. " + Quiz.SCHEMA + "\nMaterial:\n{}",
+                "You are a {} teacher. Create multiple-choice questions for a lesson on {}, as "
+                        + "many as this material genuinely warrants and no more than 8; if the "
+                        + "material does not lend itself to multiple-choice assessment, return an "
+                        + "empty list. " + Quiz.SCHEMA + "\nMaterial:\n{}",
                 Quiz.class,
                 topic.subject(), topic.title(), topic.material()));
     }
