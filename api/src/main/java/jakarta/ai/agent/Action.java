@@ -85,7 +85,7 @@ import java.lang.annotation.Target;
  *       passed to subsequent phases.</li>
  *   <li><strong>Domain objects</strong> - The action returns an 
  *       object (non-void) that will be automatically injected into 
- *       subsequent life-cycle methods. Use this pattern
+ *       subsequent lifecycle methods. Use this pattern
  *       to pass action results forward in the workflow.</li>
  * </ul>
  * <p><b>Examples</b><br>

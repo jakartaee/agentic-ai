@@ -92,7 +92,7 @@ messaging, concurrency, security, and REST integration just like any other
 Jakarta EE component.
 
 **Validation**::
-- Jakarta Validation — constraint annotations on agent life-cycle method
+- Jakarta Validation — constraint annotations on agent lifecycle method
   parameters; see xref:jakarta-validation-constraints[Jakarta Validation Constraints].
 
 **Data access**::

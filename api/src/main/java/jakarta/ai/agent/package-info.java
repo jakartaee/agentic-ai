@@ -121,7 +121,6 @@
  *
  * <pre>{@code
  * import jakarta.ai.agent.*;
- * import jakarta.enterprise.inject.Produces;
  * import jakarta.inject.Inject;
  *
  * @Agent(name = "ExampleAgent", description = "An example autonomous agent")
