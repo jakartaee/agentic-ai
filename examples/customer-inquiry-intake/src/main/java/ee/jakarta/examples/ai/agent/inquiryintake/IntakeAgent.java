@@ -67,15 +67,14 @@ public class IntakeAgent {
     Identity enrichIdentity(IntakeRequest request) {
         LOGGER.info("[ACTION] enrichIdentity");
         Identity extracted = model.query(
-                "Extract the sender's identity from the inquiry below. Return a JSON object "
-                        + "with exactly these keys: \"name\", \"email\", \"company\". For "
-                        + "\"name\" and \"email\", pull them from the message text (empty "
+                "Extract the sender's identity from the inquiry below. Pull "
+                        + "\"name\" and \"email\" from the message text (empty "
                         + "string if not clearly present). For \"company\", infer it from the "
                         + "business email domain — map the domain to the real company name "
                         + "(e.g. \"acme.com\" -> \"Acme\"). If the email is from a free "
                         + "consumer provider (gmail, yahoo, outlook, hotmail, icloud, proton) "
                         + "or no email is available, return an empty string for company. "
-                        + "Return only the JSON object, no markdown or commentary.\n\n"
+                        + Identity.SCHEMA + "\n\n"
                         + "Already-provided name: {}\nAlready-provided email: {}\n\n"
                         + "Message:\n{}",
                 Identity.class,

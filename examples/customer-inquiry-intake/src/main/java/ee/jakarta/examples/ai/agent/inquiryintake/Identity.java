@@ -17,4 +17,9 @@ package ee.jakarta.examples.ai.agent.inquiryintake;
  * anything missing pulled out of the message by the agent.
  */
 public record Identity(String name, String email, String company) {
+
+    /** The JSON shape a model reply must have to bind to this record. */
+    public static final String SCHEMA =
+            "Return ONLY valid JSON of the form "
+            + "{\"name\":\"...\",\"email\":\"...\",\"company\":\"...\"}.";
 }
