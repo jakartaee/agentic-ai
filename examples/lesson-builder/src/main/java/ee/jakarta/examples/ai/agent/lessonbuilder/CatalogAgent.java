@@ -75,7 +75,7 @@ public class CatalogAgent {
                 event.lesson());
     }
 
-    @Decision
+    @Decision(order = 2)
     Result contentMatchesClaim(LessonPublished event, Coverage coverage, LargeLanguageModel model) {
         Lesson lesson = event.lesson();
         ContentCheck check = model.query(
@@ -96,7 +96,7 @@ public class CatalogAgent {
         return new Result(check.matches(), check);
     }
 
-    @Decision
+    @Decision(order = 3)
     Result notDuplicate(LessonPublished event, Coverage coverage, LargeLanguageModel model) {
         List<CatalogEntry> existing = catalog.entries();
         if (existing.isEmpty()) {
@@ -122,7 +122,7 @@ public class CatalogAgent {
         return new Result(check.unique(), check);
     }
 
-    @Action(order = 2)
+    @Action(order = 4)
     TaggedStandards tagStandards(LessonPublished event, Coverage coverage, LargeLanguageModel model) {
         LOGGER.info("[ACTION] tagStandards");
         List<Standard> candidates = standardsReference.forSubject(event.lesson().getSubject());
@@ -140,7 +140,7 @@ public class CatalogAgent {
                 candidates, coverage.covers(), event.lesson());
     }
 
-    @Action(order = 3)
+    @Action(order = 5)
     Estimate classify(LessonPublished event, Coverage coverage, LargeLanguageModel model) {
         LOGGER.info("[ACTION] classify");
         return model.query(
@@ -151,7 +151,7 @@ public class CatalogAgent {
                 coverage.covers(), event.lesson());
     }
 
-    @Action(order = 4)
+    @Action(order = 6)
     Summary describe(LargeLanguageModel model) {
         LOGGER.info("[ACTION] describe");
         return new Summary(model.query(
