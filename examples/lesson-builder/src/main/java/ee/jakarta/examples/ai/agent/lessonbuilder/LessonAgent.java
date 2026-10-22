@@ -74,8 +74,9 @@ public class LessonAgent {
     @Action(order = 3)
     void writeConclusion(Lesson draft) {
         LOGGER.info("[ACTION] writeConclusion");
-        // The material, introduction and quiz are not re-sent - the LLM facade keeps per-workflow
-        // conversational state, so prior turns in this workflow are still in the model's context.
+        // The material, introduction and quiz are not re-sent: the LLM facade keeps
+        // per-workflow conversational state, so the earlier queries in this agent are
+        // still in the model's context.
         draft.setConclusion(model.query(
                 "Based on the material and the introduction and quiz you just produced, write a "
                         + "concise one-paragraph conclusion that ties them together. Return plain "
