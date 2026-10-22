@@ -111,7 +111,11 @@
  *   <li>Trigger + Decision + Action + Decision + Action
  *   (complex branching)</li>
  * </ul>
- * <p>Methods execute in declaration order within the source file.
+ * <p>Decisions and actions run in the order given by
+ * {@link jakarta.annotation.Priority @Priority} on the method, otherwise by
+ * their {@code order} attribute, and otherwise in source declaration order.
+ * An agent must use one scheme for all of its decisions and actions; see
+ * {@link Action @Action} for the rules.
  *
  * <h2>Usage Example</h2>
  *
