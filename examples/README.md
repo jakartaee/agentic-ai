@@ -68,13 +68,3 @@ mvn clean package
 ```
 
 You can also build individual examples by running Maven in their respective directories.
-
-## Running the Examples
-
-These examples are designed for demonstration and reference. To run them:
-
-1. Ensure you have Java 17+ and Jakarta EE 10+ compatible runtime.
-2. Build the desired example with Maven.
-3. Deploy or run the example in your Jakarta EE environment as appropriate.
-
-Refer to the source code in each example directory for more details on usage and workflow.
