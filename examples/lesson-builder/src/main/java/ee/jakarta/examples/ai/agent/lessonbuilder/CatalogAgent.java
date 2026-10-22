@@ -51,6 +51,9 @@ public class CatalogAgent {
     private static final Logger LOGGER = Logger.getLogger(CatalogAgent.class.getName());
 
     @Inject
+    LargeLanguageModel model;
+
+    @Inject
     Catalog catalog;
 
     @Inject
@@ -67,7 +70,7 @@ public class CatalogAgent {
     }
 
     @Action(order = 1)
-    Coverage extractCoverage(Lesson lesson, LargeLanguageModel model) {
+    Coverage extractCoverage(Lesson lesson) {
         LOGGER.info("[ACTION] extractCoverage");
         return model.query(
                 "List what this lesson covers and what it assumes a student already knows, each "
@@ -78,7 +81,7 @@ public class CatalogAgent {
     }
 
     @Decision(order = 2)
-    Result contentMatchesClaim(Lesson lesson, Coverage coverage, LargeLanguageModel model) {
+    Result contentMatchesClaim(Lesson lesson, Coverage coverage) {
         ContentCheck check = model.query(
                 "A lesson has been published under subject {} and title {}. Its content covers {}."
                         + " Decide whether the content is actually about that stated subject and title,"
@@ -98,7 +101,7 @@ public class CatalogAgent {
     }
 
     @Decision(order = 3)
-    Result notDuplicate(Lesson lesson, Coverage coverage, LargeLanguageModel model) {
+    Result notDuplicate(Lesson lesson, Coverage coverage) {
         List<CatalogEntry> existing = catalog.entries();
         if (existing.isEmpty()) {
             LOGGER.info("[DECISION] notDuplicate: true (catalog is empty)");
@@ -124,7 +127,7 @@ public class CatalogAgent {
     }
 
     @Action(order = 4)
-    TaggedStandards tagStandards(Lesson lesson, Coverage coverage, LargeLanguageModel model) {
+    TaggedStandards tagStandards(Lesson lesson, Coverage coverage) {
         LOGGER.info("[ACTION] tagStandards");
         List<Standard> candidates = standardsReference.forSubject(lesson.getSubject());
         if (candidates.isEmpty()) {
@@ -142,7 +145,7 @@ public class CatalogAgent {
     }
 
     @Action(order = 5)
-    Estimate classify(Lesson lesson, Coverage coverage, LargeLanguageModel model) {
+    Estimate classify(Lesson lesson, Coverage coverage) {
         LOGGER.info("[ACTION] classify");
         return model.query(
                 "Estimate the minutes of class time this lesson needs and its difficulty "
@@ -153,7 +156,7 @@ public class CatalogAgent {
     }
 
     @Action(order = 6)
-    Summary describe(LargeLanguageModel model) {
+    Summary describe() {
         LOGGER.info("[ACTION] describe");
         return new Summary(model.query(
                 "Write a three-sentence catalog abstract for the lesson, in neutral prose that"
