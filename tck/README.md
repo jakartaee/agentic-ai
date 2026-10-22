@@ -6,10 +6,9 @@ Technology Compatibility Kit (TCK) for Jakarta Agentic AI 1.0 Specification.
 
 This TCK verifies that implementations of Jakarta Agentic AI conform to the specification requirements. It includes tests for:
 
-- **Agent Annotations**: `@Agent`, `@Trigger`, `@Decision`, `@Action`, `@Outcome`, `@OnException`
-- **CDI Integration**: `@WorkflowScoped` custom scope
-- **Core Interfaces**: `LargeLanguageModel` interface
-- **API Signature**: Verification of the complete API surface
+- **Structural**: the annotations, `LargeLanguageModel`, `Result` and `LLMException` exist with the attributes, targets and retention the specification requires
+- **Behavioral**: a compatible implementation dispatches workflows as specified — phase ordering and precedence, data propagation into phase parameters, termination, error handling, validation, inherited phases, CDI scoping and event observation, concurrency isolation, deployment errors, and the `LargeLanguageModel` contract
+- **API signature**: the complete public API surface against a recorded baseline
 
 ## Test Structure
 
@@ -17,15 +16,27 @@ This TCK verifies that implementations of Jakarta Agentic AI conform to the spec
 tck/
 ├── src/main/java/ee/jakarta/tck/ai/agent/
 │   ├── core/
-│   │   ├── agent/           # Agent annotation and interface tests
-│   │   ├── lifecycle/       # Workflow lifecycle annotation tests
-│   │   └── cdi/             # CDI scope tests
+│   │   ├── agent/            # @Agent, LargeLanguageModel, Result, LLMException (structural)
+│   │   ├── lifecycle/        # @Trigger, @Decision, @Action, @Outcome, @OnException (structural)
+│   │   ├── cdi/              # @WorkflowScoped and @Agent CDI metadata (structural)
+│   │   ├── behavior/         # Deployed workflow tests, one class per concern
+│   │   │   └── agents/       # The agents those tests deploy, one package per concern
+│   │   └── integration/      # Deployed smoke test
 │   └── framework/
-│       ├── junit/anno/      # Custom test annotations
-│       └── signature/       # API signature tests
-└── src/main/resources/
-    └── ee/jakarta/tck/ai/agent/framework/signature/
+│       ├── junit/anno/       # @Assertion, @Standalone, @Deployed, @RequiresImplementation, ...
+│       ├── junit/extensions/ # The JUnit conditions behind those annotations
+│       ├── arquillian/       # Adds the framework beans to every deployment
+│       ├── stub/             # LargeLanguageModelStub: scripted responses, recorded calls
+│       ├── trace/            # ExecutionTraceRecorder: phase-order assertions
+│       ├── workflow/         # Per-workflow keying for the stub outside a container
+│       └── signature/        # API signature test
+├── src/main/resources/
+│   ├── META-INF/services/    # Registers the Arquillian extension
+│   └── ee/jakarta/tck/ai/agent/framework/signature/   # Signature baseline
+└── src/test/java/            # Unit tests of the framework itself; not part of the TCK
 ```
+
+Tests live in `src/main/java` so they ship in the TCK jar for implementors to run; `src/test/java` holds only the framework's own unit tests.
 
 ## Building and running the TCK
 
@@ -59,30 +70,11 @@ public void testAgentAnnotationExists() {
 
 ## Test Categories
 
-### Agent Annotation Tests
-- Verify `@Agent` annotation exists and has correct attributes
-- Verify retention policy is RUNTIME
-- Verify target is TYPE
+### Structural tests (`@Standalone`)
+Reflection over the API; no container needed. These are `core/agent`, `core/lifecycle`, `core/cdi` and the signature test.
 
-### Lifecycle Annotation Tests
-- `@Trigger` - workflow entry point
-- `@Decision` - decision making with LLM
-- `@Action` - action execution
-- `@Outcome` - workflow completion
-- `@OnException` - error handling
-
-### LargeLanguageModel Interface Tests
-- Verify interface exists with all required methods:
-  - `query(String prompt)`
-  - `query(String prompt, Class<T> resultType)`
-  - `query(String prompt, Object... inputs)`
-  - `query(String prompt, Class<T> resultType, Object... inputs)`
-  - `unwrap(Class<T> implClass)`
-
-### CDI Integration Tests
-- `@WorkflowScoped` annotation validation
-- NormalScope compliance
-- Literal class implementation
+### Behavioral tests (`@Deployed`)
+Arquillian deployments that run real workflows against the implementation under test. Each class in `core/behavior` covers one concern: phase ordering and precedence, data propagation and resolution tie-breaks, termination, `@OnException` handling, validation, inherited and void phases, topology flexibility, orchestration, CDI integration and event observation, workflow-scope lifecycle, concurrency isolation, deployment errors, and the `LargeLanguageModel` contract. Assertions a plain CDI container cannot satisfy carry `@RequiresImplementation`; the trigger-only assertions the baseline must pass carry `@RequiresNoImplementation`. See [TESTING-GUIDELINE](../TESTING-GUIDELINE.md) for the run modes.
 
 ## API signature baseline
 
@@ -109,7 +101,7 @@ promises.
 
 - Java 17 or higher
 - Jakarta EE 10 or higher
-- Maven 3.8+
+- Maven 3.9+
 - A Jakarta JSON Binding provider on the test classpath
 
 The TCK does not ship a JSON-B provider, so that it does not impose one on
