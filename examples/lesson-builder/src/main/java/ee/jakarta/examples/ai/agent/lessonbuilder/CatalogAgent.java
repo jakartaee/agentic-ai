@@ -60,24 +60,25 @@ public class CatalogAgent {
     CatalogOutput output;
 
     @Trigger
-    void onPublished(LessonPublished event) {
-        LOGGER.info("[TRIGGER] lesson published: " + event.lesson().getTitle());
+    Lesson onPublished(LessonPublished event) {
+        Lesson lesson = event.lesson();
+        LOGGER.info("[TRIGGER] lesson published: " + lesson.getTitle());
+        return lesson;
     }
 
     @Action(order = 1)
-    Coverage extractCoverage(LessonPublished event, LargeLanguageModel model) {
+    Coverage extractCoverage(Lesson lesson, LargeLanguageModel model) {
         LOGGER.info("[ACTION] extractCoverage");
         return model.query(
                 "List what this lesson covers and what it assumes a student already knows, each "
                         + "as a short phrase. Return ONLY JSON: "
                         + "{\"covers\":[\"...\"],\"assumes\":[\"...\"]}\n{}",
                 Coverage.class,
-                event.lesson());
+                lesson);
     }
 
     @Decision(order = 2)
-    Result contentMatchesClaim(LessonPublished event, Coverage coverage, LargeLanguageModel model) {
-        Lesson lesson = event.lesson();
+    Result contentMatchesClaim(Lesson lesson, Coverage coverage, LargeLanguageModel model) {
         ContentCheck check = model.query(
                 "A lesson has been published under subject {} and title {}. Its content covers {}."
                         + " Decide whether the content is actually about that stated subject and title,"
@@ -97,7 +98,7 @@ public class CatalogAgent {
     }
 
     @Decision(order = 3)
-    Result notDuplicate(LessonPublished event, Coverage coverage, LargeLanguageModel model) {
+    Result notDuplicate(Lesson lesson, Coverage coverage, LargeLanguageModel model) {
         List<CatalogEntry> existing = catalog.entries();
         if (existing.isEmpty()) {
             LOGGER.info("[DECISION] notDuplicate: true (catalog is empty)");
@@ -113,7 +114,7 @@ public class CatalogAgent {
                         + "New lesson: {} ({}) covering {}\n"
                         + "Catalog: {}",
                 DuplicateCheck.class,
-                event.lesson().getTitle(), event.lesson().getSubject(), coverage.covers(), existing);
+                lesson.getTitle(), lesson.getSubject(), coverage.covers(), existing);
         if (!check.unique()) {
             output.setStopReason("Published, but not cataloged: " + check.matchedTitle()
                     + " already covers this. " + check.reason() + " Merge, or title this as a variant.");
@@ -123,9 +124,9 @@ public class CatalogAgent {
     }
 
     @Action(order = 4)
-    TaggedStandards tagStandards(LessonPublished event, Coverage coverage, LargeLanguageModel model) {
+    TaggedStandards tagStandards(Lesson lesson, Coverage coverage, LargeLanguageModel model) {
         LOGGER.info("[ACTION] tagStandards");
-        List<Standard> candidates = standardsReference.forSubject(event.lesson().getSubject());
+        List<Standard> candidates = standardsReference.forSubject(lesson.getSubject());
         if (candidates.isEmpty()) {
             return new TaggedStandards(List.of());
         }
@@ -137,18 +138,18 @@ public class CatalogAgent {
                         + "Lesson covers: {}\n"
                         + "Lesson: {}",
                 TaggedStandards.class,
-                candidates, coverage.covers(), event.lesson());
+                candidates, coverage.covers(), lesson);
     }
 
     @Action(order = 5)
-    Estimate classify(LessonPublished event, Coverage coverage, LargeLanguageModel model) {
+    Estimate classify(Lesson lesson, Coverage coverage, LargeLanguageModel model) {
         LOGGER.info("[ACTION] classify");
         return model.query(
                 "Estimate the minutes of class time this lesson needs and its difficulty "
                         + "(introductory, intermediate or advanced). It covers: {}\n"
                         + "Return ONLY JSON: {\"minutes\":45,\"difficulty\":\"...\"}\n{}",
                 Estimate.class,
-                coverage.covers(), event.lesson());
+                coverage.covers(), lesson);
     }
 
     @Action(order = 6)
@@ -162,9 +163,8 @@ public class CatalogAgent {
     }
 
     @Outcome
-    void file(LessonPublished event, Coverage coverage, TaggedStandards tagged,
+    void file(Lesson lesson, Coverage coverage, TaggedStandards tagged,
               Estimate estimate, Summary summary) {
-        Lesson lesson = event.lesson();
         CatalogEntry entry = new CatalogEntry(
                 slug(lesson.getSubject(), lesson.getTitle()),
                 lesson.getSubject(),
