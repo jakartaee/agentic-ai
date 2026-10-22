@@ -36,7 +36,7 @@ public class StandardsReference {
                             "Use mathematical representations to support the claim that the total momentum "
                                     + "of a system is conserved when there is no net force on the system."),
                     new Standard("HS-PS2-3",
-                            "Design, evaluate and refine a device that minimises the force on an object "
+                            "Design, evaluate and refine a device that minimizes the force on an object "
                                     + "during a collision."),
                     new Standard("HS-PS2-4",
                             "Use mathematical representations of Newton's Law of Gravitation and Coulomb's "
@@ -50,7 +50,7 @@ public class StandardsReference {
                                     + "and the relative position of particles."),
                     new Standard("HS-PS4-1",
                             "Use mathematical representations to support a claim about relationships among "
-                                    + "the frequency, wavelength and speed of waves travelling in a medium.")),
+                                    + "the frequency, wavelength and speed of waves traveling in a medium.")),
             "Mathematics", List.of(
                     new Standard("HSA-SSE.A.1",
                             "Interpret expressions that represent a quantity in terms of its context."),
@@ -66,14 +66,14 @@ public class StandardsReference {
                             "Understand that a function assigns to each element of the domain exactly one "
                                     + "element of the range."),
                     new Standard("HSG-SRT.A.1",
-                            "Verify experimentally the properties of dilations given by a centre and a "
+                            "Verify experimentally the properties of dilations given by a center and a "
                                     + "scale factor.")),
             "English", List.of(
                     new Standard("RL.9-10.1",
                             "Cite strong and thorough textual evidence to support analysis of what the text "
                                     + "says explicitly as well as inferences drawn from it."),
                     new Standard("RL.9-10.2",
-                            "Determine a theme or central idea of a text and analyse in detail its "
+                            "Determine a theme or central idea of a text and analyze in detail its "
                                     + "development over the course of the text."),
                     new Standard("W.9-10.1",
                             "Write arguments to support claims in an analysis of substantive topics or texts."),
