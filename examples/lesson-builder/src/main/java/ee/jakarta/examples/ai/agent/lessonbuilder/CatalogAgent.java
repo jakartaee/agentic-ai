@@ -27,7 +27,6 @@ import jakarta.ai.agent.Agent;
 import jakarta.ai.agent.Decision;
 import jakarta.ai.agent.LargeLanguageModel;
 import jakarta.ai.agent.Outcome;
-import jakarta.ai.agent.Result;
 import jakarta.ai.agent.Trigger;
 import jakarta.inject.Inject;
 
@@ -80,7 +79,7 @@ public class CatalogAgent {
     }
 
     @Decision(order = 2)
-    Result contentMatchesClaim(Lesson lesson, Coverage coverage) {
+    boolean contentMatchesClaim(Lesson lesson, Coverage coverage) {
         ContentCheck check = model.query(
                 "A lesson has been published under subject {} and title {}. Its content covers {}."
                         + " Decide whether the content is actually about that stated subject and title,"
@@ -94,15 +93,15 @@ public class CatalogAgent {
                     + ". Rename the lesson or paste matching material.");
         }
         LOGGER.info("[DECISION] contentMatchesClaim: " + check.matches() + " — " + check.reason());
-        return new Result(check.matches(), check);
+        return check.matches();
     }
 
     @Decision(order = 3)
-    Result notDuplicate(Lesson lesson, Coverage coverage) {
+    boolean notDuplicate(Lesson lesson, Coverage coverage) {
         List<CatalogEntry> existing = catalog.entries();
         if (existing.isEmpty()) {
             LOGGER.info("[DECISION] notDuplicate: true (catalog is empty)");
-            return new Result(true, null);
+            return true;
         }
         DuplicateCheck check = model.query(
                 "Does this lesson substantially duplicate one already in the course catalog?"
@@ -118,7 +117,7 @@ public class CatalogAgent {
                     + " already covers this. " + check.reason() + " Merge, or title this as a variant.");
         }
         LOGGER.info("[DECISION] notDuplicate: " + check.unique() + " — " + check.reason());
-        return new Result(check.unique(), check);
+        return check.unique();
     }
 
     @Action(order = 4)
