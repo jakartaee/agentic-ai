@@ -134,7 +134,7 @@ public class IntakeAgent {
         LOGGER.info("[ACTION] polish (" + classification + ")");
         String text = model.query(
                 "Rewrite the following customer inquiry to be clear, concise, and professional. "
-                        + "The inquiry is categorised as {}, so adopt that register. Keep the "
+                        + "The inquiry is categorized as {}, so adopt that register. Keep the "
                         + "sender's voice and intent. Return only the revised message text.\n\n{}",
                 classification, request.message()).strip();
         return new PolishedMessage(text);
