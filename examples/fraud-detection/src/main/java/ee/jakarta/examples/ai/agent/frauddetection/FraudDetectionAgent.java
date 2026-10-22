@@ -12,13 +12,13 @@
  *****************************************************************************/
 package ee.jakarta.examples.ai.agent.frauddetection;
 
-import jakarta.ai.agent.Agent;
-import jakarta.ai.agent.Trigger;
-import jakarta.ai.agent.Decision;
 import jakarta.ai.agent.Action;
-import jakarta.ai.agent.Outcome;
+import jakarta.ai.agent.Agent;
+import jakarta.ai.agent.Decision;
 import jakarta.ai.agent.LargeLanguageModel;
+import jakarta.ai.agent.Outcome;
 import jakarta.ai.agent.Result;
+import jakarta.ai.agent.Trigger;
 
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
@@ -37,12 +37,12 @@ public class FraudDetectionAgent {
     private EntityManager entityManager;
 
     @Trigger
-    private void handleTransaction(@Valid BankTransaction transaction) {
+    void handleTransaction(@Valid BankTransaction transaction) {
         // Workflow trigger logic
     }
 
     @Decision
-    private Result checkFraud(BankTransaction transaction) {
+    Result checkFraud(BankTransaction transaction) {
         String output = model.query(
             "Is this a fraudulent transaction? If so, how serious is it?", transaction);
         boolean fraud = isFraud(output);
@@ -51,7 +51,7 @@ public class FraudDetectionAgent {
     }
 
     @Action
-    private void handleFraud(Fraud fraud, BankTransaction transaction) {
+    void handleFraud(Fraud fraud, BankTransaction transaction) {
         if (fraud.isSerious()) {
             alertBankSecurity(fraud);
         }
@@ -60,7 +60,7 @@ public class FraudDetectionAgent {
     }
 
     @Outcome
-    private void markTransaction(BankTransaction transaction) {
+    void markTransaction(BankTransaction transaction) {
         // Mark transaction suspect, probably in the database.
     }
 
