@@ -18,4 +18,8 @@ import java.util.List;
  * What a lesson covers and what it assumes a student already knows.
  */
 public record Coverage(List<String> covers, List<String> assumes) {
+
+    /** The JSON shape a model reply must have to bind to this record. */
+    public static final String SCHEMA =
+            "Return ONLY valid JSON of the form {\"covers\":[\"...\"],\"assumes\":[\"...\"]}.";
 }

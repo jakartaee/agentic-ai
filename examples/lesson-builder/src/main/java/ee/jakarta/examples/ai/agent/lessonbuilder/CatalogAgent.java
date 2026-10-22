@@ -74,8 +74,7 @@ public class CatalogAgent {
         LOGGER.info("[ACTION] extractCoverage");
         return model.query(
                 "List what this lesson covers and what it assumes a student already knows, each "
-                        + "as a short phrase. Return ONLY JSON: "
-                        + "{\"covers\":[\"...\"],\"assumes\":[\"...\"]}\n{}",
+                        + "as a short phrase. " + Coverage.SCHEMA + "\n{}",
                 Coverage.class,
                 lesson);
     }
@@ -85,10 +84,8 @@ public class CatalogAgent {
         ContentCheck check = model.query(
                 "A lesson has been published under subject {} and title {}. Its content covers {}."
                         + " Decide whether the content is actually about that stated subject and title,"
-                        + " or whether the teacher pasted material that drifted onto a different topic."
-                        + " Return ONLY JSON: {\"matches\":true|false,"
-                        + "\"actualTopic\":\"short phrase naming what the content is actually about\","
-                        + "\"reason\":\"one sentence\"}",
+                        + " or whether the teacher pasted material that drifted onto a different topic. "
+                        + ContentCheck.SCHEMA,
                 ContentCheck.class,
                 lesson.getSubject(), lesson.getTitle(), coverage.covers());
         if (!check.matches()) {
@@ -111,9 +108,7 @@ public class CatalogAgent {
                 "Does this lesson substantially duplicate one already in the course catalog?"
                         + " It is a duplicate only if an existing entry covers the same topic at the"
                         + " same depth; a lesson that extends or revisits an existing one is not a"
-                        + " duplicate. Return ONLY JSON: {\"unique\":true|false,"
-                        + "\"matchedTitle\":\"title of the overlapping entry, or empty\","
-                        + "\"reason\":\"one sentence\"}\n"
+                        + " duplicate. " + DuplicateCheck.SCHEMA + "\n"
                         + "New lesson: {} ({}) covering {}\n"
                         + "Catalog: {}",
                 DuplicateCheck.class,
@@ -135,8 +130,8 @@ public class CatalogAgent {
         }
         return model.query(
                 "Which of these curriculum standards does the lesson actually meet? Only include"
-                        + " a standard if the lesson's content clearly supports it. Return ONLY JSON:"
-                        + " {\"codes\":[\"...\"]}\n"
+                        + " a standard if the lesson's content clearly supports it. "
+                        + TaggedStandards.SCHEMA + "\n"
                         + "Standards: {}\n"
                         + "Lesson covers: {}\n"
                         + "Lesson: {}",
@@ -150,7 +145,7 @@ public class CatalogAgent {
         return model.query(
                 "Estimate the minutes of class time this lesson needs and its difficulty "
                         + "(introductory, intermediate or advanced). It covers: {}\n"
-                        + "Return ONLY JSON: {\"minutes\":45,\"difficulty\":\"...\"}\n{}",
+                        + Estimate.SCHEMA + "\n{}",
                 Estimate.class,
                 coverage.covers(), lesson);
     }

@@ -15,4 +15,10 @@ package ee.jakarta.examples.ai.agent.lessonbuilder.model;
  * already in the catalog: if not unique, which entry overlaps and why.
  */
 public record DuplicateCheck(boolean unique, String matchedTitle, String reason) {
+
+    /** The JSON shape a model reply must have to bind to this record. */
+    public static final String SCHEMA =
+            "Return ONLY valid JSON of the form {\"unique\":true|false,"
+            + "\"matchedTitle\":\"title of the overlapping entry, or empty\","
+            + "\"reason\":\"one sentence\"}.";
 }
