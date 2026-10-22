@@ -39,10 +39,10 @@ public class LessonAgent {
     private static final Logger LOGGER = Logger.getLogger(LessonAgent.class.getName());
 
     @Inject
-    LargeLanguageModel model;
+    private LargeLanguageModel model;
 
     @Inject
-    DraftStore drafts;
+    private DraftStore drafts;
 
     @Trigger
     Lesson onTopic(@Valid Topic topic) {

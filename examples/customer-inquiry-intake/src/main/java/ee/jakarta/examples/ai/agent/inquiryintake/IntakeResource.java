@@ -44,10 +44,10 @@ public class IntakeResource {
     private static final Logger LOGGER = Logger.getLogger(IntakeResource.class.getName());
 
     @Inject
-    Event<IntakeRequest> trigger;
+    private Event<IntakeRequest> trigger;
 
     @Inject
-    IntakeOutput output;
+    private IntakeOutput output;
 
     @POST
     @Path("prepare")

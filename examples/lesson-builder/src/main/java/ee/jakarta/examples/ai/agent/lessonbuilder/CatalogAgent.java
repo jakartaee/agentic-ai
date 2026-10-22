@@ -50,16 +50,16 @@ public class CatalogAgent {
     private static final Logger LOGGER = Logger.getLogger(CatalogAgent.class.getName());
 
     @Inject
-    LargeLanguageModel model;
+    private LargeLanguageModel model;
 
     @Inject
-    Catalog catalog;
+    private Catalog catalog;
 
     @Inject
-    StandardsReference standardsReference;
+    private StandardsReference standardsReference;
 
     @Inject
-    CatalogOutput output;
+    private CatalogOutput output;
 
     @Trigger
     Lesson onPublished(LessonPublished event) {

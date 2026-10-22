@@ -42,10 +42,10 @@ public class IntakeAgent {
             "test", "asdf", "asdfg", "qwerty", "lorem", "ipsum", "foo", "bar", "baz");
 
     @Inject
-    LargeLanguageModel model;
+    private LargeLanguageModel model;
 
     @Inject
-    IntakeOutput output;
+    private IntakeOutput output;
 
     @Trigger
     void onSubmit(@Valid IntakeRequest request) {

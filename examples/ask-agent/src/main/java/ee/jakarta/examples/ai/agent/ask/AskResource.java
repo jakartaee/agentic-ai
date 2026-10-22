@@ -40,10 +40,10 @@ public class AskResource {
     private static final Logger LOGGER = Logger.getLogger(AskResource.class.getName());
 
     @Inject
-    Event<Question> trigger;
+    private Event<Question> trigger;
 
     @Inject
-    AnswerStore answers;
+    private AnswerStore answers;
 
     @POST
     @Consumes(MediaType.APPLICATION_JSON)

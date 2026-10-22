@@ -51,22 +51,22 @@ public class BuilderResource {
     private static final Logger LOGGER = Logger.getLogger(BuilderResource.class.getName());
 
     @Inject
-    Event<Topic> topics;
+    private Event<Topic> topics;
 
     @Inject
-    Event<LessonPublished> publications;
+    private Event<LessonPublished> publications;
 
     @Inject
-    DraftStore drafts;
+    private DraftStore drafts;
 
     @Inject
-    PublishedLessonStore lessons;
+    private PublishedLessonStore lessons;
 
     @Inject
-    Catalog catalog;
+    private Catalog catalog;
 
     @Inject
-    CatalogOutput catalogOutput;
+    private CatalogOutput catalogOutput;
 
     @GET
     @Path("draft")

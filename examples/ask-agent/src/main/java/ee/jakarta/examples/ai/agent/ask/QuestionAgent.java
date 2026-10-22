@@ -33,10 +33,10 @@ public class QuestionAgent {
     private static final Logger LOGGER = Logger.getLogger(QuestionAgent.class.getName());
 
     @Inject
-    LargeLanguageModel model;
+    private LargeLanguageModel model;
 
     @Inject
-    AnswerStore answers;
+    private AnswerStore answers;
 
     @Trigger
     void onQuestion(@Valid Question question) {

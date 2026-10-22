@@ -46,7 +46,7 @@ import java.util.List;
 public class DocsAgent {
 
     @Inject
-    LargeLanguageModel languageModel;
+    private LargeLanguageModel languageModel;
 
 
     /**
