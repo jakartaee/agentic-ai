@@ -39,10 +39,10 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 /**
- * REST surface for the planner: generate fires the lesson agent and returns
- * the draft; publish stores the edited lesson, fires the catalog agent and
- * returns the lesson with its catalog entry (if one was filed) or the
- * reason the agent declined to file it.
+ * REST surface for the lesson builder: generate fires the lesson agent and
+ * returns the draft; publish stores the edited lesson, fires the catalog
+ * agent and returns the lesson with its catalog entry (if one was filed) or
+ * the reason the agent declined to file it.
  */
 @Path("/")
 @RequestScoped
