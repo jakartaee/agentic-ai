@@ -50,7 +50,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class CdiIntegrationTests {
 
-    // Interceptor enabled here (NOT via @Priority — see constraint #5 in steps.md).
+    // AgentInterceptorImpl carries no @Priority: enabling it both ways would enable it twice.
     private static final String BEANS_XML = """
             <?xml version="1.0" encoding="UTF-8"?>
             <beans xmlns="https://jakarta.ee/xml/ns/jakartaee"
@@ -208,7 +208,7 @@ public class CdiIntegrationTests {
     @Assertion(id = "AGENTICAI-CDI-BHV-005",
                section = "parameter-resolution",
                strategy = "The compatible implementation resolves method parameters in priority order: (1) triggering event, (3) "
-                        + "LargeLanguageModel, (4) CDI beans — ResolutionOrderAgent @Action args are "
+                        + "LargeLanguageModel, (5) CDI beans — ResolutionOrderAgent @Action args are "
                         + "[0]=event, [1]=LLM, [2]=ResolutionCdiBean")
     public void parameterResolutionFollowsDefinedPriority() {
         trace.reset();
