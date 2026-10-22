@@ -49,14 +49,6 @@ public class DocumentationAnalysis implements Serializable {
     }
 
     /**
-     * Factory method to create an analysis indicating no documentation is needed.
-     * Returns null to signal the workflow should stop.
-     */
-    public static DocumentationAnalysis noDocumentationNeeded() {
-        return null;
-    }
-
-    /**
      * Factory method to create an analysis indicating documentation is needed.
      */
     public static DocumentationAnalysis documentationNeeded(String reason,

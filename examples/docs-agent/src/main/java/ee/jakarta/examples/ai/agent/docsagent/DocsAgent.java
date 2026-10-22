@@ -21,6 +21,8 @@ import jakarta.ai.agent.Outcome;
 import jakarta.ai.agent.Trigger;
 import jakarta.inject.Inject;
 
+import java.util.List;
+
 /**
  * Documentation Agent - Monitors pull requests and automatically generates
  * documentation updates when needed.
@@ -52,7 +54,7 @@ public class DocsAgent {
      * Invoked when a pull request is detected in the code repository.
      */
     @Trigger
-    public void detectPullRequest(PullRequest pullRequest) {
+    void detectPullRequest(PullRequest pullRequest) {
         System.out.println("📝 Pull request detected: " + pullRequest.getTitle());
         System.out.println("   Changed files: " + pullRequest.getChangedFiles());
     }
@@ -60,7 +62,7 @@ public class DocsAgent {
     /**
      * DECISION: Analyzes whether the pull request requires documentation.
      *
-     * This method demonstrates the NEW object return pattern:
+     * This method demonstrates the object return pattern:
      * - Returns DocumentationAnalysis (non-null) if documentation is needed
      * - Returns null if no documentation is needed
      *
@@ -68,7 +70,7 @@ public class DocsAgent {
      * into subsequent @Action methods.
      */
     @Decision
-    private DocumentationAnalysis requiresDocumentationPullRequest(PullRequest pullRequest) {
+    DocumentationAnalysis requiresDocumentationPullRequest(PullRequest pullRequest) {
         // Use LLM to analyze the pull request
         String prompt = """
             Analyze this pull request and determine if documentation is needed.
@@ -87,7 +89,7 @@ public class DocsAgent {
             return DocumentationAnalysis.documentationNeeded(
                 "Pull request modifies user-facing API",
                 pullRequest.getChangedFiles(),
-                java.util.Arrays.asList("API Changes", "Usage Guide"),
+                List.of("API Changes", "Usage Guide"),
                 "high"
             );
         } else {
@@ -107,7 +109,7 @@ public class DocsAgent {
      * The analysis object provides context about what documentation is needed.
      */
     @Action
-    private DocumentationPullRequest produceDocumentationPullRequest(
+    DocumentationPullRequest produceDocumentationPullRequest(
             PullRequest pullRequest,
             DocumentationAnalysis analysis) {
 
@@ -147,7 +149,7 @@ public class DocsAgent {
      * Receives the DocumentationPullRequest from the previous action.
      */
     @Action
-    private void reviewDocumentationPullRequest(DocumentationPullRequest docPR) {
+    void reviewDocumentationPullRequest(DocumentationPullRequest docPR) {
         System.out.println("🔍 Reviewing documentation PR: " + docPR.getId());
         System.out.println("   Linked to code PR: " + docPR.getLinkedCodePullRequestId());
         System.out.println("   Topics covered: " + docPR.getDocumentedTopics());
@@ -162,7 +164,7 @@ public class DocsAgent {
      * Final phase that commits and publishes the documentation.
      */
     @Outcome
-    private void applyDocumentationChange(DocumentationPullRequest docPR) {
+    void applyDocumentationChange(DocumentationPullRequest docPR) {
         System.out.println("🚀 Applying documentation changes from PR: " + docPR.getId());
         System.out.println("   Analysis priority was: " + docPR.getAnalysis().getPriority());
 
@@ -173,20 +175,19 @@ public class DocsAgent {
 
     /**
      * EXCEPTION HANDLER: Handles errors during the documentation workflow.
-     * 
-     * Returns normally to continue workflow (after logging/recovery).
-     * Re-throws exception to stop workflow.
+     *
+     * Every phase needs the result of the one before it, so a failure
+     * anywhere is re-thrown to stop the workflow.
      */
     @OnException
-    private void handleDocumentationPullRequestException(Throwable error, PullRequest pullRequest) {
+    void handleDocumentationPullRequestException(RuntimeException error, PullRequest pullRequest) {
         System.err.println("❌ Error during documentation workflow for PR: " + pullRequest.getId());
         System.err.println("   Error: " + error.getMessage());
 
         // Log error for monitoring
         // Send notification to team
         // Create issue for manual review
-        
-        // Returns normally - workflow continues after logging
-        // To stop workflow, re-throw: throw new RuntimeException(error);
+
+        throw error;
     }
 }
