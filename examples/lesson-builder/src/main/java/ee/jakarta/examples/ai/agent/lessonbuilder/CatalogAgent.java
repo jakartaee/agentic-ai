@@ -152,6 +152,9 @@ public class CatalogAgent {
     @Action(order = 6)
     Summary describe() {
         LOGGER.info("[ACTION] describe");
+        // The prompt neither names the lesson nor restates its coverage: the
+        // per-workflow conversational state the spec requires carries both
+        // forward from the earlier queries in this agent.
         return new Summary(model.query(
                 "Write a three-sentence catalog abstract for the lesson, in neutral prose that"
                         + " another teacher browsing the library could use to decide whether to open"
