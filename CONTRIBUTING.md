@@ -1,6 +1,6 @@
 # Contributing to Jakarta Agentic Artificial Intelligence
 
-Thanks for your interest n Jakarta Agentic AI.
+Thanks for your interest in Jakarta Agentic AI.
 
 ## Project description
 
