@@ -29,8 +29,8 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
  * Defines a workflow-scoped CDI context.
  * <p>
  * A workflow scope is active during the execution of an agent's workflow,
- * spanning trigger, decision, action, and outcome phases. Beans in this scope
- * are created when the workflow starts and destroyed when it completes.
+ * spanning trigger, decision, action, and outcome phases. An agent in this
+ * scope is created when the workflow starts and destroyed when it completes.
  * <p>
  * This scope is particularly useful for sharing state across different phases
  * of a workflow execution without requiring explicit parameter passing.
@@ -38,16 +38,31 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
  * <h2>Example Usage</h2>
  * <pre>{@code
  * @Agent
- * @WorkflowScoped
+ * @WorkflowScoped   // the default; shown for clarity
  * public class DocumentationAgent {
- *     // Agent is workflow-scoped
- * }
  *
- * @Agent
- * @WorkflowScoped
- * public class AnalysisCache {
- *     // Cache exists for the duration of the workflow
- *     private Map<String, Object> cache = new HashMap<>();
+ *     @Inject
+ *     private LargeLanguageModel llm;
+ *
+ *     // One instance per workflow, so a field set in one phase
+ *     // is still there in the next
+ *     private Analysis analysis;
+ *
+ *     @Trigger
+ *     public void onPullRequest(PullRequest pr) {
+ *     }
+ *
+ *     @Decision
+ *     public boolean needsDocumentation(PullRequest pr) {
+ *         analysis = llm.query("Does this pull request need documentation? {}",
+ *                 Analysis.class, pr);
+ *         return analysis.needed();
+ *     }
+ *
+ *     @Action
+ *     public void writeDocumentation(PullRequest pr) {
+ *         // analysis from the decision is available here
+ *     }
  * }
  * }</pre>
  *
