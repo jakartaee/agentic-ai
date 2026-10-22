@@ -11,7 +11,7 @@ A basic agent that detects fraudulent transactions:
 
 [source,java]
 ----
-@Agent(description="Detects bank fraud transactions")
+@Agent(description = "Detects bank fraud transactions")
 public class FraudDetectionAgent {
 
     @Inject
@@ -142,7 +142,7 @@ public class DocumentationAgent {
         PullRequest pr = prEvent.getPullRequest();
         DocumentationFiles files = new DocumentationFiles();
 
-        for (String filename : plan.getSuggestedFiles()) {
+        for (String filename : plan.suggestedFiles()) {
             String content = llm.query(
                 "Generate documentation for: {}. Diff: {}",
                 filename,
@@ -233,7 +233,7 @@ public class CustomerSupportAgent {
             Customer's Latest Message: {}
 
             Provide a helpful response. Respond with JSON:
-            {"response": "...", "canResolve": true/false, "needsEscalation": true/false}
+            {"text": "...", "canResolve": true/false, "needsEscalation": true/false}
             """,
             customer.getName(),
             articles.stream().map(a -> a.getSummary()).collect(Collectors.joining("\n")),
@@ -244,7 +244,7 @@ public class CustomerSupportAgent {
 
     @Action
     public void sendResponse(SupportResponse response) {
-        messagingService.sendToCustomer(customer.getId(), response.getResponse());
+        messagingService.sendToCustomer(customer.getId(), response.text());
     }
 
     @Outcome
