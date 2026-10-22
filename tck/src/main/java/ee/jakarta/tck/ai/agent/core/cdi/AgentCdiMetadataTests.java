@@ -24,7 +24,7 @@ public class AgentCdiMetadataTests {
     @Agent(name = "customAgent", description = "A test agent for BHV-002")
     private static class NamedAgentFixture {}
 
-    @Assertion(id = "AGENTICAI-CDI-BHV-002",
+    @Assertion(id = "AGENTICAI-CDI-BHV-008",
                section = "agent-lifecycle",
                strategy = "@Agent.name() and @Agent.description() are retained and readable at runtime via "
                         + "reflection; a class annotated @Agent(name=\"customAgent\", description=...) returns "

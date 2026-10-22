@@ -93,7 +93,7 @@ public class CdiIntegrationTests {
     // -------------------------------------------------------------------------
 
     @Assertion(id = "AGENTICAI-CDI-BHV-002",
-               section = "agent-lifecycle",
+               section = "cdi-integration",
                strategy = "A static nested class annotated @Agent @ApplicationScoped is discovered as a CDI "
                         + "managed bean and its @Trigger observer fires when the triggering event is fired")
     public void staticInnerAgentIsDiscoveredAsCdiBean() {
@@ -103,7 +103,7 @@ public class CdiIntegrationTests {
     }
 
     @Assertion(id = "AGENTICAI-CDI-BHV-002",
-               section = "agent-lifecycle",
+               section = "cdi-integration",
                strategy = "An @Agent bean using @Inject constructor injection (no no-args constructor) is a valid "
                         + "CDI managed bean; the @Trigger fires, proving the container created it via its constructor")
     public void constructorInjectedAgentIsDiscoveredAndManaged() {
@@ -113,7 +113,7 @@ public class CdiIntegrationTests {
     }
 
     @Assertion(id = "AGENTICAI-CDI-BHV-002",
-               section = "agent-lifecycle",
+               section = "cdi-integration",
                strategy = "An @ApplicationScoped @Agent is a first-class CDI bean: the container injects a "
                         + "client proxy (a generated subclass), not the raw instance. Proven by the injected "
                         + "reference being an instance of the agent type but having a different runtime class")

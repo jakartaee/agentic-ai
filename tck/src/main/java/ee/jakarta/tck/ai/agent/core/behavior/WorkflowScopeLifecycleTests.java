@@ -108,7 +108,7 @@ public class WorkflowScopeLifecycleTests {
     }
 
     @RequiresImplementation
-    @Assertion(id = "AGENTICAI-CDI-BHV-002",
+    @Assertion(id = "AGENTICAI-CDI-BHV-009",
                section = "agent-lifecycle",
                strategy = "An @Agent with no explicit name runs its full workflow. A trigger-only plain-CDI "
                         + "run cannot satisfy this assertion because the implementation must also dispatch "
@@ -121,7 +121,7 @@ public class WorkflowScopeLifecycleTests {
     }
 
     @RequiresImplementation
-    @Assertion(id = "AGENTICAI-CDI-BHV-002",
+    @Assertion(id = "AGENTICAI-CDI-BHV-009",
                section = "agent-lifecycle",
                strategy = "An @Agent with an explicit name, here @Agent(name = \"lifecycleSpy\"), runs its full "
                         + "workflow. A trigger-only plain-CDI run cannot satisfy this assertion because the "

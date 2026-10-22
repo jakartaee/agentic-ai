@@ -42,15 +42,17 @@ import java.lang.annotation.Target;
 public @interface Assertion {
 
     /**
-     * The unique identifier for this assertion.
-     * This should correspond to a requirement in the specification.
+     * Identifies the specification requirement this test verifies. Several
+     * tests may share one id when they verify the same requirement in
+     * different ways.
      *
      * @return the assertion ID
      */
     String id();
 
     /**
-     * The specification section being verified, e.g. "3.2 Agent Lifecycle".
+     * The anchor of the specification section being verified, e.g.
+     * "agent-lifecycle".
      * Enables direct mapping between TCK failures and the specification.
      *
      * @return the specification section reference
