@@ -607,8 +607,8 @@ straight to the <code>Identity</code> record via JSON Binding:</p>
 <pre><code class="language-java">@Action
 Identity enrichIdentity(IntakeRequest r) {
     return model.query(
-            "Extract the sender's identity from the inquiry below. Return a JSON "
-                    + "object with keys \"name\", \"email\", \"company\". ...",
+            "Extract the sender's identity from the inquiry below. ... "
+                    + Identity.SCHEMA,
             Identity.class,
             r.name(), r.email(), r.message());
 }
