@@ -777,7 +777,7 @@ facade with <code>{}</code> placeholders; <code>@WorkflowScoped</code> — with 
 authoritative reference for the rules.</li>
 <li><strong>Running on Payara.</strong> Deploy the app and Payara runs the workflow; choosing an
 LLM backend (Ollama, Anthropic, Vertex) is MicroProfile Config, no code change.</li>
-<li><strong>The ask agent.</strong> POST a real question → <code>[TRIGGER] → [DECISION] → [ACTION] → [OUTCOME]</code> in <code>server.log</code>; POST an empty question → early termination. It runs
+<li><strong>The ask agent.</strong> POST a real question → <code>[TRIGGER] → [DECISION] → [ACTION] → [OUTCOME]</code> in <code>server.log</code>; POST the same question again → early termination at the <code>@Decision</code>. It runs
 on <strong>local Ollama</strong> (no network, no cost).</li>
 <li><strong>The inquiry intake example and the lesson builder.</strong> A customer contact form that
 runs a four-step pipeline on submit (enrich identity, classify, draft a subject line,
