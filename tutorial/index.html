@@ -660,8 +660,11 @@ duplicate.</p>
 <pre><code class="language-java">@Agent
 public class LessonAgent {
 
-    // create a draft lesson
-    @Trigger Lesson onTopic(@Valid Topic t) { /* ... */ }
+    // start a lesson draft
+    @Trigger
+    Lesson onTopic(@Valid Topic t) {
+        return new Lesson(t.subject(), t.title());
+    }
 
     // write a two-paragraph introduction
     @Action(order = 1) void writeIntro(Topic t, Lesson draft) { /* ... */ }
