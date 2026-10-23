@@ -792,17 +792,17 @@ by a CDI event with the teacher editing and approving in between. Switching Olla
 <li><input disabled="" type="checkbox"> The current <code>agentic-ai-core.jar</code> copied into the distribution's
 <code>glassfish/modules/</code> + domain restarted <strong>clearing the OSGi cache</strong>
 (classic gotcha: new JAR with an old cache = old class).</li>
-<li><input disabled="" type="checkbox"> <code>ANTHROPIC_API_KEY</code> exported <strong>in the same shell/environment that starts the
-domain</strong> (<code>$env:ANTHROPIC_API_KEY = &quot;sk-ant-...&quot;</code> before
-<code>asadmin restart-domain</code>) — the server process inherits its parent's
-environment.</li>
-<li><input disabled="" type="checkbox"> Both WARs deployed and tested.</li>
+<li><input disabled="" type="checkbox"> Vertex AI credentials in place: <code>gcloud auth application-default login</code> done, and
+<code>ANTHROPIC_VERTEX_PROJECT_ID</code> and <code>CLOUD_ML_REGION</code> exported <strong>in the same
+shell/environment that starts the domain</strong> (before <code>asadmin restart-domain</code>) — the
+server process inherits its parent's environment.</li>
+<li><input disabled="" type="checkbox"> All three WARs deployed and tested.</li>
 <li><input disabled="" type="checkbox"> <code>server.log</code> open in a terminal (<code>Get-Content -Wait -Tail 0</code>).</li>
-<li><input disabled="" type="checkbox"> Fully-local option: the ask agent runs on Ollama; the inquiry intake example
-can also fall back to <code>provider=ollama</code> / <code>model=gemma3:12b</code> (pull the model
-first).</li>
+<li><input disabled="" type="checkbox"> Fully-local option: the ask agent runs on Ollama; the inquiry intake example and
+the lesson builder can also fall back to <code>provider=ollama</code> / <code>model=gemma3:12b</code>
+(pull the model first).</li>
 <li><input disabled="" type="checkbox"> Requests ready (no typing JSON by hand): a script/<code>.http</code> file with the
-valid POST, the empty POST and the refines.</li>
+valid POST and the empty POST.</li>
 </ul>
 <p>Common questions — how this compares with LangChain4j / Spring AI, error handling,
 asynchrony, why CDI events, multi-agent collaboration and running costs — are answered in
