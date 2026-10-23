@@ -672,7 +672,7 @@ public class LessonAgent {
     // write the conclusion from the earlier phases' context
     @Action(order = 3) void writeConclusion(Lesson draft) {
         draft.setConclusion(model.query(
-                "Conclude the lesson from the introduction and quiz you just produced."));
+                "Conclude the lesson from the intro and quiz you just produced."));
     }
 
     // store the draft for the teacher to review
