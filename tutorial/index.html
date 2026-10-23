@@ -686,31 +686,31 @@ public class LessonAgent {
 <pre><code class="language-java">@Agent
 public class CatalogAgent {
 
-    @Inject private LargeLanguageModel model;
-    @Inject private Catalog catalog;
-    @Inject private StandardsReference standardsReference;
-    @Inject private CatalogOutput output;
+    // receive the published lesson
+    @Trigger
+    Lesson onPublished(LessonPublished e) {
+        return e.lesson();
+    }
 
-    @Trigger Lesson onPublished(LessonPublished e) { return e.lesson(); }
-
-    // what the lesson covers and what it assumes a student already knows
+    // have the LLM work out what the lesson teaches and assumes
     @Action(order = 1) Coverage extractCoverage(Lesson l) { /* ... */ }
 
-    // halt if the content isn't actually about the stated subject and title
+    // halt if the content doesn't match the title
     @Decision(order = 2) boolean contentMatchesClaim(Lesson l, Coverage c) { /* ... */ }
 
-    // halt if the catalog already carries a lesson covering the same ground
+    // halt if the catalog already carries it
     @Decision(order = 3) boolean notDuplicate(Lesson l, Coverage c) { /* ... */ }
 
-    // which of the subject's curriculum standards the lesson actually meets
+    // have the LLM detect the curriculum standards the lesson meets
     @Action(order = 4) TaggedStandards tagStandards(Lesson l, Coverage c) { /* ... */ }
 
-    // minutes of class time and difficulty
+    // have the LLM estimate class time and difficulty
     @Action(order = 5) Estimate classify(Lesson l, Coverage c) { /* ... */ }
 
-    // a three-sentence abstract, written from the per-workflow conversation
+    // have the LLM draft a short abstract from the earlier phases' context
     @Action(order = 6) Summary describe() { /* ... */ }
 
+    // assemble the catalog entry and file it
     @Outcome void file(Lesson l, Coverage c, TaggedStandards t,
                        Estimate e, Summary s) { /* ... */ }
 }
