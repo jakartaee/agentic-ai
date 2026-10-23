@@ -696,25 +696,24 @@ public class CatalogAgent {
     @Trigger Lesson onPublished(LessonPublished e) { return e.lesson(); }
 
     // what the lesson covers and what it assumes a student already knows
-    @Action(order = 1) Coverage extractCoverage(Lesson lesson) { /* ... */ }
+    @Action(order = 1) Coverage extractCoverage(Lesson l) { /* ... */ }
 
     // halt if the content isn't actually about the stated subject and title
-    @Decision(order = 2) boolean contentMatchesClaim(Lesson lesson, Coverage coverage) { /* ... */ }
+    @Decision(order = 2) boolean contentMatchesClaim(Lesson l, Coverage c) { /* ... */ }
 
     // halt if the catalog already carries a lesson covering the same ground
-    @Decision(order = 3) boolean notDuplicate(Lesson lesson, Coverage coverage) { /* ... */ }
+    @Decision(order = 3) boolean notDuplicate(Lesson l, Coverage c) { /* ... */ }
 
     // which of the subject's curriculum standards the lesson actually meets
-    @Action(order = 4) TaggedStandards tagStandards(Lesson lesson, Coverage coverage) { /* ... */ }
+    @Action(order = 4) TaggedStandards tagStandards(Lesson l, Coverage c) { /* ... */ }
 
     // minutes of class time and difficulty
-    @Action(order = 5) Estimate classify(Lesson lesson, Coverage coverage) { /* ... */ }
+    @Action(order = 5) Estimate classify(Lesson l, Coverage c) { /* ... */ }
 
     // a three-sentence abstract, written from the per-workflow conversation
     @Action(order = 6) Summary describe() { /* ... */ }
 
-    @Outcome void file(Lesson lesson, Coverage coverage, TaggedStandards tagged,
-                       Estimate estimate, Summary summary) { /* ... */ }
+    @Outcome void file(Lesson l, Coverage c, TaggedStandards t, Estimate e, Summary s) { /* ... */ }
 }
 </code></pre>
 <h3>What it teaches</h3>
@@ -727,7 +726,7 @@ is the step between their workflows, and each has its own LLM conversation.</li>
 lesson and it becomes workflow state: the three actions, the <code>@Outcome</code> and
 the handler all declare <code>Lesson draft</code> and receive the same object. No field,
 no scope annotation. <code>CatalogAgent</code> does the same: <code>onPublished</code>
-returns the lesson inside the event, and its phases declare <code>Lesson lesson</code>.</li>
+returns the lesson inside the event, and its phases receive it the same way.</li>
 <li><strong>Explicit order.</strong> The actions carry <code>order = 1, 2, 3</code>, so
 intro → quiz → conclusion is guaranteed. Once one phase declares an order, all must.
 <code>CatalogAgent</code> numbers all six of its phases, decisions included, so the two
