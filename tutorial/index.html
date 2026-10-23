@@ -650,11 +650,12 @@ editing and publishing in between.</strong> The teacher names a topic, pastes th
 subject. <code>LessonAgent</code> in turn drafts an introduction, a quiz and a conclusion.
 The teacher then edits anything and finally publishes. The REST layer stores the lesson and fires
 <code>LessonPublished</code>, which triggers <code>CatalogAgent</code> — a cataloging job the
-author would never do for herself: work out what the lesson teaches, decide whether the
-content actually matches the stated subject and title, decide whether the catalog
-already carries a lesson covering the same ground, tag the lesson against the
-curriculum standards it meets, estimate its class time, and write a short abstract to publish the lesson in the catalog — or
-send the teacher back to fix a mismatch or merge a duplicate.</p>
+author would never do by hand. It works out what the lesson teaches, checks that the
+content matches the subject and title, checks that the catalog does not already carry
+it, tags the lesson against the curriculum standards it meets, estimates its class
+time, and writes a short abstract. It then files the lesson in the catalog under those
+tags. If a check fails, it sends the teacher back to fix a mismatch or merge a
+duplicate.</p>
 <p>The authoring agent's <code>@Trigger</code> returns the new lesson, and every later
 phase receives it by type:</p>
 <pre><code class="language-java">@Agent
