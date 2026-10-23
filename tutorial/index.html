@@ -761,8 +761,12 @@ event, with the teacher editing and publishing in between.</li>
 <h2>Key takeaways</h2>
 <ol>
 <li><strong>Agents are container-managed workflows.</strong> The phase model turns
-&quot;calling an LLM&quot; into a sequence of ordinary CDI methods, with scoping,
-injection, validation and error handling the platform already gives you.</li>
+&quot;calling an LLM&quot; into a sequence of ordinary CDI methods, and the usual
+Jakarta EE pieces — Validation, REST, JSON Binding, Transactions, Persistence,
+Security — all apply to them without special wiring.</li>
+<li><strong>Not an LLM API.</strong> Jakarta Agentic AI is an agent specification
+with a thin LLM facade; implementations plug in existing APIs like LangChain4j or
+Spring AI behind it.</li>
 <li><strong>Vendor neutrality.</strong> Agent code programs against the standard
 API, so it runs on any compatible Jakarta EE implementation and talks to any
 configured LLM backend without change.</li>
@@ -770,6 +774,12 @@ configured LLM backend without change.</li>
 specification for the normative rules; each example's README has its exact commands
 and URLs so you can run it against Payara.</li>
 </ol>
+<p>Jakarta Agentic AI 1.0 is deliberately minimal. The 1.1 roadmap adds a
+programmatic workflow API, async execution, and richer control-flow primitives
+(<code>@Await</code>, <code>@Condition</code>); later work extends to resilience
+(retry, circuit breaker) and multi-agent collaboration. Follow progress in the
+<a href="https://github.com/jakartaee/agentic-ai/issues" target="_blank"
+rel="noopener">project's GitHub issues</a>.</p>
 </section>
 </div></div>
 
