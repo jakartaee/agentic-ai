@@ -660,24 +660,22 @@ duplicate.</p>
 <pre><code class="language-java">@Agent
 public class LessonAgent {
 
-    @Inject private LargeLanguageModel model;
-    @Inject private DraftStore drafts;
+    // create a draft lesson
+    @Trigger Lesson onTopic(@Valid Topic t) { /* ... */ }
 
-    @Trigger Lesson onTopic(@Valid Topic t) {
-        return new Lesson(t.subject(), t.title());
-    }
-
+    // write a two-paragraph introduction
     @Action(order = 1) void writeIntro(Topic t, Lesson draft) { /* ... */ }
 
-    // the reply is bound straight to a Quiz record
+    // write a multiple-choice quiz
     @Action(order = 2) void writeQuiz(Topic t, Lesson draft) { /* ... */ }
 
-    // sends no material: the intro and quiz are already in this conversation
+    // write the conclusion from the conversation so far — no material resent
     @Action(order = 3) void writeConclusion(Lesson draft) { /* ... */ }
 
-    @Outcome void storeDraft(Lesson draft) { drafts.set(draft); }
+    // store the draft for the teacher to review
+    @Outcome void storeDraft(Lesson draft) { /* ... */ }
 
-    // keep what was written and continue, or re-throw if nothing was
+    // keep what was written and continue, or rethrow if nothing was
     @OnException void onLlmFailure(LLMException e, Lesson draft) { /* ... */ }
 }
 </code></pre>
