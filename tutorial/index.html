@@ -541,7 +541,7 @@ Validation constraint and nothing else — no interface, no base class, nothing 
 <code>jakarta.ai.agent</code> — and <code>@Observes</code> on the trigger parameter is optional,
 so the form here and the explicit <code>@Observes Question question</code> form shown in
 chapter 2 are equivalent.</li>
-<li><strong><code>@Valid</code> on the trigger parameter</strong> — the phase model honours Jakarta
+<li><strong><code>@Valid</code> on the trigger parameter</strong> — the phase model honors Jakarta
 Validation, and a violation is raised before the body runs. Here it is the
 <code>@NotBlank</code> on <code>Question</code>, so an agent never starts on an empty question —
 the declarative version of the manual null/blank check sketched in the earlier chapters.</li>
@@ -552,7 +552,7 @@ matches what <code>@Action</code> returned, which is how <code>@Outcome</code> r
 say it: a <code>boolean</code>, a <code>Result(success, details)</code>, or a domain object where
 <code>null</code> means stop. This one returns <code>false</code> for a question already in the store, so
 a repeat never reaches the model.</li>
-<li><strong>Prompts are parameterised, not concatenated</strong> — the <code>{}</code> is filled from the
+<li><strong>Prompts are parameterized, not concatenated</strong> — the <code>{}</code> is filled from the
 argument that follows the prompt, positionally.</li>
 </ul>
 <hr>
