@@ -666,13 +666,13 @@ public class LessonAgent {
         return new Lesson(t.subject(), t.title());
     }
 
-    // write a two-paragraph introduction
+    // have the LLM draft a two-paragraph introduction
     @Action(order = 1) void writeIntro(Topic t, Lesson draft) { /* ... */ }
 
-    // write a multiple-choice quiz
+    // have the LLM draft a multiple-choice quiz
     @Action(order = 2) void writeQuiz(Topic t, Lesson draft) { /* ... */ }
 
-    // write the conclusion from the earlier phases' context
+    // have the LLM draft the conclusion from the earlier phases' context
     @Action(order = 3) void writeConclusion(Lesson draft) {
         draft.setConclusion(model.query(
                 "Conclude the lesson from the intro and quiz you just produced."));
