@@ -738,37 +738,38 @@ trick to write its abstract from the earlier phases' context.</li>
 <h2>Recap: the whole story, end to end</h2>
 <p>The pieces you have seen fit together like this:</p>
 <ol>
-<li><strong>The problem.</strong> Everyone wants AI agents; in Java, every framework has its own
-proprietary model. The guiding question: &quot;what would the <em>Jakarta Persistence</em>
-of agents look like?&quot;</li>
-<li><strong>The specification.</strong> The phase model (<code>Trigger → Decision* → Action* → Outcome</code> +
-<code>OnException</code>); a complete agent fits in one class; the <code>LargeLanguageModel</code>
-facade with <code>{}</code> placeholders; <code>@WorkflowScoped</code> — with the specification as the
-authoritative reference for the rules.</li>
-<li><strong>Running on Payara.</strong> Deploy the app and Payara runs the workflow; choosing an
-LLM backend (Ollama, Anthropic, Vertex) is MicroProfile Config, no code change.</li>
-<li><strong>The ask agent.</strong> POST a real question → <code>[TRIGGER] → [DECISION] → [ACTION] → [OUTCOME]</code> in <code>server.log</code>; POST the same question again → early termination at the <code>@Decision</code>. It runs
-on <strong>local Ollama</strong> (no network, no cost).</li>
-<li><strong>The inquiry intake example and the lesson builder.</strong> A customer contact form that
-runs a four-step pipeline on submit (enrich identity, classify, draft a subject line,
-polish the message) and shows the prepared record for review; then two agents chained
-by a CDI event with the teacher editing and approving in between. Switching Ollama↔Claude↔Vertex is
-<strong>one properties file</strong>.</li>
+<li><strong>The problem.</strong> Every Java agent framework defines its own
+proprietary model. Jakarta Agentic AI is the first attempt at a specification — a
+<em>Jakarta Persistence for agents</em>.</li>
+<li><strong>The specification.</strong> A complete agent fits in one class. Methods
+are annotated as phases — <code>@Trigger</code>, <code>@Decision</code>,
+<code>@Action</code>, <code>@Outcome</code>, <code>@OnException</code> — and the
+runtime chains them by matching each method's parameters by type.
+<code>LargeLanguageModel</code> is a thin facade with <code>{}</code> placeholders;
+typed replies bind through JSON Binding. <code>@WorkflowScoped</code> is the default
+agent scope.</li>
+<li><strong>The runtime.</strong> Payara is the implementation used throughout this
+tutorial. Deploying a WAR starts the workflow; which LLM backend serves it — local
+or hosted — is a configuration choice.</li>
+<li><strong>Three examples at increasing scale.</strong> The <strong>ask agent</strong>
+fits in one class and shows all four phases plus a decision that stops the workflow
+on a repeat question. The <strong>customer inquiry intake</strong> runs a six-phase
+pipeline inside one agent with declarative validation and typed records flowing
+between phases. The <strong>lesson builder</strong> chains two agents with a CDI
+event, with the teacher editing and publishing in between.</li>
 </ol>
 <h2>Key takeaways</h2>
 <ol>
-<li><strong>Agents as CDI beans</strong> — the phase model
-(<code>@Trigger/@Decision/@Action/@Outcome/@OnException</code>) turns &quot;calling an LLM&quot;
-into a container-managed workflow, with standardized scoping, injection,
-validation and error handling.</li>
-<li><strong>Real vendor neutrality</strong> — the agent's code does not know which LLM serves
-it; switching Ollama↔Claude↔Vertex is configuration (MicroProfile Config in
-Payara).</li>
-<li><strong>A real specification with a working implementation</strong> — read the specification for the rules, run
-the examples on Payara to see them in action.</li>
+<li><strong>Agents are container-managed workflows.</strong> The phase model turns
+&quot;calling an LLM&quot; into a sequence of ordinary CDI methods, with scoping,
+injection, validation and error handling the platform already gives you.</li>
+<li><strong>Vendor neutrality.</strong> Agent code programs against the standard
+API, so it runs on any compatible Jakarta EE implementation and talks to any
+configured LLM backend without change.</li>
+<li><strong>A real specification with a working implementation.</strong> Read the
+specification for the normative rules; each example's README has its exact commands
+and URLs so you can run it against Payara.</li>
 </ol>
-<hr>
-<p>🏁 End of the tutorial. Now run the examples yourself and explore the source.</p>
 </section>
 </div></div>
 
