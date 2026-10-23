@@ -508,7 +508,7 @@ public class QuestionAgent {
 
     @Decision
     boolean notYetAnswered(Question question) {
-        return answers.get(question.text()) == null;   // a repeat stops the workflow here
+        return answers.get(question.text()) == null;   // a repeat stops the workflow
     }
 
     @Action
