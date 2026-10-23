@@ -713,7 +713,8 @@ public class CatalogAgent {
     // a three-sentence abstract, written from the per-workflow conversation
     @Action(order = 6) Summary describe() { /* ... */ }
 
-    @Outcome void file(Lesson l, Coverage c, TaggedStandards t, Estimate e, Summary s) { /* ... */ }
+    @Outcome void file(Lesson l, Coverage c, TaggedStandards t,
+                       Estimate e, Summary s) { /* ... */ }
 }
 </code></pre>
 <h3>What it teaches</h3>
