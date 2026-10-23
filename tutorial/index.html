@@ -243,7 +243,7 @@ no provider:</p>
 public class QuestionAgent {
 
     @Inject
-    LargeLanguageModel model;   // jakarta.ai.agent — no vendor code here
+    private LargeLanguageModel model;   // jakarta.ai.agent — no vendor code here
 
     @Trigger
     void onQuestion(Question question) {   // CDI event that starts the workflow
@@ -286,7 +286,7 @@ class:</p>
 public class QuestionAgent {
 
     @Inject
-    LargeLanguageModel model;
+    private LargeLanguageModel model;
 
     @Trigger
     void onQuestion(@Observes Question question) {   // starts the workflow
@@ -500,8 +500,8 @@ logging:</p>
        description = &quot;Answers a question using the configured LLM backend.&quot;)
 public class QuestionAgent {
 
-    @Inject LargeLanguageModel model;
-    @Inject AnswerStore answers;
+    @Inject private LargeLanguageModel model;
+    @Inject private AnswerStore answers;
 
     @Trigger
     void onQuestion(@Valid Question question) { /* ... */ }
@@ -660,8 +660,8 @@ phase receives it by type. Shown in full apart from the logging:</p>
 <pre><code class="language-java">@Agent
 public class LessonAgent {
 
-    @Inject LargeLanguageModel model;
-    @Inject DraftStore drafts;
+    @Inject private LargeLanguageModel model;
+    @Inject private DraftStore drafts;
 
     @Trigger Lesson onTopic(@Valid Topic t) {
         return new Lesson(t.subject(), t.title());
@@ -683,34 +683,37 @@ public class LessonAgent {
 </code></pre>
 <p>The publish endpoint stores the edited lesson and fires
 <code>publications.fire(new LessonPublished(lesson))</code>; the catalog agent declares
-that event as its trigger and moves its data from phase to phase by type:</p>
+that event as its trigger, returns the lesson it carries, and moves its data from phase
+to phase by type:</p>
 <pre><code class="language-java">@Agent
 public class CatalogAgent {
 
-    @Inject Catalog catalog;
-    @Inject StandardsReference standardsReference;
+    @Inject private LargeLanguageModel model;
+    @Inject private Catalog catalog;
+    @Inject private StandardsReference standardsReference;
+    @Inject private CatalogOutput output;
 
-    @Trigger void onPublished(LessonPublished e) { /* ... */ }
+    @Trigger Lesson onPublished(LessonPublished e) { return e.lesson(); }
 
     // what the lesson covers and what it assumes a student already knows
-    @Action(order = 1) Coverage extractCoverage(LessonPublished e, LargeLanguageModel model) { /* ... */ }
+    @Action(order = 1) Coverage extractCoverage(Lesson lesson) { /* ... */ }
 
     // halt if the content isn't actually about the stated subject and title
-    @Decision Result contentMatchesClaim(LessonPublished e, Coverage coverage, LargeLanguageModel model) { /* ... */ }
+    @Decision(order = 2) boolean contentMatchesClaim(Lesson lesson, Coverage coverage) { /* ... */ }
 
     // halt if the catalog already carries a lesson covering the same ground
-    @Decision Result notDuplicate(LessonPublished e, Coverage coverage, LargeLanguageModel model) { /* ... */ }
+    @Decision(order = 3) boolean notDuplicate(Lesson lesson, Coverage coverage) { /* ... */ }
 
     // which of the subject's curriculum standards the lesson actually meets
-    @Action(order = 2) TaggedStandards tagStandards(LessonPublished e, Coverage coverage, LargeLanguageModel model) { /* ... */ }
+    @Action(order = 4) TaggedStandards tagStandards(Lesson lesson, Coverage coverage) { /* ... */ }
 
     // minutes of class time and difficulty
-    @Action(order = 3) Estimate classify(LessonPublished e, Coverage coverage, LargeLanguageModel model) { /* ... */ }
+    @Action(order = 5) Estimate classify(Lesson lesson, Coverage coverage) { /* ... */ }
 
     // a three-sentence abstract, written from the per-workflow conversation
-    @Action(order = 4) Summary describe(LargeLanguageModel model) { /* ... */ }
+    @Action(order = 6) Summary describe() { /* ... */ }
 
-    @Outcome void file(LessonPublished e, Coverage coverage, TaggedStandards tagged,
+    @Outcome void file(Lesson lesson, Coverage coverage, TaggedStandards tagged,
                        Estimate estimate, Summary summary) { /* ... */ }
 }
 </code></pre>
@@ -723,10 +726,12 @@ is the step between their workflows, and each has its own LLM conversation.</li>
 <li><strong>State flows from the trigger.</strong> <code>onTopic</code> returns the new
 lesson and it becomes workflow state: the three actions, the <code>@Outcome</code> and
 the handler all declare <code>Lesson draft</code> and receive the same object. No field,
-no scope annotation.</li>
+no scope annotation. <code>CatalogAgent</code> does the same: <code>onPublished</code>
+returns the lesson inside the event, and its phases declare <code>Lesson lesson</code>.</li>
 <li><strong>Explicit order.</strong> The actions carry <code>order = 1, 2, 3</code>, so
 intro → quiz → conclusion is guaranteed. Once one phase declares an order, all must.
-<code>CatalogAgent</code> follows the same shape across its four actions.</li>
+<code>CatalogAgent</code> numbers all six of its phases, decisions included, so the two
+checks sit at 2 and 3 between the actions.</li>
 <li><strong>Conversational memory.</strong> <code>writeConclusion</code> sends no material and
 has no <code>{}</code>; its prompt refers to "the introduction and quiz you just
 produced", which the per-workflow conversation still holds. <code>describe</code> uses
@@ -736,7 +741,7 @@ were written, <code>onLlmFailure</code> returns normally: the remaining actions 
 <code>@Outcome</code> still run, and the packet carries a notice telling the teacher what
 to fill in. When nothing was written yet, it re-throws and the resource answers 503.</li>
 <li><strong>Typed results flow between phases.</strong> <code>extractCoverage</code> returns a
-<code>Coverage</code> record, and both decisions, the three later actions and the outcome
+<code>Coverage</code> record, and both decisions, the next two actions and the outcome
 each declare it as a parameter and receive it — the Example 2 shape, next to the
 author's trigger-returned state.</li>
 <li><strong>Two decisions in a row.</strong> <code>contentMatchesClaim</code> asks the
@@ -744,19 +749,18 @@ model whether what the lesson covers is actually about the stated subject and ti
 mismatch stops the workflow, the lesson stays published but uncataloged, and the teacher
 is told what the content is really about. <code>notDuplicate</code> then asks whether an
 existing catalog entry already covers the same ground; a duplicate also stops, with a
-pointer to the entry to merge with. Both return <code>Result(success, details)</code>, and
-the details become workflow state for anything downstream that wants them.</li>
+pointer to the entry to merge with. Both return <code>boolean</code>; before returning
+<code>false</code> each records its reason in a request-scoped <code>CatalogOutput</code>,
+which the publish endpoint hands back to the teacher alongside the entry when one was
+filed.</li>
 <li><strong>An agent reads state that grows.</strong> <code>notDuplicate</code>'s prompt
 includes the catalog so far, injected like any CDI bean, so each new entry changes what
 the next duplicate check can conclude. A second attempt to file the same lesson is
 refused on a catalog that already carries it.</li>
 <li><strong>Reference data as a collaborator.</strong> <code>tagStandards</code> injects a
-<code>StandardsReference</code> alongside the <code>LargeLanguageModel</code> and passes
+uses the injected <code>StandardsReference</code> to pass
 the subject's standards into the prompt, so the model picks only from a known list of
 codes. The agent reasons against a known rubric, not freeform.</li>
-<li><strong>The model as a parameter.</strong> Every model-using phase declares
-<code>LargeLanguageModel</code> as a parameter instead of a field; the resolution rules
-supply it like any other.</li>
 </ul>
 </section>
 <section class="chapter" id="ch-5" data-num="5">
