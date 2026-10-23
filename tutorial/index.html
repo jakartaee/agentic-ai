@@ -674,8 +674,6 @@ public class LessonAgent {
 
     // store the draft for the teacher to review
     @Outcome void storeDraft(Lesson draft) { /* ... */ }
-
-    @OnException void onLlmFailure(LLMException e, Lesson draft) { /* ... */ }
 }
 </code></pre>
 <p>The publish endpoint stores the edited lesson and fires
