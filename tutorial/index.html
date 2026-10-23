@@ -682,10 +682,7 @@ public class LessonAgent {
     @Outcome void storeDraft(Lesson draft) { /* ... */ }
 }
 </code></pre>
-<p>The publish endpoint stores the edited lesson and fires
-<code>publications.fire(new LessonPublished(lesson))</code>; the catalog agent declares
-that event as its trigger, returns the lesson it carries, and moves its data from phase
-to phase by type:</p>
+<p>The catalog agent:</p>
 <pre><code class="language-java">@Agent
 public class CatalogAgent {
 
