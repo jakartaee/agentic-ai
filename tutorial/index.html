@@ -675,7 +675,6 @@ public class LessonAgent {
     // store the draft for the teacher to review
     @Outcome void storeDraft(Lesson draft) { /* ... */ }
 
-    // handle LLM failure
     @OnException void onLlmFailure(LLMException e, Lesson draft) { /* ... */ }
 }
 </code></pre>
