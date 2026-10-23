@@ -669,8 +669,11 @@ public class LessonAgent {
     // write a multiple-choice quiz
     @Action(order = 2) void writeQuiz(Topic t, Lesson draft) { /* ... */ }
 
-    // write the conclusion from the conversation so far — no material resent
-    @Action(order = 3) void writeConclusion(Lesson draft) { /* ... */ }
+    // write the conclusion from the earlier phases' context
+    @Action(order = 3) void writeConclusion(Lesson draft) {
+        draft.setConclusion(model.query(
+                "Conclude the lesson from the introduction and quiz you just produced."));
+    }
 
     // store the draft for the teacher to review
     @Outcome void storeDraft(Lesson draft) { /* ... */ }
