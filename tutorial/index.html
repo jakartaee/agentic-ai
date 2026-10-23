@@ -723,11 +723,6 @@ public class CatalogAgent {
 because a lesson was published — it observes <code>LessonPublished</code> as its
 <code>@Trigger</code>. Nothing orchestrates the two agents; the teacher's edit-and-publish
 is the step between their workflows, and each has its own LLM conversation.</li>
-<li><strong>State flows from the trigger.</strong> <code>onTopic</code> returns the new
-lesson and it becomes workflow state: the three actions, the <code>@Outcome</code> and
-the handler all declare <code>Lesson draft</code> and receive the same object. No field,
-no scope annotation. <code>CatalogAgent</code> does the same: <code>onPublished</code>
-returns the lesson inside the event, and its phases receive it the same way.</li>
 <li><strong>Explicit order.</strong> The actions carry <code>order = 1, 2, 3</code>, so
 intro → quiz → conclusion is guaranteed. Once one phase declares an order, all must.
 <code>CatalogAgent</code> numbers all six of its phases, decisions included, so the two
@@ -736,31 +731,6 @@ checks sit at 2 and 3 between the actions.</li>
 has no <code>{}</code>; its prompt refers to "the introduction and quiz you just
 produced", which the per-workflow conversation still holds. <code>describe</code> uses
 the same trick to write its abstract from the earlier phases' context.</li>
-<li><strong>Recovery that continues or stops.</strong> When a section fails after others
-were written, <code>onLlmFailure</code> returns normally: the remaining actions and the
-<code>@Outcome</code> still run, and the packet carries a notice telling the teacher what
-to fill in. When nothing was written yet, it re-throws and the resource answers 503.</li>
-<li><strong>Typed results flow between phases.</strong> <code>extractCoverage</code> returns a
-<code>Coverage</code> record, and both decisions, the next two actions and the outcome
-each declare it as a parameter and receive it — the Example 2 shape, next to the
-author's trigger-returned state.</li>
-<li><strong>Two decisions in a row.</strong> <code>contentMatchesClaim</code> asks the
-model whether what the lesson covers is actually about the stated subject and title; a
-mismatch stops the workflow, the lesson stays published but uncataloged, and the teacher
-is told what the content is really about. <code>notDuplicate</code> then asks whether an
-existing catalog entry already covers the same ground; a duplicate also stops, with a
-pointer to the entry to merge with. Both return <code>boolean</code>; before returning
-<code>false</code> each records its reason in a request-scoped <code>CatalogOutput</code>,
-which the publish endpoint hands back to the teacher alongside the entry when one was
-filed.</li>
-<li><strong>An agent reads state that grows.</strong> <code>notDuplicate</code>'s prompt
-includes the catalog so far, injected like any CDI bean, so each new entry changes what
-the next duplicate check can conclude. A second attempt to file the same lesson is
-refused on a catalog that already carries it.</li>
-<li><strong>Reference data as a collaborator.</strong> <code>tagStandards</code>
-uses the injected <code>StandardsReference</code> to pass
-the subject's standards into the prompt, so the model picks only from a known list of
-codes. The agent reasons against a known rubric, not freeform.</li>
 </ul>
 </section>
 <section class="chapter" id="ch-5" data-num="5">
