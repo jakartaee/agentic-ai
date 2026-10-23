@@ -336,7 +336,7 @@ target="_blank" rel="noopener">execution order</a>.</p>
 
 <h2>Scopes</h2>
 <p>Two scopes matter. <code>@WorkflowScoped</code> — the default, applied when an agent
-does not explicitly declare a scope — means beans live for exactly one workflow execution,
+does not explicitly declare a scope — means the agent lives for exactly one workflow execution,
 ideal for state shared only across phases without leaking between concurrent runs.
 <code>@ApplicationScoped</code> agents are shared, but their LLM conversation is still
 isolated per workflow, so two concurrent executions never mix history. <a
