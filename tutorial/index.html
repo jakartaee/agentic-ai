@@ -721,10 +721,11 @@ public class CatalogAgent {
 because a lesson was published — it observes <code>LessonPublished</code> as its
 <code>@Trigger</code>. Nothing orchestrates the two agents; the teacher's edit-and-publish
 is the step between their workflows, and each has its own LLM conversation.</li>
-<li><strong>Explicit order.</strong> The actions carry <code>order = 1, 2, 3</code>, so
-intro → quiz → conclusion is guaranteed. Once one phase declares an order, all must.
-<code>CatalogAgent</code> numbers all six of its phases, decisions included, so the two
-checks sit at 2 and 3 between the actions.</li>
+<li><strong>Explicit order.</strong> Both agents number their phases with
+<code>order = N</code>, and once one phase declares an order, all must.
+<code>LessonAgent</code> runs intro → quiz → conclusion.
+<code>CatalogAgent</code> extends the pattern to its decisions, so the two checks
+sit at 2 and 3 between the actions.</li>
 <li><strong>Conversational memory.</strong> <code>writeConclusion</code> sends no material and
 has no <code>{}</code>; its prompt refers to "the introduction and quiz you just
 produced", which the per-workflow conversation still holds. <code>describe</code> uses
