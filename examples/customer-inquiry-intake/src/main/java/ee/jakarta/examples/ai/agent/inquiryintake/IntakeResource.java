@@ -15,7 +15,6 @@ package ee.jakarta.examples.ai.agent.inquiryintake;
 import jakarta.ai.agent.LLMException;
 import jakarta.enterprise.context.RequestScoped;
 import jakarta.enterprise.event.Event;
-import jakarta.enterprise.event.ObserverException;
 import jakarta.inject.Inject;
 import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.constraints.NotNull;
@@ -56,16 +55,11 @@ public class IntakeResource {
     public Response prepare(@NotNull IntakeRequest request) {
         try {
             trigger.fire(request);
-        } catch (ObserverException wrapper) {
-            Throwable cause = wrapper.getCause();
-            if (cause instanceof ConstraintViolationException violations) {
-                return Response.status(Response.Status.BAD_REQUEST)
-                        .entity(new Message(describe(violations))).build();
-            }
-            if (cause instanceof LLMException) {
-                return Response.ok(output.record()).build();
-            }
-            throw wrapper;
+        } catch (ConstraintViolationException violations) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(new Message(describe(violations))).build();
+        } catch (LLMException e) {
+            return Response.ok(output.record()).build();
         }
 
         IntakeRecord record = output.record();

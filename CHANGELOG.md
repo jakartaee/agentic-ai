@@ -4,6 +4,7 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+- Examples: the REST resources caught `ObserverException` around `Event.fire()` and inspected its cause, but CDI wraps only checked exceptions that way; `ConstraintViolationException` and `LLMException` are unchecked and arrive unwrapped, so the handlers never ran. They now catch the two exceptions directly.
 The TCK was reworked to the shape of the other modern Jakarta EE TCKs (Data, Concurrency):
 
 - New `tck-dist` module assembling the EFTL-licensed TCK distribution zip required for any compatibility claim: the TCK jar and sources, the signature baseline, the TCK Reference Guide (HTML and PDF) and a starter runner project. GitHub issue templates for TCK challenges and compatibility certification requests.
