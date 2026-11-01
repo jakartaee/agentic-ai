@@ -14,6 +14,12 @@ on:
 jobs:
     build:
         runs-on: ubuntu-24.04
+        strategy:
+            fail-fast: false
+            matrix:
+                # The Java SE baseline and the later LTS releases an implementation may certify on.
+                java-version: [ 17, 21, 25 ]
+        name: build (JDK ${{ matrix.java-version }})
         steps:
             - name: Checkout
               uses: actions/checkout@v7
@@ -21,7 +27,7 @@ jobs:
               uses: actions/setup-java@v6
               with:
                   distribution: 'temurin'
-                  java-version: 17
+                  java-version: ${{ matrix.java-version }}
 
             - name: Cache Maven packages
               uses: actions/cache@v6
@@ -33,7 +39,16 @@ jobs:
             - name: Build
               run: mvn clean install
 
+            # The starter an implementation copies must resolve against the jar just built.
+            - name: Analyze the TCK starter
+              run: |
+                  set -euo pipefail
+                  version="$(mvn -q help:evaluate -Dexpression=project.version -DforceStdout)"
+                  mvn -B dependency:analyze -Djakarta.agentic-ai.version="$version" --file tck-dist/src/main/starter/pom.xml
+
+            # IP hygiene runs once; it does not depend on the JDK.
             - name: License Check
+              if: matrix.java-version == 17
               run: |
                   set -euo pipefail
 
@@ -93,6 +108,7 @@ jobs:
                   done
 
             - name: Verify DEPENDENCIES is up to date
+              if: matrix.java-version == 17
               run: |
                   set -euo pipefail
 
@@ -156,7 +172,7 @@ jobs:
 
             - name: Upload DEPENDENCIES
               uses: actions/upload-artifact@v7
-              if: always()
+              if: always() && matrix.java-version == 17
               with:
                   name: DEPENDENCIES
                   path: DEPENDENCIES
