@@ -27,7 +27,6 @@ import ee.jakarta.tck.ai.agent.core.behavior.agents.orchestration.OutcomeOnlyEve
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Assertion;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Deployed;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.RequiresImplementation;
-import ee.jakarta.tck.ai.agent.framework.junit.anno.RequiresNoImplementation;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder.Phase;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder.TraceEntry;
@@ -82,58 +81,6 @@ public class OrchestrationTests {
     public void minimalistWorkflowCompletesWithTriggerOnly() {
         trace.reset();
         minimalistEvents.fire(new MinimalistEvent("test"));
-        assertEquals(List.of(Phase.TRIGGER), trace.phases());
-    }
-
-    @RequiresNoImplementation
-    @Assertion(id = "AGENTICAI-ORCHESTRATION-BHV-002-PRECONDITION",
-               section = "agent-lifecycle",
-               strategy = "LinearAgent @Trigger is observed by CDI without a compatible implementation")
-    public void linearAgentTriggerObserved() {
-        trace.reset();
-        linearEvents.fire(new LinearEvent("test"));
-        assertEquals(List.of(Phase.TRIGGER), trace.phases());
-    }
-
-    @RequiresNoImplementation
-    @Assertion(id = "AGENTICAI-ORCHESTRATION-BHV-004-PRECONDITION",
-               section = "agent-lifecycle",
-               strategy = "IntermixedAgent @Trigger is observed by CDI without a compatible implementation")
-    public void intermixedAgentTriggerObserved() {
-        trace.reset();
-        intermixedEvents.fire(new IntermixedEvent("test"));
-        assertEquals(List.of(Phase.TRIGGER), trace.phases());
-    }
-
-    @RequiresNoImplementation
-    @Assertion(id = "AGENTICAI-ORCHESTRATION-BHV-005-PRECONDITION",
-               section = "agent-lifecycle",
-               strategy = "BranchingAgent @Trigger is observed by CDI without a compatible implementation "
-                        + "regardless of which decision is configured as the termination point")
-    public void branchingAgentTriggerObserved() {
-        trace.reset();
-        branchingAgent.setTerminateAt(BranchingAgent.TerminationPoint.FIRST_DECISION);
-        branchingEvents.fire(new BranchingEvent("test"));
-        assertEquals(List.of(Phase.TRIGGER), trace.phases());
-    }
-
-    @RequiresNoImplementation
-    @Assertion(id = "AGENTICAI-ORCHESTRATION-BHV-006-EVALUATIVE-PRECONDITION",
-               section = "agent-lifecycle",
-               strategy = "OutcomeOnlyAgent (Evaluative pattern) @Trigger is observed by CDI without a compatible implementation")
-    public void outcomeOnlyAgentTriggerObserved() {
-        trace.reset();
-        outcomeOnlyEvents.fire(new OutcomeOnlyEvent("test"));
-        assertEquals(List.of(Phase.TRIGGER), trace.phases());
-    }
-
-    @RequiresNoImplementation
-    @Assertion(id = "AGENTICAI-ORCHESTRATION-BHV-001-PRECONDITION",
-               section = "agent-lifecycle",
-               strategy = "AnchoredAgent @Trigger is observed by CDI even when declared at the bottom of the source file")
-    public void anchoredAgentTriggerObserved() {
-        trace.reset();
-        anchoredEvents.fire(new AnchoredEvent("test"));
         assertEquals(List.of(Phase.TRIGGER), trace.phases());
     }
 

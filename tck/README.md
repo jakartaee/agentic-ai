@@ -28,14 +28,16 @@ tck/
 ├── src/main/resources/
 │   ├── META-INF/services/    # Registers the Arquillian extension
 │   └── ee/jakarta/tck/ai/agent/framework/signature/   # Signature baseline
-└── src/test/java/            # Unit tests of the framework itself; not part of the TCK
+└── src/test/java/            # Not part of the TCK: plain-CDI checks of the test archives (plaincdi/) and a framework unit test
 ```
 
-Tests live in `src/main/java` so they ship in the TCK jar for implementors to run; `src/test/java` holds only the framework's own unit tests.
+Tests live in `src/main/java` so they ship in the TCK jar for implementors to run; nothing in `src/test/java` reaches the jar.
 
 ## Building and running the TCK
 
-This repository has no implementation under test, so its build runs the TCK's plain-CDI baseline on Weld Embedded, which is a test dependency of this module. The `baseline` profile, active whenever the `tck.implementation` property is unset, puts a class path marker in place that skips the `@RequiresImplementation` assertions and enables the trigger-only `@RequiresNoImplementation` ones:
+Compatibility runs happen in an implementation's own repository: it runs the published jar from its own runner with its own Arquillian adapter, every test included, as the TCK Reference Guide in `tck-dist` describes.
+
+This repository has no implementation, so its build runs what plain CDI can satisfy on Weld Embedded, a test dependency of this module. Assertions that need an implementation carry `@RequiresImplementation`, a JUnit tag that this module's Failsafe configuration excludes; the rest of the jar, including the signature test, runs here. The plain-CDI checks of the test archives and agents, which no implementation could pass, live in `src/test/java` under `plaincdi` and run through Surefire:
 
 ```bash
 mvn clean install
@@ -43,13 +45,7 @@ mvn --projects tck --also-make clean install
 mvn --projects tck --also-make verify
 ```
 
-The baseline run must succeed. It is not a compatibility result.
-
-Implementations do not build this module; they run the published jar from their own runner with their own Arquillian adapter, as the TCK Reference Guide in `tck-dist` describes. Setting `tck.implementation` turns the marker off, which is how CI proves the TCK fails closed: with no implementation present this command must fail its implementation-dependent assertions rather than skip them.
-
-```bash
-mvn --projects tck --also-make verify -Dtck.implementation=none
-```
+This run must succeed. It is not a compatibility result.
 
 ## Test Assertions
 
@@ -69,7 +65,7 @@ public void testAgentAnnotationExists() {
 The API signature check in `framework/signature`; no container needed. It is the structural test: the recorded baseline covers every type, member, target, retention and meta-annotation of the API, so there are no separate reflection tests.
 
 ### Behavioral tests (`@Deployed`)
-Arquillian deployments that run real workflows against the implementation under test. Each class in `core/behavior` covers one concern: phase ordering and precedence, data propagation and resolution tie-breaks, termination, `@OnException` handling, validation, inherited and void phases, topology flexibility, orchestration, CDI integration and event observation, workflow-scope lifecycle, concurrency isolation, deployment errors, and the `LargeLanguageModel` contract. Assertions a plain CDI container cannot satisfy carry `@RequiresImplementation`; the trigger-only assertions the baseline must pass carry `@RequiresNoImplementation`. See [TESTING-GUIDELINE](../TESTING-GUIDELINE.md) for the run modes.
+Arquillian deployments that run real workflows against the implementation under test. Each class in `core/behavior` covers one concern: phase ordering and precedence, data propagation and resolution tie-breaks, termination, `@OnException` handling, validation, inherited and void phases, topology flexibility, orchestration, CDI integration and event observation, workflow-scope lifecycle, concurrency isolation, deployment errors, and the `LargeLanguageModel` contract. Assertions a plain CDI container cannot satisfy carry `@RequiresImplementation`, a JUnit tag; a compatibility run excludes nothing, and only this repository's own build excludes the tag. See [TESTING-GUIDELINE](../TESTING-GUIDELINE.md).
 
 ## API signature baseline
 

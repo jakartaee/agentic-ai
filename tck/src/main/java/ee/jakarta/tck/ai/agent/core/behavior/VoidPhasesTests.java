@@ -17,7 +17,6 @@ import ee.jakarta.tck.ai.agent.core.behavior.agents.voidphases.VoidPhasesEvent;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Assertion;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Deployed;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.RequiresImplementation;
-import ee.jakarta.tck.ai.agent.framework.junit.anno.RequiresNoImplementation;
 import ee.jakarta.tck.ai.agent.framework.stub.LargeLanguageModelStub;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder.Phase;
@@ -53,15 +52,6 @@ public class VoidPhasesTests {
     public void setUp() {
         llm.reset();
         trace.reset();
-    }
-
-    @RequiresNoImplementation
-    @Assertion(id = "AGENTICAI-VOID-001",
-               section = "agent-lifecycle",
-               strategy = "void @Trigger is observed and recorded without error")
-    public void voidTriggerIsObserved() {
-        events.fire(new VoidPhasesEvent("test"));
-        assertEquals(List.of(Phase.TRIGGER), trace.phases());
     }
 
     @RequiresImplementation

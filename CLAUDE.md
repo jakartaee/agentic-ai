@@ -9,7 +9,7 @@ This is the **Jakarta Agentic AI** specification project — a vendor-neutral Ja
 ## Build Commands
 
 ```bash
-# Full build (what CI runs; the tck baseline profile auto-activates)
+# Full build (what CI runs)
 mvn clean install
 
 # Build only the TCK and its required upstream modules
@@ -28,7 +28,7 @@ mvn -pl tck verify -Dit.test=AgentSmokeTest
 mvn -pl tck verify -Psignature-generation
 ```
 
-Weld Embedded is a plain test dependency of the `tck` module, so the deployed tests always run here. The TCK has exactly two audiences and the machinery is kept to what they need: implementors run the published jar from their own runner (see `tck-dist`), and spec developers run the plain-CDI baseline in this repo. The `baseline` profile is active whenever `tck.implementation` is unset; it adds `src/baseline-marker` to the Failsafe class path, which skips `@RequiresImplementation` assertions and enables `@RequiresNoImplementation` ones. `-Dtck.implementation=<name>` turns it off, which CI uses to prove the TCK fails closed (the implementation-dependent assertions must fail, not skip). The marker is deliberately a class path entry, not a system property. Do not reintroduce per-container profiles, group exclusions or extra conditions; a class that must skip in baseline takes `@RequiresImplementation` at the class level.
+The TCK has exactly two audiences and, like the Data and Concurrency TCKs, no run modes. Compatibility runs happen in the implementation's repository (Payara), which must run every test in the jar with nothing skipped. This repository has no implementation, so it runs what plain CDI can satisfy on Weld Embedded, a test dependency of `tck`: `@RequiresImplementation` is a plain JUnit tag (`requires-implementation`) and the module's Failsafe config excludes it — that single `excludedGroups` line is the whole mechanism. The trigger-only plain-CDI checks of each archive are not TCK assertions; they live in `tck/src/test/java/.../plaincdi`, delegate to the main classes' `createDeployment()`, and run through Surefire. Do not reintroduce profiles, markers, execution conditions, a `tck.implementation` property or a fail-closed CI step; a class that cannot run on plain CDI takes `@RequiresImplementation` at the class level.
 
 ## Architecture
 
@@ -55,8 +55,7 @@ TCK tests live in `src/main/java` (not `src/test/java`) and are compiled to clas
 **Test categories and assertion mapping** (controlled by JUnit 5 tags and meta-annotations):
 - `@Standalone` — no container needed; only the signature test carries it. There are no reflection-based structural tests: the strict signature baseline already covers targets, retention, members and meta-annotations, and Data/Concurrency have no such layer either.
 - `@Deployed` — Arquillian integration tests; requires a full container (Weld Embedded in this repo).
-- `@RequiresImplementation` — skips the test when no compatible implementation is present.
-- `@RequiresNoImplementation` — skips the test when a compatible implementation is present; used for plain-CDI baseline assertions (trigger-only).
+- `@RequiresImplementation` — JUnit tag `requires-implementation` on assertions plain CDI cannot satisfy; excluded only by this repository's Failsafe configuration, never by a compatibility run.
 - `@Assertion(id, section, strategy)` — wraps `@Test` and maps the test to a specification requirement ID, section, and verification strategy.
 
 **Test infrastructure classes** (not specification tests; used by implementors and integration tests):
@@ -72,7 +71,7 @@ Assembles the certifiable TCK zip required by the Jakarta EE TCK Process: `LICEN
 
 ### Key design constraints
 
-- In plain CDI-only execution, the `@Trigger` phase is invoked by CDI events. The `@Decision`, `@Action`, and `@Outcome` phases require a compatible implementation to dispatch them. The `AgentSmokeTest.fullLifecycleRequiresCompatibleImplementation` test is conditionally skipped unless a compatible implementation is present.
+- In plain CDI-only execution, the `@Trigger` phase is invoked by CDI events. The `@Decision`, `@Action`, and `@Outcome` phases require a compatible implementation to dispatch them, which is what the `requires-implementation` tag marks.
 - `LargeLanguageModel` implementations must maintain per-workflow conversational state (isolated across concurrent workflows even for `@ApplicationScoped` agents).
 - Serialization uses Jakarta JSON Binding (not Jackson or other libs).
 - Java SE 17 and Jakarta EE 10 are the baseline, declared once in the root pom: `maven.compiler.release` for the language level (enforced by `maven-enforcer-plugin`) and `jakarta.ee.version` for the platform.

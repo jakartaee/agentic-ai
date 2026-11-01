@@ -30,32 +30,8 @@ jobs:
                   key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
                   restore-keys: ${{ runner.os }}-m2
 
-            # No implementation under test here, so the tck module's baseline
-            # profile is active and the run is the plain-CDI baseline on Weld.
             - name: Build
               run: mvn clean install
-
-            # Turning the baseline off must make the implementation-dependent
-            # assertions fail, not skip.
-            - name: Verify the TCK fails closed without an implementation
-              shell: bash
-              run: |
-                  set -euo pipefail
-                  rm -rf tck/target/failsafe-reports
-                  if mvn --projects tck --also-make verify -Dtck.implementation=none \
-                      -Dit.test=AgentSmokeTest > fail-closed.log 2>&1; then
-                      echo "::error title=Fail-closed check passed unexpectedly::The implementation-dependent assertions passed without an implementation."
-                      cat fail-closed.log
-                      exit 1
-                  fi
-                  python3 - <<'PY'
-                  import xml.etree.ElementTree as ET
-                  report = ET.parse("tck/target/failsafe-reports/TEST-ee.jakarta.tck.ai.agent.core.integration.AgentSmokeTest.xml").getroot()
-                  case = next(c for c in report.iter("testcase") if c.get("name") == "fullLifecycleRequiresCompatibleImplementation")
-                  if case.find("failure") is None and case.find("error") is None:
-                      raise SystemExit("fullLifecycleRequiresCompatibleImplementation did not fail")
-                  print("implementation-dependent assertion failed as required")
-                  PY
 
             - name: License Check
               run: |

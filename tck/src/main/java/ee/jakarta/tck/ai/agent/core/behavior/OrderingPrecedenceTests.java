@@ -21,9 +21,7 @@ import ee.jakarta.tck.ai.agent.core.behavior.agents.ordering.PriorityOverOrderEv
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Assertion;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Deployed;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.RequiresImplementation;
-import ee.jakarta.tck.ai.agent.framework.junit.anno.RequiresNoImplementation;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder;
-import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder.Phase;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder.TraceEntry;
 import jakarta.enterprise.event.Event;
 import jakarta.inject.Inject;
@@ -47,9 +45,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  * execution order, so a trace that follows the sort key (not source order)
  * proves the rule is honored. Ordering is performed by the implementation when
  * it dispatches phases, so the behavioral assertions are
- * {@link RequiresImplementation}; without an implementation, plain CDI only
- * dispatches the {@code @Trigger}, which the {@link RequiresNoImplementation}
- * baseline covers.</p>
+ * {@link RequiresImplementation}.</p>
  *
  * <p>Note on reset: in {@code @Deployed} classes {@code @BeforeEach} does not run
  * reliably between methods inside the container, so each test resets the trace
@@ -81,28 +77,6 @@ public class OrderingPrecedenceTests {
     }
 
     // ── Baseline — CDI fires @Trigger without a compatible implementation ─────
-
-    @RequiresNoImplementation
-    @Assertion(id = "AGENTICAI-ORDER-004-PRECONDITION",
-               section = "agent-lifecycle",
-               strategy = "OrderAttrAgent @Trigger is observed by CDI without a compatible implementation; "
-                        + "ordered phases are not dispatched in plain CDI")
-    public void orderAttrTriggerObservedWithoutImplementation() {
-        trace.reset();
-        orderAttrEvents.fire(new OrderAttrEvent("x"));
-        assertEquals(List.of(Phase.TRIGGER), trace.phases());
-    }
-
-    @RequiresNoImplementation
-    @Assertion(id = "AGENTICAI-ORDER-005-PRECONDITION",
-               section = "agent-lifecycle",
-               strategy = "PriorityAgent @Trigger is observed by CDI without a compatible implementation; "
-                        + "prioritized phases are not dispatched in plain CDI")
-    public void priorityTriggerObservedWithoutImplementation() {
-        trace.reset();
-        priorityEvents.fire(new PriorityEvent("x"));
-        assertEquals(List.of(Phase.TRIGGER), trace.phases());
-    }
 
     // ── order attribute is honored ───────────────────────────────────────────
 

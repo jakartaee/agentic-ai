@@ -18,7 +18,6 @@ import ee.jakarta.tck.ai.agent.core.behavior.agents.phaseordering.TriggerOutput;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Assertion;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Deployed;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.RequiresImplementation;
-import ee.jakarta.tck.ai.agent.framework.junit.anno.RequiresNoImplementation;
 import ee.jakarta.tck.ai.agent.framework.stub.LargeLanguageModelStub;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder.Phase;
@@ -54,18 +53,6 @@ public class PhaseOrderingTests {
     public void setUp() {
         llm.reset();
         trace.reset();
-    }
-
-    @RequiresNoImplementation
-    @Assertion(id = "AGENTICAI-ORDER-001",
-               section = "agent-lifecycle",
-               strategy = "Trigger event is observed; trace records TRIGGER with method name and payload")
-    public void triggerIsObservedAndRecorded() {
-        events.fire(new PhaseOrderingEvent("test-payload"));
-
-        assertEquals(List.of(Phase.TRIGGER), trace.phases());
-        assertEquals("onEvent", trace.entries().get(0).methodName());
-        assertEquals("test-payload", assertInstanceOf(PhaseOrderingEvent.class, trace.entries().get(0).args()[0]).payload());
     }
 
     @RequiresImplementation

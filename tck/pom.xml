@@ -179,6 +179,9 @@
                         <include>**/*Tests.java</include>
                         <include>**/*Test.java</include>
                     </includes>
+                    <!-- No implementation here: run what plain CDI on Weld can satisfy.
+                         A compatibility run excludes nothing. -->
+                    <excludedGroups>requires-implementation</excludedGroups>
                 </configuration>
                 <executions>
                     <execution>
@@ -213,36 +216,6 @@
     </build>
 
     <profiles>
-        <!--
-            This repository has no implementation under test, so by default it
-            runs the plain-CDI baseline: a class path marker disables the
-            @RequiresImplementation assertions and enables the trigger-only
-            @RequiresNoImplementation ones. -Dtck.implementation=<name> turns
-            the marker off, which is how CI proves the TCK fails closed. The
-            marker is a class path entry rather than a system property so no
-            -D flag can select baseline mode by accident.
-        -->
-        <profile>
-            <id>baseline</id>
-            <activation>
-                <property>
-                    <name>!tck.implementation</name>
-                </property>
-            </activation>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-failsafe-plugin</artifactId>
-                        <configuration>
-                            <additionalClasspathElements>
-                                <additionalClasspathElement>${project.basedir}/src/baseline-marker</additionalClasspathElement>
-                            </additionalClasspathElements>
-                        </configuration>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
         <profile>
             <id>signature-generation</id>
             <build>

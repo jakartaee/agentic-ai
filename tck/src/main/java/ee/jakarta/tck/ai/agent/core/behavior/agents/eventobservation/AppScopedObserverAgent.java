@@ -26,7 +26,7 @@ import jakarta.inject.Inject;
  * is permitted for application-scoped agents.
  *
  * <p>The general observer is standard CDI and is invoked even without a compatible
- * implementation, so it can be verified against the plain-CDI baseline.</p>
+ * implementation, so plain CDI can verify it.</p>
  */
 @Agent
 @ApplicationScoped

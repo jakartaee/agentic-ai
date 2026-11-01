@@ -24,30 +24,17 @@ mvn --projects tck --also-make clean install
 
 Add tests as needed to cover new features and edge cases.
 
-## TCK Run Modes
+## Where the TCK runs
 
-The TCK contains two kinds of assertions:
+As with other Jakarta EE TCKs, a compatibility run happens in the implementation's own repository, from its own runner project with its own Arquillian adapter. Every test in the TCK jar must run and pass; nothing may be skipped or excluded.
 
-- `@RequiresImplementation` assertions exercise behavior that only a compatible Jakarta Agentic AI implementation can dispatch, including `@Decision`, `@Action`, `@Outcome`, and `@OnException` phases.
-- `@RequiresNoImplementation` assertions verify the limited plain-CDI baseline in which only ordinary CDI behavior, such as an observed `@Trigger`, is available.
-
-### Implementation mode is the default
-
-The primary purpose of the TCK is to certify implementations. A container run enables `@RequiresImplementation` assertions and disables `@RequiresNoImplementation` baseline assertions. No implementation-presence flag or implementation profile is required.
-
-A container run without a compatible implementation is expected to fail its implementation-dependent assertions. This fail-closed default prevents an omitted flag from silently skipping the compatibility suite and reporting false compliance.
-
-The implementation under test supplies its Arquillian container configuration and runtime dependencies in its own runner project.
-
-### Plain-CDI baseline
-
-The plain-CDI baseline is a project-development convenience for specification and TCK contributors: it runs as much of the TCK as plain CDI can satisfy. The `baseline` profile of the `tck` module selects it by adding a class path marker, and is active whenever `tck.implementation` is unset, so the plain build is the baseline run:
+This repository has no implementation, so its build runs the part of the TCK that plain CDI can satisfy on Weld Embedded. Assertions that only a compatible implementation can satisfy — the `@Decision`, `@Action`, `@Outcome` and `@OnException` phases — carry `@RequiresImplementation`, which is a JUnit tag; the `tck` module's Failsafe configuration excludes it, and nothing else does. The trigger-only checks of each test archive, which plain CDI can pass and an implementation could not, are not TCK assertions: they live in `tck/src/test/java` under `plaincdi` and run through Surefire here. Both are part of the plain build:
 
 ```
 mvn --projects tck --also-make verify
 ```
 
-In baseline mode, `@RequiresNoImplementation` assertions run and `@RequiresImplementation` assertions are skipped. This is also the project CI path, which additionally runs once with `-Dtck.implementation=none` to prove the implementation-dependent assertions fail, rather than skip, when the marker is absent. Implementors never see the baseline: they consume the published TCK jar from their own runner, where the profile does not exist, and the marker is a class path entry rather than a system property so no `-D` flag can select it by accident.
+That run is the project's CI path. It is not a compatibility result.
 
 ## TCK Distribution
 
