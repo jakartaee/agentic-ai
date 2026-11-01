@@ -12,6 +12,7 @@
  *****************************************************************************/
 package ee.jakarta.tck.ai.agent.core.behavior.agents.concurrency;
 
+import ee.jakarta.tck.ai.agent.framework.llm.TckModel;
 import jakarta.ai.agent.Action;
 import jakarta.ai.agent.Agent;
 import jakarta.ai.agent.LargeLanguageModel;
@@ -30,9 +31,10 @@ import jakarta.inject.Inject;
  * the same time. If the implementation correctly gives each workflow its own
  * instance, the marker read back in {@code @Outcome} always matches the marker the
  * workflow was triggered with; a shared or thread-unsafe instance would let one
- * workflow overwrite another's field. The action additionally drives the injected
- * {@link LargeLanguageModel} with the per-workflow marker so recorded calls can be
- * checked for cross-workflow corruption.</p>
+ * workflow overwrite another's field. The action additionally sends the
+ * per-workflow marker to the injected {@link LargeLanguageModel} and the outcome
+ * reads the conversation back, so the echoed turn and the conversation history
+ * can be checked for cross-workflow corruption.</p>
  */
 @Agent
 @WorkflowScoped
@@ -42,6 +44,7 @@ public class ConcurrentIsolationAgent {
     @Inject ConcurrencyCoordinator coordinator;
 
     private String marker;
+    private String echoed;
 
     @Trigger
     public void onEvent(@Observes ConcurrencyEvent event) {
@@ -51,11 +54,12 @@ public class ConcurrentIsolationAgent {
 
     @Action
     public void queryModel(ConcurrencyEvent event) {
-        llm.query("turn:{}", marker);
+        echoed = llm.query("turn:{}", marker);
     }
 
     @Outcome
     public void finish(ConcurrencyEvent event) {
         coordinator.recordObservation(event.marker(), this.marker);
+        coordinator.recordLlm(event.marker(), echoed, llm.query(TckModel.HISTORY));
     }
 }

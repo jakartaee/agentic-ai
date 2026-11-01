@@ -13,13 +13,12 @@
 package ee.jakarta.tck.ai.agent.core.behavior;
 
 import ee.jakarta.tck.ai.agent.core.behavior.agents.concurrency.ConcurrencyCoordinator;
+import ee.jakarta.tck.ai.agent.core.behavior.agents.concurrency.ConcurrencyCoordinator.LlmObservation;
 import ee.jakarta.tck.ai.agent.core.behavior.agents.concurrency.ConcurrencyEvent;
 import ee.jakarta.tck.ai.agent.core.behavior.agents.concurrency.ConcurrentIsolationAgent;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Assertion;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Deployed;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.RequiresImplementation;
-import ee.jakarta.tck.ai.agent.framework.stub.LargeLanguageModelStub;
-import ee.jakarta.tck.ai.agent.framework.stub.LargeLanguageModelStub.RecordedCall;
 import jakarta.enterprise.event.Event;
 import jakarta.inject.Inject;
 import org.jboss.arquillian.container.test.api.Deployment;
@@ -31,11 +30,11 @@ import org.junit.jupiter.api.TestInstance;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.IntStream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -63,23 +62,19 @@ public class ConcurrencyIsolationTests {
     public static Archive<?> createDeployment() {
         return ShrinkWrap.create(WebArchive.class, "concurrencyisolation.war")
                 .addClasses(ConcurrentIsolationAgent.class, ConcurrencyEvent.class,
-                            ConcurrencyCoordinator.class)
+                            ConcurrencyCoordinator.class, LlmObservation.class)
                 .addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml");
     }
 
     @Inject Event<ConcurrencyEvent> events;
     @Inject ConcurrencyCoordinator coordinator;
-    @Inject LargeLanguageModelStub stub;
 
     @RequiresImplementation
     @Assertion(id = "AGENTICAI-CONCURRENCY-001",
                section = "cdi-integration",
                strategy = "Concurrent @WorkflowScoped executions each observe only their own workflow state")
     public void workflowStateIsIsolatedAcrossConcurrentWorkflows() throws Exception {
-        stub.reset();
         coordinator.arm(WORKFLOWS);
-        enqueueResponses(WORKFLOWS);
-
         fireConcurrently(WORKFLOWS);
 
         assertEquals(WORKFLOWS, coordinator.observationCount());
@@ -89,28 +84,19 @@ public class ConcurrencyIsolationTests {
     @RequiresImplementation
     @Assertion(id = "AGENTICAI-CONCURRENCY-002",
                section = "llm-conversational-state",
-               strategy = "Concurrent workflows drive the shared model without losing or corrupting each other's calls")
+               strategy = "Concurrent workflows drive the shared facade without corrupting each other's turns: "
+                        + "each gets its own turn echoed back and a conversation holding only that turn")
     public void llmCallsAreNotCorruptedAcrossConcurrentWorkflows() throws Exception {
-        stub.reset();
         coordinator.arm(WORKFLOWS);
-        enqueueResponses(WORKFLOWS);
-
         fireConcurrently(WORKFLOWS);
 
-        List<String> prompts = stub.recordedCalls().stream()
-                .map(RecordedCall::effectivePrompt)
-                .sorted()
-                .toList();
-        List<String> expected = IntStream.range(0, WORKFLOWS)
-                .mapToObj(i -> "turn:\"" + marker(i) + "\"")
-                .sorted()
-                .toList();
-        assertEquals(expected, prompts);
-    }
-
-    private void enqueueResponses(int count) {
-        for (int i = 0; i < count; i++) {
-            stub.enqueueResponse("ok");
+        Map<String, LlmObservation> observed = coordinator.llmObservations();
+        assertEquals(WORKFLOWS, observed.size());
+        for (int i = 0; i < WORKFLOWS; i++) {
+            String turn = "turn:\"" + marker(i) + "\"";
+            LlmObservation observation = observed.get(marker(i));
+            assertEquals(turn, observation.echoed(), "echoed turn of " + marker(i));
+            assertEquals(turn, observation.history(), "conversation of " + marker(i));
         }
     }
 

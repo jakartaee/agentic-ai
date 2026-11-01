@@ -15,7 +15,6 @@ package ee.jakarta.tck.ai.agent.core.integration;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Assertion;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Deployed;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.RequiresImplementation;
-import ee.jakarta.tck.ai.agent.framework.stub.LargeLanguageModelStub;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder.Phase;
 import jakarta.enterprise.event.Event;
@@ -25,7 +24,6 @@ import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.EmptyAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.jupiter.api.BeforeEach;
 
 import java.util.List;
 
@@ -33,8 +31,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * End-to-end smoke test: the archive deploys, the trigger event reaches the
- * agent, the implementation dispatches the remaining phases and the stub and
- * trace recorder are wired into the deployment.
+ * agent, the implementation dispatches the remaining phases and the facade's
+ * echoed response reaches the outcome.
  */
 @Deployed
 public class AgentSmokeTest {
@@ -50,38 +48,24 @@ public class AgentSmokeTest {
     Event<GreetEvent> events;
 
     @Inject
-    LargeLanguageModelStub llm;
-
-    @Inject
     ExecutionTraceRecorder trace;
 
-    @BeforeEach
-    public void setUp() {
-        llm.reset();
-        trace.reset();
-    }
 
     @RequiresImplementation
     @Assertion(id = "AGENTICAI-SMOKE-002",
                section = "agent-lifecycle",
-               strategy = "Full lifecycle: @Trigger -> @Action -> @Outcome with LLM stub interaction")
+               strategy = "Full lifecycle: @Trigger -> @Action -> @Outcome, with the action's query to the "
+                        + "facade echoed back into the outcome")
     public void fullLifecycleRequiresCompatibleImplementation() {
-        llm.enqueueResponse("Hello from Stub!");
-
+        trace.reset();
         events.fire(new GreetEvent("Jakarta AI"));
 
         assertEquals(List.of(Phase.TRIGGER, Phase.ACTION, Phase.OUTCOME), trace.phases());
-
-        assertEquals(1, llm.recordedCalls().size(), "LLM should have been called once");
-        LargeLanguageModelStub.RecordedCall lastCall = llm.lastCall();
-        assertEquals("Greet {}", lastCall.prompt(), "Unexpected prompt template");
-        assertEquals("Jakarta AI", lastCall.params()[0], "Unexpected prompt parameter");
-        assertEquals(3, lastCall.overload(), "Should have used query(String, Object...) overload");
 
         ExecutionTraceRecorder.TraceEntry outcomeEntry = trace.entries().stream()
                 .filter(e -> e.phase() == Phase.OUTCOME)
                 .findFirst()
                 .orElseThrow();
-        assertEquals("Hello from Stub!", outcomeEntry.args()[0], "Unexpected response in outcome");
+        assertEquals("Greet \"Jakarta AI\"", outcomeEntry.args()[0], "Unexpected response in outcome");
     }
 }

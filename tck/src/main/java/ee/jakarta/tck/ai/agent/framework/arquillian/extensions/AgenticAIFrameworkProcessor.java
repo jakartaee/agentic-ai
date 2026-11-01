@@ -14,7 +14,7 @@ package ee.jakarta.tck.ai.agent.framework.arquillian.extensions;
 
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Assertion;
 import ee.jakarta.tck.ai.agent.framework.junit.extensions.AssertionExtension;
-import ee.jakarta.tck.ai.agent.framework.stub.LargeLanguageModelStub;
+import ee.jakarta.tck.ai.agent.framework.llm.TckModel;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder;
 import org.jboss.arquillian.container.test.spi.client.deployment.ApplicationArchiveProcessor;
 import org.jboss.arquillian.test.spi.TestClass;
@@ -23,7 +23,9 @@ import org.jboss.shrinkwrap.api.spec.WebArchive;
 
 /**
  * Arquillian archive processor that injects TCK framework classes directly
- * into every {@link WebArchive} before it is deployed to the container.
+ * into every {@link WebArchive} before it is deployed to the container. No
+ * {@code LargeLanguageModel} is among them: the facade the agents receive is
+ * the implementation's own.
  *
  * <p>Unlike an {@code AuxiliaryArchiveAppender}, this processor adds classes
  * to the archive itself, which is required for Weld Embedded to discover them
@@ -39,7 +41,7 @@ public class AgenticAIFrameworkProcessor implements ApplicationArchiveProcessor 
         webArchive.addPackages(false,
                 Assertion.class.getPackage(),
                 AssertionExtension.class.getPackage(),
-                LargeLanguageModelStub.class.getPackage(),
+                TckModel.class.getPackage(),
                 ExecutionTraceRecorder.class.getPackage()
         );
     }

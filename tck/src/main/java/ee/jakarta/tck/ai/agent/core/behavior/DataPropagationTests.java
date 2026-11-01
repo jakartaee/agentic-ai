@@ -20,7 +20,6 @@ import ee.jakarta.tck.ai.agent.core.behavior.agents.datapropagation.TriggerOutpu
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Assertion;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Deployed;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.RequiresImplementation;
-import ee.jakarta.tck.ai.agent.framework.stub.LargeLanguageModelStub;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder.Phase;
 import jakarta.enterprise.event.Event;
@@ -30,7 +29,6 @@ import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.EmptyAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.jupiter.api.BeforeEach;
 
 import java.util.List;
 
@@ -49,21 +47,15 @@ public class DataPropagationTests {
     }
 
     @Inject Event<DataPropagationEvent> events;
-    @Inject LargeLanguageModelStub llm;
     @Inject ExecutionTraceRecorder trace;
 
-    @BeforeEach
-    public void setUp() {
-        llm.reset();
-        trace.reset();
-    }
 
     @RequiresImplementation
     @Assertion(id = "AGENTICAI-DATA-002",
                section = "parameter-resolution",
                strategy = "TriggerOutput returned by @Trigger is injectable as a parameter in @Decision")
     public void triggerOutputIsInjectableInDecision() {
-        llm.enqueueResponse("ok");
+        trace.reset();
         events.fire(new DataPropagationEvent("input"));
         assertInstanceOf(TriggerOutput.class, trace.entries().get(1).args()[1]);
     }
@@ -73,9 +65,10 @@ public class DataPropagationTests {
                section = "parameter-resolution",
                strategy = "DecisionOutput returned by @Decision is injectable as a parameter in @Action")
     public void decisionOutputIsInjectableInAction() {
-        llm.enqueueResponse("ok");
+        trace.reset();
         events.fire(new DataPropagationEvent("input"));
-        assertInstanceOf(DecisionOutput.class, trace.entries().get(2).args()[1]);
+        DecisionOutput decision = assertInstanceOf(DecisionOutput.class, trace.entries().get(2).args()[1]);
+        assertEquals("decision:trigger:input", decision.fromDecision());
     }
 
     @RequiresImplementation
@@ -83,7 +76,7 @@ public class DataPropagationTests {
                section = "parameter-resolution",
                strategy = "@Outcome can inject objects from all preceding phases simultaneously")
     public void allPhaseOutputsAreInjectableInOutcome() {
-        llm.enqueueResponse("ok");
+        trace.reset();
         events.fire(new DataPropagationEvent("input"));
 
         assertEquals(List.of(Phase.TRIGGER, Phase.DECISION, Phase.ACTION, Phase.OUTCOME), trace.phases());

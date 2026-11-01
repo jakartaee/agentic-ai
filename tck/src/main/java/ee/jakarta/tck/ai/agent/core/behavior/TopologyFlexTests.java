@@ -19,7 +19,6 @@ import ee.jakarta.tck.ai.agent.core.behavior.agents.topologyflex.NoOutcomeEvent;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Assertion;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Deployed;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.RequiresImplementation;
-import ee.jakarta.tck.ai.agent.framework.stub.LargeLanguageModelStub;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder.Phase;
 import jakarta.enterprise.event.Event;
@@ -49,7 +48,6 @@ public class TopologyFlexTests {
 
     @Inject Event<NoDecisionEvent> noDecisionEvents;
     @Inject Event<NoOutcomeEvent>  noOutcomeEvents;
-    @Inject LargeLanguageModelStub llm;
     @Inject ExecutionTraceRecorder trace;
 
     @RequiresImplementation
@@ -57,7 +55,6 @@ public class TopologyFlexTests {
                section = "agent-lifecycle",
                strategy = "Workflow without @Decision executes T→A→O without error")
     public void workflowWithoutDecisionExecutesActions() {
-        llm.reset();
         trace.reset();
         noDecisionEvents.fire(new NoDecisionEvent("test"));
         assertEquals(List.of(Phase.TRIGGER, Phase.ACTION, Phase.OUTCOME), trace.phases());
@@ -68,7 +65,6 @@ public class TopologyFlexTests {
                section = "agent-lifecycle",
                strategy = "Workflow without @Outcome completes gracefully after @Action")
     public void workflowWithoutOutcomeCompletesGracefully() {
-        llm.reset();
         trace.reset();
         noOutcomeEvents.fire(new NoOutcomeEvent("test"));
         assertEquals(List.of(Phase.TRIGGER, Phase.DECISION, Phase.ACTION), trace.phases());

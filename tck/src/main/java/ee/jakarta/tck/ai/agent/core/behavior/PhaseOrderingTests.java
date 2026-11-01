@@ -18,7 +18,6 @@ import ee.jakarta.tck.ai.agent.core.behavior.agents.phaseordering.TriggerOutput;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Assertion;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Deployed;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.RequiresImplementation;
-import ee.jakarta.tck.ai.agent.framework.stub.LargeLanguageModelStub;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder.Phase;
 import jakarta.enterprise.event.Event;
@@ -28,7 +27,6 @@ import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.EmptyAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.jupiter.api.BeforeEach;
 
 import java.util.List;
 
@@ -46,22 +44,16 @@ public class PhaseOrderingTests {
     }
 
     @Inject Event<PhaseOrderingEvent> events;
-    @Inject LargeLanguageModelStub llm;
     @Inject ExecutionTraceRecorder trace;
 
-    @BeforeEach
-    public void setUp() {
-        llm.reset();
-        trace.reset();
-    }
 
     @RequiresImplementation
     @Assertion(id = "AGENTICAI-ORDER-002",
                section = "agent-lifecycle",
                strategy = "Full T→D→A→O pipeline executes in strict declaration order")
     public void fullPipelineExecutesInStrictOrder() {
-        llm.enqueueResponse("proceed");
-        events.fire(new PhaseOrderingEvent("test-payload"));
+        trace.reset();
+        events.fire(new PhaseOrderingEvent("proceed"));
 
         assertEquals(List.of(Phase.TRIGGER, Phase.DECISION, Phase.ACTION, Phase.OUTCOME), trace.phases());
     }
@@ -71,11 +63,11 @@ public class PhaseOrderingTests {
                section = "agent-lifecycle",
                strategy = "Trigger return value (non-void) is available for injection in Decision")
     public void triggerReturnValueIsInjectableInDecision() {
-        llm.enqueueResponse("proceed");
-        events.fire(new PhaseOrderingEvent("test-payload"));
+        trace.reset();
+        events.fire(new PhaseOrderingEvent("proceed"));
 
         Object[] decisionArgs = trace.entries().get(1).args();
         assertInstanceOf(PhaseOrderingEvent.class, decisionArgs[0]);
-        assertEquals("trigger:test-payload", assertInstanceOf(TriggerOutput.class, decisionArgs[1]).fromTrigger());
+        assertEquals("trigger:proceed", assertInstanceOf(TriggerOutput.class, decisionArgs[1]).fromTrigger());
     }
 }

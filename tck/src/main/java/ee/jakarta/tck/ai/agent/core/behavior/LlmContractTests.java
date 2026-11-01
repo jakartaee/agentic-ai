@@ -12,280 +12,253 @@
  *****************************************************************************/
 package ee.jakarta.tck.ai.agent.core.behavior;
 
+import ee.jakarta.tck.ai.agent.core.behavior.agents.llm.LlmProbeAgent;
+import ee.jakarta.tck.ai.agent.core.behavior.agents.llm.LlmProbeEvent;
 import ee.jakarta.tck.ai.agent.core.behavior.agents.llm.LlmQuerierAgent;
 import ee.jakarta.tck.ai.agent.core.behavior.agents.llm.LlmQuerierEvent;
+import ee.jakarta.tck.ai.agent.core.behavior.agents.llm.NonSerializableParam;
+import ee.jakarta.tck.ai.agent.core.behavior.agents.llm.PersonFixture;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Assertion;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Deployed;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.RequiresImplementation;
-import ee.jakarta.tck.ai.agent.framework.stub.LargeLanguageModelStub;
+import ee.jakarta.tck.ai.agent.framework.llm.TckModel;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder.Phase;
+import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder.TraceEntry;
 import jakarta.ai.agent.LLMException;
 import jakarta.ai.agent.LargeLanguageModel;
 import jakarta.enterprise.event.Event;
 import jakarta.inject.Inject;
-import jakarta.json.bind.JsonbException;
-import jakarta.json.bind.annotation.JsonbTypeSerializer;
-import jakarta.json.bind.serializer.JsonbSerializer;
-import jakarta.json.bind.serializer.SerializationContext;
-import jakarta.json.stream.JsonGenerator;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.EmptyAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.jupiter.api.TestInstance;
 
 import java.util.List;
+import java.util.function.Function;
 
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertSame;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+/**
+ * The {@link LargeLanguageModel} facade contract, verified against the
+ * implementation's facade backed by the {@link TckModel} echo behaviour.
+ * Every call is made from inside a workflow through {@link LlmProbeAgent},
+ * because the facade and its conversational state are defined only there.
+ */
 @Deployed
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class LlmContractTests {
 
     @Deployment
     public static Archive<?> createDeployment() {
         return ShrinkWrap.create(WebArchive.class, "llmcontract.war")
-                .addClasses(LlmQuerierAgent.class, LlmQuerierEvent.class)
+                .addClasses(LlmProbeAgent.class, LlmProbeEvent.class,
+                            LlmQuerierAgent.class, LlmQuerierEvent.class,
+                            PersonFixture.class, NonSerializableParam.class, NonSerializableParam.Serializer.class)
                 .addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml");
     }
 
-    @Inject LargeLanguageModel     llm;
-    @Inject LargeLanguageModelStub stub;
-    @Inject Event<LlmQuerierEvent> events;
+    @Inject Event<LlmProbeEvent>   probes;
+    @Inject Event<LlmQuerierEvent> queries;
     @Inject ExecutionTraceRecorder trace;
 
-    public static record PersonFixture(String name, int age) {}
-
-    @JsonbTypeSerializer(NonSerializableParam.Serializer.class)
-    public static class NonSerializableParam {
-        public static class Serializer implements JsonbSerializer<NonSerializableParam> {
-            @Override
-            public void serialize(NonSerializableParam obj, JsonGenerator generator, SerializationContext ctx) {
-                throw new JsonbException("intentional serialization failure");
-            }
-        }
+    private Object probe(Function<LargeLanguageModel, Object> call) {
+        trace.reset();
+        probes.fire(new LlmProbeEvent(call));
+        return trace.entries().get(0).args()[0];
     }
 
-    // -------------------------------------------------------------------------
-    // A. Portable contract tests — assert against LargeLanguageModel interface
-    // -------------------------------------------------------------------------
+    // -- validation: IllegalArgumentException before any model call ----------
 
     @Assertion(id = "AGENTICAI-LLM-BHV-002",
                section = "llm-integration",
-               strategy = "null prompt on single-arg overload must throw IllegalArgumentException immediately")
+               strategy = "null prompt on query(String) throws IllegalArgumentException")
     public void nullPromptThrowsIllegalArgumentException() {
-        assertThrows(IllegalArgumentException.class, () -> llm.query(null));
+        assertInstanceOf(IllegalArgumentException.class, probe(llm -> llm.query(null)));
     }
 
     @Assertion(id = "AGENTICAI-LLM-BHV-002",
                section = "llm-integration",
-               strategy = "null prompt on varargs overload must throw IllegalArgumentException immediately")
+               strategy = "null prompt on query(String, Object...) throws IllegalArgumentException")
     public void nullPromptWithParamsThrowsIllegalArgumentException() {
-        assertThrows(IllegalArgumentException.class, () -> llm.query(null, "x"));
+        assertInstanceOf(IllegalArgumentException.class, probe(llm -> llm.query(null, "x")));
     }
 
     @Assertion(id = "AGENTICAI-LLM-BHV-002",
                section = "llm-integration",
-               strategy = "null resultType on typed overload must throw IllegalArgumentException immediately")
+               strategy = "null resultType on query(String, Class) throws IllegalArgumentException")
     public void nullResultTypeThrowsIllegalArgumentException() {
-        assertThrows(IllegalArgumentException.class, () -> llm.query("p", (Class<?>) null));
+        assertInstanceOf(IllegalArgumentException.class, probe(llm -> llm.query("p", (Class<?>) null)));
     }
 
     @Assertion(id = "AGENTICAI-LLM-BHV-002",
                section = "llm-integration",
-               strategy = "more parameters than placeholders must throw IllegalArgumentException")
-    public void arityMoreParamsThanPlaceholdersThrows() {
-        stub.reset();
-        stub.enqueueResponse("ok");
-        assertThrows(IllegalArgumentException.class, () -> llm.query("one {} here", "a", "b"));
-    }
-
-    @Assertion(id = "AGENTICAI-LLM-BHV-002",
-               section = "llm-integration",
-               strategy = "fewer parameters than placeholders must throw IllegalArgumentException")
-    public void arityFewerParamsThanPlaceholdersThrows() {
-        stub.reset();
-        stub.enqueueResponse("ok");
-        assertThrows(IllegalArgumentException.class, () -> llm.query("two {} and {}", "only"));
-    }
-
-    @Assertion(id = "AGENTICAI-LLM-BHV-002",
-               section = "llm-integration",
-               strategy = "prompt with no placeholder receiving multiple params must throw IllegalArgumentException")
-    public void noPlaceholderRejectsMultipleParams() {
-        stub.reset();
-        stub.enqueueResponse("ok");
-        assertThrows(IllegalArgumentException.class, () -> llm.query("Analyze this", "a", "b"));
-    }
-
-    @Assertion(id = "AGENTICAI-LLM-BHV-002",
-               section = "llm-integration",
-               strategy = "parameter that cannot be converted must throw IllegalArgumentException")
-    public void parameterSerializationFailureThrowsIllegalArgumentException() {
-        stub.reset();
-        assertThrows(IllegalArgumentException.class, () -> llm.query("process {}", new NonSerializableParam()));
-    }
-
-    @Assertion(id = "AGENTICAI-LLM-BHV-002",
-               section = "llm-integration",
-               strategy = "parameter that cannot be converted on the typed varargs overload must throw IllegalArgumentException")
-    public void parameterSerializationFailureOnTypedOverloadThrowsIllegalArgumentException() {
-        stub.reset();
-        assertThrows(IllegalArgumentException.class, () -> llm.query("process {}", PersonFixture.class, new NonSerializableParam()));
-    }
-
-    @Assertion(id = "AGENTICAI-LLM-BHV-002",
-               section = "llm-integration",
-               strategy = "null prompt on the typed varargs overload must throw IllegalArgumentException immediately")
+               strategy = "null prompt on query(String, Class, Object...) throws IllegalArgumentException")
     public void nullPromptOnTypedVarargsOverloadThrowsIllegalArgumentException() {
-        assertThrows(IllegalArgumentException.class, () -> llm.query(null, PersonFixture.class, "x"));
+        assertInstanceOf(IllegalArgumentException.class, probe(llm -> llm.query(null, PersonFixture.class, "x")));
     }
 
     @Assertion(id = "AGENTICAI-LLM-BHV-002",
                section = "llm-integration",
-               strategy = "null resultType on the typed varargs overload must throw IllegalArgumentException immediately")
+               strategy = "null resultType on query(String, Class, Object...) throws IllegalArgumentException")
     public void nullResultTypeOnTypedVarargsOverloadThrowsIllegalArgumentException() {
-        assertThrows(IllegalArgumentException.class, () -> llm.query("p", (Class<?>) null, "x"));
+        assertInstanceOf(IllegalArgumentException.class, probe(llm -> llm.query("p", (Class<?>) null, "x")));
     }
 
     @Assertion(id = "AGENTICAI-LLM-BHV-002",
                section = "llm-integration",
-               strategy = "more parameters than placeholders on the typed varargs overload must throw IllegalArgumentException")
+               strategy = "more parameters than {} placeholders throws IllegalArgumentException")
+    public void arityMoreParamsThanPlaceholdersThrows() {
+        assertInstanceOf(IllegalArgumentException.class, probe(llm -> llm.query("one {} here", "a", "b")));
+    }
+
+    @Assertion(id = "AGENTICAI-LLM-BHV-002",
+               section = "llm-integration",
+               strategy = "fewer parameters than {} placeholders throws IllegalArgumentException")
+    public void arityFewerParamsThanPlaceholdersThrows() {
+        assertInstanceOf(IllegalArgumentException.class, probe(llm -> llm.query("two {} and {}", "only")));
+    }
+
+    @Assertion(id = "AGENTICAI-LLM-BHV-002",
+               section = "llm-integration",
+               strategy = "more parameters than {} placeholders on the typed varargs overload throws IllegalArgumentException")
     public void arityMismatchOnTypedVarargsOverloadThrows() {
-        stub.reset();
-        stub.enqueueResponse("ok");
-        assertThrows(IllegalArgumentException.class, () -> llm.query("one {} here", PersonFixture.class, "a", "b"));
+        assertInstanceOf(IllegalArgumentException.class,
+                probe(llm -> llm.query("one {} here", PersonFixture.class, "a", "b")));
+    }
+
+    @Assertion(id = "AGENTICAI-LLM-BHV-002",
+               section = "llm-integration",
+               strategy = "a prompt with no placeholder given more than one parameter throws IllegalArgumentException")
+    public void noPlaceholderRejectsMultipleParams() {
+        assertInstanceOf(IllegalArgumentException.class, probe(llm -> llm.query("Analyze this", "a", "b")));
+    }
+
+    @Assertion(id = "AGENTICAI-LLM-BHV-002",
+               section = "llm-integration",
+               strategy = "a parameter JSON Binding cannot serialize throws IllegalArgumentException")
+    public void parameterSerializationFailureThrowsIllegalArgumentException() {
+        assertInstanceOf(IllegalArgumentException.class,
+                probe(llm -> llm.query("process {}", new NonSerializableParam())));
+    }
+
+    @Assertion(id = "AGENTICAI-LLM-BHV-002",
+               section = "llm-integration",
+               strategy = "a parameter JSON Binding cannot serialize on the typed varargs overload throws IllegalArgumentException")
+    public void parameterSerializationFailureOnTypedOverloadThrowsIllegalArgumentException() {
+        assertInstanceOf(IllegalArgumentException.class,
+                probe(llm -> llm.query("process {}", PersonFixture.class, new NonSerializableParam())));
     }
 
     @Assertion(id = "AGENTICAI-LLM-BHV-006",
                section = "llm-integration",
-               strategy = "unwrap to an incompatible type must throw IllegalArgumentException")
+               strategy = "unwrap to a type the facade cannot be unwrapped to throws IllegalArgumentException")
     public void unwrapToIncompatibleTypeThrowsIllegalArgumentException() {
-        assertThrows(IllegalArgumentException.class, () -> llm.unwrap(String.class));
+        assertInstanceOf(IllegalArgumentException.class, probe(llm -> llm.unwrap(String.class)));
     }
 
-    // -------------------------------------------------------------------------
-    // B. Reference-stub tests — scripted; validate impl + document the contract
-    // -------------------------------------------------------------------------
+    @Assertion(id = "AGENTICAI-LLM-BHV-006",
+               section = "llm-integration",
+               strategy = "unwrap(Object.class) returns the underlying implementation")
+    public void unwrapToCompatibleTypeReturnsImplementation() {
+        assertNotNull(probe(llm -> llm.unwrap(Object.class)));
+    }
+
+    // -- rendering: the echoed response is the rendered prompt -----------------
 
     @Assertion(id = "AGENTICAI-LLM-BHV-001",
                section = "llm-integration",
-               strategy = "positional {} placeholders are substituted in declaration order via JSON-B")
+               strategy = "{} placeholders are substituted in declaration order with the JSON Binding form of each parameter; "
+                       + "the echo model returns the rendered prompt")
     public void positionalPlaceholdersSubstitutedInOrderViaJsonB() {
-        stub.reset();
-        stub.enqueueResponse("ok");
-        llm.query("Hello {} and {}", "Alice", "Bob");
-        assertEquals("Hello \"Alice\" and \"Bob\"", stub.lastCall().effectivePrompt());
+        assertEquals("Hello \"Alice\" and \"Bob\"", probe(llm -> llm.query("Hello {} and {}", "Alice", "Bob")));
     }
 
     @Assertion(id = "AGENTICAI-LLM-BHV-001",
                section = "llm-integration",
-               strategy = "look-alike tokens ({name}, { }) are not treated as positional placeholders")
+               strategy = "look-alike tokens ({name}, { }) are literal prompt text, not placeholders")
     public void lookAlikeTokensAreNotPlaceholders() {
-        stub.reset();
-        stub.enqueueResponse("ok");
-        // Explicit empty varargs array forces the varargs overload (3) so the substitution
-        // implementation actually runs; the single-arg overload bypasses placeholder scanning entirely.
-        assertDoesNotThrow(() -> llm.query("{name} and { } stay literal", new Object[0]));
-        assertEquals("{name} and { } stay literal", stub.lastCall().effectivePrompt());
+        assertEquals("{name} and { } stay literal",
+                probe(llm -> llm.query("{name} and { } stay literal", new Object[0])));
     }
 
     @Assertion(id = "AGENTICAI-LLM-BHV-002",
                section = "llm-integration",
-               strategy = "prompt with no placeholder allows exactly one structured context parameter")
+               strategy = "a prompt with no placeholder accepts one structured-context parameter and is sent unchanged")
     public void noPlaceholderAllowsSingleStructuredContextParam() {
-        stub.reset();
-        stub.enqueueResponse("ok");
-        PersonFixture context = new PersonFixture("A", 1);
-        assertDoesNotThrow(() -> llm.query("Analyze this", context));
-        // Prompt is unchanged (no placeholder to substitute) but the structured param is recorded.
-        assertEquals("Analyze this", stub.lastCall().effectivePrompt());
-        assertEquals(1, stub.lastCall().params().length);
-        assertSame(context, stub.lastCall().params()[0]);
+        assertEquals("Analyze this", probe(llm -> llm.query("Analyze this", new PersonFixture("A", 1))));
     }
 
     @Assertion(id = "AGENTICAI-LLM-BHV-003",
                section = "llm-integration",
-               strategy = "complex object parameters are serialized into the prompt via Jakarta JSON Binding")
+               strategy = "a complex parameter is rendered into the prompt as its JSON Binding serialization")
     public void complexObjectSerializedViaJsonBinding() {
-        stub.reset();
-        stub.enqueueResponse("ok");
-        llm.query("Profile: {}", new PersonFixture("Alice", 30));
-        assertTrue(stub.lastCall().effectivePrompt().contains("\"name\":\"Alice\""));
-                assertTrue(stub.lastCall().effectivePrompt().contains("\"age\":30"));
+        String rendered = assertInstanceOf(String.class,
+                probe(llm -> llm.query("Profile: {}", new PersonFixture("Alice", 30))));
+        assertTrue(rendered.startsWith("Profile: "), rendered);
+        assertTrue(rendered.contains("\"name\":\"Alice\""), rendered);
+        assertTrue(rendered.contains("\"age\":30"), rendered);
     }
 
     @Assertion(id = "AGENTICAI-LLM-BHV-004",
                section = "llm-integration",
-               strategy = "typed response is deserialized from JSON string via Jakarta JSON Binding")
+               strategy = "a typed response is deserialized from the model's JSON text with JSON Binding")
     public void typedResponseDeserializedViaJsonBinding() {
-        stub.reset();
-        stub.enqueueResponse("{\"name\":\"Bob\",\"age\":25}");
-        PersonFixture p = llm.query("give person", PersonFixture.class);
-        assertEquals("Bob", p.name());
-        assertEquals(25, p.age());
+        PersonFixture p = assertInstanceOf(PersonFixture.class,
+                probe(llm -> llm.query("{\"name\":\"Bob\",\"age\":25}", PersonFixture.class)));
+        assertEquals(new PersonFixture("Bob", 25), p);
     }
 
-    @Assertion(id = "AGENTICAI-LLM-BHV-005",
-               section = "llm-exception",
-               strategy = "LLM service error propagates as LLMException")
-    public void serviceErrorPropagatesAsLlmException() {
-        stub.reset();
-        stub.failWith(new LLMException("service down"));
-        assertThrows(LLMException.class, () -> llm.query("p"));
-    }
-
-    @Assertion(id = "AGENTICAI-LLM-BHV-005",
-               section = "llm-exception",
-               strategy = "response type conversion failure propagates as LLMException")
-    public void typeConversionFailurePropagatesAsLlmException() {
-        stub.reset();
-        stub.enqueueResponse(Integer.valueOf(42));
-        assertThrows(LLMException.class, () -> llm.query("p", PersonFixture.class));
-    }
-
-    @Assertion(id = "AGENTICAI-LLM-BHV-005",
-               section = "llm-exception",
-               strategy = "response type conversion failure on the typed varargs overload propagates as LLMException")
-    public void typeConversionFailureOnTypedVarargsOverloadPropagatesAsLlmException() {
-        stub.reset();
-        stub.enqueueResponse(Integer.valueOf(42));
-        assertThrows(LLMException.class, () -> llm.query("p", PersonFixture.class, "irrelevant"));
-    }
-
-    @Assertion(id = "AGENTICAI-LLM-BHV-006",
+    @Assertion(id = "AGENTICAI-LLM-BHV-004",
                section = "llm-integration",
-               strategy = "unwrap to the concrete stub type returns the same instance")
-    public void unwrapToCompatibleTypeReturnsImplementation() {
-        LargeLanguageModelStub unwrapped = llm.unwrap(LargeLanguageModelStub.class);
-        assertNotNull(unwrapped);
-                assertInstanceOf(LargeLanguageModelStub.class, unwrapped);
+               strategy = "the typed varargs overload renders the parameters and deserializes the model's JSON text")
+    public void typedVarargsResponseDeserializedViaJsonBinding() {
+        PersonFixture p = assertInstanceOf(PersonFixture.class,
+                probe(llm -> llm.query("{\"name\":{},\"age\":{}}", PersonFixture.class, "Bob", 25)));
+        assertEquals(new PersonFixture("Bob", 25), p);
     }
+
+    // -- failures: LLMException ----------------------------------------------
+
+    @Assertion(id = "AGENTICAI-LLM-BHV-005",
+               section = "llm-exception",
+               strategy = "a model failure surfaces as LLMException")
+    public void serviceErrorPropagatesAsLlmException() {
+        assertInstanceOf(LLMException.class, probe(llm -> llm.query(TckModel.FAIL)));
+    }
+
+    @Assertion(id = "AGENTICAI-LLM-BHV-005",
+               section = "llm-exception",
+               strategy = "a response that cannot be deserialized to the requested type surfaces as LLMException")
+    public void typeConversionFailurePropagatesAsLlmException() {
+        assertInstanceOf(LLMException.class, probe(llm -> llm.query("not json", PersonFixture.class)));
+    }
+
+    @Assertion(id = "AGENTICAI-LLM-BHV-005",
+               section = "llm-exception",
+               strategy = "a response that cannot be deserialized on the typed varargs overload surfaces as LLMException")
+    public void typeConversionFailureOnTypedVarargsOverloadPropagatesAsLlmException() {
+        assertInstanceOf(LLMException.class, probe(llm -> llm.query("not json {}", PersonFixture.class, "x")));
+    }
+
+    // -- conversational state --------------------------------------------------
 
     @RequiresImplementation
     @Assertion(id = "AGENTICAI-LLM-BHV-007",
-               section = "cdi-integration",
-               strategy = "conversational state does not leak between sequential workflow executions "
-                        + "(sequential firing is a v1 proxy for concurrency)")
+               section = "llm-conversational-state",
+               strategy = "each workflow's conversation holds only its own turns: after two sequential workflows, "
+                       + "the history the model reports to the second contains only the second's turn")
     public void conversationalStateIsolatedBetweenWorkflows() {
-        stub.reset();
         trace.reset();
-        stub.enqueueResponse("first");
-        stub.enqueueResponse("second");
-        events.fire(new LlmQuerierEvent("workflow-1"));
-        events.fire(new LlmQuerierEvent("workflow-2"));
+        queries.fire(new LlmQuerierEvent("workflow-1"));
+        queries.fire(new LlmQuerierEvent("workflow-2"));
 
         assertEquals(List.of(Phase.TRIGGER, Phase.ACTION, Phase.TRIGGER, Phase.ACTION), trace.phases());
-        assertEquals(2, stub.recordedCalls().size());
-        assertEquals("turn for \"workflow-1\"", stub.recordedCalls().get(0).effectivePrompt());
-        assertEquals("turn for \"workflow-2\"", stub.recordedCalls().get(1).effectivePrompt());
+        List<TraceEntry> actions = trace.entries().stream().filter(e -> e.phase() == Phase.ACTION).toList();
+        assertEquals("turn for \"workflow-1\"", actions.get(0).args()[1]);
+        assertEquals("turn for \"workflow-2\"", actions.get(1).args()[1]);
     }
 }

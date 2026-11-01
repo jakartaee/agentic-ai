@@ -15,7 +15,9 @@ package ee.jakarta.tck.ai.agent.core.behavior.agents.concurrency;
 import jakarta.enterprise.context.ApplicationScoped;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CyclicBarrier;
@@ -26,7 +28,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * Application-scoped coordinator that lets a set of concurrent workflow executions
  * rendezvous so their agent instances are guaranteed to be alive at the same time,
- * then records whether each workflow observed only its own state.
+ * then records whether each workflow observed only its own state and what the
+ * model echoed back to it.
  *
  * <p>The rendezvous is a {@link CyclicBarrier}: every workflow parks in its
  * {@code @Trigger} until all of them have started, which maximizes the window in
@@ -39,8 +42,17 @@ public class ConcurrencyCoordinator {
 
     private static final long AWAIT_TIMEOUT_SECONDS = 30;
 
+    /**
+     * What one workflow saw from the model.
+     *
+     * @param echoed the response to the workflow's own turn
+     * @param history the conversation the model reported afterwards
+     */
+    public record LlmObservation(String echoed, String history) {}
+
     private final List<String> mismatches = new CopyOnWriteArrayList<>();
     private final AtomicInteger observations = new AtomicInteger();
+    private final Map<String, LlmObservation> llmObservations = new ConcurrentHashMap<>();
     private volatile CyclicBarrier barrier;
 
     /**
@@ -52,6 +64,7 @@ public class ConcurrencyCoordinator {
         barrier = new CyclicBarrier(parties);
         mismatches.clear();
         observations.set(0);
+        llmObservations.clear();
     }
 
     /**
@@ -85,6 +98,25 @@ public class ConcurrencyCoordinator {
         if (!Objects.equals(expected, observed)) {
             mismatches.add("state leaked: expected=" + expected + " observed=" + observed);
         }
+    }
+
+    /**
+     * Records what the model echoed to one workflow and the conversation it
+     * reported for that workflow.
+     *
+     * @param marker the marker this workflow was triggered with
+     * @param echoed the response to the workflow's turn
+     * @param history the conversation history the model returned
+     */
+    public void recordLlm(String marker, String echoed, String history) {
+        llmObservations.put(marker, new LlmObservation(echoed, history));
+    }
+
+    /**
+     * @return each workflow's model observation, keyed by marker
+     */
+    public Map<String, LlmObservation> llmObservations() {
+        return Map.copyOf(llmObservations);
     }
 
     /**

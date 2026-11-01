@@ -40,7 +40,7 @@ public class DataPropagationAgent {
     @Decision
     public DecisionOutput decide(DataPropagationEvent event, TriggerOutput trigger) {
         trace.record(Phase.DECISION, "decide", event, trigger);
-        String response = llm.query("decide", trigger.fromTrigger());
+        String response = llm.query(trigger.fromTrigger());
         return new DecisionOutput("decision:" + response);
     }
 

@@ -31,13 +31,12 @@ public class ContextInjectionAgent {
 
     @Trigger
     public void onEvent(@Observes ContextInjectionEvent event, LargeLanguageModel llm) {
-        trace.record(Phase.TRIGGER, "onEvent", event);
-        llm.query("classify {}", event.payload());
+        trace.record(Phase.TRIGGER, "onEvent", event, llm.query("classify {}", event.payload()));
     }
 
     @Action
     public void act(ContextInjectionEvent event, LargeLanguageModel llm) {
-        trace.record(Phase.ACTION, "act", event);
+        trace.record(Phase.ACTION, "act", event, llm.query("classify {}", event.payload()));
     }
 
     @Outcome

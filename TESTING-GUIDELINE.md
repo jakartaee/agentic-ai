@@ -28,7 +28,7 @@ Add tests as needed to cover new features and edge cases.
 
 As with other Jakarta EE TCKs, a compatibility run happens in the implementation's own repository, from its own runner project with its own Arquillian adapter. Every test in the TCK jar must run and pass; nothing may be skipped or excluded.
 
-This repository has no implementation, so its build runs the part of the TCK that plain CDI can satisfy on Weld Embedded. Assertions that only a compatible implementation can satisfy — the `@Decision`, `@Action`, `@Outcome` and `@OnException` phases — carry `@RequiresImplementation`, which is a JUnit tag; the `tck` module's Failsafe configuration excludes it, and nothing else does. That is the plain build:
+This repository has no implementation, so its build runs the part of the TCK that plain CDI can satisfy on Weld Embedded. Assertions that only a compatible implementation can satisfy — the `@Decision`, `@Action`, `@Outcome` and `@OnException` phases — carry `@RequiresImplementation`, which is a JUnit tag; the `tck` module's Failsafe configuration excludes it, and nothing else does. The TCK deploys no `LargeLanguageModel` of its own — the implementation's facade is what the LLM assertions test, backed during a run by the echo model the TCK Reference Guide specifies under "Additional Certification Requirements". Since this repository has no implementation, `tck/src/test` carries `EchoLargeLanguageModel`, a stand-in facade that follows that specification and is added to every archive here by a test-scoped Arquillian extension; it never reaches the jar. That is the plain build:
 
 ```
 mvn --projects tck --also-make verify

@@ -17,7 +17,6 @@ import ee.jakarta.tck.ai.agent.core.behavior.agents.contextinjection.ContextInje
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Assertion;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Deployed;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.RequiresImplementation;
-import ee.jakarta.tck.ai.agent.framework.stub.LargeLanguageModelStub;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder.Phase;
 import jakarta.enterprise.event.Event;
@@ -46,16 +45,13 @@ public class ContextInjectionTests {
     }
 
     @Inject Event<ContextInjectionEvent> events;
-    @Inject LargeLanguageModelStub llm;
     @Inject ExecutionTraceRecorder trace;
 
     @Assertion(id = "AGENTICAI-CTX-002",
                section = "agent-lifecycle",
                strategy = "Triggering event payload is accessible in @Trigger and preserved in the trace")
     public void eventPayloadIsPreservedInTrigger() {
-        llm.reset();
         trace.reset();
-        llm.enqueueResponse("ok");
         events.fire(new ContextInjectionEvent("my-payload"));
 
         ContextInjectionEvent recorded = (ContextInjectionEvent) trace.entries().get(0).args()[0];
@@ -67,9 +63,7 @@ public class ContextInjectionTests {
                section = "parameter-resolution",
                strategy = "Triggering event is available for injection in @Action")
     public void eventIsInjectableInAction() {
-        llm.reset();
         trace.reset();
-        llm.enqueueResponse("classified"); // @Trigger calls llm.query("classify {}", payload)
         events.fire(new ContextInjectionEvent("payload"));
         assertEquals(List.of(Phase.TRIGGER, Phase.ACTION, Phase.OUTCOME), trace.phases());
         assertInstanceOf(ContextInjectionEvent.class, trace.entries().stream()
@@ -82,12 +76,12 @@ public class ContextInjectionTests {
     @RequiresImplementation
     @Assertion(id = "AGENTICAI-CTX-004",
                section = "parameter-resolution",
-               strategy = "LargeLanguageModel is injectable as a direct method parameter of @Action")
+               strategy = "LargeLanguageModel is injectable as a direct method parameter of @Action and is a "
+                        + "working facade: its echoed response is the rendered prompt")
     public void llmIsInjectedInAction() {
-        llm.reset();
         trace.reset();
-        llm.enqueueResponse("classified");
         events.fire(new ContextInjectionEvent("payload"));
         assertEquals(List.of(Phase.TRIGGER, Phase.ACTION, Phase.OUTCOME), trace.phases());
+        assertEquals("classify \"payload\"", trace.entries().get(1).args()[1]);
     }
 }
