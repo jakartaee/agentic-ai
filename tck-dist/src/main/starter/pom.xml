@@ -98,8 +98,8 @@
 
         <!-- TODO: the Arquillian container adapter for your runtime, for example
              a managed or remote adapter for an application server. An embedded
-             adapter that runs the container in the test JVM also needs a Jakarta
-             JSON Binding provider on this class path. -->
+             adapter runs the container in this JVM, so the implementation and
+             everything it needs must be on this class path too. -->
     </dependencies>
     <!-- end::testClientDep[] -->
 

@@ -43,8 +43,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  * <p>Each agent declares its phase methods in the reverse of their intended
  * execution order, so a trace that follows the sort key (not source order)
  * proves the rule is honored. Ordering is performed by the implementation when
- * it dispatches phases, so the behavioral assertions are
- * a deployment-error test.</p>
+ * it dispatches phases.</p>
  *
  * <p>Note on reset: in {@code @Deployed} classes {@code @BeforeEach} does not run
  * reliably between methods inside the container, so each test resets the trace
