@@ -1,0 +1,57 @@
+== A Guide to the TCK Distribution
+
+=== Obtaining the Software
+
+The {APILongName} TCK is distributed as a zip file that contains everything needed to run and certify an implementation.
+Final releases are published on https://download.eclipse.org/ee4j/agentic-ai/[download.eclipse.org] with a SHA-256 checksum; the certification request asks for that checksum.
+The source is in the {APIGitSite}[specification repository].
+
+=== The TCK Environment
+
+Extract the zip. Its layout is:
+
+[source,txt,subs="attributes"]
+----
+agentic-ai-tck-{TCKVersion}/
+  artifacts/
+    jakarta.agentic-ai-tck-{TCKVersion}.jar
+    jakarta.agentic-ai-tck-{TCKVersion}-sources.jar
+    jakarta.agentic-ai-parent-{TCKVersion}.pom
+    jakarta.ai.agent.sig_{APIVersion}
+    artifact-install.sh
+  docs/
+    agentic-ai-tck-reference-guide.html
+    agentic-ai-tck-reference-guide.pdf
+  starter/
+  LICENSE
+  README.md
+----
+
+* `artifacts/` holds the TCK jar and its sources, the parent pom the jar's own pom refers to, a reference copy of the API signature baseline, and a script that installs the jar and pom into a local Maven repository.
+* `docs/` holds this guide.
+* `starter/` is a minimal Maven project that runs the TCK once an Arquillian adapter is configured.
+* `LICENSE` is the {license}.
+
+=== A Quick Tour of the TCK Artifacts
+
+==== What is included
+
+The TCK jar contains the following packages:
+
+`ee.jakarta.tck.ai.agent.core.agent`, `core.lifecycle`, `core.cdi`:: Standalone structural tests: the annotations, `LargeLanguageModel`, `Result` and `LLMException` exist with the attributes, targets, retention and CDI metadata the specification requires.
+`ee.jakarta.tck.ai.agent.core.behavior`:: Deployed behavioral tests, one class per concern: phase ordering and precedence, data propagation and resolution tie-breaks, termination, `@OnException` handling, validation, inherited and void phases, topology flexibility, orchestration, CDI integration and event observation, workflow-scope lifecycle, concurrency isolation, deployment errors and the `LargeLanguageModel` contract. The agents each class deploys are under `core.behavior.agents`.
+`ee.jakarta.tck.ai.agent.core.integration`:: A deployed end-to-end smoke test.
+`ee.jakarta.tck.ai.agent.framework`:: The test framework: the `@Assertion` and tag annotations and their JUnit conditions, the Arquillian extension, the `LargeLanguageModel` stub, the trace recorder and the signature test.
+
+Every test method carries `@Assertion(id, section, strategy)`, which names the specification requirement it verifies.
+Assertion ids are the reference to quote in a challenge.
+
+==== API signature baseline
+
+`artifacts/jakarta.ai.agent.sig_{APIVersion}` records the public signature of the `{APIPackage}` package for this release.
+It is included for reference; the copy the signature test uses is inside the TCK jar.
+
+==== What is not included
+
+The TCK uses but does not provide a Jakarta EE runtime, an Arquillian adapter, an implementation of {APILongName}, or a JSON Binding provider for the Test Client.
+Setting up a runner project that supplies these is described in <<Creating a TCK Runner>>.

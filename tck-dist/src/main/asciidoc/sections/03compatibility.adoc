@@ -1,0 +1,18 @@
+== Certify Compatibility
+
+=== Runtime Tests and Signature Test Required
+
+To certify compatibility with {APILongName}, run the TCK against your implementation and pass 100% of both:
+
+* the {TCKTestPlatform} runtime tests, standalone and deployed, and
+* the signature test.
+
+Both run in a single execution.
+The signature test is an ordinary {TCKTestPlatform} test class in the TCK jar and runs alongside the other tests; no separate plugin execution or configuration is required.
+
+=== Java SE Level
+
+{APILongName} {APIVersion} requires Java SE {JavaVersion} or later.
+The signature test resolves JDK types from the running JDK's `lib/ct.sym` at the Java SE {JavaVersion} level, so any JDK of that version or later produces the same result.
+
+Use one JDK consistently for the whole certification run: the same `java -version` must apply to the Test Client, the Test Server and the results you publish.

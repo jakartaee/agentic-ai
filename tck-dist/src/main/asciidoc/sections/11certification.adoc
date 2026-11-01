@@ -1,0 +1,21 @@
+:RequestCertification: {APIGitSite}/issues/new?labels=certification&template=certification.yml&title=%5BCertification%5D%3A+
+:ExistingCertifications: {APIGitSite}/issues?q=is%3Aissue+label%3Acertification
+
+== Certification of Compatibility
+
+The {TCKProcessDoc}[Jakarta EE TCK Process] defines how compatibility with {APILongName} is certified through execution of this TCK.
+
+From the *Jakarta EE TCK Process*:
+
+> Jakarta EE is a self-certification ecosystem.
+> If you wish to have your implementation listed on the official https://jakarta.ee implementations page for the given specification, a certification request as defined in this section is required.
+
+=== Filing a Certification Request
+
+Certification requests are tracked as issues labeled `certification` in the {ExistingCertifications}[specification repository].
+File one with the {RequestCertification}[Compatibility Certification Request issue template].
+It asks for the organization, the product and its version, the specification and TCK versions, the SHA-256 checksum of the TCK distribution zip, a public link to the results summary, the Java runtime and environment used, acceptance of the {licenseURL}[{license}] and an attestation that all TCK requirements, including the rules in <<Rules for {APILongName} Products>>, have been met.
+
+=== Additional Certification Requirements
+
+{APILongName} {APIVersion} defines no certification requirements beyond those in the Jakarta EE TCK Process and this guide.

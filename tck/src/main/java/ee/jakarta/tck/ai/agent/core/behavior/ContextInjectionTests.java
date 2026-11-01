@@ -30,7 +30,11 @@ import org.jboss.shrinkwrap.api.asset.EmptyAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.jupiter.api.TestInstance;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 
 @Deployed
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -57,10 +61,10 @@ public class ContextInjectionTests {
         llm.enqueueResponse("classified");
         events.fire(new ContextInjectionEvent("payload"));
 
-        assertThat(trace.phases()).containsExactly(Phase.TRIGGER);
-        assertThat(llm.recordedCalls()).hasSize(1);
-        assertThat(llm.lastCall().prompt()).isEqualTo("classify {}");
-        assertThat(llm.lastCall().params()).containsExactly("payload");
+        assertEquals(List.of(Phase.TRIGGER), trace.phases());
+        assertEquals(1, llm.recordedCalls().size());
+        assertEquals("classify {}", llm.lastCall().prompt());
+        assertArrayEquals(new Object[] {"payload"}, llm.lastCall().params());
     }
 
     @Assertion(id = "AGENTICAI-CTX-002",
@@ -73,7 +77,7 @@ public class ContextInjectionTests {
         events.fire(new ContextInjectionEvent("my-payload"));
 
         ContextInjectionEvent recorded = (ContextInjectionEvent) trace.entries().get(0).args()[0];
-        assertThat(recorded.payload()).isEqualTo("my-payload");
+        assertEquals("my-payload", recorded.payload());
     }
 
     @RequiresImplementation
@@ -85,13 +89,12 @@ public class ContextInjectionTests {
         trace.reset();
         llm.enqueueResponse("classified"); // @Trigger calls llm.query("classify {}", payload)
         events.fire(new ContextInjectionEvent("payload"));
-        assertThat(trace.phases())
-                .containsExactly(Phase.TRIGGER, Phase.ACTION, Phase.OUTCOME);
-        assertThat(trace.entries().stream()
+        assertEquals(List.of(Phase.TRIGGER, Phase.ACTION, Phase.OUTCOME), trace.phases());
+        assertInstanceOf(ContextInjectionEvent.class, trace.entries().stream()
                 .filter(e -> e.phase() == Phase.ACTION)
                 .findFirst()
                 .orElseThrow()
-                .args()[0]).isInstanceOf(ContextInjectionEvent.class);
+                .args()[0]);
     }
 
     @RequiresImplementation
@@ -103,7 +106,6 @@ public class ContextInjectionTests {
         trace.reset();
         llm.enqueueResponse("classified");
         events.fire(new ContextInjectionEvent("payload"));
-        assertThat(trace.phases())
-                .containsExactly(Phase.TRIGGER, Phase.ACTION, Phase.OUTCOME);
+        assertEquals(List.of(Phase.TRIGGER, Phase.ACTION, Phase.OUTCOME), trace.phases());
     }
 }

@@ -30,7 +30,10 @@ import org.jboss.shrinkwrap.api.asset.EmptyAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.jupiter.api.BeforeEach;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 
 @Deployed
 public class VoidPhasesTests {
@@ -58,7 +61,7 @@ public class VoidPhasesTests {
                strategy = "void @Trigger is observed and recorded without error")
     public void voidTriggerIsObserved() {
         events.fire(new VoidPhasesEvent("test"));
-        assertThat(trace.phases()).containsExactly(Phase.TRIGGER);
+        assertEquals(List.of(Phase.TRIGGER), trace.phases());
     }
 
     @RequiresImplementation
@@ -68,10 +71,10 @@ public class VoidPhasesTests {
     public void voidTriggerDoesNotPollutInjectionContext() {
         events.fire(new VoidPhasesEvent("test"));
 
-        assertThat(trace.phases())
-                .containsExactly(Phase.TRIGGER, Phase.DECISION, Phase.ACTION, Phase.OUTCOME);
-        assertThat(trace.entries().get(1).args()).hasSize(1)
-                .allSatisfy(arg -> assertThat(arg).isInstanceOf(VoidPhasesEvent.class));
+        assertEquals(List.of(Phase.TRIGGER, Phase.DECISION, Phase.ACTION, Phase.OUTCOME), trace.phases());
+        Object[] decisionArgs = trace.entries().get(1).args();
+        assertEquals(1, decisionArgs.length);
+        assertInstanceOf(VoidPhasesEvent.class, decisionArgs[0]);
     }
 
     @RequiresImplementation
@@ -81,12 +84,11 @@ public class VoidPhasesTests {
     public void voidActionDoesNotBreakOutcome() {
         events.fire(new VoidPhasesEvent("test"));
 
-        assertThat(trace.phases())
-                .containsExactly(Phase.TRIGGER, Phase.DECISION, Phase.ACTION, Phase.OUTCOME);
-        assertThat(trace.entries().stream()
+        assertEquals(List.of(Phase.TRIGGER, Phase.DECISION, Phase.ACTION, Phase.OUTCOME), trace.phases());
+        assertInstanceOf(VoidPhasesEvent.class, trace.entries().stream()
                 .filter(e -> e.phase() == Phase.OUTCOME)
                 .findFirst()
                 .orElseThrow()
-                .args()[0]).isInstanceOf(VoidPhasesEvent.class);
+                .args()[0]);
     }
 }

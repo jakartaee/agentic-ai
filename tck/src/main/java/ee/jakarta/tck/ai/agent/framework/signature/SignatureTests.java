@@ -12,301 +12,88 @@
  *****************************************************************************/
 package ee.jakarta.tck.ai.agent.framework.signature;
 
+import com.sun.tdk.signaturetest.SignatureTest;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Assertion;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Standalone;
-import jakarta.ai.agent.*;
+import jakarta.ai.agent.Agent;
+import jakarta.enterprise.context.NormalScope;
+import jakarta.enterprise.util.AnnotationLiteral;
 
-import java.lang.reflect.Method;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.net.URISyntaxException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * Signature tests for the Jakarta Agentic AI 1.0 API.
+ * Verifies the public API surface of {@code jakarta.ai.agent} against the
+ * signature baseline shipped in the TCK, using the Jakarta TCK signature
+ * test engine.
  *
- * <p>These tests verify that the API surface matches the specification.
- * They ensure that all required types, methods, and annotations are present
- * with the correct signatures.
+ * <p>The check is strict in both directions: a removed, changed <em>or
+ * added</em> public member fails it. JDK types are resolved from the running
+ * JDK's {@code lib/ct.sym} view of Java SE {@value #JAVA_SE_RELEASE}, the
+ * baseline the signature file was recorded against, so the result does not
+ * depend on which newer JDK runs the TCK. The test therefore needs a JDK,
+ * not a JRE.</p>
+ *
+ * <p>The API under test is whichever {@code jakarta.ai.agent} the test
+ * class path resolves, so an implementation that bundles its own copy of the
+ * API is verified against that copy.</p>
  */
 @Standalone
 public class SignatureTests {
 
-    private static final String PACKAGE_NAME = "jakarta.ai.agent";
+    static final String PACKAGE = "jakarta.ai.agent";
+    static final String SIGNATURE_RESOURCE =
+            "ee/jakarta/tck/ai/agent/framework/signature/jakarta.ai.agent.sig_1.0";
+    static final int JAVA_SE_RELEASE = 17;
 
     @Assertion(id = "AGENTICAI-SIG-001",
-               strategy = "Verify all required annotation types exist in the API")
-    public void testRequiredAnnotationTypesExist() {
-        Class<?>[] requiredAnnotations = {
-                Agent.class,
-                Trigger.class,
-                Decision.class,
-                Action.class,
-                Outcome.class,
-                OnException.class,
-                WorkflowScoped.class
-        };
-
-        for (Class<?> annotation : requiredAnnotations) {
-            assertTrue(annotation.isAnnotation(),
-                    annotation.getSimpleName() + " must be an annotation type");
-            assertEquals(PACKAGE_NAME, annotation.getPackageName(),
-                    annotation.getSimpleName() + " must be in " + PACKAGE_NAME);
-        }
-    }
-
-    @Assertion(id = "AGENTICAI-SIG-002",
-               strategy = "Verify all required interfaces exist in the API")
-    public void testRequiredInterfacesExist() {
-        assertTrue(LargeLanguageModel.class.isInterface(),
-                "LargeLanguageModel must be an interface");
-        assertEquals(PACKAGE_NAME, LargeLanguageModel.class.getPackageName(),
-                "LargeLanguageModel must be in " + PACKAGE_NAME);
-    }
-
-    @Assertion(id = "AGENTICAI-SIG-002B",
-               strategy = "Verify @Action and @Decision have an order() attribute defaulting to 0")
-    public void testOrderAttributeOnActionAndDecision() throws NoSuchMethodException {
-        Method actionOrder = Action.class.getDeclaredMethod("order");
-        assertNotNull(actionOrder, "@Action must have an order() attribute");
-        assertEquals(int.class, actionOrder.getReturnType(),
-                "@Action.order() must return int");
-        assertEquals(0, (int) actionOrder.getDefaultValue(),
-                "@Action.order() must default to 0");
-
-        Method decisionOrder = Decision.class.getDeclaredMethod("order");
-        assertNotNull(decisionOrder, "@Decision must have an order() attribute");
-        assertEquals(int.class, decisionOrder.getReturnType(),
-                "@Decision.order() must return int");
-        assertEquals(0, (int) decisionOrder.getDefaultValue(),
-                "@Decision.order() must default to 0");
-    }
-
-    @Assertion(id = "AGENTICAI-SIG-003",
-               strategy = "Verify LargeLanguageModel interface has all required methods")
-    public void testLargeLanguageModelSignature() {
-        Set<String> requiredMethods = new HashSet<>(Arrays.asList(
-                "query",
-                "unwrap"
-        ));
-
-        Set<String> actualMethods = new HashSet<>();
-        for (Method method : LargeLanguageModel.class.getDeclaredMethods()) {
-            actualMethods.add(method.getName());
-        }
-
-        for (String required : requiredMethods) {
-            assertTrue(actualMethods.contains(required),
-                    "LargeLanguageModel must have method: " + required);
-        }
-    }
-
-    @Assertion(id = "AGENTICAI-SIG-004",
-               strategy = "Verify lifecycle annotations target METHOD elements")
-    public void testLifecycleAnnotationsTargetMethod() {
-        Class<?>[] lifecycleAnnotations = {
-                Trigger.class,
-                Decision.class,
-                Action.class,
-                Outcome.class,
-                OnException.class
-        };
-
-        for (Class<?> annotation : lifecycleAnnotations) {
-            java.lang.annotation.Target target = annotation.getAnnotation(java.lang.annotation.Target.class);
-            assertNotNull(target,
-                    annotation.getSimpleName() + " must have @Target annotation");
-
-            boolean targetsMethod = Arrays.asList(target.value())
-                    .contains(java.lang.annotation.ElementType.METHOD);
-            assertTrue(targetsMethod,
-                    annotation.getSimpleName() + " must target METHOD elements");
-        }
-    }
-
-    @Assertion(id = "AGENTICAI-SIG-005",
-               strategy = "Verify @Agent annotation targets TYPE elements")
-    public void testAgentAnnotationTargetsType() {
-        java.lang.annotation.Target target = Agent.class.getAnnotation(java.lang.annotation.Target.class);
-        assertNotNull(target,
-                "@Agent must have @Target annotation");
-
-        boolean targetsType = Arrays.asList(target.value())
-                .contains(java.lang.annotation.ElementType.TYPE);
-        assertTrue(targetsType,
-                "@Agent must target TYPE elements");
-    }
-
-    @Assertion(id = "AGENTICAI-SIG-006",
-               strategy = "Verify all annotations have RUNTIME retention")
-    public void testAllAnnotationsHaveRuntimeRetention() {
-        Class<?>[] allAnnotations = {
-                Agent.class,
-                Trigger.class,
-                Decision.class,
-                Action.class,
-                Outcome.class,
-                OnException.class,
-                WorkflowScoped.class
-        };
-
-        for (Class<?> annotation : allAnnotations) {
-            java.lang.annotation.Retention retention =
-                    annotation.getAnnotation(java.lang.annotation.Retention.class);
-            assertNotNull(retention,
-                    annotation.getSimpleName() + " must have @Retention annotation");
-            assertEquals(java.lang.annotation.RetentionPolicy.RUNTIME, retention.value(),
-                    annotation.getSimpleName() + " must have RUNTIME retention");
-        }
-    }
-
-    @Assertion(id = "AGENTICAI-SIG-007",
-               strategy = "Verify Result record exists in the API with correct structure")
-    public void testResultRecordSignature() {
-        // Verify Result class exists
-        assertNotNull(Result.class, "Result class must exist in jakarta.ai.agent package");
-        assertEquals(PACKAGE_NAME, Result.class.getPackageName(),
-                "Result must be in " + PACKAGE_NAME);
-
-        // Verify Result is a record
-        assertTrue(Result.class.isRecord(),
-                "Result must be a record type");
-
-        // Verify record components
-        var components = Result.class.getRecordComponents();
-        assertNotNull(components, "Result record must have components");
-        assertEquals(2, components.length, "Result record must have exactly 2 components");
-
-        // Verify success component (boolean)
-        assertTrue(Arrays.stream(components).anyMatch(c ->
-                c.getName().equals("success") && c.getType().equals(boolean.class)),
-                "Result must have 'success' component of type boolean");
-
-        // Verify details component (Object)
-        assertTrue(Arrays.stream(components).anyMatch(c ->
-                c.getName().equals("details") && c.getType().equals(Object.class)),
-                "Result must have 'details' component of type Object");
-    }
-
-    @Assertion(id = "AGENTICAI-SIG-008",
-               strategy = "Verify LLMException exists and extends RuntimeException")
-    public void testLLMExceptionSignature() {
+               strategy = "Run the Jakarta TCK signature test engine in strict static mode "
+                       + "against the recorded jakarta.ai.agent signature file")
+    public void apiMatchesRecordedSignature() throws IOException, URISyntaxException {
+        Path signatureFile = Files.createTempFile("jakarta.ai.agent", ".sig");
         try {
-            Class<?> llmExceptionClass = Class.forName("jakarta.ai.agent.LLMException");
-            assertNotNull(llmExceptionClass, "LLMException class must exist in jakarta.ai.agent package");
-            assertEquals(PACKAGE_NAME, llmExceptionClass.getPackageName(),
-                    "LLMException must be in " + PACKAGE_NAME);
+            try (InputStream in = SignatureTests.class.getClassLoader().getResourceAsStream(SIGNATURE_RESOURCE)) {
+                assertNotNull(in, "Signature baseline " + SIGNATURE_RESOURCE + " is missing from the TCK");
+                Files.copy(in, signatureFile, StandardCopyOption.REPLACE_EXISTING);
+            }
+            Path apiLocation = locationOf(Agent.class);
+            // The CDI types the API extends and is annotated with must be resolvable too.
+            String classpath = Stream.of(apiLocation, locationOf(NormalScope.class), locationOf(AnnotationLiteral.class))
+                    .distinct()
+                    .map(Path::toString)
+                    .collect(Collectors.joining(File.pathSeparator));
 
-            // Verify it extends RuntimeException
-            assertTrue(RuntimeException.class.isAssignableFrom(llmExceptionClass),
-                    "LLMException must extend RuntimeException");
+            String[] args = {
+                    "-Static",
+                    "-FileName", signatureFile.toString(),
+                    "-PackageWithoutSubpackages", PACKAGE,
+                    "-BootCP", Integer.toString(JAVA_SE_RELEASE),
+                    "-Classpath", classpath
+            };
+            StringWriter report = new StringWriter();
+            SignatureTest test = new SignatureTest();
+            test.run(args, new PrintWriter(report, true), null);
 
-            // Verify constructors exist
-            boolean hasStringConstructor = Arrays.stream(llmExceptionClass.getDeclaredConstructors())
-                    .anyMatch(c -> c.getParameterCount() == 1 && c.getParameterTypes()[0].equals(String.class));
-            assertTrue(hasStringConstructor, "LLMException must have a constructor with String parameter");
-
-            boolean hasStringThrowableConstructor = Arrays.stream(llmExceptionClass.getDeclaredConstructors())
-                    .anyMatch(c -> c.getParameterCount() == 2 &&
-                            c.getParameterTypes()[0].equals(String.class) &&
-                            c.getParameterTypes()[1].equals(Throwable.class));
-            assertTrue(hasStringThrowableConstructor,
-                    "LLMException must have a constructor with String and Throwable parameters");
-
-            boolean hasThrowableConstructor = Arrays.stream(llmExceptionClass.getDeclaredConstructors())
-                    .anyMatch(c -> c.getParameterCount() == 1 &&
-                            c.getParameterTypes()[0].equals(Throwable.class));
-            assertTrue(hasThrowableConstructor,
-                    "LLMException must have a constructor with Throwable parameter");
-
-        } catch (ClassNotFoundException e) {
-            fail("LLMException class not found: " + e.getMessage());
+            assertTrue(test.isPassed(), () -> PACKAGE + " at " + apiLocation
+                    + " differs from the recorded signature baseline:" + System.lineSeparator() + report);
+        } finally {
+            Files.deleteIfExists(signatureFile);
         }
     }
 
-    @Assertion(id = "AGENTICAI-SIG-009",
-               strategy = "Verify WorkflowScoped.Literal inner class exists")
-    public void testWorkflowScopedLiteralInnerClass() {
-        // Find the Literal inner class
-        Class<?>[] innerClasses = WorkflowScoped.class.getDeclaredClasses();
-        assertTrue(innerClasses.length > 0,
-                "WorkflowScoped must have inner classes");
-
-        boolean hasLiteral = Arrays.stream(innerClasses)
-                .anyMatch(c -> c.getSimpleName().equals("Literal"));
-        assertTrue(hasLiteral,
-                "WorkflowScoped must have a Literal inner class");
-
-        try {
-            Class<?> literalClass = Class.forName("jakarta.ai.agent.WorkflowScoped$Literal");
-            assertNotNull(literalClass,
-                    "WorkflowScoped.Literal must be accessible");
-        } catch (ClassNotFoundException e) {
-            fail("WorkflowScoped.Literal class not found: " + e.getMessage());
-        }
-    }
-
-    @Assertion(id = "AGENTICAI-SIG-010",
-               strategy = "Verify LargeLanguageModel query methods have correct signatures")
-    public void testLargeLanguageModelQueryMethodSignatures() {
-        // Find query methods
-        Method[] queryMethods = Arrays.stream(LargeLanguageModel.class.getDeclaredMethods())
-                .filter(m -> m.getName().equals("query"))
-                .toArray(Method[]::new);
-
-        assertTrue(queryMethods.length >= 2,
-                "LargeLanguageModel must have at least 2 query method overloads");
-
-        // Verify query(String, Class<T>) exists
-        boolean hasQueryStringClass = Arrays.stream(queryMethods)
-                .anyMatch(m -> m.getParameterCount() == 2 &&
-                        m.getParameterTypes()[0].equals(String.class) &&
-                        m.getParameterTypes()[1].getName().contains("Class"));
-        assertTrue(hasQueryStringClass,
-                "LargeLanguageModel must have query(String, Class<T>) method");
-
-        // Verify query(String, Object[]) exists
-        boolean hasQueryStringObjects = Arrays.stream(queryMethods)
-                .anyMatch(m -> m.getParameterCount() >= 2 &&
-                        m.getParameterTypes()[0].equals(String.class));
-        assertTrue(hasQueryStringObjects,
-                "LargeLanguageModel must have query methods with String as first parameter");
-    }
-
-
-
-    @Assertion(id = "AGENTICAI-SIG-011",
-               strategy = "Verify @WorkflowScoped annotation has required meta-annotations")
-    public void testWorkflowScopedMetaAnnotations() {
-        // Check for @NormalScope
-        jakarta.enterprise.context.NormalScope normalScope =
-                WorkflowScoped.class.getAnnotation(jakarta.enterprise.context.NormalScope.class);
-        assertNotNull(normalScope,
-                "@WorkflowScoped must be annotated with @NormalScope");
-
-        // Check for @Target
-        java.lang.annotation.Target target =
-                WorkflowScoped.class.getAnnotation(java.lang.annotation.Target.class);
-        assertNotNull(target,
-                "@WorkflowScoped must have @Target annotation");
-
-        // Check for @Retention
-        java.lang.annotation.Retention retention =
-                WorkflowScoped.class.getAnnotation(java.lang.annotation.Retention.class);
-        assertNotNull(retention,
-                "@WorkflowScoped must have @Retention annotation");
-
-        // Check for @Documented
-        java.lang.annotation.Documented documented =
-                WorkflowScoped.class.getAnnotation(java.lang.annotation.Documented.class);
-        assertNotNull(documented,
-                "@WorkflowScoped must be annotated with @Documented");
-
-        // Check for @Inherited
-        java.lang.annotation.Inherited inherited =
-                WorkflowScoped.class.getAnnotation(java.lang.annotation.Inherited.class);
-        assertNotNull(inherited,
-                "@WorkflowScoped must be annotated with @Inherited");
+    private static Path locationOf(Class<?> type) throws URISyntaxException {
+        return Path.of(type.getProtectionDomain().getCodeSource().getLocation().toURI());
     }
 }

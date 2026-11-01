@@ -16,7 +16,8 @@ import ee.jakarta.tck.ai.agent.framework.junit.anno.Assertion;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Standalone;
 import jakarta.ai.agent.Agent;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @Standalone
 public class AgentCdiMetadataTests {
@@ -31,8 +32,8 @@ public class AgentCdiMetadataTests {
                         + "those values from getAnnotation(Agent.class)")
     public void agentNameAndDescriptionAttributesAreAccessibleAtRuntime() {
         Agent annotation = NamedAgentFixture.class.getAnnotation(Agent.class);
-        assertThat(annotation).isNotNull();
-        assertThat(annotation.name()).isEqualTo("customAgent");
-        assertThat(annotation.description()).isEqualTo("A test agent for BHV-002");
+        assertNotNull(annotation);
+        assertEquals("customAgent", annotation.name());
+        assertEquals("A test agent for BHV-002", annotation.description());
     }
 }

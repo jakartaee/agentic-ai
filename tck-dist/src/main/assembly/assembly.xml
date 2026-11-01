@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<assembly xmlns="http://maven.apache.org/ASSEMBLY/2.1.0"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://maven.apache.org/ASSEMBLY/2.1.0 http://maven.apache.org/xsd/assembly-2.1.0.xsd">
+
+    <id>dist</id>
+    <formats>
+        <format>zip</format>
+    </formats>
+
+    <baseDirectory>agentic-ai-tck-${project.version}</baseDirectory>
+
+    <files>
+        <file>
+            <source>src/main/EFTL.adoc</source>
+            <destName>LICENSE</destName>
+        </file>
+        <file>
+            <source>src/main/readme/README.md</source>
+            <destName>README.md</destName>
+            <filtered>true</filtered>
+        </file>
+        <!-- The TCK jar's pom names this parent, so install-file needs it present. -->
+        <file>
+            <source>../pom.xml</source>
+            <destName>artifacts/jakarta.agentic-ai-parent-${project.version}.pom</destName>
+        </file>
+    </files>
+
+    <fileSets>
+        <fileSet>
+            <directory>src/main/artifacts</directory>
+            <outputDirectory>artifacts</outputDirectory>
+            <fileMode>0755</fileMode>
+        </fileSet>
+        <fileSet>
+            <directory>${tck.artifacts.directory}</directory>
+            <outputDirectory>artifacts</outputDirectory>
+        </fileSet>
+        <fileSet>
+            <directory>${project.parent.basedir}/tck/src/main/resources/ee/jakarta/tck/ai/agent/framework/signature</directory>
+            <outputDirectory>artifacts</outputDirectory>
+            <includes>
+                <include>*.sig*</include>
+            </includes>
+        </fileSet>
+        <fileSet>
+            <directory>${project.build.directory}/generated-docs</directory>
+            <outputDirectory>docs</outputDirectory>
+            <includes>
+                <include>*.html</include>
+                <include>*.pdf</include>
+            </includes>
+        </fileSet>
+        <!-- Filtered so the shipped starter names this release of the TCK. -->
+        <fileSet>
+            <directory>src/main/starter</directory>
+            <outputDirectory>starter</outputDirectory>
+            <filtered>true</filtered>
+        </fileSet>
+    </fileSets>
+</assembly>

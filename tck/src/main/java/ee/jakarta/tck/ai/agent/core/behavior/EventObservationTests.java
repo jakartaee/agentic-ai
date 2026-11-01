@@ -35,7 +35,7 @@ import org.junit.jupiter.api.TestInstance;
 
 import java.util.List;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * TCK coverage for scope-dependent event observation. An {@code @ApplicationScoped}
@@ -77,7 +77,7 @@ public class EventObservationTests {
     public void applicationScopedAgentObservesViaGeneralObserver() {
         trace.reset();
         generalEvents.fire(new GeneralObservationEvent("input"));
-        assertThat(recordedMethodNames()).containsExactly("onGeneralEvent");
+        assertEquals(List.of("onGeneralEvent"), recordedMethodNames());
     }
 
     @RequiresNoImplementation
@@ -87,8 +87,8 @@ public class EventObservationTests {
     public void applicationScopedAgentObservesViaTrigger() {
         trace.reset();
         triggerEvents.fire(new EventObservationTriggerEvent("input"));
-        assertThat(trace.phases()).containsExactly(Phase.TRIGGER);
-        assertThat(recordedMethodNames()).containsExactly("onTriggerEvent");
+        assertEquals(List.of(Phase.TRIGGER), trace.phases());
+        assertEquals(List.of("onTriggerEvent"), recordedMethodNames());
     }
 
     @RequiresImplementation
@@ -98,7 +98,7 @@ public class EventObservationTests {
     public void workflowScopedAgentObservesViaTrigger() {
         trace.reset();
         workflowScopedEvents.fire(new WorkflowScopedTriggerEvent("input"));
-        assertThat(trace.phases()).containsExactly(Phase.TRIGGER);
-        assertThat(recordedMethodNames()).containsExactly("onTriggerEvent");
+        assertEquals(List.of(Phase.TRIGGER), trace.phases());
+        assertEquals(List.of("onTriggerEvent"), recordedMethodNames());
     }
 }

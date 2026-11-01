@@ -36,9 +36,15 @@ import org.jboss.shrinkwrap.api.asset.EmptyAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.jupiter.api.TestInstance;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatCode;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Deployed
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -76,24 +82,21 @@ public class LlmContractTests {
                section = "llm-integration",
                strategy = "null prompt on single-arg overload must throw IllegalArgumentException immediately")
     public void nullPromptThrowsIllegalArgumentException() {
-        assertThatThrownBy(() -> llm.query(null))
-                .isInstanceOf(IllegalArgumentException.class);
+        assertThrows(IllegalArgumentException.class, () -> llm.query(null));
     }
 
     @Assertion(id = "AGENTICAI-LLM-BHV-002",
                section = "llm-integration",
                strategy = "null prompt on varargs overload must throw IllegalArgumentException immediately")
     public void nullPromptWithParamsThrowsIllegalArgumentException() {
-        assertThatThrownBy(() -> llm.query(null, "x"))
-                .isInstanceOf(IllegalArgumentException.class);
+        assertThrows(IllegalArgumentException.class, () -> llm.query(null, "x"));
     }
 
     @Assertion(id = "AGENTICAI-LLM-BHV-002",
                section = "llm-integration",
                strategy = "null resultType on typed overload must throw IllegalArgumentException immediately")
     public void nullResultTypeThrowsIllegalArgumentException() {
-        assertThatThrownBy(() -> llm.query("p", (Class<?>) null))
-                .isInstanceOf(IllegalArgumentException.class);
+        assertThrows(IllegalArgumentException.class, () -> llm.query("p", (Class<?>) null));
     }
 
     @Assertion(id = "AGENTICAI-LLM-BHV-002",
@@ -102,8 +105,7 @@ public class LlmContractTests {
     public void arityMoreParamsThanPlaceholdersThrows() {
         stub.reset();
         stub.enqueueResponse("ok");
-        assertThatThrownBy(() -> llm.query("one {} here", "a", "b"))
-                .isInstanceOf(IllegalArgumentException.class);
+        assertThrows(IllegalArgumentException.class, () -> llm.query("one {} here", "a", "b"));
     }
 
     @Assertion(id = "AGENTICAI-LLM-BHV-002",
@@ -112,8 +114,7 @@ public class LlmContractTests {
     public void arityFewerParamsThanPlaceholdersThrows() {
         stub.reset();
         stub.enqueueResponse("ok");
-        assertThatThrownBy(() -> llm.query("two {} and {}", "only"))
-                .isInstanceOf(IllegalArgumentException.class);
+        assertThrows(IllegalArgumentException.class, () -> llm.query("two {} and {}", "only"));
     }
 
     @Assertion(id = "AGENTICAI-LLM-BHV-002",
@@ -122,8 +123,7 @@ public class LlmContractTests {
     public void noPlaceholderRejectsMultipleParams() {
         stub.reset();
         stub.enqueueResponse("ok");
-        assertThatThrownBy(() -> llm.query("Analyze this", "a", "b"))
-                .isInstanceOf(IllegalArgumentException.class);
+        assertThrows(IllegalArgumentException.class, () -> llm.query("Analyze this", "a", "b"));
     }
 
     @Assertion(id = "AGENTICAI-LLM-BHV-002",
@@ -131,8 +131,7 @@ public class LlmContractTests {
                strategy = "parameter that cannot be converted must throw IllegalArgumentException")
     public void parameterSerializationFailureThrowsIllegalArgumentException() {
         stub.reset();
-        assertThatThrownBy(() -> llm.query("process {}", new NonSerializableParam()))
-                .isInstanceOf(IllegalArgumentException.class);
+        assertThrows(IllegalArgumentException.class, () -> llm.query("process {}", new NonSerializableParam()));
     }
 
     @Assertion(id = "AGENTICAI-LLM-BHV-002",
@@ -140,24 +139,21 @@ public class LlmContractTests {
                strategy = "parameter that cannot be converted on the typed varargs overload must throw IllegalArgumentException")
     public void parameterSerializationFailureOnTypedOverloadThrowsIllegalArgumentException() {
         stub.reset();
-        assertThatThrownBy(() -> llm.query("process {}", PersonFixture.class, new NonSerializableParam()))
-                .isInstanceOf(IllegalArgumentException.class);
+        assertThrows(IllegalArgumentException.class, () -> llm.query("process {}", PersonFixture.class, new NonSerializableParam()));
     }
 
     @Assertion(id = "AGENTICAI-LLM-BHV-002",
                section = "llm-integration",
                strategy = "null prompt on the typed varargs overload must throw IllegalArgumentException immediately")
     public void nullPromptOnTypedVarargsOverloadThrowsIllegalArgumentException() {
-        assertThatThrownBy(() -> llm.query(null, PersonFixture.class, "x"))
-                .isInstanceOf(IllegalArgumentException.class);
+        assertThrows(IllegalArgumentException.class, () -> llm.query(null, PersonFixture.class, "x"));
     }
 
     @Assertion(id = "AGENTICAI-LLM-BHV-002",
                section = "llm-integration",
                strategy = "null resultType on the typed varargs overload must throw IllegalArgumentException immediately")
     public void nullResultTypeOnTypedVarargsOverloadThrowsIllegalArgumentException() {
-        assertThatThrownBy(() -> llm.query("p", (Class<?>) null, "x"))
-                .isInstanceOf(IllegalArgumentException.class);
+        assertThrows(IllegalArgumentException.class, () -> llm.query("p", (Class<?>) null, "x"));
     }
 
     @Assertion(id = "AGENTICAI-LLM-BHV-002",
@@ -166,16 +162,14 @@ public class LlmContractTests {
     public void arityMismatchOnTypedVarargsOverloadThrows() {
         stub.reset();
         stub.enqueueResponse("ok");
-        assertThatThrownBy(() -> llm.query("one {} here", PersonFixture.class, "a", "b"))
-                .isInstanceOf(IllegalArgumentException.class);
+        assertThrows(IllegalArgumentException.class, () -> llm.query("one {} here", PersonFixture.class, "a", "b"));
     }
 
     @Assertion(id = "AGENTICAI-LLM-BHV-006",
                section = "llm-integration",
                strategy = "unwrap to an incompatible type must throw IllegalArgumentException")
     public void unwrapToIncompatibleTypeThrowsIllegalArgumentException() {
-        assertThatThrownBy(() -> llm.unwrap(String.class))
-                .isInstanceOf(IllegalArgumentException.class);
+        assertThrows(IllegalArgumentException.class, () -> llm.unwrap(String.class));
     }
 
     // -------------------------------------------------------------------------
@@ -189,7 +183,7 @@ public class LlmContractTests {
         stub.reset();
         stub.enqueueResponse("ok");
         llm.query("Hello {} and {}", "Alice", "Bob");
-        assertThat(stub.lastCall().effectivePrompt()).isEqualTo("Hello \"Alice\" and \"Bob\"");
+        assertEquals("Hello \"Alice\" and \"Bob\"", stub.lastCall().effectivePrompt());
     }
 
     @Assertion(id = "AGENTICAI-LLM-BHV-001",
@@ -200,9 +194,8 @@ public class LlmContractTests {
         stub.enqueueResponse("ok");
         // Explicit empty varargs array forces the varargs overload (3) so the substitution
         // implementation actually runs; the single-arg overload bypasses placeholder scanning entirely.
-        assertThatCode(() -> llm.query("{name} and { } stay literal", new Object[0]))
-                .doesNotThrowAnyException();
-        assertThat(stub.lastCall().effectivePrompt()).isEqualTo("{name} and { } stay literal");
+        assertDoesNotThrow(() -> llm.query("{name} and { } stay literal", new Object[0]));
+        assertEquals("{name} and { } stay literal", stub.lastCall().effectivePrompt());
     }
 
     @Assertion(id = "AGENTICAI-LLM-BHV-002",
@@ -212,12 +205,11 @@ public class LlmContractTests {
         stub.reset();
         stub.enqueueResponse("ok");
         PersonFixture context = new PersonFixture("A", 1);
-        assertThatCode(() -> llm.query("Analyze this", context))
-                .doesNotThrowAnyException();
+        assertDoesNotThrow(() -> llm.query("Analyze this", context));
         // Prompt is unchanged (no placeholder to substitute) but the structured param is recorded.
-        assertThat(stub.lastCall().effectivePrompt()).isEqualTo("Analyze this");
-        assertThat(stub.lastCall().params()).hasSize(1);
-        assertThat(stub.lastCall().params()[0]).isSameAs(context);
+        assertEquals("Analyze this", stub.lastCall().effectivePrompt());
+        assertEquals(1, stub.lastCall().params().length);
+        assertSame(context, stub.lastCall().params()[0]);
     }
 
     @Assertion(id = "AGENTICAI-LLM-BHV-003",
@@ -227,9 +219,8 @@ public class LlmContractTests {
         stub.reset();
         stub.enqueueResponse("ok");
         llm.query("Profile: {}", new PersonFixture("Alice", 30));
-        assertThat(stub.lastCall().effectivePrompt())
-                .contains("\"name\":\"Alice\"")
-                .contains("\"age\":30");
+        assertTrue(stub.lastCall().effectivePrompt().contains("\"name\":\"Alice\""));
+                assertTrue(stub.lastCall().effectivePrompt().contains("\"age\":30"));
     }
 
     @Assertion(id = "AGENTICAI-LLM-BHV-004",
@@ -239,8 +230,8 @@ public class LlmContractTests {
         stub.reset();
         stub.enqueueResponse("{\"name\":\"Bob\",\"age\":25}");
         PersonFixture p = llm.query("give person", PersonFixture.class);
-        assertThat(p.name()).isEqualTo("Bob");
-        assertThat(p.age()).isEqualTo(25);
+        assertEquals("Bob", p.name());
+        assertEquals(25, p.age());
     }
 
     @Assertion(id = "AGENTICAI-LLM-BHV-005",
@@ -249,8 +240,7 @@ public class LlmContractTests {
     public void serviceErrorPropagatesAsLlmException() {
         stub.reset();
         stub.failWith(new LLMException("service down"));
-        assertThatThrownBy(() -> llm.query("p"))
-                .isInstanceOf(LLMException.class);
+        assertThrows(LLMException.class, () -> llm.query("p"));
     }
 
     @Assertion(id = "AGENTICAI-LLM-BHV-005",
@@ -259,8 +249,7 @@ public class LlmContractTests {
     public void typeConversionFailurePropagatesAsLlmException() {
         stub.reset();
         stub.enqueueResponse(Integer.valueOf(42));
-        assertThatThrownBy(() -> llm.query("p", PersonFixture.class))
-                .isInstanceOf(LLMException.class);
+        assertThrows(LLMException.class, () -> llm.query("p", PersonFixture.class));
     }
 
     @Assertion(id = "AGENTICAI-LLM-BHV-005",
@@ -269,8 +258,7 @@ public class LlmContractTests {
     public void typeConversionFailureOnTypedVarargsOverloadPropagatesAsLlmException() {
         stub.reset();
         stub.enqueueResponse(Integer.valueOf(42));
-        assertThatThrownBy(() -> llm.query("p", PersonFixture.class, "irrelevant"))
-                .isInstanceOf(LLMException.class);
+        assertThrows(LLMException.class, () -> llm.query("p", PersonFixture.class, "irrelevant"));
     }
 
     @Assertion(id = "AGENTICAI-LLM-BHV-006",
@@ -278,7 +266,8 @@ public class LlmContractTests {
                strategy = "unwrap to the concrete stub type returns the same instance")
     public void unwrapToCompatibleTypeReturnsImplementation() {
         LargeLanguageModelStub unwrapped = llm.unwrap(LargeLanguageModelStub.class);
-        assertThat(unwrapped).isNotNull().isInstanceOf(LargeLanguageModelStub.class);
+        assertNotNull(unwrapped);
+                assertInstanceOf(LargeLanguageModelStub.class, unwrapped);
     }
 
     // -------------------------------------------------------------------------
@@ -300,10 +289,10 @@ public class LlmContractTests {
 
         // Structural: each workflow ran its @Trigger + @Action and produced exactly one LLM call.
         // LlmQuerierAgent has both @Trigger and @Action; the compatible implementation dispatches both phases per workflow.
-        assertThat(trace.phases()).containsExactly(Phase.TRIGGER, Phase.ACTION, Phase.TRIGGER, Phase.ACTION);
-        assertThat(stub.recordedCalls()).hasSize(2);
-        assertThat(stub.recordedCalls().get(0).effectivePrompt()).isEqualTo("turn for \"workflow-1\"");
-        assertThat(stub.recordedCalls().get(1).effectivePrompt()).isEqualTo("turn for \"workflow-2\"");
+        assertEquals(List.of(Phase.TRIGGER, Phase.ACTION, Phase.TRIGGER, Phase.ACTION), trace.phases());
+        assertEquals(2, stub.recordedCalls().size());
+        assertEquals("turn for \"workflow-1\"", stub.recordedCalls().get(0).effectivePrompt());
+        assertEquals("turn for \"workflow-2\"", stub.recordedCalls().get(1).effectivePrompt());
 
         // Isolation guarantee (BHV-007 proper): each event must materialize its own
         // @WorkflowScoped LLM context so the second call cannot observe the first

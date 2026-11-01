@@ -36,7 +36,7 @@ import org.junit.jupiter.api.TestInstance;
 
 import java.util.List;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * Verifies the execution-order precedence rules for {@code @Action}/{@code @Decision}
@@ -90,7 +90,7 @@ public class OrderingPrecedenceTests {
     public void orderAttrTriggerObservedWithoutImplementation() {
         trace.reset();
         orderAttrEvents.fire(new OrderAttrEvent("x"));
-        assertThat(trace.phases()).containsExactly(Phase.TRIGGER);
+        assertEquals(List.of(Phase.TRIGGER), trace.phases());
     }
 
     @RequiresNoImplementation
@@ -101,7 +101,7 @@ public class OrderingPrecedenceTests {
     public void priorityTriggerObservedWithoutImplementation() {
         trace.reset();
         priorityEvents.fire(new PriorityEvent("x"));
-        assertThat(trace.phases()).containsExactly(Phase.TRIGGER);
+        assertEquals(List.of(Phase.TRIGGER), trace.phases());
     }
 
     // ── order attribute is honored ───────────────────────────────────────────
@@ -113,7 +113,7 @@ public class OrderingPrecedenceTests {
     public void orderAttributeIsHonored() {
         trace.reset();
         orderAttrEvents.fire(new OrderAttrEvent("x"));
-        assertThat(recordedMethodNames()).containsExactly("onEvent", "first", "second", "third");
+        assertEquals(List.of("onEvent", "first", "second", "third"), recordedMethodNames());
     }
 
     // ── @Priority is honored ─────────────────────────────────────────────────
@@ -125,7 +125,7 @@ public class OrderingPrecedenceTests {
     public void priorityIsHonored() {
         trace.reset();
         priorityEvents.fire(new PriorityEvent("x"));
-        assertThat(recordedMethodNames()).containsExactly("onEvent", "first", "second", "third");
+        assertEquals(List.of("onEvent", "first", "second", "third"), recordedMethodNames());
     }
 
     // ── @Priority takes precedence over order ────────────────────────────────
@@ -137,6 +137,6 @@ public class OrderingPrecedenceTests {
     public void priorityTakesPrecedenceOverOrder() {
         trace.reset();
         priorityOverOrderEvents.fire(new PriorityOverOrderEvent("x"));
-        assertThat(recordedMethodNames()).containsExactly("onEvent", "runsFirst", "runsThird");
+        assertEquals(List.of("onEvent", "runsFirst", "runsThird"), recordedMethodNames());
     }
 }

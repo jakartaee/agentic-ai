@@ -80,13 +80,18 @@ Arquillian deployments that run real workflows against the implementation under 
 
 `src/main/resources/ee/jakarta/tck/ai/agent/framework/signature/jakarta.ai.agent.sig_1.0`
 records the exact public signature of the `jakarta.ai.agent` package. It ships
-inside the TCK jar, so implementors receive the baseline they are verified
-against.
+inside the TCK jar together with the Jakarta TCK signature test engine
+(`jakarta.tck:sigtest-maven-plugin`, a dependency of the TCK), and
+`SignatureTests` runs the engine against it as an ordinary `@Standalone` JUnit
+test. Implementors therefore run the signature check in the same execution as
+every other test, with no plugin configuration of their own.
 
-Every build compares the API to it via `sigtest-maven-plugin` in `strictcheck`
-mode, which is bidirectional: removing, changing **or adding** a public member
-fails the build. A one-way check would let additions through as
-backward-compatible, which is not what a specification wants.
+The check is strict in both directions: removing, changing **or adding** a
+public member fails it. A one-way check would let additions through as
+backward-compatible, which is not what a specification wants. JDK types are
+resolved from the running JDK's `lib/ct.sym` at the Java SE 17 level, so the
+result does not depend on which newer JDK runs the test; a JDK, not a JRE, is
+required.
 
 When an API change is intended, regenerate the baseline and commit it:
 
@@ -96,6 +101,21 @@ mvn -pl tck verify -Psignature-generation
 
 Review the diff before committing — it is the record of what the specification
 promises.
+
+## Distribution, challenges and certification
+
+The jar this module publishes to Maven Central is EPL-licensed and exists for
+development convenience; the Jakarta EE TCK Process does not let it support a
+compatibility claim. The certifiable distribution is built by the
+[`tck-dist`](../tck-dist/) module: a zip under the Eclipse Foundation
+Technology Compatibility Kit License containing this jar, its sources, the
+signature baseline, the TCK Reference Guide and a starter runner project.
+Implementors should start from the guide in that zip.
+
+Challenges to a test and compatibility certification requests are filed as
+GitHub issues with the `TCK Challenge` and `Compatibility Certification
+Request` templates, which apply the `challenge` and `certification` labels the
+TCK Process requires.
 
 ## Requirements
 

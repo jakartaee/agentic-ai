@@ -44,7 +44,9 @@ import org.junit.jupiter.api.TestInstance;
 
 import java.util.List;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 @Deployed
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -99,7 +101,7 @@ public class CdiIntegrationTests {
     public void staticInnerAgentIsDiscoveredAsCdiBean() {
         trace.reset();
         innerAgentEvents.fire(new InnerAgentEvent("test"));
-        assertThat(trace.phases()).containsExactly(Phase.TRIGGER);
+        assertEquals(List.of(Phase.TRIGGER), trace.phases());
     }
 
     @Assertion(id = "AGENTICAI-CDI-BHV-002",
@@ -109,7 +111,7 @@ public class CdiIntegrationTests {
     public void constructorInjectedAgentIsDiscoveredAndManaged() {
         trace.reset();
         constructorInjectedEvents.fire(new ConstructorInjectedEvent("test"));
-        assertThat(trace.phases()).containsExactly(Phase.TRIGGER);
+        assertEquals(List.of(Phase.TRIGGER), trace.phases());
     }
 
     @Assertion(id = "AGENTICAI-CDI-BHV-002",
@@ -120,8 +122,8 @@ public class CdiIntegrationTests {
     public void agentIsInjectedAsCdiProxy() {
         // Normal-scoped beans are always client-proxied per the CDI spec, so the proxy
         // is a subclass with a different Class object. Portable across CDI implementations.
-        assertThat(singletonAgent).isInstanceOf(SingletonCdiAgent.class);
-        assertThat(singletonAgent.getClass()).isNotEqualTo(SingletonCdiAgent.class);
+        assertInstanceOf(SingletonCdiAgent.class, singletonAgent);
+        assertNotEquals(SingletonCdiAgent.class, singletonAgent.getClass());
     }
 
     @RequiresNoImplementation
@@ -131,7 +133,7 @@ public class CdiIntegrationTests {
     public void singletonAgentTriggerObserved() {
         trace.reset();
         singletonEvents.fire(new SingletonCdiEvent("test"));
-        assertThat(trace.phases()).containsExactly(Phase.TRIGGER);
+        assertEquals(List.of(Phase.TRIGGER), trace.phases());
     }
 
     @Assertion(id = "AGENTICAI-CDI-BHV-003",
@@ -142,7 +144,7 @@ public class CdiIntegrationTests {
         trace.reset();
         singletonEvents.fire(new SingletonCdiEvent("first"));
         singletonEvents.fire(new SingletonCdiEvent("second"));
-        assertThat(SingletonCdiAgent.getInstanceCount()).isEqualTo(1);
+        assertEquals(1, SingletonCdiAgent.getInstanceCount());
     }
 
     @Assertion(id = "AGENTICAI-CDI-BHV-004",
@@ -158,7 +160,7 @@ public class CdiIntegrationTests {
         singletonEvents.fire(new SingletonCdiEvent("second"));
         int id2 = (int) trace.entries().get(0).args()[1];
 
-        assertThat(id1).isEqualTo(id2);
+        assertEquals(id2, id1);
     }
 
     @RequiresNoImplementation
@@ -169,7 +171,7 @@ public class CdiIntegrationTests {
     public void interceptedAgentTriggerObserved() {
         trace.reset();
         interceptedEvents.fire(new InterceptedEvent("test"));
-        assertThat(trace.phases()).containsExactly(Phase.TRIGGER);
+        assertEquals(List.of(Phase.TRIGGER), trace.phases());
     }
 
     @RequiresNoImplementation
@@ -180,7 +182,7 @@ public class CdiIntegrationTests {
     public void resolutionOrderAgentTriggerObserved() {
         trace.reset();
         resolutionOrderEvents.fire(new ResolutionOrderEvent("test"));
-        assertThat(trace.phases()).containsExactly(Phase.TRIGGER);
+        assertEquals(List.of(Phase.TRIGGER), trace.phases());
     }
 
     // -------------------------------------------------------------------------
@@ -195,13 +197,12 @@ public class CdiIntegrationTests {
     public void applicationScopedAgentUseSameInstanceAcrossAllPhases() {
         trace.reset();
         singletonEvents.fire(new SingletonCdiEvent("test"));
-        assertThat(trace.phases())
-                .containsExactly(Phase.TRIGGER, Phase.ACTION, Phase.OUTCOME);
+        assertEquals(List.of(Phase.TRIGGER, Phase.ACTION, Phase.OUTCOME), trace.phases());
         int triggerId = (int) trace.entries().get(0).args()[1];
         int actionId  = (int) trace.entries().get(1).args()[1];
         int outcomeId = (int) trace.entries().get(2).args()[1];
-        assertThat(actionId).isEqualTo(triggerId);
-        assertThat(outcomeId).isEqualTo(triggerId);
+        assertEquals(triggerId, actionId);
+        assertEquals(triggerId, outcomeId);
     }
 
     @RequiresImplementation
@@ -213,14 +214,13 @@ public class CdiIntegrationTests {
     public void parameterResolutionFollowsDefinedPriority() {
         trace.reset();
         resolutionOrderEvents.fire(new ResolutionOrderEvent("test"));
-        assertThat(trace.phases())
-                .containsExactly(Phase.TRIGGER, Phase.DECISION, Phase.ACTION, Phase.OUTCOME);
+        assertEquals(List.of(Phase.TRIGGER, Phase.DECISION, Phase.ACTION, Phase.OUTCOME), trace.phases());
         var actionEntry = trace.entries().stream()
                 .filter(e -> e.phase() == Phase.ACTION && e.methodName().equals("process"))
                 .findFirst().orElseThrow();
-        assertThat(actionEntry.args()[0]).isInstanceOf(ResolutionOrderEvent.class);
-        assertThat(actionEntry.args()[1]).isInstanceOf(LargeLanguageModel.class);
-        assertThat(actionEntry.args()[2]).isInstanceOf(ResolutionCdiBean.class);
+        assertInstanceOf(ResolutionOrderEvent.class, actionEntry.args()[0]);
+        assertInstanceOf(LargeLanguageModel.class, actionEntry.args()[1]);
+        assertInstanceOf(ResolutionCdiBean.class, actionEntry.args()[2]);
     }
 
     @RequiresImplementation
@@ -235,10 +235,9 @@ public class CdiIntegrationTests {
         trace.reset();
         interceptedEvents.fire(new InterceptedEvent("test"));
         List<String> names = trace.entries().stream().map(TraceEntry::methodName).toList();
-        assertThat(names).containsExactly(
-                "onEvent",
+        assertEquals(List.of("onEvent",
                 "interceptorBefore", "process",  "interceptorAfter",
-                "interceptorBefore", "finish",   "interceptorAfter");
+                "interceptorBefore", "finish",   "interceptorAfter"), names);
     }
 
     @RequiresImplementation
@@ -249,13 +248,10 @@ public class CdiIntegrationTests {
     public void triggeringEventIsAvailableInAllDownstreamPhases() {
         trace.reset();
         resolutionOrderEvents.fire(new ResolutionOrderEvent("event-payload"));
-        assertThat(trace.phases())
-                .containsExactly(Phase.TRIGGER, Phase.DECISION, Phase.ACTION, Phase.OUTCOME);
+        assertEquals(List.of(Phase.TRIGGER, Phase.DECISION, Phase.ACTION, Phase.OUTCOME), trace.phases());
         trace.entries().stream()
                 .filter(e -> e.phase() != Phase.TRIGGER)
-                .forEach(e -> assertThat(e.args()[0])
-                        .isInstanceOf(ResolutionOrderEvent.class)
-                        .extracting(o -> ((ResolutionOrderEvent) o).payload())
-                        .isEqualTo("event-payload"));
+                .forEach(e -> assertEquals("event-payload",
+                        assertInstanceOf(ResolutionOrderEvent.class, e.args()[0]).payload()));
     }
 }

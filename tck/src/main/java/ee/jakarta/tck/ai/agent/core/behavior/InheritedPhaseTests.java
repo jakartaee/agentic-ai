@@ -32,7 +32,10 @@ import org.jboss.shrinkwrap.api.asset.EmptyAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.jupiter.api.TestInstance;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 /**
  * TCK coverage for phase-method inheritance. A phase method declared on a
@@ -67,7 +70,7 @@ public class InheritedPhaseTests {
     public void inheritingAgentTriggerIsObserved() {
         trace.reset();
         inheritEvents.fire(new InheritEvent("input"));
-        assertThat(trace.phases()).containsExactly(Phase.TRIGGER);
+        assertEquals(List.of(Phase.TRIGGER), trace.phases());
     }
 
     @RequiresImplementation
@@ -77,7 +80,7 @@ public class InheritedPhaseTests {
     public void inheritedActionParticipates() {
         trace.reset();
         inheritEvents.fire(new InheritEvent("input"));
-        assertThat(trace.phases()).containsExactly(Phase.TRIGGER, Phase.ACTION);
+        assertEquals(List.of(Phase.TRIGGER, Phase.ACTION), trace.phases());
     }
 
     @RequiresNoImplementation
@@ -87,7 +90,7 @@ public class InheritedPhaseTests {
     public void overridingAgentTriggerIsObserved() {
         trace.reset();
         overrideEvents.fire(new OverrideEvent("input"));
-        assertThat(trace.phases()).containsExactly(Phase.TRIGGER);
+        assertEquals(List.of(Phase.TRIGGER), trace.phases());
     }
 
     @RequiresImplementation
@@ -97,7 +100,7 @@ public class InheritedPhaseTests {
     public void unannotatedOverrideDoesNotParticipate() {
         trace.reset();
         overrideEvents.fire(new OverrideEvent("input"));
-        assertThat(trace.phases()).containsExactly(Phase.TRIGGER);
-        assertThat(trace.phases()).doesNotContain(Phase.ACTION);
+        assertEquals(List.of(Phase.TRIGGER), trace.phases());
+        assertFalse(trace.phases().contains(Phase.ACTION));
     }
 }

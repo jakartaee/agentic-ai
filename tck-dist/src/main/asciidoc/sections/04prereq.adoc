@@ -1,0 +1,28 @@
+== Prerequisites
+
+=== Software To Install
+
+. **JDK** — Java SE {JavaVersion} or later. A full JDK is required, not a JRE: the signature test reads the JDK's `lib/ct.sym`.
+. **Maven** — Apache Maven 3.9.0 or later.
+. **A Jakarta EE runtime** — Jakarta EE 10 or later, with your {APILongName} implementation installed. Any profile that provides CDI and Jakarta JSON Binding suffices.
+. **An Arquillian container adapter** for that runtime.
+
+=== Testing Frameworks
+
+The TCK is built on three frameworks. Knowing how they interact helps when setting up the runner.
+
+. **{TCKTestPlatform}** (5.11 or later) — the entry point for every test. Test classes are selected by their JUnit tags, `standalone` and `deployed`.
+. **Arquillian** (1.10 or later, with the Arquillian Jakarta integration) — deploys each `deployed` test's archive to the Test Server and runs the test inside it. You must configure an https://arquillian.org/guides/developing_a_container_adapter/[Arquillian adapter] for your runtime. The adapter must report a failed deployment with a `jakarta.enterprise.inject.spi.DeploymentException` in the exception chain, because the deployment-error tests assert on that type with `@ShouldThrowException`; adapters that pass the CDI TCK already do.
+. **Jakarta TCK signature test engine** (version {SigPluginVersion} exactly, coordinates `{SigPluginGAV}`) — verifies that the `{APIPackage}` API on the class path matches the signature baseline recorded for this release. It is a transitive dependency of the TCK jar; no action is needed. An exact version is required because signature test tools differ in small ways.
+
+=== What the TCK supplies inside each deployment
+
+The TCK jar registers an Arquillian `ApplicationArchiveProcessor` through `META-INF/services`.
+It adds to every test archive the TCK framework classes and two CDI beans the tests inject:
+
+* `ee.jakarta.tck.ai.agent.framework.stub.LargeLanguageModelStub`, an `@ApplicationScoped` `LargeLanguageModel` that returns scripted responses and records every call, and
+* `ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder`, which records the order in which workflow phases run.
+
+The stub is the only `LargeLanguageModel` bean in a test archive.
+The implementation must inject it into the agents under test and must not contribute a second `LargeLanguageModel` bean that would make resolution ambiguous.
+The stub performs its type conversion with Jakarta JSON Binding, so the Test Server must provide a JSON Binding implementation, as every Jakarta EE 10 runtime does.

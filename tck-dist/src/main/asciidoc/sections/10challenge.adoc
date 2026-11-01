@@ -1,0 +1,23 @@
+:RequestChallenge: {APIGitSite}/issues/new?labels=challenge&template=tck-challenge.yml&title=%5BTCK+Challenge%5D%3A+
+:ExistingChallenges: {APIGitSite}/issues?q=is%3Aissue+label%3Achallenge
+
+== TCK Challenges and Appeals
+
+The {TCKProcessDoc}[Jakarta EE TCK Process] governs every detail of challenges to the {APILongName} TCK.
+
+From the *Jakarta EE TCK Process*:
+
+> Specifications are the sole source of truth and considered overruling to the TCK in all senses.
+> In the course of implementing a specification and attempting to pass the TCK, implementations may come to the conclusion that one or more tests or assertions do not conform to the specification, and therefore MUST be excluded from the certification requirements.
+
+> Requests for tests to be excluded are referred to as Challenges.
+
+=== Filing a Challenge
+
+Challenges are tracked as issues labeled `challenge` in the {ExistingChallenges}[specification repository].
+File one with the {RequestChallenge}[TCK Challenge issue template], quoting the `@Assertion` id of the test you are challenging, after reading the challenge section of the TCK Process to understand who may file, what may be challenged and how a challenge is resolved.
+
+=== Successful Challenges
+
+No test is currently excluded from the {APILongName} TCK as the result of a challenge.
+Accepted challenges will be listed here in later releases of this guide.

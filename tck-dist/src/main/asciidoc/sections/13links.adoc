@@ -1,0 +1,10 @@
+== Links
+
+* {APILongName} specification page — {APISpecSite}
+* {APILongName} TCK sources — {APIGitSite}/tree/main/tck
+* {APILongName} API sources — {APIGitSite}/tree/main/api
+* {APILongName} specification sources — {APIGitSite}/tree/main/spec
+* {APILongName} project home page — {APIEclipseSite}
+* Jakarta EE TCK Process — {TCKProcessDoc}
+* {license} — {licenseURL}
+* Arquillian and ShrinkWrap — https://arquillian.org/guides/shrinkwrap_introduction/

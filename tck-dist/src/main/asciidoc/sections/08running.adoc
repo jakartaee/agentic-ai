@@ -1,0 +1,23 @@
+== Running the TCK
+
+With the runner configured, the TCK runs as part of the Maven test lifecycle:
+
+[source,sh]
+----
+$ cd starter
+$ mvn clean verify
+----
+
+Surefire prints one `Tests run:` line per test class and a summary at the end.
+A passing run ends with `Failures: 0, Errors: 0`; the skipped count is exactly the number of `@RequiresNoImplementation` assertions.
+The per-class XML and text reports under `target/surefire-reports` are the record to publish as the results summary.
+
+To run a single class while setting up, for example the signature test or the smoke test:
+
+[source,sh]
+----
+$ mvn clean verify -Dtest=SignatureTests
+$ mvn clean verify -Dtest=AgentSmokeTest
+----
+
+A partial run is a development convenience only; a compatibility claim requires the whole suite.

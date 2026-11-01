@@ -1,0 +1,80 @@
+name: TCK Challenge
+description: Challenge a test or assertion in the Jakarta Agentic AI TCK
+title: "[TCK Challenge]: "
+labels: ["challenge"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        > Before filing a challenge, read the
+        > [Jakarta EE TCK Process](https://jakarta.ee/committees/specification/tckprocess),
+        > which may be updated occasionally. Specifications are the sole source of truth;
+        > a challenge claims that a test does not conform to the specification.
+  - type: input
+    id: specification
+    validations:
+      required: true
+    attributes:
+      label: Specification
+      description: Link to the specification section or API element the challenge relates to
+      placeholder: |
+        ex. https://github.com/jakartaee/agentic-ai/blob/main/api/src/main/java/jakarta/ai/agent/Decision.java
+  - type: input
+    id: assertion
+    validations:
+      required: true
+    attributes:
+      label: Assertion
+      description: The `@Assertion` id and a link to the test method
+      placeholder: |
+        ex. AGENTICAI-ORDER-002, https://github.com/jakartaee/agentic-ai/blob/main/tck/src/main/java/ee/jakarta/tck/ai/agent/core/behavior/PhaseOrderingTests.java
+  - type: input
+    id: version
+    validations:
+      required: true
+    attributes:
+      label: TCK version
+      description: The version of the TCK being run
+      placeholder: |
+        ex. 1.0.0
+  - type: input
+    id: implementation
+    validations:
+      required: true
+    attributes:
+      label: Implementation being tested
+      description: Implementation name and the organization behind it
+  - type: dropdown
+    id: challengeType
+    validations:
+      required: true
+    attributes:
+      label: Challenge scenario
+      description: Which of the following best matches this challenge?
+      options:
+        - A test assertion conflicts with the specification.
+        - A test asserts requirements over and above the specification.
+        - An assertion of the specification is not sufficiently implementable.
+        - A test is not portable or depends on a particular implementation.
+        - Something else
+  - type: textarea
+    id: fullDescription
+    validations:
+      required: true
+    attributes:
+      label: Full description
+      description: |
+        Describe the challenge in full, including logs. You can attach log files by dragging them into this area.
+  - type: textarea
+    id: additionalContext
+    attributes:
+      label: Additional context
+      description: Possible resolutions, alternative interpretations, related issues
+  - type: checkboxes
+    attributes:
+      label: Is there an existing challenge for this?
+      description: |
+        Search the [existing challenges](https://github.com/jakartaee/agentic-ai/issues?q=is%3Aissue+label%3Achallenge) first.
+      options:
+        - label: I have searched the existing issues
+          required: true

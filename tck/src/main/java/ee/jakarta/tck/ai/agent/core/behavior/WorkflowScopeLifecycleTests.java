@@ -37,7 +37,10 @@ import org.junit.jupiter.api.TestInstance;
 import java.util.List;
 import java.util.Set;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @Deployed
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -81,30 +84,28 @@ public class WorkflowScopeLifecycleTests {
                         + "Sequential events are used as a v1 proxy for concurrent workflows.")
     public void defaultScopeProducesDistinctInstancePerWorkflow() {
         Set<Bean<?>> beans = beanManager.getBeans(ScopeDefaultAgent.class);
-        assertThat(beans).hasSize(1);
+        assertEquals(1, beans.size());
         Bean<?> bean = beanManager.resolve(beans);
-        assertThat(bean).isNotNull();
-        assertThat(bean.getScope()).isEqualTo(WorkflowScoped.class);
+        assertNotNull(bean);
+        assertEquals(WorkflowScoped.class, bean.getScope());
 
         lifecycleRecorder.reset();
         trace.reset();
         scopeDefaultEvents.fire(new ScopeDefaultEvent("workflow-1"));
         scopeDefaultEvents.fire(new ScopeDefaultEvent("workflow-2"));
 
-        assertThat(trace.phases()).containsExactly(
-                Phase.TRIGGER, Phase.ACTION, Phase.OUTCOME,
-                Phase.TRIGGER, Phase.ACTION, Phase.OUTCOME);
+        assertEquals(List.of(Phase.TRIGGER, Phase.ACTION, Phase.OUTCOME,
+                Phase.TRIGGER, Phase.ACTION, Phase.OUTCOME), trace.phases());
 
         List<String> ids = lifecycleRecorder.getInstanceIds();
-        assertThat(ids).hasSize(2);
-        assertThat(ids.get(0)).isNotEqualTo(ids.get(1));
+        assertEquals(2, ids.size());
+        assertNotEquals(ids.get(1), ids.get(0));
 
         List<String> phaseInstanceIds = trace.entries().stream()
                 .map(entry -> (String) entry.args()[1])
                 .toList();
-        assertThat(phaseInstanceIds).containsExactly(
-                ids.get(0), ids.get(0), ids.get(0),
-                ids.get(1), ids.get(1), ids.get(1));
+        assertEquals(List.of(ids.get(0), ids.get(0), ids.get(0),
+                ids.get(1), ids.get(1), ids.get(1)), phaseInstanceIds);
     }
 
     @RequiresImplementation
@@ -117,7 +118,7 @@ public class WorkflowScopeLifecycleTests {
     public void scopeDefaultAgentRunsFullWorkflow() {
         trace.reset();
         scopeDefaultEvents.fire(new ScopeDefaultEvent("naming"));
-        assertThat(trace.phases()).containsExactly(Phase.TRIGGER, Phase.ACTION, Phase.OUTCOME);
+        assertEquals(List.of(Phase.TRIGGER, Phase.ACTION, Phase.OUTCOME), trace.phases());
     }
 
     @RequiresImplementation
@@ -128,12 +129,11 @@ public class WorkflowScopeLifecycleTests {
                         + "implementation must also dispatch @Action and @Outcome. The name is not asserted as a "
                         + "CDI bean name.")
     public void lifecycleSpyAgentRunsFullWorkflow() {
-        assertThat(LifecycleSpyAgent.class.getAnnotation(jakarta.ai.agent.Agent.class).name())
-                .isEqualTo("lifecycleSpy");
+        assertEquals("lifecycleSpy", LifecycleSpyAgent.class.getAnnotation(jakarta.ai.agent.Agent.class).name());
 
         trace.reset();
         lifecycleSpyEvents.fire(new LifecycleSpyEvent("naming"));
-        assertThat(trace.phases()).containsExactly(Phase.TRIGGER, Phase.ACTION, Phase.OUTCOME);
+        assertEquals(List.of(Phase.TRIGGER, Phase.ACTION, Phase.OUTCOME), trace.phases());
     }
 
     @RequiresImplementation
@@ -145,7 +145,7 @@ public class WorkflowScopeLifecycleTests {
         lifecycleRecorder.reset();
         trace.reset();
         lifecycleSpyEvents.fire(new LifecycleSpyEvent("workflow-1"));
-        assertThat(lifecycleRecorder.getPostConstructCount()).isEqualTo(1);
+        assertEquals(1, lifecycleRecorder.getPostConstructCount());
     }
 
     @RequiresImplementation
@@ -157,8 +157,8 @@ public class WorkflowScopeLifecycleTests {
         lifecycleRecorder.reset();
         trace.reset();
         lifecycleSpyEvents.fire(new LifecycleSpyEvent("workflow-1"));
-        assertThat(trace.phases()).endsWith(Phase.OUTCOME);
-        assertThat(lifecycleRecorder.getPreDestroyCount()).isEqualTo(1);
+        assertEquals(Phase.OUTCOME, trace.phases().get(trace.phases().size() - 1));
+        assertEquals(1, lifecycleRecorder.getPreDestroyCount());
     }
 
     @RequiresImplementation
@@ -180,8 +180,8 @@ public class WorkflowScopeLifecycleTests {
         } finally {
             LifecycleSpyAgent.setFailInAction(false);
         }
-        assertThat(trace.phases()).doesNotContain(Phase.OUTCOME);
-        assertThat(lifecycleRecorder.getPreDestroyCount()).isEqualTo(1);
+        assertFalse(trace.phases().contains(Phase.OUTCOME));
+        assertEquals(1, lifecycleRecorder.getPreDestroyCount());
     }
 
     @RequiresImplementation
@@ -195,7 +195,7 @@ public class WorkflowScopeLifecycleTests {
         lifecycleSpyEvents.fire(new LifecycleSpyEvent("workflow-1"));
         lifecycleSpyEvents.fire(new LifecycleSpyEvent("workflow-2"));
         List<String> ids = lifecycleRecorder.getInstanceIds();
-        assertThat(ids).hasSize(2);
-        assertThat(ids.get(0)).isNotEqualTo(ids.get(1));
+        assertEquals(2, ids.size());
+        assertNotEquals(ids.get(1), ids.get(0));
     }
 }
