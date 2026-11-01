@@ -15,7 +15,6 @@ package ee.jakarta.examples.ai.agent.ask;
 import jakarta.ai.agent.LLMException;
 import jakarta.enterprise.context.RequestScoped;
 import jakarta.enterprise.event.Event;
-import jakarta.enterprise.event.ObserverException;
 import jakarta.inject.Inject;
 import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.constraints.NotNull;
@@ -53,21 +52,16 @@ public class AskResource {
 
         try {
             trigger.fire(new Question(text));
-        } catch (ObserverException wrapper) {
-            Throwable cause = wrapper.getCause();
-            if (cause instanceof ConstraintViolationException) {
-                return Response.status(Response.Status.BAD_REQUEST)
-                        .entity(new Message("A question is required."))
-                        .build();
-            }
-            if (cause instanceof LLMException) {
-                LOGGER.log(Level.WARNING, "LLM call failed", cause);
-                return Response.status(Response.Status.SERVICE_UNAVAILABLE)
-                        .entity(new Message("The LLM backend is unavailable. Check that the provider "
-                                + "configured in microprofile-config.properties is running."))
-                        .build();
-            }
-            throw wrapper;
+        } catch (ConstraintViolationException violations) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(new Message("A question is required."))
+                    .build();
+        } catch (LLMException e) {
+            LOGGER.log(Level.WARNING, "LLM call failed", e);
+            return Response.status(Response.Status.SERVICE_UNAVAILABLE)
+                    .entity(new Message("The LLM backend is unavailable. Check that the provider "
+                            + "configured in microprofile-config.properties is running."))
+                    .build();
         }
 
         return Response.ok(new AskResponse(text, answers.get(text))).build();

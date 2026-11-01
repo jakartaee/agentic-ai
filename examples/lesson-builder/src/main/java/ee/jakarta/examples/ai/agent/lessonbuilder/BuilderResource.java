@@ -19,7 +19,6 @@ import ee.jakarta.examples.ai.agent.lessonbuilder.model.Topic;
 import jakarta.ai.agent.LLMException;
 import jakarta.enterprise.context.RequestScoped;
 import jakarta.enterprise.event.Event;
-import jakarta.enterprise.event.ObserverException;
 import jakarta.inject.Inject;
 import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.constraints.NotNull;
@@ -82,17 +81,12 @@ public class BuilderResource {
     public Response generate(@NotNull Topic topic) {
         try {
             topics.fire(topic);
-        } catch (ObserverException wrapper) {
-            Throwable cause = wrapper.getCause();
-            if (cause instanceof ConstraintViolationException violations) {
-                throw new BadRequestException(error(Response.Status.BAD_REQUEST, describe(violations)));
-            }
-            if (cause instanceof LLMException) {
-                LOGGER.log(Level.WARNING, "LLM call failed", cause);
-                throw new ServiceUnavailableException(error(Response.Status.SERVICE_UNAVAILABLE,
-                        "The LLM backend failed: " + cause.getMessage()));
-            }
-            throw wrapper;
+        } catch (ConstraintViolationException violations) {
+            throw new BadRequestException(error(Response.Status.BAD_REQUEST, describe(violations)));
+        } catch (LLMException e) {
+            LOGGER.log(Level.WARNING, "LLM call failed", e);
+            throw new ServiceUnavailableException(error(Response.Status.SERVICE_UNAVAILABLE,
+                    "The LLM backend failed: " + e.getMessage()));
         }
         return Response.ok(drafts.current()).build();
     }
@@ -105,11 +99,8 @@ public class BuilderResource {
         lessons.publish(lesson);
         try {
             publications.fire(new LessonPublished(lesson));
-        } catch (ObserverException wrapper) {
-            if (!(wrapper.getCause() instanceof LLMException)) {
-                throw wrapper;
-            }
-            LOGGER.log(Level.WARNING, "cataloging failed", wrapper.getCause());
+        } catch (LLMException e) {
+            LOGGER.log(Level.WARNING, "cataloging failed", e);
             catalogOutput.setStopReason("Published, but not cataloged: the LLM backend failed.");
         }
         return Response.ok(new Published(lesson, catalogOutput.filed(), catalogOutput.stopReason()))

@@ -4,6 +4,7 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+- Examples: the REST resources caught `ObserverException` around `Event.fire()` and inspected its cause, but CDI wraps only checked exceptions that way; `ConstraintViolationException` and `LLMException` are unchecked and arrive unwrapped, so the handlers never ran. They now catch the two exceptions directly.
 The TCK was reworked to the shape of the other modern Jakarta EE TCKs (Data, Concurrency):
 
 - TCK coverage: assertions no longer require `ObserverException` wrapping that CDI does not perform for unchecked exceptions, orchestration agents use explicit `order` instead of relying on source-declaration order the specification does not guarantee, and a CDI client-proxy check that tested CDI rather than this specification is removed. New assertions cover general `@Observes` methods on `@ApplicationScoped` agents, parameter-resolution precedence over CDI beans, validation on trigger and decision parameters, triggers declared without `@Observes`, handlers with additional state parameters, `LLMException` routed to `@OnException`, and context destruction after a decision stop.
