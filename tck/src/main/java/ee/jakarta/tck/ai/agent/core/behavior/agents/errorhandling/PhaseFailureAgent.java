@@ -44,7 +44,7 @@ public class PhaseFailureAgent {
             throw new AgentDomainException("trigger failure");
     }
 
-    @Decision
+    @Decision(order = 1)
     public boolean decide(PhaseFailureEvent event) {
         trace.record(Phase.DECISION, "decide", event);
         if (failAt == FailingPhase.DECISION)
@@ -52,7 +52,7 @@ public class PhaseFailureAgent {
         return true;
     }
 
-    @Action
+    @Action(order = 2)
     public void act(PhaseFailureEvent event) {
         trace.record(Phase.ACTION, "act", event);
         if (failAt == FailingPhase.ACTION)

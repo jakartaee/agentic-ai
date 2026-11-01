@@ -34,13 +34,13 @@ public class BooleanTerminationAgent {
         trace.record(Phase.TRIGGER, "onEvent", event);
     }
 
-    @Decision
+    @Decision(order = 1)
     public boolean decide(BooleanTerminationEvent event) {
         trace.record(Phase.DECISION, "decide", event);
         return false;
     }
 
-    @Action
+    @Action(order = 2)
     public void act(BooleanTerminationEvent event) {
         trace.record(Phase.ACTION, "act", event);
     }

@@ -64,4 +64,16 @@ public class PhaseOrderingTests {
         assertInstanceOf(PhaseOrderingEvent.class, decisionArgs[0]);
         assertEquals("trigger:proceed", assertInstanceOf(TriggerOutput.class, decisionArgs[1]).fromTrigger());
     }
+
+    @Assertion(id = "AGENTICAI-ORDER-003",
+               section = "agent-lifecycle",
+               strategy = "The details of a Result returned by @Decision are available for injection in @Action")
+    public void decisionDetailsAreInjectableInAction() {
+        trace.reset();
+        events.fire(new PhaseOrderingEvent("proceed"));
+
+        Object[] actionArgs = trace.entries().get(2).args();
+        assertInstanceOf(PhaseOrderingEvent.class, actionArgs[0]);
+        assertEquals("proceed", actionArgs[1]);
+    }
 }

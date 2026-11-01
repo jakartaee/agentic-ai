@@ -37,13 +37,13 @@ public class DecisionValidatedAgent {
         return new InputData(event.payload());
     }
 
-    @Decision
+    @Decision(order = 1)
     public boolean decide(@Valid InputData data) {
         trace.record(Phase.DECISION, "decide", data);
         return true;
     }
 
-    @Action
+    @Action(order = 2)
     public void act(InputData data) {
         trace.record(Phase.ACTION, "act", data);
     }

@@ -52,13 +52,13 @@ public class DecisionStopSpyAgent {
         trace.record(Phase.TRIGGER, "onEvent", event, instanceId);
     }
 
-    @Decision
+    @Decision(order = 1)
     public boolean decide(DecisionStopEvent event) {
         trace.record(Phase.DECISION, "decide", event, instanceId);
         return false;
     }
 
-    @Action
+    @Action(order = 2)
     public void process(DecisionStopEvent event) {
         trace.record(Phase.ACTION, "process", event, instanceId);
     }

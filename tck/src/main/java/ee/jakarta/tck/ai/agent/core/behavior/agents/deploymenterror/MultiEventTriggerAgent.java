@@ -15,19 +15,19 @@ package ee.jakarta.tck.ai.agent.core.behavior.agents.deploymenterror;
 import jakarta.ai.agent.Agent;
 import jakarta.ai.agent.Trigger;
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.enterprise.event.Observes;
 
 /**
  * Invalid agent (case G3c, <em>exactly one event parameter</em>): the
- * {@code @Trigger} method declares more than one event parameter. A trigger must
- * have exactly one event parameter, so a compatible implementation must reject
- * this agent at deployment time.
+ * {@code @Trigger} method declares two event parameters. Neither carries
+ * {@code @Observes}, so plain CDI accepts the method and only the rule that a
+ * trigger has exactly one event parameter can reject this agent at deployment
+ * time.
  */
 @Agent
 @ApplicationScoped
 public class MultiEventTriggerAgent {
 
     @Trigger
-    public void onEvent(@Observes DeploymentErrorEvent first, SecondTriggerEvent second) {
+    public void onEvent(DeploymentErrorEvent first, SecondTriggerEvent second) {
     }
 }

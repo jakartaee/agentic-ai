@@ -43,13 +43,13 @@ public class ResultDetailsAgent {
         trace.record(Phase.TRIGGER, "onEvent", event);
     }
 
-    @Decision
+    @Decision(order = 1)
     public Result decide(ResultDetailsEvent event) {
         trace.record(Phase.DECISION, "decide", event);
         return new Result(true, new DecisionDetails("details:" + event.input()));
     }
 
-    @Action
+    @Action(order = 2)
     public void act(DecisionDetails details) {
         trace.record(Phase.ACTION, "act", details);
     }

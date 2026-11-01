@@ -36,14 +36,14 @@ public class ResolutionOrderAgent {
     }
 
     // Priority 1 (event) + Priority 3 (LLM)
-    @Decision
+    @Decision(order = 1)
     public boolean decide(ResolutionOrderEvent event, LargeLanguageModel llm) {
         trace.record(Phase.DECISION, "decide", event, llm);
         return true;
     }
 
     // Priority 1 (event) + Priority 3 (LLM) + Priority 4 (CDI bean)
-    @Action
+    @Action(order = 2)
     public void process(ResolutionOrderEvent event, LargeLanguageModel llm, ResolutionCdiBean service) {
         trace.record(Phase.ACTION, "process", event, llm, service);
     }
