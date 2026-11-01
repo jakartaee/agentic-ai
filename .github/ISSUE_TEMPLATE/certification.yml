@@ -1,0 +1,95 @@
+name: Compatibility Certification Request
+description: Request to be acknowledged as a certified implementation of Jakarta Agentic AI
+title: "[Certification]: "
+labels: ["certification"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        > Before filing a certification request, read the
+        > [Jakarta EE TCK Process](https://jakarta.ee/committees/specification/tckprocess),
+        > which may be updated occasionally, and the Certification of Compatibility
+        > chapter of the Jakarta Agentic AI TCK Reference Guide.
+  - type: input
+    id: organization
+    validations:
+      required: true
+    attributes:
+      label: Organization
+      description: Organization name and, if applicable, URL
+  - type: input
+    id: implementation
+    validations:
+      required: true
+    attributes:
+      label: Implementation
+      description: Product name, version and download URL (if applicable)
+  - type: input
+    id: specification
+    validations:
+      required: true
+    attributes:
+      label: Specification
+      description: Specification name, version and download URL
+  - type: input
+    id: tck
+    validations:
+      required: true
+    attributes:
+      label: Technology Compatibility Kit (TCK)
+      description: TCK version and download URL
+  - type: input
+    id: tckSHA
+    validations:
+      required: true
+    attributes:
+      label: TCK SHA-256 fingerprint
+      description: |
+        Checksum of the TCK distribution zip (not of the TCK jar on Maven Central).
+        Example: `shasum -a 256 agentic-ai-tck-1.0.0-dist.zip`
+  - type: textarea
+    id: tckResults
+    validations:
+      required: true
+    attributes:
+      label: TCK results summary
+      description: |
+        Public URL of the TCK results summary. It must be visible without a password or sign-up
+        and show the total number of tests run and passed.
+  - type: textarea
+    id: additionalRequirements
+    validations:
+      required: true
+    attributes:
+      label: Additional specification certification requirements
+      description: |
+        Any additional items the TCK Reference Guide requires for a certification request, or "None".
+  - type: textarea
+    id: javaRuntime
+    validations:
+      required: true
+    attributes:
+      label: Java runtime(s)
+      description: |
+        Java runtime(s) used to run the implementation. Output of `java -version`.
+  - type: textarea
+    id: environment
+    validations:
+      required: true
+    attributes:
+      label: Certification environment
+      description: Summary of the certification environment, operating system, cloud, etc.
+  - type: checkboxes
+    id: ackEFTL
+    attributes:
+      label: Eclipse Foundation Technology Compatibility Kit License (EFTL)
+      options:
+        - label: By checking this box I acknowledge that the organization I represent accepts the terms of the [EFTL](https://www.eclipse.org/legal/tck.php).
+          required: true
+  - type: checkboxes
+    id: ackRules
+    attributes:
+      label: TCK requirements and compatibility
+      options:
+        - label: By checking this box I attest that all TCK requirements have been met, including any compatibility rules.
+          required: true
