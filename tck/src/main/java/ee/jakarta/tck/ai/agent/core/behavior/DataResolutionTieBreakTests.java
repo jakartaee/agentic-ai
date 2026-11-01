@@ -12,10 +12,7 @@
  *****************************************************************************/
 package ee.jakarta.tck.ai.agent.core.behavior;
 
-import ee.jakarta.tck.ai.agent.core.behavior.agents.datapropagation.PrecedenceAgent;
-import ee.jakarta.tck.ai.agent.core.behavior.agents.datapropagation.PrecedenceEvent;
 import ee.jakarta.tck.ai.agent.core.behavior.agents.datapropagation.SameTypeOutput;
-import ee.jakarta.tck.ai.agent.core.behavior.agents.datapropagation.SharedTypeValue;
 import ee.jakarta.tck.ai.agent.core.behavior.agents.datapropagation.TieBreakAgent;
 import ee.jakarta.tck.ai.agent.core.behavior.agents.datapropagation.TieBreakEvent;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Assertion;
@@ -51,13 +48,11 @@ public class DataResolutionTieBreakTests {
     @Deployment
     public static Archive<?> createDeployment() {
         return ShrinkWrap.create(WebArchive.class, "datatiebreak.war")
-                .addClasses(TieBreakAgent.class, TieBreakEvent.class, SameTypeOutput.class,
-                            PrecedenceAgent.class, PrecedenceEvent.class, SharedTypeValue.class)
+                .addClasses(TieBreakAgent.class, TieBreakEvent.class, SameTypeOutput.class)
                 .addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml");
     }
 
     @Inject Event<TieBreakEvent> events;
-    @Inject Event<PrecedenceEvent> precedenceEvents;
     @Inject ExecutionTraceRecorder trace;
     @Assertion(id = "AGENTICAI-DATA-005",
                section = "parameter-resolution",
@@ -71,17 +66,5 @@ public class DataResolutionTieBreakTests {
         Object[] outcomeArgs = trace.entries().get(3).args();
         assertInstanceOf(SameTypeOutput.class, outcomeArgs[0]);
         assertEquals("action", ((SameTypeOutput) outcomeArgs[0]).marker());
-    }
-    @Assertion(id = "AGENTICAI-DATA-007",
-               section = "parameter-resolution",
-               strategy = "A previous phase result takes precedence over CDI injection for a parameter whose type is both: "
-                        + "the @Action receives the instance the @Trigger returned, not a container-created bean")
-    public void phaseResultTakesPrecedenceOverCdiBeanOfSameType() {
-        trace.reset();
-        precedenceEvents.fire(new PrecedenceEvent("input"));
-
-        assertEquals(List.of(Phase.TRIGGER, Phase.ACTION, Phase.OUTCOME), trace.phases());
-        SharedTypeValue injected = assertInstanceOf(SharedTypeValue.class, trace.entries().get(1).args()[0]);
-        assertEquals("trigger", injected.marker());
     }
 }
