@@ -111,10 +111,8 @@ public class WorkflowScopeLifecycleTests {
     @RequiresImplementation
     @Assertion(id = "AGENTICAI-CDI-BHV-009",
                section = "agent-lifecycle",
-               strategy = "An @Agent with no explicit name runs its full workflow. A trigger-only plain-CDI "
-                        + "run cannot satisfy this assertion because the implementation must also dispatch "
-                        + "@Action and @Outcome. The derived name itself is not asserted: the specification does "
-                        + "not yet say how an agent name is exposed.")
+               strategy = "An @Agent with no explicit name runs its full workflow. The derived name itself "
+                        + "is not asserted: the specification does not yet say how an agent name is exposed.")
     public void scopeDefaultAgentRunsFullWorkflow() {
         trace.reset();
         scopeDefaultEvents.fire(new ScopeDefaultEvent("naming"));
@@ -125,9 +123,7 @@ public class WorkflowScopeLifecycleTests {
     @Assertion(id = "AGENTICAI-CDI-BHV-009",
                section = "agent-lifecycle",
                strategy = "An @Agent with an explicit name, here @Agent(name = \"lifecycleSpy\"), runs its full "
-                        + "workflow. A trigger-only plain-CDI run cannot satisfy this assertion because the "
-                        + "implementation must also dispatch @Action and @Outcome. The name is not asserted as a "
-                        + "CDI bean name.")
+                        + "workflow. The name is not asserted as a CDI bean name.")
     public void lifecycleSpyAgentRunsFullWorkflow() {
         assertEquals("lifecycleSpy", LifecycleSpyAgent.class.getAnnotation(jakarta.ai.agent.Agent.class).name());
 

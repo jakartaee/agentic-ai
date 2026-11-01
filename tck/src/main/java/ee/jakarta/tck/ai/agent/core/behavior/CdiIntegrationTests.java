@@ -89,10 +89,6 @@ public class CdiIntegrationTests {
     @Inject ExecutionTraceRecorder          trace;
     @Inject SingletonCdiAgent               singletonAgent;
 
-    // -------------------------------------------------------------------------
-    // CDI-only tests (no compatible implementation required)
-    // -------------------------------------------------------------------------
-
     @Assertion(id = "AGENTICAI-CDI-BHV-002",
                section = "cdi-integration",
                strategy = "A static nested class annotated @Agent @ApplicationScoped is discovered as a CDI "

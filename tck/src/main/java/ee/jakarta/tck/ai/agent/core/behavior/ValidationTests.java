@@ -71,8 +71,6 @@ public class ValidationTests {
     @Inject Event<UnhandledValidationEvent> unhandledEvents;
     @Inject ExecutionTraceRecorder          trace;
 
-    // ── Baseline — CDI fires @Trigger without a compatible implementation ─────
-
     // ── Valid input proceeds ──────────────────────────────────────────────────
 
     @RequiresImplementation

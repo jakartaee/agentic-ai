@@ -76,8 +76,6 @@ public class OrderingPrecedenceTests {
         return trace.entries().stream().map(TraceEntry::methodName).toList();
     }
 
-    // ── Baseline — CDI fires @Trigger without a compatible implementation ─────
-
     // ── order attribute is honored ───────────────────────────────────────────
 
     @RequiresImplementation

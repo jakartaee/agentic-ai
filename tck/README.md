@@ -28,7 +28,7 @@ tck/
 ├── src/main/resources/
 │   ├── META-INF/services/    # Registers the Arquillian extension
 │   └── ee/jakarta/tck/ai/agent/framework/signature/   # Signature baseline
-└── src/test/java/            # Not part of the TCK: plain-CDI checks of the test archives (plaincdi/) and a framework unit test
+└── src/test/java/            # A unit test of the TCK's concurrency harness; not part of the TCK
 ```
 
 Tests live in `src/main/java` so they ship in the TCK jar for implementors to run; nothing in `src/test/java` reaches the jar.
@@ -37,7 +37,7 @@ Tests live in `src/main/java` so they ship in the TCK jar for implementors to ru
 
 Compatibility runs happen in an implementation's own repository: it runs the published jar from its own runner with its own Arquillian adapter, every test included, as the TCK Reference Guide in `tck-dist` describes.
 
-This repository has no implementation, so its build runs what plain CDI can satisfy on Weld Embedded, a test dependency of this module. Assertions that need an implementation carry `@RequiresImplementation`, a JUnit tag that this module's Failsafe configuration excludes; the rest of the jar, including the signature test, runs here. The plain-CDI checks of the test archives and agents, which no implementation could pass, live in `src/test/java` under `plaincdi` and run through Surefire:
+This repository has no implementation, so its build runs what plain CDI can satisfy on Weld Embedded, a test dependency of this module. Assertions that need an implementation carry `@RequiresImplementation`, a JUnit tag that this module's Failsafe configuration excludes; the rest of the jar, including the signature test, runs here:
 
 ```bash
 mvn clean install
