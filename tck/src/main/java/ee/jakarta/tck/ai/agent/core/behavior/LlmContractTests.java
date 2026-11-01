@@ -92,6 +92,13 @@ public class LlmContractTests {
 
     @Assertion(id = "AGENTICAI-LLM-BHV-002",
                section = "llm-integration",
+               strategy = "null prompt on query(String, Class) throws IllegalArgumentException")
+    public void nullPromptOnTypedOverloadThrowsIllegalArgumentException() {
+        assertInstanceOf(IllegalArgumentException.class, probe(llm -> llm.query(null, PersonFixture.class)));
+    }
+
+    @Assertion(id = "AGENTICAI-LLM-BHV-002",
+               section = "llm-integration",
                strategy = "null resultType on query(String, Class) throws IllegalArgumentException")
     public void nullResultTypeThrowsIllegalArgumentException() {
         assertInstanceOf(IllegalArgumentException.class, probe(llm -> llm.query("p", (Class<?>) null)));

@@ -14,6 +14,9 @@ package ee.jakarta.tck.ai.agent.core.behavior;
 
 import ee.jakarta.tck.ai.agent.core.behavior.agents.validation.DecisionValidatedAgent;
 import ee.jakarta.tck.ai.agent.core.behavior.agents.validation.DecisionValidationEvent;
+import ee.jakarta.tck.ai.agent.core.behavior.agents.validation.HandlerInput;
+import ee.jakarta.tck.ai.agent.core.behavior.agents.validation.HandlerValidatedAgent;
+import ee.jakarta.tck.ai.agent.core.behavior.agents.validation.HandlerValidationEvent;
 import ee.jakarta.tck.ai.agent.core.behavior.agents.validation.InputData;
 import ee.jakarta.tck.ai.agent.core.behavior.agents.validation.TriggerValidatedAgent;
 import ee.jakarta.tck.ai.agent.core.behavior.agents.validation.TriggerValidationEvent;
@@ -21,6 +24,7 @@ import ee.jakarta.tck.ai.agent.core.behavior.agents.validation.UnhandledValidate
 import ee.jakarta.tck.ai.agent.core.behavior.agents.validation.UnhandledValidationEvent;
 import ee.jakarta.tck.ai.agent.core.behavior.agents.validation.ValidatedAgent;
 import ee.jakarta.tck.ai.agent.core.behavior.agents.validation.ValidationEvent;
+import ee.jakarta.tck.ai.agent.core.behavior.agents.errorhandling.AgentDomainException;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Assertion;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Deployed;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder;
@@ -66,7 +70,8 @@ public class ValidationTests {
                         ValidatedAgent.class, ValidationEvent.class, InputData.class,
                         UnhandledValidatedAgent.class, UnhandledValidationEvent.class,
                         TriggerValidatedAgent.class, TriggerValidationEvent.class,
-                        DecisionValidatedAgent.class, DecisionValidationEvent.class
+                        DecisionValidatedAgent.class, DecisionValidationEvent.class,
+                        HandlerValidatedAgent.class, HandlerValidationEvent.class, HandlerInput.class
                 )
                 .addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml");
     }
@@ -75,6 +80,7 @@ public class ValidationTests {
     @Inject Event<UnhandledValidationEvent> unhandledEvents;
     @Inject Event<TriggerValidationEvent>   triggerEvents;
     @Inject Event<DecisionValidationEvent>  decisionEvents;
+    @Inject Event<HandlerValidationEvent>   handlerEvents;
     @Inject ExecutionTraceRecorder          trace;
 
     // ── Valid input proceeds ──────────────────────────────────────────────────
@@ -174,5 +180,26 @@ public class ValidationTests {
         trace.reset();
         decisionEvents.fire(new DecisionValidationEvent("ok"));
         assertEquals(List.of(Phase.TRIGGER, Phase.DECISION, Phase.ACTION), trace.phases());
+    }
+
+    // ── Constraints on @OnException parameters ───────────────────────────────
+    @Assertion(id = "AGENTICAI-VALIDATION-BHV-006",
+               section = "jakarta-validation-constraints",
+               strategy = "A constraint violation on an @OnException parameter propagates to the container instead of "
+                        + "re-entering exception handling; the handler body does not run")
+    public void invalidHandlerParameterPropagatesWithoutRunningHandler() {
+        trace.reset();
+        Throwable thrown = assertThrows(Throwable.class,
+                () -> handlerEvents.fire(new HandlerValidationEvent(" ")));
+
+        Throwable first = thrown;
+        while (first != null
+                && !(first instanceof ConstraintViolationException)
+                && !(first instanceof AgentDomainException)) {
+            first = first.getCause();
+        }
+        assertInstanceOf(ConstraintViolationException.class, first,
+                "the validation exception, not the handled one, must propagate");
+        assertEquals(List.of(Phase.TRIGGER, Phase.ACTION), trace.phases());
     }
 }
