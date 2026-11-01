@@ -12,6 +12,8 @@
  *****************************************************************************/
 package ee.jakarta.tck.ai.agent.core.behavior;
 
+import ee.jakarta.tck.ai.agent.core.behavior.agents.topologyflex.ImplicitObservesAgent;
+import ee.jakarta.tck.ai.agent.core.behavior.agents.topologyflex.ImplicitObservesEvent;
 import ee.jakarta.tck.ai.agent.core.behavior.agents.topologyflex.NoDecisionAgent;
 import ee.jakarta.tck.ai.agent.core.behavior.agents.topologyflex.NoDecisionEvent;
 import ee.jakarta.tck.ai.agent.core.behavior.agents.topologyflex.NoOutcomeAgent;
@@ -32,6 +34,7 @@ import org.junit.jupiter.api.TestInstance;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 
 @Deployed
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -41,12 +44,14 @@ public class TopologyFlexTests {
     public static Archive<?> createDeployment() {
         return ShrinkWrap.create(WebArchive.class, "topologyflex.war")
                 .addClasses(NoDecisionAgent.class, NoDecisionEvent.class,
-                            NoOutcomeAgent.class,  NoOutcomeEvent.class)
+                            NoOutcomeAgent.class,  NoOutcomeEvent.class,
+                            ImplicitObservesAgent.class, ImplicitObservesEvent.class)
                 .addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml");
     }
 
     @Inject Event<NoDecisionEvent> noDecisionEvents;
     @Inject Event<NoOutcomeEvent>  noOutcomeEvents;
+    @Inject Event<ImplicitObservesEvent> implicitObservesEvents;
     @Inject ExecutionTraceRecorder trace;
     @Assertion(id = "AGENTICAI-FLEX-003",
                section = "agent-lifecycle",
@@ -63,5 +68,15 @@ public class TopologyFlexTests {
         trace.reset();
         noOutcomeEvents.fire(new NoOutcomeEvent("test"));
         assertEquals(List.of(Phase.TRIGGER, Phase.DECISION, Phase.ACTION), trace.phases());
+    }
+    @Assertion(id = "AGENTICAI-FLEX-005",
+               section = "agent-lifecycle",
+               strategy = "A @Trigger whose event parameter carries no @Observes is still invoked by the triggering "
+                        + "event and runs the full T→A→O workflow")
+    public void triggerWithoutObservesRunsWorkflow() {
+        trace.reset();
+        implicitObservesEvents.fire(new ImplicitObservesEvent("test"));
+        assertEquals(List.of(Phase.TRIGGER, Phase.ACTION, Phase.OUTCOME), trace.phases());
+        assertEquals("test", assertInstanceOf(ImplicitObservesEvent.class, trace.entries().get(0).args()[0]).payload());
     }
 }

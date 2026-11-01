@@ -95,9 +95,9 @@ public class OrchestrationTests {
     }
     @Assertion(id = "AGENTICAI-ORCHESTRATION-BHV-002",
                section = "agent-lifecycle",
-               strategy = "@Decision and @Action execute in source-file declaration order; AnchoredAgent declares "
-                        + "@Action BEFORE @Decision so a compatible implementation must invoke act() before decide()")
-    public void methodsExecuteInDeclarationOrder() {
+               strategy = "@Decision and @Action execute in the order given by their explicit order attributes, "
+                        + "independent of source position: AnchoredAgent orders act() before decide()")
+    public void methodsExecuteInExplicitOrder() {
         trace.reset();
         anchoredEvents.fire(new AnchoredEvent("test"));
         assertEquals(List.of(Phase.TRIGGER, Phase.ACTION, Phase.DECISION, Phase.OUTCOME), trace.phases());
@@ -115,7 +115,7 @@ public class OrchestrationTests {
     }
     @Assertion(id = "AGENTICAI-ORCHESTRATION-BHV-004",
                section = "agent-lifecycle",
-               strategy = "Multiple alternating @Decision and @Action phases all execute in declaration order")
+               strategy = "Multiple alternating @Decision and @Action phases all execute in their explicit order")
     public void intermixedDecisionAndActionPhasesSupported() {
         trace.reset();
         intermixedEvents.fire(new IntermixedEvent("test"));
@@ -151,7 +151,7 @@ public class OrchestrationTests {
     // -------------------------------------------------------------------------
     @Assertion(id = "AGENTICAI-ORCHESTRATION-BHV-006",
                section = "agent-lifecycle",
-               strategy = "Linear pattern: multiple @Action phases execute sequentially without any @Decision")
+               strategy = "Linear pattern: multiple explicitly ordered @Action phases execute sequentially without any @Decision")
     public void linearPatternSupported() {
         trace.reset();
         linearEvents.fire(new LinearEvent("test"));
@@ -169,7 +169,7 @@ public class OrchestrationTests {
     }
     @Assertion(id = "AGENTICAI-ORCHESTRATION-BHV-006",
                section = "agent-lifecycle",
-               strategy = "Intermixed pattern: alternating @Decision/@Action chain executes in declaration order through @Outcome")
+               strategy = "Intermixed pattern: an explicitly ordered alternating @Decision/@Action chain executes through @Outcome")
     public void intermixedPatternSupported() {
         trace.reset();
         intermixedEvents.fire(new IntermixedEvent("test"));

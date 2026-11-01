@@ -34,12 +34,12 @@ public class AnchoredAgent {
         trace.record(Phase.OUTCOME, "finish");
     }
 
-    @Action
+    @Action(order = 1)
     public void act(AnchoredEvent event) {
         trace.record(Phase.ACTION, "act", event);
     }
 
-    @Decision
+    @Decision(order = 2)
     public boolean decide(AnchoredEvent event) {
         trace.record(Phase.DECISION, "decide", event);
         return true;

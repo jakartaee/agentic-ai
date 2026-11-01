@@ -34,24 +34,24 @@ public class IntermixedAgent {
         trace.record(Phase.TRIGGER, "onEvent", event);
     }
 
-    @Decision
+    @Decision(order = 1)
     public boolean firstDecide(IntermixedEvent event) {
         trace.record(Phase.DECISION, "firstDecide", event);
         return true;
     }
 
-    @Action
+    @Action(order = 2)
     public void firstAction(IntermixedEvent event) {
         trace.record(Phase.ACTION, "firstAction", event);
     }
 
-    @Decision
+    @Decision(order = 3)
     public boolean secondDecide(IntermixedEvent event) {
         trace.record(Phase.DECISION, "secondDecide", event);
         return true;
     }
 
-    @Action
+    @Action(order = 4)
     public void secondAction(IntermixedEvent event) {
         trace.record(Phase.ACTION, "secondAction", event);
     }

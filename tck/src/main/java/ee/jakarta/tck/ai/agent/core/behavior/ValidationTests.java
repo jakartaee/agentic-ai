@@ -12,7 +12,11 @@
  *****************************************************************************/
 package ee.jakarta.tck.ai.agent.core.behavior;
 
+import ee.jakarta.tck.ai.agent.core.behavior.agents.validation.DecisionValidatedAgent;
+import ee.jakarta.tck.ai.agent.core.behavior.agents.validation.DecisionValidationEvent;
 import ee.jakarta.tck.ai.agent.core.behavior.agents.validation.InputData;
+import ee.jakarta.tck.ai.agent.core.behavior.agents.validation.TriggerValidatedAgent;
+import ee.jakarta.tck.ai.agent.core.behavior.agents.validation.TriggerValidationEvent;
 import ee.jakarta.tck.ai.agent.core.behavior.agents.validation.UnhandledValidatedAgent;
 import ee.jakarta.tck.ai.agent.core.behavior.agents.validation.UnhandledValidationEvent;
 import ee.jakarta.tck.ai.agent.core.behavior.agents.validation.ValidatedAgent;
@@ -60,13 +64,17 @@ public class ValidationTests {
         return ShrinkWrap.create(WebArchive.class, "validation.war")
                 .addClasses(
                         ValidatedAgent.class, ValidationEvent.class, InputData.class,
-                        UnhandledValidatedAgent.class, UnhandledValidationEvent.class
+                        UnhandledValidatedAgent.class, UnhandledValidationEvent.class,
+                        TriggerValidatedAgent.class, TriggerValidationEvent.class,
+                        DecisionValidatedAgent.class, DecisionValidationEvent.class
                 )
                 .addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml");
     }
 
     @Inject Event<ValidationEvent>          events;
     @Inject Event<UnhandledValidationEvent> unhandledEvents;
+    @Inject Event<TriggerValidationEvent>   triggerEvents;
+    @Inject Event<DecisionValidationEvent>  decisionEvents;
     @Inject ExecutionTraceRecorder          trace;
 
     // ── Valid input proceeds ──────────────────────────────────────────────────
@@ -120,5 +128,51 @@ public class ValidationTests {
         }
         assertInstanceOf(ConstraintViolationException.class, rootCause);
         assertFalse(trace.phases().contains(Phase.ACTION));
+    }
+
+    // ── Constraints on other phases ──────────────────────────────────────────
+    @Assertion(id = "AGENTICAI-VALIDATION-BHV-005",
+               section = "jakarta-validation-constraints",
+               strategy = "A constraint on the @Trigger event parameter is validated before the trigger body runs; "
+                        + "the ConstraintViolationException is routed to @OnException and no later phase runs")
+    public void invalidTriggerEventIsValidatedBeforeTrigger() {
+        trace.reset();
+        triggerEvents.fire(new TriggerValidationEvent(null));
+
+        assertFalse(trace.phases().contains(Phase.TRIGGER));
+        assertFalse(trace.phases().contains(Phase.ACTION));
+        TraceEntry handlerEntry = trace.entries().stream()
+                .filter(e -> e.phase() == Phase.HANDLE_EXCEPTION)
+                .findFirst()
+                .orElseThrow();
+        assertInstanceOf(ConstraintViolationException.class, handlerEntry.args()[0]);
+    }
+    @Assertion(id = "AGENTICAI-VALIDATION-BHV-005",
+               section = "jakarta-validation-constraints",
+               strategy = "A constraint on a @Decision parameter is validated before the decision body runs; "
+                        + "the ConstraintViolationException is routed to @OnException and the chain stops")
+    public void invalidDecisionParameterIsValidatedBeforeDecision() {
+        trace.reset();
+        decisionEvents.fire(new DecisionValidationEvent(null));
+
+        assertFalse(trace.phases().contains(Phase.DECISION));
+        assertFalse(trace.phases().contains(Phase.ACTION));
+        TraceEntry handlerEntry = trace.entries().stream()
+                .filter(e -> e.phase() == Phase.HANDLE_EXCEPTION)
+                .findFirst()
+                .orElseThrow();
+        assertInstanceOf(ConstraintViolationException.class, handlerEntry.args()[0]);
+    }
+    @Assertion(id = "AGENTICAI-VALIDATION-BHV-005",
+               section = "jakarta-validation-constraints",
+               strategy = "Valid input on the trigger event and the decision parameter runs those phases normally")
+    public void validInputOnOtherPhasesProceeds() {
+        trace.reset();
+        triggerEvents.fire(new TriggerValidationEvent("ok"));
+        assertEquals(List.of(Phase.TRIGGER, Phase.ACTION), trace.phases());
+
+        trace.reset();
+        decisionEvents.fire(new DecisionValidationEvent("ok"));
+        assertEquals(List.of(Phase.TRIGGER, Phase.DECISION, Phase.ACTION), trace.phases());
     }
 }

@@ -46,7 +46,7 @@ public class PhaseOrderingTests {
     @Inject ExecutionTraceRecorder trace;
     @Assertion(id = "AGENTICAI-ORDER-002",
                section = "agent-lifecycle",
-               strategy = "Full T→D→A→O pipeline executes in strict declaration order")
+               strategy = "Full T→D→A→O pipeline executes in strict phase order")
     public void fullPipelineExecutesInStrictOrder() {
         trace.reset();
         events.fire(new PhaseOrderingEvent("proceed"));
