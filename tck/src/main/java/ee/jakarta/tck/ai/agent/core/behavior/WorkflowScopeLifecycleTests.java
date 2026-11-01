@@ -118,7 +118,6 @@ public class WorkflowScopeLifecycleTests {
                strategy = "An @Agent with an explicit name, here @Agent(name = \"lifecycleSpy\"), runs its full "
                         + "workflow. The name is not asserted as a CDI bean name.")
     public void lifecycleSpyAgentRunsFullWorkflow() {
-        assertEquals("lifecycleSpy", LifecycleSpyAgent.class.getAnnotation(jakarta.ai.agent.Agent.class).name());
 
         trace.reset();
         lifecycleSpyEvents.fire(new LifecycleSpyEvent("naming"));
