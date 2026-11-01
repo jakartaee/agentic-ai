@@ -44,9 +44,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * Verifies Jakarta Validation integration in the agent workflow
  * (see the spec, {@code [[jakarta-validation-constraints]]}).
  *
- * <p>Validation is performed by a compatible implementation before parameter
- * injection and phase invocation, so the behavioral assertions are
- * a deployment-error test.</p>
+ * <p>Validation is performed by the implementation before parameter
+ * injection and phase invocation.</p>
  *
  * <p>Note on reset: in {@code @Deployed} classes {@code @BeforeEach} does not run
  * reliably between methods inside the container, so each test resets the trace

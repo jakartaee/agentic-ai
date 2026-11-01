@@ -52,5 +52,5 @@ It is included for reference; the copy the signature test uses is inside the TCK
 
 ==== What is not included
 
-The TCK uses but does not provide a Jakarta EE runtime, an Arquillian adapter, an implementation of {APILongName}, or a JSON Binding provider for the Test Client.
+The TCK uses but does not provide a Jakarta EE runtime, an Arquillian adapter or an implementation of {APILongName}.
 Setting up a runner project that supplies these is described in <<Creating a TCK Runner>>.

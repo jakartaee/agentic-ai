@@ -52,7 +52,7 @@ If your runtime needs an additional deployment descriptor in every archive, add 
 === Logging
 
 The TCK logs through `java.util.logging`.
-`AssertionExtension` logs the assertion id of every test it starts, and the id, section and strategy of every test that fails or is skipped, which is useful when reading a failed run.
+`AssertionExtension` logs the id, section and strategy of every test that fails, aborts or is skipped, which is useful when reading a failed run.
 The starter points the Test Client at a `logging.properties` that enables these messages:
 
 [source,xml]
