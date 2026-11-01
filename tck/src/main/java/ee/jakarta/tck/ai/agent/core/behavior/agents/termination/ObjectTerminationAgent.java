@@ -34,13 +34,13 @@ public class ObjectTerminationAgent {
         trace.record(Phase.TRIGGER, "onEvent", event);
     }
 
-    @Decision
+    @Decision(order = 1)
     public ObjectTerminationDecision decide(ObjectTerminationEvent event) {
         trace.record(Phase.DECISION, "decide", event);
         return null;
     }
 
-    @Action
+    @Action(order = 2)
     public void act(ObjectTerminationEvent event) {
         trace.record(Phase.ACTION, "act", event);
     }

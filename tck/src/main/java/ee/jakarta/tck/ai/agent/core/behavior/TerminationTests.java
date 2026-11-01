@@ -70,6 +70,14 @@ public class TerminationTests {
         resultEvents.fire(new ResultTerminationEvent("x"));
         assertEquals(List.of(Phase.TRIGGER, Phase.DECISION), trace.phases());
     }
+    @Assertion(id = "AGENTICAI-TERM-005",
+               section = "agent-lifecycle",
+               strategy = "Result(success=true) with null details from @Decision proceeds through all downstream phases")
+    public void resultTrueWithNullDetailsProceeds() {
+        trace.reset();
+        resultEvents.fire(new ResultTerminationEvent("proceed"));
+        assertEquals(List.of(Phase.TRIGGER, Phase.DECISION, Phase.ACTION, Phase.OUTCOME), trace.phases());
+    }
     @Assertion(id = "AGENTICAI-TERM-006",
                section = "agent-lifecycle",
                strategy = "Object null from @Decision halts all downstream phases")

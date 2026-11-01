@@ -34,13 +34,13 @@ public class VoidPhasesAgent {
         trace.record(Phase.TRIGGER, "onEvent", event);
     }
 
-    @Decision
+    @Decision(order = 1)
     public boolean decide(VoidPhasesEvent event) {
         trace.record(Phase.DECISION, "decide", event);
         return true;
     }
 
-    @Action
+    @Action(order = 2)
     public void act(VoidPhasesEvent event) {
         trace.record(Phase.ACTION, "act", event);
     }

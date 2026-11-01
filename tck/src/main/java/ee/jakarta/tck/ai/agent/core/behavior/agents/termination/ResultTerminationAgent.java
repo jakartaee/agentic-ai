@@ -35,13 +35,15 @@ public class ResultTerminationAgent {
         trace.record(Phase.TRIGGER, "onEvent", event);
     }
 
-    @Decision
+    @Decision(order = 1)
     public Result decide(ResultTerminationEvent event) {
         trace.record(Phase.DECISION, "decide", event);
-        return new Result(false, "deliberately terminated");
+        return "proceed".equals(event.payload())
+                ? new Result(true, null)
+                : new Result(false, "deliberately terminated");
     }
 
-    @Action
+    @Action(order = 2)
     public void act(ResultTerminationEvent event) {
         trace.record(Phase.ACTION, "act", event);
     }

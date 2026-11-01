@@ -242,6 +242,27 @@ public class LlmContractTests {
 
     @Assertion(id = "AGENTICAI-LLM-BHV-005",
                section = "llm-exception",
+               strategy = "a model failure surfaces as LLMException on query(String, Class)")
+    public void serviceErrorOnTypedOverloadPropagatesAsLlmException() {
+        assertInstanceOf(LLMException.class, probe(llm -> llm.query(TckModel.FAIL, PersonFixture.class)));
+    }
+
+    @Assertion(id = "AGENTICAI-LLM-BHV-005",
+               section = "llm-exception",
+               strategy = "a model failure surfaces as LLMException on query(String, Object...) when the rendered prompt fails")
+    public void serviceErrorOnVarargsOverloadPropagatesAsLlmException() {
+        assertInstanceOf(LLMException.class, probe(llm -> llm.query("{} fails", TckModel.FAIL)));
+    }
+
+    @Assertion(id = "AGENTICAI-LLM-BHV-005",
+               section = "llm-exception",
+               strategy = "a model failure surfaces as LLMException on query(String, Class, Object...) when the rendered prompt fails")
+    public void serviceErrorOnTypedVarargsOverloadPropagatesAsLlmException() {
+        assertInstanceOf(LLMException.class, probe(llm -> llm.query("{} fails", PersonFixture.class, TckModel.FAIL)));
+    }
+
+    @Assertion(id = "AGENTICAI-LLM-BHV-005",
+               section = "llm-exception",
                strategy = "a response that cannot be deserialized to the requested type surfaces as LLMException")
     public void typeConversionFailurePropagatesAsLlmException() {
         assertInstanceOf(LLMException.class, probe(llm -> llm.query("not json", PersonFixture.class)));

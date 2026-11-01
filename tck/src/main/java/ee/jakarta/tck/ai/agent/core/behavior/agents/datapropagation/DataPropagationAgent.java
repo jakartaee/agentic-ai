@@ -37,14 +37,14 @@ public class DataPropagationAgent {
         return new TriggerOutput("trigger:" + event.input());
     }
 
-    @Decision
+    @Decision(order = 1)
     public DecisionOutput decide(DataPropagationEvent event, TriggerOutput trigger) {
         trace.record(Phase.DECISION, "decide", event, trigger);
         String response = llm.query(trigger.fromTrigger());
         return new DecisionOutput("decision:" + response);
     }
 
-    @Action
+    @Action(order = 2)
     public ActionOutput act(TriggerOutput trigger, DecisionOutput decision) {
         trace.record(Phase.ACTION, "act", trigger, decision);
         return new ActionOutput("action:" + trigger.fromTrigger() + "+" + decision.fromDecision());

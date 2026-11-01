@@ -38,16 +38,16 @@ public class PhaseOrderingAgent {
         return new TriggerOutput("trigger:" + event.payload());
     }
 
-    @Decision
+    @Decision(order = 1)
     public Result decide(PhaseOrderingEvent event, TriggerOutput triggerOutput) {
         trace.record(Phase.DECISION, "decide", event, triggerOutput);
         String answer = llm.query(event.payload());
         return new Result("proceed".equals(answer), answer);
     }
 
-    @Action
-    public String act(PhaseOrderingEvent event, Result decisionResult) {
-        trace.record(Phase.ACTION, "act", event, decisionResult);
+    @Action(order = 2)
+    public String act(PhaseOrderingEvent event, String decisionDetails) {
+        trace.record(Phase.ACTION, "act", event, decisionDetails);
         return "action-done";
     }
 

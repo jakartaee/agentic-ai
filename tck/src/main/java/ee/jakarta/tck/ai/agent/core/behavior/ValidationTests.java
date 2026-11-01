@@ -18,6 +18,8 @@ import ee.jakarta.tck.ai.agent.core.behavior.agents.validation.HandlerInput;
 import ee.jakarta.tck.ai.agent.core.behavior.agents.validation.HandlerValidatedAgent;
 import ee.jakarta.tck.ai.agent.core.behavior.agents.validation.HandlerValidationEvent;
 import ee.jakarta.tck.ai.agent.core.behavior.agents.validation.InputData;
+import ee.jakarta.tck.ai.agent.core.behavior.agents.validation.OutcomeValidatedAgent;
+import ee.jakarta.tck.ai.agent.core.behavior.agents.validation.OutcomeValidationEvent;
 import ee.jakarta.tck.ai.agent.core.behavior.agents.validation.TriggerValidatedAgent;
 import ee.jakarta.tck.ai.agent.core.behavior.agents.validation.TriggerValidationEvent;
 import ee.jakarta.tck.ai.agent.core.behavior.agents.validation.UnhandledValidatedAgent;
@@ -71,7 +73,8 @@ public class ValidationTests {
                         UnhandledValidatedAgent.class, UnhandledValidationEvent.class,
                         TriggerValidatedAgent.class, TriggerValidationEvent.class,
                         DecisionValidatedAgent.class, DecisionValidationEvent.class,
-                        HandlerValidatedAgent.class, HandlerValidationEvent.class, HandlerInput.class
+                        HandlerValidatedAgent.class, HandlerValidationEvent.class, HandlerInput.class,
+                        OutcomeValidatedAgent.class, OutcomeValidationEvent.class
                 )
                 .addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml");
     }
@@ -81,6 +84,7 @@ public class ValidationTests {
     @Inject Event<TriggerValidationEvent>   triggerEvents;
     @Inject Event<DecisionValidationEvent>  decisionEvents;
     @Inject Event<HandlerValidationEvent>   handlerEvents;
+    @Inject Event<OutcomeValidationEvent>   outcomeEvents;
     @Inject ExecutionTraceRecorder          trace;
 
     // ── Valid input proceeds ──────────────────────────────────────────────────
@@ -125,14 +129,13 @@ public class ValidationTests {
                strategy = "Without a matching @OnException, the ConstraintViolationException propagates to the container")
     public void invalidInputPropagatesWithoutHandler() {
         trace.reset();
-        // CDI wraps observer exceptions; the cause is the ConstraintViolationException
         Throwable thrown = assertThrows(Throwable.class,
                 () -> unhandledEvents.fire(new UnhandledValidationEvent(null)));
-        Throwable rootCause = thrown;
-        while (rootCause.getCause() != null) {
-            rootCause = rootCause.getCause();
+        Throwable violation = thrown;
+        while (violation != null && !(violation instanceof ConstraintViolationException)) {
+            violation = violation.getCause();
         }
-        assertInstanceOf(ConstraintViolationException.class, rootCause);
+        assertInstanceOf(ConstraintViolationException.class, violation);
         assertFalse(trace.phases().contains(Phase.ACTION));
     }
 
@@ -180,6 +183,26 @@ public class ValidationTests {
         trace.reset();
         decisionEvents.fire(new DecisionValidationEvent("ok"));
         assertEquals(List.of(Phase.TRIGGER, Phase.DECISION, Phase.ACTION), trace.phases());
+    }
+
+    @Assertion(id = "AGENTICAI-VALIDATION-BHV-007",
+               section = "jakarta-validation-constraints",
+               strategy = "A constraint on an @Outcome parameter is validated before the outcome body runs; "
+                        + "the ConstraintViolationException is routed to @OnException, and valid input reaches the outcome")
+    public void invalidOutcomeParameterIsValidatedBeforeOutcome() {
+        trace.reset();
+        outcomeEvents.fire(new OutcomeValidationEvent(null));
+
+        assertFalse(trace.phases().contains(Phase.OUTCOME));
+        TraceEntry handlerEntry = trace.entries().stream()
+                .filter(e -> e.phase() == Phase.HANDLE_EXCEPTION)
+                .findFirst()
+                .orElseThrow();
+        assertInstanceOf(ConstraintViolationException.class, handlerEntry.args()[0]);
+
+        trace.reset();
+        outcomeEvents.fire(new OutcomeValidationEvent("ok"));
+        assertEquals(List.of(Phase.TRIGGER, Phase.ACTION, Phase.OUTCOME), trace.phases());
     }
 
     // ── Constraints on @OnException parameters ───────────────────────────────

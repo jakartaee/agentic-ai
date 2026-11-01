@@ -44,13 +44,13 @@ public class TieBreakAgent {
         trace.record(Phase.TRIGGER, "onEvent", event);
     }
 
-    @Decision
+    @Decision(order = 1)
     public SameTypeOutput decide(TieBreakEvent event) {
         trace.record(Phase.DECISION, "decide", event);
         return new SameTypeOutput("decision");
     }
 
-    @Action
+    @Action(order = 2)
     public SameTypeOutput act(TieBreakEvent event) {
         trace.record(Phase.ACTION, "act", event);
         return new SameTypeOutput("action");
