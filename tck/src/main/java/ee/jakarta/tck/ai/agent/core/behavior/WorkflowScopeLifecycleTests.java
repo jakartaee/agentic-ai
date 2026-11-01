@@ -12,6 +12,8 @@
  *****************************************************************************/
 package ee.jakarta.tck.ai.agent.core.behavior;
 
+import ee.jakarta.tck.ai.agent.core.behavior.agents.cdi.DecisionStopEvent;
+import ee.jakarta.tck.ai.agent.core.behavior.agents.cdi.DecisionStopSpyAgent;
 import ee.jakarta.tck.ai.agent.core.behavior.agents.cdi.LifecycleCallbackRecorder;
 import ee.jakarta.tck.ai.agent.core.behavior.agents.cdi.LifecycleSpyAgent;
 import ee.jakarta.tck.ai.agent.core.behavior.agents.cdi.LifecycleSpyEvent;
@@ -64,6 +66,7 @@ public class WorkflowScopeLifecycleTests {
                 .addClasses(
                         LifecycleSpyAgent.class,        LifecycleSpyEvent.class,
                         ScopeDefaultAgent.class,        ScopeDefaultEvent.class,
+                        DecisionStopSpyAgent.class,     DecisionStopEvent.class,
                         LifecycleCallbackRecorder.class
                 )
                 .addAsWebInfResource(new StringAsset(BEANS_XML), "beans.xml");
@@ -71,6 +74,7 @@ public class WorkflowScopeLifecycleTests {
 
     @Inject Event<LifecycleSpyEvent>  lifecycleSpyEvents;
     @Inject Event<ScopeDefaultEvent>  scopeDefaultEvents;
+    @Inject Event<DecisionStopEvent>  decisionStopEvents;
     @Inject ExecutionTraceRecorder    trace;
     @Inject LifecycleCallbackRecorder lifecycleRecorder;
     @Inject BeanManager               beanManager;
@@ -155,14 +159,24 @@ public class WorkflowScopeLifecycleTests {
         trace.reset();
         LifecycleSpyAgent.setFailInAction(true);
         try {
-            // @Action throws; CDI wraps in ObserverException — catch and ignore
+            // @Action throws and the failure propagates to the container; catch and ignore
             lifecycleSpyEvents.fire(new LifecycleSpyEvent("workflow-1"));
         } catch (Exception ignored) {
-            // expected: the action failure propagates wrapped in ObserverException
         } finally {
             LifecycleSpyAgent.setFailInAction(false);
         }
         assertFalse(trace.phases().contains(Phase.OUTCOME));
+        assertEquals(1, lifecycleRecorder.getPreDestroyCount());
+    }
+    @Assertion(id = "AGENTICAI-CDI-BHV-010",
+               section = "cdi-integration",
+               strategy = "@PreDestroy is invoked exactly once when the workflow terminates at a @Decision returning "
+                        + "false: the @WorkflowScoped context is destroyed although @Action and @Outcome never run")
+    public void workflowScopedAgentPreDestroyCalledAfterDecisionStop() {
+        lifecycleRecorder.reset();
+        trace.reset();
+        decisionStopEvents.fire(new DecisionStopEvent("workflow-1"));
+        assertEquals(List.of(Phase.TRIGGER, Phase.DECISION), trace.phases());
         assertEquals(1, lifecycleRecorder.getPreDestroyCount());
     }
     @Assertion(id = "AGENTICAI-CDI-BHV-011",

@@ -59,7 +59,6 @@ public class EventObservationTests {
                 .addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml");
     }
 
-    @Inject Event<EventObservationTriggerEvent> triggerEvents;
     @Inject Event<GeneralObservationEvent> generalEvents;
     @Inject Event<WorkflowScopedTriggerEvent> workflowScopedEvents;
     @Inject ExecutionTraceRecorder trace;
@@ -75,5 +74,13 @@ public class EventObservationTests {
         workflowScopedEvents.fire(new WorkflowScopedTriggerEvent("input"));
         assertEquals(List.of(Phase.TRIGGER), trace.phases());
         assertEquals(List.of("onTriggerEvent"), recordedMethodNames());
+    }
+    @Assertion(id = "AGENTICAI-EVENT-OBS-004",
+               section = "cdi-events",
+               strategy = "An @ApplicationScoped agent also observes events through a general @Observes method that is not a @Trigger")
+    public void applicationScopedAgentObservesViaGeneralObserver() {
+        trace.reset();
+        generalEvents.fire(new GeneralObservationEvent("input"));
+        assertEquals(List.of("onGeneralEvent"), recordedMethodNames());
     }
 }

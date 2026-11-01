@@ -41,24 +41,24 @@ public class BranchingAgent {
         trace.record(Phase.TRIGGER, "onEvent", event);
     }
 
-    @Decision
+    @Decision(order = 1)
     public boolean firstDecide(BranchingEvent event) {
         trace.record(Phase.DECISION, "firstDecide", event);
         return terminateAt != TerminationPoint.FIRST_DECISION;
     }
 
-    @Action
+    @Action(order = 2)
     public void firstAction(BranchingEvent event) {
         trace.record(Phase.ACTION, "firstAction", event);
     }
 
-    @Decision
+    @Decision(order = 3)
     public boolean secondDecide(BranchingEvent event) {
         trace.record(Phase.DECISION, "secondDecide", event);
         return terminateAt != TerminationPoint.SECOND_DECISION;
     }
 
-    @Action
+    @Action(order = 4)
     public void secondAction(BranchingEvent event) {
         trace.record(Phase.ACTION, "secondAction", event);
     }

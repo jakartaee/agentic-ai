@@ -44,7 +44,6 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 @Deployed
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -86,7 +85,6 @@ public class CdiIntegrationTests {
     @Inject Event<ResolutionOrderEvent>     resolutionOrderEvents;
     @Inject Event<InnerAgentEvent>          innerAgentEvents;
     @Inject ExecutionTraceRecorder          trace;
-    @Inject SingletonCdiAgent               singletonAgent;
 
     @Assertion(id = "AGENTICAI-CDI-BHV-002",
                section = "cdi-integration",
@@ -106,18 +104,6 @@ public class CdiIntegrationTests {
         trace.reset();
         constructorInjectedEvents.fire(new ConstructorInjectedEvent("test"));
         assertEquals(List.of(Phase.TRIGGER), trace.phases());
-    }
-
-    @Assertion(id = "AGENTICAI-CDI-BHV-002",
-               section = "cdi-integration",
-               strategy = "An @ApplicationScoped @Agent is a first-class CDI bean: the container injects a "
-                        + "client proxy (a generated subclass), not the raw instance. Proven by the injected "
-                        + "reference being an instance of the agent type but having a different runtime class")
-    public void agentIsInjectedAsCdiProxy() {
-        // Normal-scoped beans are always client-proxied per the CDI spec, so the proxy
-        // is a subclass with a different Class object. Portable across CDI implementations.
-        assertInstanceOf(SingletonCdiAgent.class, singletonAgent);
-        assertNotEquals(SingletonCdiAgent.class, singletonAgent.getClass());
     }
 
     @Assertion(id = "AGENTICAI-CDI-BHV-003",

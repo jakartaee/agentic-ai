@@ -33,17 +33,17 @@ public class LinearAgent {
         trace.record(Phase.TRIGGER, "onEvent", event);
     }
 
-    @Action
+    @Action(order = 1)
     public void firstAction(LinearEvent event) {
         trace.record(Phase.ACTION, "firstAction", event);
     }
 
-    @Action
+    @Action(order = 2)
     public void secondAction(LinearEvent event) {
         trace.record(Phase.ACTION, "secondAction", event);
     }
 
-    @Action
+    @Action(order = 3)
     public void thirdAction(LinearEvent event) {
         trace.record(Phase.ACTION, "thirdAction", event);
     }

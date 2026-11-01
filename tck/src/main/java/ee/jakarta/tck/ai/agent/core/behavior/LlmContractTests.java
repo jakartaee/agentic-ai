@@ -12,6 +12,8 @@
  *****************************************************************************/
 package ee.jakarta.tck.ai.agent.core.behavior;
 
+import ee.jakarta.tck.ai.agent.core.behavior.agents.llm.LlmFailureEvent;
+import ee.jakarta.tck.ai.agent.core.behavior.agents.llm.LlmFailureHandlingAgent;
 import ee.jakarta.tck.ai.agent.core.behavior.agents.llm.LlmProbeAgent;
 import ee.jakarta.tck.ai.agent.core.behavior.agents.llm.LlmProbeEvent;
 import ee.jakarta.tck.ai.agent.core.behavior.agents.llm.LlmQuerierAgent;
@@ -56,12 +58,14 @@ public class LlmContractTests {
         return ShrinkWrap.create(WebArchive.class, "llmcontract.war")
                 .addClasses(LlmProbeAgent.class, LlmProbeEvent.class,
                             LlmQuerierAgent.class, LlmQuerierEvent.class,
+                            LlmFailureHandlingAgent.class, LlmFailureEvent.class,
                             PersonFixture.class, NonSerializableParam.class, NonSerializableParam.Serializer.class)
                 .addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml");
     }
 
     @Inject Event<LlmProbeEvent>   probes;
     @Inject Event<LlmQuerierEvent> queries;
+    @Inject Event<LlmFailureEvent> failures;
     @Inject ExecutionTraceRecorder trace;
 
     private Object probe(Function<LargeLanguageModel, Object> call) {
@@ -241,6 +245,17 @@ public class LlmContractTests {
                strategy = "a response that cannot be deserialized on the typed varargs overload surfaces as LLMException")
     public void typeConversionFailureOnTypedVarargsOverloadPropagatesAsLlmException() {
         assertInstanceOf(LLMException.class, probe(llm -> llm.query("not json {}", PersonFixture.class, "x")));
+    }
+
+    @Assertion(id = "AGENTICAI-LLM-BHV-008",
+               section = "llm-exception",
+               strategy = "an LLMException thrown from a phase is routed to a matching @OnException method, "
+                       + "and the workflow continues to @Outcome when the handler returns normally")
+    public void llmExceptionIsHandledByOnException() {
+        trace.reset();
+        failures.fire(new LlmFailureEvent("x"));
+        assertEquals(List.of(Phase.TRIGGER, Phase.ACTION, Phase.HANDLE_EXCEPTION, Phase.OUTCOME), trace.phases());
+        assertInstanceOf(LLMException.class, trace.entries().get(2).args()[0]);
     }
 
     // -- conversational state --------------------------------------------------
