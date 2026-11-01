@@ -16,7 +16,6 @@ import ee.jakarta.tck.ai.agent.core.behavior.agents.deploymenterror.TwoPhaseMeth
 import ee.jakarta.tck.ai.agent.core.behavior.agents.deploymenterror.TwoPhaseMethodEvent;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Assertion;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Deployed;
-import ee.jakarta.tck.ai.agent.framework.junit.anno.RequiresImplementation;
 import jakarta.enterprise.inject.spi.DeploymentException;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.ShouldThrowException;
@@ -30,15 +29,13 @@ import org.jboss.shrinkwrap.api.spec.WebArchive;
  * method declares two phase annotations must be rejected at deployment time.
  *
  * <p>This error is detected by a compatible implementation's CDI extension.
- * The class carries {@link RequiresImplementation} because the check is the
- * deployment itself.</p>
+ * The check is the deployment itself.</p>
  *
  * <p>The verification is the deployment itself: {@link ShouldThrowException}
  * declares that building the container for this archive must fail with a
  * {@link DeploymentException}; the test body is therefore empty.</p>
  */
 @Deployed
-@RequiresImplementation
 public class DeploymentErrorTwoPhaseTests {
 
     @Deployment

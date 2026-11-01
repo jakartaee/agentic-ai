@@ -19,7 +19,7 @@ tck/
 │   │   │   └── agents/       # The agents those tests deploy, one package per concern
 │   │   └── integration/      # Deployed smoke test
 │   └── framework/
-│       ├── junit/anno/       # @Assertion, @Standalone, @Deployed, @RequiresImplementation, ...
+│       ├── junit/anno/       # @Assertion, @Standalone, @Deployed
 │       ├── junit/extensions/ # The JUnit conditions behind those annotations
 │       ├── arquillian/       # Adds the framework beans to every deployment
 │       ├── llm/              # TckModel: the model behaviour an implementation must provide during a run
@@ -37,7 +37,7 @@ Tests live in `src/main/java` so they ship in the TCK jar for implementors to ru
 
 Compatibility runs happen in an implementation's own repository: it runs the published jar from its own runner with its own Arquillian adapter, every test included, as the TCK Reference Guide in `tck-dist` describes.
 
-This repository has no implementation, so its build runs what plain CDI can satisfy on Weld Embedded, a test dependency of this module. Assertions that need an implementation carry `@RequiresImplementation`, a JUnit tag that this module's Failsafe configuration excludes; the rest of the jar, including the signature test, runs here:
+This repository has no implementation to deploy to, so, as in the Data and Concurrency TCKs, its build compiles the deployed tests into the jar without running them. The only test it executes is the container-less signature test (`<groups>standalone</groups>` in this module's Failsafe configuration):
 
 ```bash
 mvn clean install
@@ -45,7 +45,7 @@ mvn --projects tck --also-make clean install
 mvn --projects tck --also-make verify
 ```
 
-This run must succeed. It is not a compatibility result.
+The deployed tests are validated by the implementation's run.
 
 ## Test Assertions
 
@@ -65,7 +65,7 @@ public void testAgentAnnotationExists() {
 The API signature check in `framework/signature`; no container needed. It is the structural test: the recorded baseline covers every type, member, target, retention and meta-annotation of the API, so there are no separate reflection tests.
 
 ### Behavioral tests (`@Deployed`)
-Arquillian deployments that run real workflows against the implementation under test. Each class in `core/behavior` covers one concern: phase ordering and precedence, data propagation and resolution tie-breaks, termination, `@OnException` handling, validation, inherited and void phases, topology flexibility, orchestration, CDI integration and event observation, workflow-scope lifecycle, concurrency isolation, deployment errors, and the `LargeLanguageModel` contract. Assertions a plain CDI container cannot satisfy carry `@RequiresImplementation`, a JUnit tag; a compatibility run excludes nothing, and only this repository's own build excludes the tag. See [TESTING-GUIDELINE](../TESTING-GUIDELINE.md).
+Arquillian deployments that run real workflows against the implementation under test. Each class in `core/behavior` covers one concern: phase ordering and precedence, data propagation and resolution tie-breaks, termination, `@OnException` handling, validation, inherited and void phases, topology flexibility, orchestration, CDI integration and event observation, workflow-scope lifecycle, concurrency isolation, deployment errors, and the `LargeLanguageModel` contract. A compatibility run executes all of them; see [TESTING-GUIDELINE](../TESTING-GUIDELINE.md).
 
 ## API signature baseline
 
@@ -126,11 +126,6 @@ Guide's "Additional Certification Requirements": a rendered prompt containing
 `TckModel.FAIL` fails, a prompt equal to `TckModel.HISTORY` returns the
 conversation's prior rendered prompts one per line, and anything else is echoed
 verbatim. The tests derive decisions and observations from that echo.
-
-This repository has no implementation, so `src/test` carries
-`EchoLargeLanguageModel`, a stand-in facade that follows the same specification
-and is added to every archive here by a test-scoped Arquillian extension. It
-never reaches the jar.
 
 ## License
 

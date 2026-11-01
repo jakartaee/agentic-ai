@@ -15,7 +15,6 @@ package ee.jakarta.tck.ai.agent.core.behavior;
 import ee.jakarta.tck.ai.agent.core.behavior.agents.deploymenterror.NoTriggerAgent;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Assertion;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Deployed;
-import ee.jakarta.tck.ai.agent.framework.junit.anno.RequiresImplementation;
 import jakarta.enterprise.inject.spi.DeploymentException;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.ShouldThrowException;
@@ -29,7 +28,6 @@ import org.jboss.shrinkwrap.api.spec.WebArchive;
  * {@code @Trigger} method must be rejected at deployment time.
  */
 @Deployed
-@RequiresImplementation
 public class DeploymentErrorNoTriggerTests {
 
     @Deployment

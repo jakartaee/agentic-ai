@@ -19,7 +19,6 @@ import ee.jakarta.tck.ai.agent.core.behavior.agents.eventobservation.WorkflowSco
 import ee.jakarta.tck.ai.agent.core.behavior.agents.eventobservation.WorkflowScopedTriggerEvent;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Assertion;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Deployed;
-import ee.jakarta.tck.ai.agent.framework.junit.anno.RequiresImplementation;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder.Phase;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder.TraceEntry;
@@ -68,8 +67,6 @@ public class EventObservationTests {
     private List<String> recordedMethodNames() {
         return trace.entries().stream().map(TraceEntry::methodName).toList();
     }
-
-    @RequiresImplementation
     @Assertion(id = "AGENTICAI-EVENT-OBS-003",
                section = "cdi-events",
                strategy = "A @WorkflowScoped agent observes an event through its @Trigger method")

@@ -21,7 +21,6 @@ import ee.jakarta.tck.ai.agent.core.behavior.agents.termination.ResultTerminatio
 import ee.jakarta.tck.ai.agent.core.behavior.agents.termination.ResultTerminationEvent;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Assertion;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Deployed;
-import ee.jakarta.tck.ai.agent.framework.junit.anno.RequiresImplementation;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder.Phase;
 import jakarta.enterprise.event.Event;
@@ -55,8 +54,6 @@ public class TerminationTests {
     @Inject Event<ResultTerminationEvent>  resultEvents;
     @Inject Event<ObjectTerminationEvent>  objectEvents;
     @Inject ExecutionTraceRecorder trace;
-
-    @RequiresImplementation
     @Assertion(id = "AGENTICAI-TERM-004",
                section = "agent-lifecycle",
                strategy = "Boolean false from @Decision halts all downstream phases")
@@ -65,8 +62,6 @@ public class TerminationTests {
         booleanEvents.fire(new BooleanTerminationEvent("x"));
         assertEquals(List.of(Phase.TRIGGER, Phase.DECISION), trace.phases());
     }
-
-    @RequiresImplementation
     @Assertion(id = "AGENTICAI-TERM-005",
                section = "agent-lifecycle",
                strategy = "Result(success=false) from @Decision halts all downstream phases")
@@ -75,8 +70,6 @@ public class TerminationTests {
         resultEvents.fire(new ResultTerminationEvent("x"));
         assertEquals(List.of(Phase.TRIGGER, Phase.DECISION), trace.phases());
     }
-
-    @RequiresImplementation
     @Assertion(id = "AGENTICAI-TERM-006",
                section = "agent-lifecycle",
                strategy = "Object null from @Decision halts all downstream phases")

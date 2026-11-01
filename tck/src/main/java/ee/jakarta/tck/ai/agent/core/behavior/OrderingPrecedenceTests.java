@@ -20,7 +20,6 @@ import ee.jakarta.tck.ai.agent.core.behavior.agents.ordering.PriorityOverOrderAg
 import ee.jakarta.tck.ai.agent.core.behavior.agents.ordering.PriorityOverOrderEvent;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Assertion;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Deployed;
-import ee.jakarta.tck.ai.agent.framework.junit.anno.RequiresImplementation;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder.TraceEntry;
 import jakarta.enterprise.event.Event;
@@ -45,7 +44,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  * execution order, so a trace that follows the sort key (not source order)
  * proves the rule is honored. Ordering is performed by the implementation when
  * it dispatches phases, so the behavioral assertions are
- * {@link RequiresImplementation}.</p>
+ * a deployment-error test.</p>
  *
  * <p>Note on reset: in {@code @Deployed} classes {@code @BeforeEach} does not run
  * reliably between methods inside the container, so each test resets the trace
@@ -77,8 +76,6 @@ public class OrderingPrecedenceTests {
     }
 
     // ── order attribute is honored ───────────────────────────────────────────
-
-    @RequiresImplementation
     @Assertion(id = "AGENTICAI-ORDER-004",
                section = "agent-lifecycle",
                strategy = "@Action/@Decision methods execute by ascending order attribute, not source declaration order")
@@ -89,8 +86,6 @@ public class OrderingPrecedenceTests {
     }
 
     // ── @Priority is honored ─────────────────────────────────────────────────
-
-    @RequiresImplementation
     @Assertion(id = "AGENTICAI-ORDER-005",
                section = "agent-lifecycle",
                strategy = "@Action/@Decision methods execute by ascending @Priority value, not source declaration order")
@@ -101,8 +96,6 @@ public class OrderingPrecedenceTests {
     }
 
     // ── @Priority takes precedence over order ────────────────────────────────
-
-    @RequiresImplementation
     @Assertion(id = "AGENTICAI-ORDER-006",
                section = "agent-lifecycle",
                strategy = "When a method declares both, @Priority takes precedence over the order attribute")

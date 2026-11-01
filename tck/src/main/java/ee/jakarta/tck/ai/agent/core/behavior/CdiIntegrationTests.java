@@ -27,7 +27,6 @@ import ee.jakarta.tck.ai.agent.core.behavior.agents.cdi.SingletonCdiAgent;
 import ee.jakarta.tck.ai.agent.core.behavior.agents.cdi.SingletonCdiEvent;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Assertion;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Deployed;
-import ee.jakarta.tck.ai.agent.framework.junit.anno.RequiresImplementation;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder.Phase;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder.TraceEntry;
@@ -151,8 +150,6 @@ public class CdiIntegrationTests {
     // -------------------------------------------------------------------------
     // Implementation-required tests
     // -------------------------------------------------------------------------
-
-    @RequiresImplementation
     @Assertion(id = "AGENTICAI-CDI-BHV-004",
                section = "cdi-integration",
                strategy = "An @ApplicationScoped @Agent uses the same bean instance across all phases of a "
@@ -167,8 +164,6 @@ public class CdiIntegrationTests {
         assertEquals(triggerId, actionId);
         assertEquals(triggerId, outcomeId);
     }
-
-    @RequiresImplementation
     @Assertion(id = "AGENTICAI-CDI-BHV-005",
                section = "parameter-resolution",
                strategy = "The compatible implementation resolves method parameters in priority order: (1) triggering event, (3) "
@@ -185,8 +180,6 @@ public class CdiIntegrationTests {
         assertInstanceOf(LargeLanguageModel.class, actionEntry.args()[1]);
         assertInstanceOf(ResolutionCdiBean.class, actionEntry.args()[2]);
     }
-
-    @RequiresImplementation
     @Assertion(id = "AGENTICAI-CDI-BHV-006",
                section = "cdi-integration",
                strategy = "A CDI interceptor bound via a custom @InterceptorBinding executes before and after the "
@@ -202,8 +195,6 @@ public class CdiIntegrationTests {
                 "interceptorBefore", "process",  "interceptorAfter",
                 "interceptorBefore", "finish",   "interceptorAfter"), names);
     }
-
-    @RequiresImplementation
     @Assertion(id = "AGENTICAI-CDI-BHV-007",
                section = "agent-lifecycle",
                strategy = "The triggering event object is available as a method parameter in @Decision, @Action, "

@@ -19,7 +19,6 @@ import ee.jakarta.tck.ai.agent.core.behavior.agents.inheritance.OverrideEvent;
 import ee.jakarta.tck.ai.agent.core.behavior.agents.inheritance.OverridingAgent;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Assertion;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Deployed;
-import ee.jakarta.tck.ai.agent.framework.junit.anno.RequiresImplementation;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder.Phase;
 import jakarta.enterprise.event.Event;
@@ -61,8 +60,6 @@ public class InheritedPhaseTests {
     @Inject Event<InheritEvent> inheritEvents;
     @Inject Event<OverrideEvent> overrideEvents;
     @Inject ExecutionTraceRecorder trace;
-
-    @RequiresImplementation
     @Assertion(id = "AGENTICAI-INHERIT-001",
                section = "agent-lifecycle",
                strategy = "A phase method declared on a superclass is inherited and participates in the workflow")
@@ -71,8 +68,6 @@ public class InheritedPhaseTests {
         inheritEvents.fire(new InheritEvent("input"));
         assertEquals(List.of(Phase.TRIGGER, Phase.ACTION), trace.phases());
     }
-
-    @RequiresImplementation
     @Assertion(id = "AGENTICAI-INHERIT-002",
                section = "agent-lifecycle",
                strategy = "An override that drops the phase annotation does not participate in the workflow")

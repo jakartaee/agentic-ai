@@ -18,7 +18,6 @@ import ee.jakarta.tck.ai.agent.core.behavior.agents.topologyflex.NoOutcomeAgent;
 import ee.jakarta.tck.ai.agent.core.behavior.agents.topologyflex.NoOutcomeEvent;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Assertion;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Deployed;
-import ee.jakarta.tck.ai.agent.framework.junit.anno.RequiresImplementation;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder.Phase;
 import jakarta.enterprise.event.Event;
@@ -49,8 +48,6 @@ public class TopologyFlexTests {
     @Inject Event<NoDecisionEvent> noDecisionEvents;
     @Inject Event<NoOutcomeEvent>  noOutcomeEvents;
     @Inject ExecutionTraceRecorder trace;
-
-    @RequiresImplementation
     @Assertion(id = "AGENTICAI-FLEX-003",
                section = "agent-lifecycle",
                strategy = "Workflow without @Decision executes T→A→O without error")
@@ -59,8 +56,6 @@ public class TopologyFlexTests {
         noDecisionEvents.fire(new NoDecisionEvent("test"));
         assertEquals(List.of(Phase.TRIGGER, Phase.ACTION, Phase.OUTCOME), trace.phases());
     }
-
-    @RequiresImplementation
     @Assertion(id = "AGENTICAI-FLEX-004",
                section = "agent-lifecycle",
                strategy = "Workflow without @Outcome completes gracefully after @Action")
