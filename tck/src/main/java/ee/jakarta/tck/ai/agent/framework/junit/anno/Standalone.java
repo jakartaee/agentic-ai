@@ -31,7 +31,6 @@ import java.lang.annotation.Target;
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 @Tag("standalone")
-@Tag("core")
 @ExtendWith(AssertionExtension.class)
 public @interface Standalone {
 }
