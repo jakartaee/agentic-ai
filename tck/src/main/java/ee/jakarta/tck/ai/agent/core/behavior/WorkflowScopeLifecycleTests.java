@@ -137,7 +137,7 @@ public class WorkflowScopeLifecycleTests {
     }
 
     @RequiresImplementation
-    @Assertion(id = "AGENTICAI-CDI-BHV-003",
+    @Assertion(id = "AGENTICAI-CDI-BHV-010",
                section = "cdi-integration",
                strategy = "@PostConstruct is invoked exactly once per @WorkflowScoped workflow execution — "
                         + "LifecycleCallbackRecorder counts one @PostConstruct call after a single workflow")
@@ -149,7 +149,7 @@ public class WorkflowScopeLifecycleTests {
     }
 
     @RequiresImplementation
-    @Assertion(id = "AGENTICAI-CDI-BHV-003",
+    @Assertion(id = "AGENTICAI-CDI-BHV-010",
                section = "cdi-integration",
                strategy = "@PreDestroy is invoked exactly once after the @WorkflowScoped context is destroyed "
                         + "(workflow completes through @Outcome) — LifecycleCallbackRecorder counts one call")
@@ -162,7 +162,7 @@ public class WorkflowScopeLifecycleTests {
     }
 
     @RequiresImplementation
-    @Assertion(id = "AGENTICAI-CDI-BHV-003",
+    @Assertion(id = "AGENTICAI-CDI-BHV-010",
                section = "cdi-integration",
                strategy = "@PreDestroy is invoked exactly once even when the workflow FAILS (the issue requires "
                         + "cleanup 'after the workflow completes or fails'). LifecycleSpyAgent.setFailInAction(true) "
@@ -185,7 +185,7 @@ public class WorkflowScopeLifecycleTests {
     }
 
     @RequiresImplementation
-    @Assertion(id = "AGENTICAI-CDI-BHV-004",
+    @Assertion(id = "AGENTICAI-CDI-BHV-011",
                section = "cdi-integration",
                strategy = "@WorkflowScoped creates a distinct bean instance per workflow execution — two "
                         + "sequential events yield two different instanceIds (v1 proxy for concurrent workflows)")

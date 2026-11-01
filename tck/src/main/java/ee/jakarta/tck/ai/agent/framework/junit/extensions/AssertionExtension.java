@@ -13,8 +13,6 @@
 package ee.jakarta.tck.ai.agent.framework.junit.extensions;
 
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Assertion;
-import org.junit.jupiter.api.extension.AfterTestExecutionCallback;
-import org.junit.jupiter.api.extension.BeforeTestExecutionCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.TestWatcher;
 
@@ -22,33 +20,14 @@ import java.util.Optional;
 import java.util.logging.Logger;
 
 /**
- * JUnit 5 extension that logs information about specification assertions.
- * It tracks the execution of methods annotated with {@link Assertion}.
+ * Logs the {@link Assertion} id, section and strategy of every test that
+ * fails, aborts or is disabled, so a report can be read back to the
+ * specification requirement.
  */
-public class AssertionExtension implements TestWatcher, BeforeTestExecutionCallback, AfterTestExecutionCallback {
+public class AssertionExtension implements TestWatcher {
 
     private static final Logger LOGGER = Logger.getLogger(AssertionExtension.class.getName());
     private static final String NL = System.lineSeparator();
-
-    @Override
-    public void beforeTestExecution(ExtensionContext context) {
-        context.getTestMethod().ifPresent(method -> {
-            Assertion assertion = method.getAnnotation(Assertion.class);
-            if (assertion != null) {
-                LOGGER.info(() -> "Executing @Assertion #" + assertion.id() + " - " + method.getName());
-            }
-        });
-    }
-
-    @Override
-    public void afterTestExecution(ExtensionContext context) {
-        context.getTestMethod().ifPresent(method -> {
-            Assertion assertion = method.getAnnotation(Assertion.class);
-            if (assertion != null) {
-                LOGGER.info(() -> "<<< End @Assertion #" + assertion.id() + " - " + method.getName());
-            }
-        });
-    }
 
     @Override
     public void testFailed(ExtensionContext context, Throwable cause) {

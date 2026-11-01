@@ -17,7 +17,6 @@ import ee.jakarta.tck.ai.agent.framework.junit.extensions.AssertionExtension;
 import ee.jakarta.tck.ai.agent.framework.junit.extensions.ImplementationPresentCondition;
 import ee.jakarta.tck.ai.agent.framework.stub.LargeLanguageModelStub;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder;
-import ee.jakarta.tck.ai.agent.framework.workflow.WorkflowContext;
 import org.jboss.arquillian.container.test.spi.client.deployment.ApplicationArchiveProcessor;
 import org.jboss.arquillian.test.spi.TestClass;
 import org.jboss.shrinkwrap.api.Archive;
@@ -44,8 +43,7 @@ public class AgenticAIFrameworkProcessor implements ApplicationArchiveProcessor 
                 Assertion.class.getPackage(),
                 AssertionExtension.class.getPackage(),
                 LargeLanguageModelStub.class.getPackage(),
-                ExecutionTraceRecorder.class.getPackage(),
-                WorkflowContext.class.getPackage()
+                ExecutionTraceRecorder.class.getPackage()
         );
         URL baselineMarker = AgenticAIFrameworkProcessor.class.getClassLoader()
                 .getResource(ImplementationPresentCondition.BASELINE_MARKER_RESOURCE);

@@ -8,6 +8,7 @@ All notable changes to this project will be documented in this file.
 - TCK: tests use JUnit assertions instead of AssertJ, which was not part of the deployed archive on a real container.
 - New `tck-dist` module assembling the EFTL-licensed TCK distribution zip: TCK jar and sources, signature baseline, TCK Reference Guide (HTML and PDF) and a starter runner project.
 - GitHub issue templates for TCK challenges and compatibility certification requests.
+- TCK trimmed to what the Data and Concurrency TCKs carry: the 70 reflection-based structural tests are gone (the strict signature baseline already asserts everything they did), as are the stub's unused per-workflow keying, `ExecutionTraceRecorder.assertOrder`, the per-test INFO logging and the framework unit tests that only re-tested what a TCK run proves.
 - TCK build simplified to its two audiences: Weld Embedded is a plain test dependency, the `weld-embedded` profile and `deployed` group exclusion are gone, the `baseline` marker is added straight from `src/baseline-marker`, and `@SkipWhenBaseline` is replaced by class-level `@RequiresImplementation`.
 
 ## [1.0.0-M1] - 2026-07-29

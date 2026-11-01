@@ -14,7 +14,6 @@ package ee.jakarta.tck.ai.agent.framework.junit.extensions;
 
 import ee.jakarta.tck.ai.agent.framework.junit.anno.RequiresImplementation;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.RequiresNoImplementation;
-import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ConditionEvaluationResult;
 
@@ -25,13 +24,9 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * Unit tests for the Issue 51 run-mode selection.
- *
- * <p>These exercise the TCK's own infrastructure, not the specification.
- * They are tagged {@code internal} so they do not inflate specification
- * assertion counts.</p>
+ * Unit tests for the run-mode selection. They exercise the TCK's own
+ * infrastructure, not the specification.
  */
-@Tag("internal")
 public class ImplementationPresentConditionTests {
 
     @Test
@@ -66,12 +61,6 @@ public class ImplementationPresentConditionTests {
     void unannotatedTestIsAlwaysEnabled() throws Exception {
         assertFalse(evaluate("unannotatedTest", false).isDisabled());
         assertFalse(evaluate("unannotatedTest", true).isDisabled());
-    }
-
-    @Test
-    void baselineMarkerIsAbsentWithoutTheProfile() {
-        assertFalse(ImplementationPresentCondition.baselineProfileActive(),
-                "a Maven -D must not create the baseline classpath marker");
     }
 
     private static ConditionEvaluationResult evaluate(

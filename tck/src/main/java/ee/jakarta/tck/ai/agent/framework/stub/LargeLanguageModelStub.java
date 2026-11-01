@@ -12,7 +12,6 @@
  *****************************************************************************/
 package ee.jakarta.tck.ai.agent.framework.stub;
 
-import ee.jakarta.tck.ai.agent.framework.workflow.WorkflowContext;
 import jakarta.ai.agent.LLMException;
 import jakarta.ai.agent.LargeLanguageModel;
 import jakarta.annotation.PreDestroy;
@@ -21,69 +20,39 @@ import jakarta.json.bind.Jsonb;
 import jakarta.json.bind.JsonbBuilder;
 import jakarta.json.bind.JsonbException;
 
-import java.time.Instant;
 import java.util.List;
-import java.util.Map;
 import java.util.Queue;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
- * Spec-faithful CDI stub for {@link LargeLanguageModel} used in TCK behavioral tests.
+ * The {@link LargeLanguageModel} the TCK deploys into every test archive.
  *
- * <p>Enforces the spec contract: null-prompt/resultType → IAE, strict arity on varargs
- * overloads, JSON-B serialization of parameters and deserialization of typed responses.
- * Scripted responses and failures are a single global FIFO channel by design (not keyed
- * per workflow); fixtures enqueue before concurrent work and consume in call order.
- * Per-workflow isolation covers recorded calls and conversation history only.</p>
- *
- * <p>Recorded calls and conversation history are keyed by
- * {@link WorkflowContext#current()} so concurrent workflows remain isolated even
- * though this bean is {@code @ApplicationScoped}. Placeholder substitution walks
- * {@code {}} positions in the original prompt so injected JSON cannot steal later
- * substitutions (the historical corruption root cause was {@code replaceFirst} on
- * the running result, not JSON-B). The shared {@link Jsonb} is accessed under
- * synchronization on the instance itself: JSON-B requires thread-safe {@code Jsonb}
- * implementations, so the lock is defensive and also shares a monitor with
- * {@link #close()}.</p>
+ * <p>Tests script responses with {@link #enqueueResponse(Object)} or a failure
+ * with {@link #failWith(RuntimeException)}; both are consumed in call order
+ * from one FIFO shared by all workflows. Every call is recorded for assertion
+ * through {@link #recordedCalls()} and {@link #lastCall()}. The stub enforces
+ * the specification contract: null prompt or result type is an
+ * {@code IllegalArgumentException}, placeholder and parameter counts must
+ * match, parameters are serialized and typed responses deserialized with
+ * JSON Binding.</p>
  */
 @ApplicationScoped
-public class LargeLanguageModelStub implements LargeLanguageModel, AutoCloseable {
+public class LargeLanguageModelStub implements LargeLanguageModel {
 
     private final Jsonb jsonb = JsonbBuilder.create();
     private final Object dispatchLock = new Object();
     private final Queue<Object> scriptedResponses = new ConcurrentLinkedQueue<>();
     private final Queue<RuntimeException> scriptedFailures = new ConcurrentLinkedQueue<>();
     private final List<RecordedCall> calls = new CopyOnWriteArrayList<>();
-    private final Map<String, List<RecordedCall>> callsByWorkflow = new ConcurrentHashMap<>();
-    private final Map<String, List<String>> conversationByWorkflow = new ConcurrentHashMap<>();
-    private volatile boolean closed;
-
-    /**
-     * Releases the underlying {@link Jsonb} instance. Idempotent; safe for
-     * try-with-resources and repeated calls. CDI shutdown delegates here via
-     * {@link #destroy()}. Synchronized on {@code jsonb} so close cannot race
-     * with {@code toJson}/{@code fromJson}.
-     */
-    @Override
-    public void close() {
-        synchronized (jsonb) {
-            if (closed) {
-                return;
-            }
-            closed = true;
-            try {
-                jsonb.close();
-            } catch (Exception ignored) {
-                // best-effort — the bean / test fixture is going away anyway
-            }
-        }
-    }
 
     @PreDestroy
     void destroy() {
-        close();
+        try {
+            jsonb.close();
+        } catch (Exception ignored) {
+            // the bean is going away anyway
+        }
     }
 
     /**
@@ -91,7 +60,7 @@ public class LargeLanguageModelStub implements LargeLanguageModel, AutoCloseable
      * is the post-substitution text (equals {@code prompt} for single-arg overloads).
      */
     public record RecordedCall(String prompt, String effectivePrompt, Class<?> resultType,
-                               Object[] params, int overload, Instant at) {}
+                               Object[] params, int overload) {}
 
     public void enqueueResponse(Object response) {
         scriptedResponses.add(response);
@@ -105,39 +74,10 @@ public class LargeLanguageModelStub implements LargeLanguageModel, AutoCloseable
         scriptedResponses.clear();
         scriptedFailures.clear();
         calls.clear();
-        callsByWorkflow.clear();
-        conversationByWorkflow.clear();
     }
 
     public List<RecordedCall> recordedCalls() {
         return List.copyOf(calls);
-    }
-
-    /**
-     * @param workflowId workflow id; must not be {@code null}
-     * @return recorded calls for the given workflow id (empty when none)
-     * @throws IllegalArgumentException if {@code workflowId} is {@code null}
-     */
-    public List<RecordedCall> recordedCallsForWorkflow(String workflowId) {
-        requireWorkflowId(workflowId);
-        List<RecordedCall> workflowCalls = callsByWorkflow.get(workflowId);
-        return workflowCalls == null ? List.of() : List.copyOf(workflowCalls);
-    }
-
-    /**
-     * Returns conversation turns for the given workflow as interleaved effective
-     * prompts then responses. When a scripted failure is thrown after the prompt
-     * is recorded, the prompt turn is intentionally left unpaired (no response
-     * entry) — the call aborted before a model reply existed.
-     *
-     * @param workflowId workflow id; must not be {@code null}
-     * @return conversation turns (empty when none)
-     * @throws IllegalArgumentException if {@code workflowId} is {@code null}
-     */
-    public List<String> conversationHistoryForWorkflow(String workflowId) {
-        requireWorkflowId(workflowId);
-        List<String> history = conversationByWorkflow.get(workflowId);
-        return history == null ? List.of() : List.copyOf(history);
     }
 
     public RecordedCall lastCall() {
@@ -170,23 +110,15 @@ public class LargeLanguageModelStub implements LargeLanguageModel, AutoCloseable
         if (prompt == null) throw new IllegalArgumentException("prompt is null");
 
         String effectivePrompt = (overload >= 3) ? applyPlaceholders(prompt, params) : prompt;
-        String workflowId = WorkflowContext.current();
 
-        final List<String> conversation;
         final Object next;
+        // Recording the call and taking the next scripted item must be one step,
+        // or concurrent workflows could pair a call with another's response.
         synchronized (dispatchLock) {
-            RecordedCall call = new RecordedCall(prompt, effectivePrompt, resultType, params, overload, Instant.now());
-            calls.add(call);
-            callsByWorkflow
-                    .computeIfAbsent(workflowId, id -> new CopyOnWriteArrayList<>())
-                    .add(call);
-            conversation = conversationByWorkflow
-                    .computeIfAbsent(workflowId, id -> new CopyOnWriteArrayList<>());
-            conversation.add(effectivePrompt);
+            calls.add(new RecordedCall(prompt, effectivePrompt, resultType, params, overload));
 
             RuntimeException failure = scriptedFailures.poll();
             if (failure != null) {
-                // Prompt turn recorded; no response appended — intentional unpaired turn.
                 throw failure;
             }
 
@@ -198,15 +130,7 @@ public class LargeLanguageModelStub implements LargeLanguageModel, AutoCloseable
             }
         }
 
-        T result = convert(next, resultType);
-        conversation.add(result == null ? "null" : result.toString());
-        return result;
-    }
-
-    private static void requireWorkflowId(String workflowId) {
-        if (workflowId == null) {
-            throw new IllegalArgumentException("workflowId is null");
-        }
+        return convert(next, resultType);
     }
 
     private String applyPlaceholders(String prompt, Object[] params) {
@@ -240,9 +164,7 @@ public class LargeLanguageModelStub implements LargeLanguageModel, AutoCloseable
 
     private String toJson(Object value) {
         try {
-            synchronized (jsonb) {
-                return jsonb.toJson(value);
-            }
+            return jsonb.toJson(value);
         } catch (JsonbException e) {
             throw new IllegalArgumentException("parameter cannot be serialized to JSON", e);
         }
@@ -265,9 +187,7 @@ public class LargeLanguageModelStub implements LargeLanguageModel, AutoCloseable
         if (resultType == String.class)  return (T) next.toString();
         if (next instanceof String json) {
             try {
-                synchronized (jsonb) {
-                    return jsonb.fromJson(json, resultType);
-                }
+                return jsonb.fromJson(json, resultType);
             } catch (JsonbException e) {
                 throw new LLMException("type conversion failed", e);
             }

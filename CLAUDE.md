@@ -19,7 +19,7 @@ mvn --projects tck --also-make verify
 mvn --projects tck --also-make clean install
 
 # Run a single TCK assertion class (tests are compiled from src/main/java and executed by Failsafe)
-mvn -pl tck verify -Dgroups=standalone -Dit.test=AgentAnnotationTests
+mvn -pl tck verify -Dgroups=standalone -Dit.test=SignatureTests
 
 # Run a single deployed integration test class
 mvn -pl tck verify -Dit.test=AgentSmokeTest
@@ -53,7 +53,7 @@ Defines the `jakarta.ai.agent` package. Most types are annotations or interfaces
 TCK tests live in `src/main/java` (not `src/test/java`) and are compiled to classes that implementors run against their implementation. Only the internal framework unit tests live in `src/test/java`.
 
 **Test categories and assertion mapping** (controlled by JUnit 5 tags and meta-annotations):
-- `@Standalone` — reflection-based structural tests; no container needed.
+- `@Standalone` — no container needed; only the signature test carries it. There are no reflection-based structural tests: the strict signature baseline already covers targets, retention, members and meta-annotations, and Data/Concurrency have no such layer either.
 - `@Deployed` — Arquillian integration tests; requires a full container (Weld Embedded in this repo).
 - `@RequiresImplementation` — skips the test when no compatible implementation is present.
 - `@RequiresNoImplementation` — skips the test when a compatible implementation is present; used for plain-CDI baseline assertions (trigger-only).
@@ -61,7 +61,7 @@ TCK tests live in `src/main/java` (not `src/test/java`) and are compiled to clas
 
 **Test infrastructure classes** (not specification tests; used by implementors and integration tests):
 - `LargeLanguageModelStub` — `@ApplicationScoped` CDI bean implementing `LargeLanguageModel`. Queues scripted responses via `enqueueResponse(...)` and records all calls for assertion. Reset between tests with `reset()`.
-- `ExecutionTraceRecorder` — `@ApplicationScoped` CDI bean. Records lifecycle phase calls (`TRIGGER`, `DECISION`, `ACTION`, `OUTCOME`, `HANDLE_EXCEPTION`) for ordering assertions via `assertOrder(Phase...)`.
+- `ExecutionTraceRecorder` — `@ApplicationScoped` CDI bean. Records lifecycle phase calls (`TRIGGER`, `DECISION`, `ACTION`, `OUTCOME`, `HANDLE_EXCEPTION`); tests assert ordering with `assertEquals(List.of(...), trace.phases())`.
 - `SignatureTests` — a `@Standalone` JUnit test that drives the Jakarta TCK signature engine (`jakarta.tck:sigtest-maven-plugin`, a compile dependency with the Maven layer excluded) against the shipped `.sig` baseline, strict in both directions, resolving JDK types from the JDK's `lib/ct.sym` at the Java SE 17 level. This is how the Data and Concurrency TCKs do it, so vendors get the signature check in their normal run. Do not reintroduce a plugin-only `strictcheck` execution as the sole check.
 
 **Conventions that follow the Data/Concurrency TCKs:** tests use plain JUnit `Assertions`, never AssertJ, because deployed tests run inside the container and a third-party assertion library would not be in the archive on a real server (AssertJ is test-scoped for the framework's own unit tests only). Vendors run the TCK jar through Surefire `dependenciesToScan`; the starter in `tck-dist` shows the shape.
