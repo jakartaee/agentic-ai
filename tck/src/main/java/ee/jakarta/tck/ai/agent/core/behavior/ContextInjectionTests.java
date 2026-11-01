@@ -17,7 +17,6 @@ import ee.jakarta.tck.ai.agent.core.behavior.agents.contextinjection.ContextInje
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Assertion;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Deployed;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.RequiresImplementation;
-import ee.jakarta.tck.ai.agent.framework.junit.anno.RequiresNoImplementation;
 import ee.jakarta.tck.ai.agent.framework.stub.LargeLanguageModelStub;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder.Phase;
@@ -32,7 +31,6 @@ import org.junit.jupiter.api.TestInstance;
 
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 
@@ -50,22 +48,6 @@ public class ContextInjectionTests {
     @Inject Event<ContextInjectionEvent> events;
     @Inject LargeLanguageModelStub llm;
     @Inject ExecutionTraceRecorder trace;
-
-    @RequiresNoImplementation
-    @Assertion(id = "AGENTICAI-CTX-001",
-               section = "agent-lifecycle",
-               strategy = "LargeLanguageModel is injectable as a direct method parameter of @Trigger")
-    public void llmIsInjectedAsTriggerParameter() {
-        llm.reset();
-        trace.reset();
-        llm.enqueueResponse("classified");
-        events.fire(new ContextInjectionEvent("payload"));
-
-        assertEquals(List.of(Phase.TRIGGER), trace.phases());
-        assertEquals(1, llm.recordedCalls().size());
-        assertEquals("classify {}", llm.lastCall().prompt());
-        assertArrayEquals(new Object[] {"payload"}, llm.lastCall().params());
-    }
 
     @Assertion(id = "AGENTICAI-CTX-002",
                section = "agent-lifecycle",

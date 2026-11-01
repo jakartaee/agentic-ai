@@ -20,7 +20,6 @@ import ee.jakarta.tck.ai.agent.core.behavior.agents.inheritance.OverridingAgent;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Assertion;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Deployed;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.RequiresImplementation;
-import ee.jakarta.tck.ai.agent.framework.junit.anno.RequiresNoImplementation;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder.Phase;
 import jakarta.enterprise.event.Event;
@@ -63,16 +62,6 @@ public class InheritedPhaseTests {
     @Inject Event<OverrideEvent> overrideEvents;
     @Inject ExecutionTraceRecorder trace;
 
-    @RequiresNoImplementation
-    @Assertion(id = "AGENTICAI-INHERIT-001-PRECONDITION",
-               section = "agent-lifecycle",
-               strategy = "Trigger fires and records its phase before the implementation dispatches further phases")
-    public void inheritingAgentTriggerIsObserved() {
-        trace.reset();
-        inheritEvents.fire(new InheritEvent("input"));
-        assertEquals(List.of(Phase.TRIGGER), trace.phases());
-    }
-
     @RequiresImplementation
     @Assertion(id = "AGENTICAI-INHERIT-001",
                section = "agent-lifecycle",
@@ -81,16 +70,6 @@ public class InheritedPhaseTests {
         trace.reset();
         inheritEvents.fire(new InheritEvent("input"));
         assertEquals(List.of(Phase.TRIGGER, Phase.ACTION), trace.phases());
-    }
-
-    @RequiresNoImplementation
-    @Assertion(id = "AGENTICAI-INHERIT-002-PRECONDITION",
-               section = "agent-lifecycle",
-               strategy = "Trigger fires and records its phase before the implementation dispatches further phases")
-    public void overridingAgentTriggerIsObserved() {
-        trace.reset();
-        overrideEvents.fire(new OverrideEvent("input"));
-        assertEquals(List.of(Phase.TRIGGER), trace.phases());
     }
 
     @RequiresImplementation

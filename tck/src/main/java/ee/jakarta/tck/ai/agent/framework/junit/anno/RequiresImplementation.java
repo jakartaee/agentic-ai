@@ -12,8 +12,7 @@
  *****************************************************************************/
 package ee.jakarta.tck.ai.agent.framework.junit.anno;
 
-import ee.jakarta.tck.ai.agent.framework.junit.extensions.ImplementationPresentCondition;
-import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.Tag;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -21,17 +20,16 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Marks a TCK assertion that can only be satisfied when a compatible
- * implementation of the Agentic AI specification is present to dispatch the
- * {@code @Decision}, {@code @Action} and {@code @Outcome} phases after the
- * {@code @Trigger}.
+ * Marks an assertion that only a compatible implementation can satisfy, one
+ * that needs the {@code @Decision}, {@code @Action}, {@code @Outcome} or
+ * {@code @OnException} phases dispatched, or an agent rejected at deployment.
  *
- * <p>{@link ImplementationPresentCondition} runs these tests by default.
- * They are skipped only when the plain-CDI baseline is selected explicitly
- * with the {@code baseline} profile (see {@link RequiresNoImplementation}).</p>
+ * <p>The specification repository, which has no implementation, excludes the
+ * {@code requires-implementation} tag to run the remainder on plain CDI. A
+ * compatibility run excludes nothing.</p>
  */
 @Target({ ElementType.METHOD, ElementType.TYPE })
 @Retention(RetentionPolicy.RUNTIME)
-@ExtendWith(ImplementationPresentCondition.class)
+@Tag("requires-implementation")
 public @interface RequiresImplementation {
 }

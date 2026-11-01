@@ -20,7 +20,6 @@ import ee.jakarta.tck.ai.agent.core.behavior.agents.validation.ValidationEvent;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Assertion;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Deployed;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.RequiresImplementation;
-import ee.jakarta.tck.ai.agent.framework.junit.anno.RequiresNoImplementation;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder.Phase;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder.TraceEntry;
@@ -48,9 +47,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  *
  * <p>Validation is performed by a compatible implementation before parameter
  * injection and phase invocation, so the behavioral assertions are
- * {@link RequiresImplementation}. Without an implementation, plain CDI dispatches
- * only the {@code @Trigger}; the {@link RequiresNoImplementation} baseline covers
- * that case.</p>
+ * {@link RequiresImplementation}.</p>
  *
  * <p>Note on reset: in {@code @Deployed} classes {@code @BeforeEach} does not run
  * reliably between methods inside the container, so each test resets the trace
@@ -75,17 +72,6 @@ public class ValidationTests {
     @Inject ExecutionTraceRecorder          trace;
 
     // ── Baseline — CDI fires @Trigger without a compatible implementation ─────
-
-    @RequiresNoImplementation
-    @Assertion(id = "AGENTICAI-VALIDATION-BHV-001-PRECONDITION",
-               section = "jakarta-validation-constraints",
-               strategy = "ValidatedAgent @Trigger is observed by CDI without a compatible implementation; "
-                        + "no validation is performed in plain CDI")
-    public void triggerObservedWithoutImplementation() {
-        trace.reset();
-        events.fire(new ValidationEvent("ok"));
-        assertEquals(List.of(Phase.TRIGGER), trace.phases());
-    }
 
     // ── Valid input proceeds ──────────────────────────────────────────────────
 

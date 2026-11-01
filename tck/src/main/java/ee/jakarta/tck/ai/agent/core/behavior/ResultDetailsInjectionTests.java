@@ -18,7 +18,6 @@ import ee.jakarta.tck.ai.agent.core.behavior.agents.datapropagation.ResultDetail
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Assertion;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Deployed;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.RequiresImplementation;
-import ee.jakarta.tck.ai.agent.framework.junit.anno.RequiresNoImplementation;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder.Phase;
 import jakarta.enterprise.event.Event;
@@ -56,16 +55,6 @@ public class ResultDetailsInjectionTests {
 
     @Inject Event<ResultDetailsEvent> events;
     @Inject ExecutionTraceRecorder trace;
-
-    @RequiresNoImplementation
-    @Assertion(id = "AGENTICAI-DATA-006-PRECONDITION",
-               section = "parameter-resolution",
-               strategy = "Trigger fires and records its phase before the implementation dispatches further phases")
-    public void triggerIsObserved() {
-        trace.reset();
-        events.fire(new ResultDetailsEvent("input"));
-        assertEquals(List.of(Phase.TRIGGER), trace.phases());
-    }
 
     @RequiresImplementation
     @Assertion(id = "AGENTICAI-DATA-006",

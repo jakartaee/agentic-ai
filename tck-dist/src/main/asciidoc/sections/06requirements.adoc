@@ -7,18 +7,11 @@ Maven offers flexibility in how a TCK execution is configured, so this section s
 A compatibility run must execute every test class in the TCK jar and report:
 
 * the `standalone` signature test in `ee.jakarta.tck.ai.agent.framework.signature.SignatureTests` passed;
-* every `deployed` test passed, except those annotated `@RequiresNoImplementation`, which must be reported as skipped;
-* zero failures and zero errors.
+* every `deployed` test passed;
+* zero failures, zero errors and zero skipped tests.
 
-`@RequiresNoImplementation` marks the handful of trigger-only assertions that exist for the specification project's own plain-CDI baseline.
-The TCK disables them unless the `baseline` profile of the specification repository is active, which it never is in a runner project, so they appear as skipped in your reports.
-No other test may be skipped, disabled or excluded.
-
-=== Fail-closed by default
-
-The TCK assumes a compatible implementation is present.
-There is no flag to tell it one is, and no property that quietly turns the implementation-dependent assertions off: a run against a plain CDI container fails every `@RequiresImplementation` assertion.
-A clean run therefore means the implementation dispatched every phase the tests exercised.
+No test may be skipped, disabled or excluded.
+In particular, the `requires-implementation` tag that marks the assertions only a compatible implementation can satisfy exists so the specification project can run the remainder on plain CDI; a runner must not exclude it, and the TCK has no switch that turns those assertions off.
 
 === Results summary
 

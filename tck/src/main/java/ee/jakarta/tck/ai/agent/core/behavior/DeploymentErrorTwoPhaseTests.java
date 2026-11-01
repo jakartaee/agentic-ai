@@ -30,10 +30,8 @@ import org.jboss.shrinkwrap.api.spec.WebArchive;
  * method declares two phase annotations must be rejected at deployment time.
  *
  * <p>This error is detected by a compatible implementation's CDI extension.
- * Plain CDI ignores the extra annotation and deploys successfully, so the
- * class is gated with {@link RequiresImplementation} at the class level: the
- * {@link ShouldThrowException} check happens at deployment time, before any
- * per-method condition could run.</p>
+ * The class carries {@link RequiresImplementation} because the check is the
+ * deployment itself.</p>
  *
  * <p>The verification is the deployment itself: {@link ShouldThrowException}
  * declares that building the container for this archive must fail with a

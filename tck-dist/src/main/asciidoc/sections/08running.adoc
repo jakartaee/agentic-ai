@@ -9,7 +9,7 @@ $ mvn clean verify
 ----
 
 Surefire prints one `Tests run:` line per test class and a summary at the end.
-A passing run ends with `Failures: 0, Errors: 0`; the skipped count is exactly the number of `@RequiresNoImplementation` assertions.
+A passing run ends with `Failures: 0, Errors: 0, Skipped: 0`.
 The per-class XML and text reports under `target/surefire-reports` are the record to publish as the results summary.
 
 To run a single class while setting up, for example the signature test or the smoke test:

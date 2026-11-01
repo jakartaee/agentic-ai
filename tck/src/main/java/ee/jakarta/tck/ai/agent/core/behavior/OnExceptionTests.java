@@ -31,7 +31,6 @@ import ee.jakarta.tck.ai.agent.core.behavior.agents.termination.BooleanTerminati
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Assertion;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Deployed;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.RequiresImplementation;
-import ee.jakarta.tck.ai.agent.framework.junit.anno.RequiresNoImplementation;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder.Phase;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder.TraceEntry;
@@ -87,67 +86,6 @@ public class OnExceptionTests {
     @Inject PhaseFailureAgent             phaseFailureAgent;
 
     // ── Smoke checks — CDI fires @Trigger without a compatible implementation ─────────────────
-
-    @RequiresNoImplementation
-    @Assertion(id = "AGENTICAI-ONEXCEPTION-BHV-001-PRECONDITION",
-               section = "error-handling",
-               strategy = "RecoveryAgent @Trigger is observed by CDI without a compatible implementation")
-    public void recoveryAgentTriggerObserved() {
-        trace.reset();
-        recoveryEvents.fire(new RecoveryEvent("x"));
-        assertEquals(List.of(Phase.TRIGGER), trace.phases());
-    }
-
-    @RequiresNoImplementation
-    @Assertion(id = "AGENTICAI-ONEXCEPTION-BHV-002-PRECONDITION",
-               section = "error-handling",
-               strategy = "PropagationAgent @Trigger is observed by CDI without a compatible implementation")
-    public void propagationAgentTriggerObserved() {
-        trace.reset();
-        propagationEvents.fire(new PropagationEvent("x"));
-        assertEquals(List.of(Phase.TRIGGER), trace.phases());
-    }
-
-    @RequiresNoImplementation
-    @Assertion(id = "AGENTICAI-ONEXCEPTION-BHV-004-PRECONDITION",
-               section = "error-handling",
-               strategy = "HierarchyAgent @Trigger is observed by CDI without a compatible implementation")
-    public void hierarchyAgentTriggerObserved() {
-        trace.reset();
-        hierarchyEvents.fire(new HierarchyEvent("x"));
-        assertEquals(List.of(Phase.TRIGGER), trace.phases());
-    }
-
-    @RequiresNoImplementation
-    @Assertion(id = "AGENTICAI-ONEXCEPTION-BHV-005-PRECONDITION",
-               section = "error-handling",
-               strategy = "RecursiveGuardAgent @Trigger is observed by CDI without a compatible implementation")
-    public void recursiveGuardAgentTriggerObserved() {
-        trace.reset();
-        recursiveGuardEvents.fire(new RecursiveGuardEvent("x"));
-        assertEquals(List.of(Phase.TRIGGER), trace.phases());
-    }
-
-    @RequiresNoImplementation
-    @Assertion(id = "AGENTICAI-ONEXCEPTION-BHV-006-PRECONDITION",
-               section = "error-handling",
-               strategy = "PhaseFailureAgent @Trigger is observed by CDI when no phase is configured to fail")
-    public void phaseFailureAgentTriggerObserved() {
-        trace.reset();
-        phaseFailureAgent.setFailAt(PhaseFailureAgent.FailingPhase.NONE);
-        phaseFailureEvents.fire(new PhaseFailureEvent("x"));
-        assertEquals(List.of(Phase.TRIGGER), trace.phases());
-    }
-
-    @RequiresNoImplementation
-    @Assertion(id = "AGENTICAI-ONEXCEPTION-BHV-010-PRECONDITION",
-               section = "error-handling",
-               strategy = "NoHandlerAgent @Trigger is observed by CDI without a compatible implementation")
-    public void noHandlerAgentTriggerObserved() {
-        trace.reset();
-        noHandlerEvents.fire(new NoHandlerEvent("x"));
-        assertEquals(List.of(Phase.TRIGGER), trace.phases());
-    }
 
     // ── Recovery flow (BHV-001–003) ─────────────────────────────────────────
 

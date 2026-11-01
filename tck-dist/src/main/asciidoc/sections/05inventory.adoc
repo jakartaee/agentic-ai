@@ -40,7 +40,7 @@ The TCK jar contains the following packages:
 
 `ee.jakarta.tck.ai.agent.core.behavior`:: Deployed behavioral tests, one class per concern: phase ordering and precedence, data propagation and resolution tie-breaks, termination, `@OnException` handling, validation, inherited and void phases, topology flexibility, orchestration, CDI integration and event observation, workflow-scope lifecycle, concurrency isolation, deployment errors and the `LargeLanguageModel` contract. The agents each class deploys are under `core.behavior.agents`.
 `ee.jakarta.tck.ai.agent.core.integration`:: A deployed end-to-end smoke test.
-`ee.jakarta.tck.ai.agent.framework`:: The test framework: the `@Assertion` and tag annotations and their JUnit conditions, the Arquillian extension, the `LargeLanguageModel` stub, the trace recorder and the signature test. The signature test is the structural test of the API: the recorded baseline covers every type, member, target, retention and meta-annotation.
+`ee.jakarta.tck.ai.agent.framework`:: The test framework: the `@Assertion` and tag annotations, the Arquillian extension, the `LargeLanguageModel` stub, the trace recorder and the signature test. The signature test is the structural test of the API: the recorded baseline covers every type, member, target, retention and meta-annotation.
 
 Every test method carries `@Assertion(id, section, strategy)`, which names the specification requirement it verifies.
 Assertion ids are the reference to quote in a challenge.

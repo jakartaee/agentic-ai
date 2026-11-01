@@ -28,7 +28,6 @@ import ee.jakarta.tck.ai.agent.core.behavior.agents.cdi.SingletonCdiEvent;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Assertion;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Deployed;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.RequiresImplementation;
-import ee.jakarta.tck.ai.agent.framework.junit.anno.RequiresNoImplementation;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder.Phase;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder.TraceEntry;
@@ -126,16 +125,6 @@ public class CdiIntegrationTests {
         assertNotEquals(SingletonCdiAgent.class, singletonAgent.getClass());
     }
 
-    @RequiresNoImplementation
-    @Assertion(id = "AGENTICAI-CDI-BHV-003-PRECONDITION",
-               section = "cdi-integration",
-               strategy = "SingletonCdiAgent @Trigger fires via CDI; confirms the bean is instantiated and managed")
-    public void singletonAgentTriggerObserved() {
-        trace.reset();
-        singletonEvents.fire(new SingletonCdiEvent("test"));
-        assertEquals(List.of(Phase.TRIGGER), trace.phases());
-    }
-
     @Assertion(id = "AGENTICAI-CDI-BHV-003",
                section = "cdi-integration",
                strategy = "@PostConstruct is invoked exactly once for an @ApplicationScoped @Agent regardless of "
@@ -161,28 +150,6 @@ public class CdiIntegrationTests {
         int id2 = (int) trace.entries().get(0).args()[1];
 
         assertEquals(id2, id1);
-    }
-
-    @RequiresNoImplementation
-    @Assertion(id = "AGENTICAI-CDI-BHV-006-PRECONDITION",
-               section = "cdi-integration",
-               strategy = "InterceptedAgent @Trigger fires via CDI; confirms the agent and its enabled interceptor "
-                        + "deploy without error")
-    public void interceptedAgentTriggerObserved() {
-        trace.reset();
-        interceptedEvents.fire(new InterceptedEvent("test"));
-        assertEquals(List.of(Phase.TRIGGER), trace.phases());
-    }
-
-    @RequiresNoImplementation
-    @Assertion(id = "AGENTICAI-CDI-BHV-005-PRECONDITION",
-               section = "parameter-resolution",
-               strategy = "ResolutionOrderAgent @Trigger fires via CDI; confirms the agent and its CDI-bean "
-                        + "collaborator (ResolutionCdiBean) deploy without resolution errors")
-    public void resolutionOrderAgentTriggerObserved() {
-        trace.reset();
-        resolutionOrderEvents.fire(new ResolutionOrderEvent("test"));
-        assertEquals(List.of(Phase.TRIGGER), trace.phases());
     }
 
     // -------------------------------------------------------------------------

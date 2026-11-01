@@ -14,15 +14,12 @@ package ee.jakarta.tck.ai.agent.framework.arquillian.extensions;
 
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Assertion;
 import ee.jakarta.tck.ai.agent.framework.junit.extensions.AssertionExtension;
-import ee.jakarta.tck.ai.agent.framework.junit.extensions.ImplementationPresentCondition;
 import ee.jakarta.tck.ai.agent.framework.stub.LargeLanguageModelStub;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder;
 import org.jboss.arquillian.container.test.spi.client.deployment.ApplicationArchiveProcessor;
 import org.jboss.arquillian.test.spi.TestClass;
 import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-
-import java.net.URL;
 
 /**
  * Arquillian archive processor that injects TCK framework classes directly
@@ -45,10 +42,5 @@ public class AgenticAIFrameworkProcessor implements ApplicationArchiveProcessor 
                 LargeLanguageModelStub.class.getPackage(),
                 ExecutionTraceRecorder.class.getPackage()
         );
-        URL baselineMarker = AgenticAIFrameworkProcessor.class.getClassLoader()
-                .getResource(ImplementationPresentCondition.BASELINE_MARKER_RESOURCE);
-        if (baselineMarker != null) {
-            webArchive.addAsResource(baselineMarker, ImplementationPresentCondition.BASELINE_MARKER_RESOURCE);
-        }
     }
 }

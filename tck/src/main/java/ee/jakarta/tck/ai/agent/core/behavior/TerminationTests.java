@@ -22,7 +22,6 @@ import ee.jakarta.tck.ai.agent.core.behavior.agents.termination.ResultTerminatio
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Assertion;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Deployed;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.RequiresImplementation;
-import ee.jakarta.tck.ai.agent.framework.junit.anno.RequiresNoImplementation;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder.Phase;
 import jakarta.enterprise.event.Event;
@@ -56,36 +55,6 @@ public class TerminationTests {
     @Inject Event<ResultTerminationEvent>  resultEvents;
     @Inject Event<ObjectTerminationEvent>  objectEvents;
     @Inject ExecutionTraceRecorder trace;
-
-    @RequiresNoImplementation
-    @Assertion(id = "AGENTICAI-TERM-001",
-               section = "agent-lifecycle",
-               strategy = "Trigger is observed in the boolean-termination agent")
-    public void booleanAgentTriggerObserved() {
-        trace.reset();
-        booleanEvents.fire(new BooleanTerminationEvent("x"));
-        assertEquals(List.of(Phase.TRIGGER), trace.phases());
-    }
-
-    @RequiresNoImplementation
-    @Assertion(id = "AGENTICAI-TERM-002",
-               section = "agent-lifecycle",
-               strategy = "Trigger is observed in the Result-termination agent")
-    public void resultAgentTriggerObserved() {
-        trace.reset();
-        resultEvents.fire(new ResultTerminationEvent("x"));
-        assertEquals(List.of(Phase.TRIGGER), trace.phases());
-    }
-
-    @RequiresNoImplementation
-    @Assertion(id = "AGENTICAI-TERM-003",
-               section = "agent-lifecycle",
-               strategy = "Trigger is observed in the Object-termination agent")
-    public void objectAgentTriggerObserved() {
-        trace.reset();
-        objectEvents.fire(new ObjectTerminationEvent("x"));
-        assertEquals(List.of(Phase.TRIGGER), trace.phases());
-    }
 
     @RequiresImplementation
     @Assertion(id = "AGENTICAI-TERM-004",

@@ -15,7 +15,6 @@ package ee.jakarta.tck.ai.agent.core.integration;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Assertion;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Deployed;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.RequiresImplementation;
-import ee.jakarta.tck.ai.agent.framework.junit.anno.RequiresNoImplementation;
 import ee.jakarta.tck.ai.agent.framework.stub.LargeLanguageModelStub;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder.Phase;
@@ -31,22 +30,11 @@ import org.junit.jupiter.api.BeforeEach;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * End-to-end smoke test for the Jakarta Agentic AI TCK infrastructure.
- *
- * <p>This test validates that the deployment archive boots, that the CDI
- * container picks up the agent and observes the trigger event, and that the
- * internal infrastructure (stub + trace recorder) is wired correctly.</p>
- *
- * <p><b>Scope limitation</b>: in the absence of a compatible implementation
- * of the Agentic AI specification, only the {@code @Trigger} phase
- * is invoked (it is registered as a CDI observer via {@code @Observes}).
- * The {@code @Action} and {@code @Outcome} phases require a compatible implementation that
- * scans the agent and dispatches subsequent phases — see
- * {@link #fullLifecycleRequiresCompatibleImplementation()} for the assertion
- * to be re-enabled once such an implementation is available.</p>
+ * End-to-end smoke test: the archive deploys, the trigger event reaches the
+ * agent, the implementation dispatches the remaining phases and the stub and
+ * trace recorder are wired into the deployment.
  */
 @Deployed
 public class AgentSmokeTest {
@@ -73,26 +61,6 @@ public class AgentSmokeTest {
         trace.reset();
     }
 
-    @RequiresNoImplementation
-    @Assertion(id = "AGENTICAI-SMOKE-001",
-               section = "agent-lifecycle",
-               strategy = "Agent Deployment -> CDI Event Trigger -> Trace records the @Trigger phase")
-    public void deploymentTriggersAgentObserver() {
-        events.fire(new GreetEvent("Jakarta AI"));
-
-        assertEquals(List.of(Phase.TRIGGER), trace.phases());
-
-        ExecutionTraceRecorder.TraceEntry entry = trace.entries().get(0);
-        assertEquals("onGreet", entry.methodName(), "Trigger method name");
-        assertTrue(entry.args()[0] instanceof GreetEvent, "Trigger should receive the event");
-        assertEquals("Jakarta AI", ((GreetEvent) entry.args()[0]).getName(), "Event payload preserved");
-    }
-
-    /**
-     * Full-lifecycle assertion. Disabled until a compatible implementation
-     * of the Agentic AI specification is available — plain CDI does
-     * not invoke {@code @Action} and {@code @Outcome} methods on its own.
-     */
     @RequiresImplementation
     @Assertion(id = "AGENTICAI-SMOKE-002",
                section = "agent-lifecycle",

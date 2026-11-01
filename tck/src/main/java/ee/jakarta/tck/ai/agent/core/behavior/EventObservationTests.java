@@ -20,7 +20,6 @@ import ee.jakarta.tck.ai.agent.core.behavior.agents.eventobservation.WorkflowSco
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Assertion;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Deployed;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.RequiresImplementation;
-import ee.jakarta.tck.ai.agent.framework.junit.anno.RequiresNoImplementation;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder.Phase;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder.TraceEntry;
@@ -68,27 +67,6 @@ public class EventObservationTests {
 
     private List<String> recordedMethodNames() {
         return trace.entries().stream().map(TraceEntry::methodName).toList();
-    }
-
-    @RequiresNoImplementation
-    @Assertion(id = "AGENTICAI-EVENT-OBS-001",
-               section = "cdi-events",
-               strategy = "An @ApplicationScoped agent observes an event through a general @Observes method")
-    public void applicationScopedAgentObservesViaGeneralObserver() {
-        trace.reset();
-        generalEvents.fire(new GeneralObservationEvent("input"));
-        assertEquals(List.of("onGeneralEvent"), recordedMethodNames());
-    }
-
-    @RequiresNoImplementation
-    @Assertion(id = "AGENTICAI-EVENT-OBS-002",
-               section = "cdi-events",
-               strategy = "An @ApplicationScoped agent observes an event through its @Trigger method")
-    public void applicationScopedAgentObservesViaTrigger() {
-        trace.reset();
-        triggerEvents.fire(new EventObservationTriggerEvent("input"));
-        assertEquals(List.of(Phase.TRIGGER), trace.phases());
-        assertEquals(List.of("onTriggerEvent"), recordedMethodNames());
     }
 
     @RequiresImplementation
