@@ -108,7 +108,7 @@ pipeline {
             }
             post {
                 always {
-                    archiveArtifacts artifacts: 'api/target/reports/**/*,spec/target/generated-docs/**/*',
+                    archiveArtifacts artifacts: 'api/target/reports/**/*,spec/target/generated-docs/**/*,tck-dist/target/*-dist.zip',
                             fingerprint: true,
                             allowEmptyArchive: true
                 }
@@ -172,6 +172,14 @@ pipeline {
                         cp "api/target/jakarta.agentic-ai-api-${RELEASE_VERSION}-javadoc.jar" \\
                             "release-assets/jakarta.agentic-ai-api-${RELEASE_VERSION}-javadoc.jar"
 
+                        # The EFTL TCK distribution and the SHA-256 the certification
+                        # request asks for. A final release is also staged to
+                        # download.eclipse.org; this makes release candidates available
+                        # to implementations without a manual build.
+                        TCK_ZIP="agentic-ai-tck-${RELEASE_VERSION}-dist.zip"
+                        cp "tck-dist/target/${TCK_ZIP}" "release-assets/${TCK_ZIP}"
+                        (cd release-assets && sha256sum "${TCK_ZIP}" > "${TCK_ZIP}.sha256")
+
                         # Build the request body with python rather than inline JSON so
                         # the quoting survives Groovy, the shell and curl unmangled.
                         python3 - > release-request.json <<'PY'
@@ -219,6 +227,8 @@ PY
                                 *.html) ct="text/html; charset=utf-8" ;;
                                 *.pdf)  ct="application/pdf" ;;
                                 *.jar)  ct="application/java-archive" ;;
+                                *.zip)  ct="application/zip" ;;
+                                *.sha256) ct="text/plain; charset=utf-8" ;;
                                 *)      ct="application/octet-stream" ;;
                             esac
 
