@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<arquillian xmlns="http://www.jboss.org/schema/arquillian"
+            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            xsi:schemaLocation="http://www.jboss.org/schema/arquillian http://www.jboss.org/schema/arquillian/arquillian_1_0.xsd">
+
+    <!-- TODO: configure the container adapter declared in pom.xml. The
+         property names are defined by the adapter; this is a typical shape
+         for a remote application server. -->
+    <!--
+    <container qualifier="runtime" default="true">
+        <configuration>
+            <property name="host">localhost</property>
+            <property name="port">8080</property>
+            <property name="user">admin</property>
+            <property name="pass">admin</property>
+        </configuration>
+    </container>
+    -->
+</arquillian>

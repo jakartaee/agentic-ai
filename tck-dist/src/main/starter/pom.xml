@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Starter runner for the Jakarta Agentic AI TCK. Copy this project, then
+    complete the two TODO items: the Arquillian container adapter for your
+    runtime (below) and its connection settings (src/test/resources/arquillian.xml).
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>org.example</groupId>
+    <artifactId>agentic-ai-tck-runner</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <packaging>jar</packaging>
+
+    <name>Jakarta Agentic AI TCK Runner</name>
+
+    <properties>
+        <maven.compiler.release>17</maven.compiler.release>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+        <jakarta.agentic-ai.version>${project.version}</jakarta.agentic-ai.version>
+        <jakarta.ee.version>10.0.0</jakarta.ee.version>
+        <junit.version>5.11.0</junit.version>
+        <arquillian.version>1.10.0.Final</arquillian.version>
+        <arquillian.jakarta.version>10.0.0.Final</arquillian.jakarta.version>
+    </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.junit</groupId>
+                <artifactId>junit-bom</artifactId>
+                <version>${junit.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.jboss.arquillian</groupId>
+                <artifactId>arquillian-bom</artifactId>
+                <version>${arquillian.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.jboss.arquillian.jakarta</groupId>
+                <artifactId>arquillian-jakarta-bom</artifactId>
+                <version>${arquillian.jakarta.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <!-- tag::testClientDep[] -->
+    <dependencies>
+        <!-- The TCK: tests, the Arquillian extension that completes each
+             deployment, and the signature test engine. -->
+        <dependency>
+            <groupId>jakarta.agentic-ai</groupId>
+            <artifactId>jakarta.agentic-ai-tck</artifactId>
+            <version>${jakarta.agentic-ai.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- The API the signature test verifies. Use the API jar your
+             implementation ships if it bundles its own copy. -->
+        <dependency>
+            <groupId>jakarta.agentic-ai</groupId>
+            <artifactId>jakarta.agentic-ai-api</artifactId>
+            <version>${jakarta.agentic-ai.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>jakarta.platform</groupId>
+            <artifactId>jakarta.jakartaee-api</artifactId>
+            <version>${jakarta.ee.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- JUnit 5 and Arquillian's JUnit 5 integration -->
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.platform</groupId>
+            <artifactId>junit-platform-launcher</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.jboss.arquillian.junit5</groupId>
+            <artifactId>arquillian-junit5-container</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- TODO: the Arquillian container adapter for your runtime, for example
+             a managed or remote adapter for an application server. An embedded
+             adapter that runs the container in the test JVM also needs a Jakarta
+             JSON Binding provider on this class path. -->
+    </dependencies>
+    <!-- end::testClientDep[] -->
+
+    <build>
+        <plugins>
+            <!-- tag::configJunit5[] -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.5.2</version>
+                <configuration>
+                    <!-- The tests live in the TCK jar, not in this project. -->
+                    <dependenciesToScan>
+                        <dependency>jakarta.agentic-ai:jakarta.agentic-ai-tck</dependency>
+                    </dependenciesToScan>
+                    <!-- tag::systemProperties[] -->
+                    <systemPropertyVariables>
+                        <java.util.logging.config.file>src/test/resources/logging.properties</java.util.logging.config.file>
+                    </systemPropertyVariables>
+                    <!-- end::systemProperties[] -->
+                </configuration>
+            </plugin>
+            <!-- end::configJunit5[] -->
+        </plugins>
+    </build>
+</project>

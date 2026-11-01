@@ -1,0 +1,26 @@
+== TCK Test Requirements
+
+Maven offers flexibility in how a TCK execution is configured, so this section states what a passing run must contain, independent of how the runner is set up.
+
+=== Which tests must pass
+
+A compatibility run must execute every test class in the TCK jar and report:
+
+* every `standalone` test passed, including the signature test in `ee.jakarta.tck.ai.agent.framework.signature.SignatureTests`;
+* every `deployed` test passed, except those annotated `@RequiresNoImplementation`, which must be reported as skipped;
+* zero failures and zero errors.
+
+`@RequiresNoImplementation` marks the handful of trigger-only assertions that exist for the specification project's own plain-CDI baseline.
+The TCK disables them unless the `baseline` profile of the specification repository is active, which it never is in a runner project, so they appear as skipped in your reports.
+No other test may be skipped, disabled or excluded.
+
+=== Fail-closed by default
+
+The TCK assumes a compatible implementation is present.
+There is no flag to tell it one is, and no property that quietly turns the implementation-dependent assertions off: a run against a plain CDI container fails every `@RequiresImplementation` assertion.
+A clean run therefore means the implementation dispatched every phase the tests exercised.
+
+=== Results summary
+
+The Jakarta EE TCK Process requires the certification request to link to a public results summary that shows the total number of tests run and passed.
+The per-class reports Surefire writes to `target/surefire-reports` are the usual source for those totals.

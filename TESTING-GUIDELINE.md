@@ -51,6 +51,10 @@ In baseline mode, `@RequiresNoImplementation` assertions run and `@RequiresImple
 
 Passing `-Djakarta.ai.agent.tck.baseline=true` or `-Dtck.baseline=true` does not select baseline mode. The profile adds a classpath marker rather than a system property. Other Maven `-D` settings are still passed through to the test JVM.
 
+## TCK Distribution
+
+The `tck-dist` module assembles the certifiable TCK: a zip under the Eclipse Foundation Technology Compatibility Kit License that bundles the TCK jar and sources, the signature baseline, the TCK Reference Guide (HTML and PDF) and a starter runner project. It is built by `mvn clean install` and lands in `tck-dist/target/`. Final releases are published to download.eclipse.org rather than Maven Central; the EPL-licensed jar on Maven Central cannot support a compatibility claim.
+
 ## Reporting Issues
 
-Please report test failures or compatibility issues through GitHub Issues.
+Please report test failures or compatibility issues through GitHub Issues. A claim that a test does not conform to the specification is a TCK challenge; file it with the `TCK Challenge` issue template. A request to be listed as a compatible implementation uses the `Compatibility Certification Request` template. Both follow the [Jakarta EE TCK Process](https://jakarta.ee/committees/specification/tckprocess).

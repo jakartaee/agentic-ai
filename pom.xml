@@ -24,6 +24,7 @@
         <module>api</module>
         <module>spec</module>
         <module>tck</module>
+        <module>tck-dist</module>
         <module>examples</module>
     </modules>
 

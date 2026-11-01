@@ -1,0 +1,64 @@
+:starterLoc: ../../starter
+
+== Creating a TCK Runner
+
+A small Maven project controls the TCK's lifecycle: it declares the TCK and your Arquillian adapter as dependencies and lets Surefire discover the tests inside the TCK jar.
+The `starter/` directory of the distribution is such a project; copy it and complete the two `TODO` items.
+
+=== Installing the TCK artifacts
+
+The runner resolves the TCK as an ordinary Maven dependency.
+Install the jar, its sources and the parent pom from `artifacts/` into your local repository:
+
+[source,sh]
+----
+$ cd artifacts
+$ ./artifact-install.sh
+----
+
+=== Test Client dependencies
+
+The Test Client needs the TCK, the API, {TCKTestPlatform}, the Arquillian {TCKTestPlatform} integration and an Arquillian adapter for your runtime.
+
+[source,xml]
+----
+include::{starterLoc}/pom.xml[tag=testClientDep]
+----
+
+The adapter is specific to your runtime and is the one item the starter cannot supply.
+A managed or remote adapter runs the Test Server as a separate process.
+An embedded adapter runs it in the Test Client JVM; in that case the Test Client class path must also carry a Jakarta JSON Binding provider, because the TCK's `LargeLanguageModel` stub converts values with it.
+
+=== Configuring {TCKTestPlatform}
+
+The tests live in the TCK jar rather than in the runner, so Surefire must be told to scan that dependency:
+
+[source,xml]
+----
+include::{starterLoc}/pom.xml[tag=configJunit5]
+----
+
+Surefire's default include patterns match the TCK's test classes, which are named `*Tests` and `*Test`.
+No `groups` configuration is needed: a compatibility run executes both the `standalone` and the `deployed` tags.
+
+=== Configuring Arquillian
+
+Arquillian reads `src/test/resources/arquillian.xml` for the adapter's connection settings, such as host, port and credentials.
+The property names are defined by the adapter.
+The starter ships a commented template.
+
+Deployment archives are complete as the TCK builds them.
+If your runtime needs an additional deployment descriptor in every archive, add it with your own Arquillian `ApplicationArchiveProcessor`, registered through `META-INF/services/org.jboss.arquillian.core.spi.LoadableExtension` in the runner project.
+
+=== Logging
+
+The TCK logs through `java.util.logging`.
+`AssertionExtension` logs the assertion id of every test it starts, and the id, section and strategy of every test that fails or is skipped, which is useful when reading a failed run.
+The starter points the Test Client at a `logging.properties` that enables these messages:
+
+[source,xml]
+----
+include::{starterLoc}/pom.xml[tag=systemProperties]
+----
+
+Set the same property on the Test Server JVM to see the messages logged inside deployments.

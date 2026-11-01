@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is the **Jakarta Agentic AI** specification project — a vendor-neutral Jakarta EE API for building AI agents. It is structured as a multi-module Maven project with four modules: `api`, `spec`, `tck`, and `examples`.
+This is the **Jakarta Agentic AI** specification project — a vendor-neutral Jakarta EE API for building AI agents. It is structured as a multi-module Maven project with five modules: `api`, `spec`, `tck`, `tck-dist`, and `examples`.
 
 ## Build Commands
 
@@ -62,6 +62,13 @@ TCK tests live in `src/main/java` (not `src/test/java`) and are compiled to clas
 **Test infrastructure classes** (not specification tests; used by implementors and integration tests):
 - `LargeLanguageModelStub` — `@ApplicationScoped` CDI bean implementing `LargeLanguageModel`. Queues scripted responses via `enqueueResponse(...)` and records all calls for assertion. Reset between tests with `reset()`.
 - `ExecutionTraceRecorder` — `@ApplicationScoped` CDI bean. Records lifecycle phase calls (`TRIGGER`, `DECISION`, `ACTION`, `OUTCOME`, `HANDLE_EXCEPTION`) for ordering assertions via `assertOrder(Phase...)`.
+- `SignatureTests` — a `@Standalone` JUnit test that drives the Jakarta TCK signature engine (`jakarta.tck:sigtest-maven-plugin`, a compile dependency with the Maven layer excluded) against the shipped `.sig` baseline, strict in both directions, resolving JDK types from the JDK's `lib/ct.sym` at the Java SE 17 level. This is how the Data and Concurrency TCKs do it, so vendors get the signature check in their normal run. Do not reintroduce a plugin-only `strictcheck` execution as the sole check.
+
+**Conventions that follow the Data/Concurrency TCKs:** tests use plain JUnit `Assertions`, never AssertJ, because deployed tests run inside the container and a third-party assertion library would not be in the archive on a real server (AssertJ is test-scoped for the framework's own unit tests only). Vendors run the TCK jar through Surefire `dependenciesToScan`; the starter in `tck-dist` shows the shape.
+
+### TCK distribution module (`tck-dist/`)
+
+Assembles the certifiable TCK zip required by the Jakarta EE TCK Process: `LICENSE` is the EFTL (`src/main/EFTL.adoc`, verbatim Eclipse text — do not edit), plus the TCK jar and sources, the parent pom, the `.sig` baseline, the AsciiDoc Reference Guide rendered to HTML and PDF, and the `starter/` runner project. The guide includes fragments of `starter/pom.xml` by `tag::` markers, so keep those markers when editing the starter. The starter fileSet is filtered so `${project.version}` becomes the released TCK version. The module is `pom`-packaged and never published to Maven Central (`maven.deploy.skip` and `skipPublishing` both set); final zips go to download.eclipse.org with a SHA-256. Challenges and certification requests use the `.github/ISSUE_TEMPLATE/tck-challenge.yml` and `certification.yml` templates (labels `challenge` and `certification`).
 
 ### Key design constraints
 
@@ -72,7 +79,7 @@ TCK tests live in `src/main/java` (not `src/test/java`) and are compiled to clas
 - Modules depend on the **platform umbrella** `jakarta.platform:jakarta.jakartaee-api`, never on individual Jakarta APIs. Declare it with no `<version>` and no `<scope>` — both come from the root `dependencyManagement` (`provided`). CDI, JSON-P and JSON-B all arrive through it. Do not add `cdi-api`, `json-api` or `json.bind-api` back as direct dependencies.
 - Do not swap the umbrella for an import of `jakarta.platform:jakarta.jakartaee-bom`: its `cdi-api` entry has a wildcard `<exclusion>` that strips the transitive CDI modules and breaks `requires jakarta.cdi` in `module-info.java`.
 - The umbrella jar has no `module-info` and no `Automatic-Module-Name`, so maven-compiler-plugin puts it on the classpath while the modular API jars (including `cdi-api`) go on the module path. That is why `requires jakarta.cdi` in `api` still resolves even though `cdi-api` is no longer declared directly.
-- `api` and `tck` are published; `spec`, `examples` and the aggregator (beyond its pom) are not. Staging suppresses modules with `maven.deploy.skip`, snapshot publishing with `skipPublishing` — a module that should not be published needs **both**. The parent pom is published because `api` and `tck` declare it as their parent; this matches other Jakarta specs (`jakarta.data-parent`, `jakarta.enterprise.cdi-parent`).
+- `api` and `tck` are published; `spec`, `tck-dist`, `examples` and the aggregator (beyond its pom) are not. Staging suppresses modules with `maven.deploy.skip`, snapshot publishing with `skipPublishing` — a module that should not be published needs **both**. The parent pom is published because `api` and `tck` declare it as their parent; this matches other Jakarta specs (`jakarta.data-parent`, `jakarta.enterprise.cdi-parent`).
 - CycloneDX SBOMs are generated for the published modules only: `cyclonedx.skip` is `true` in the root pom and `false` in `api` and `tck`. The aggregator's own BOM would otherwise describe unpublished modules and GAVs that never reach a repository.
 - Do not reintroduce a `stage-release` javadoc `<skip>` in `tck`: Maven Central rejects a release without a javadoc jar.
 

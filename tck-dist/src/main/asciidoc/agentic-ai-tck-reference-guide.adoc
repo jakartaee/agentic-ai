@@ -1,0 +1,52 @@
+= Jakarta Agentic AI TCK Reference Guide
+:email: agentic-ai-dev@eclipse.org
+:toc:
+:sectnums:
+
+:APIShortName: Agentic AI
+:APILongName: Jakarta Agentic AI
+:APIVersion: {revnumber}
+:TCKVersion: {project-version}
+:APIPackage: jakarta.ai.agent
+
+:APISpecSite: https://jakarta.ee/specifications/agentic-ai/
+:APIEclipseSite: https://projects.eclipse.org/projects/ee4j.agentic-ai
+:APIGitSite: https://github.com/jakartaee/agentic-ai
+
+:TCKTestPlatform: JUnit 5
+:SigPluginVersion: 2.6
+:SigPluginGAV: jakarta.tck:sigtest-maven-plugin:{SigPluginVersion}
+:JavaVersion: 17
+
+:license: Eclipse Foundation Technology Compatibility Kit License
+:licenseURL: https://www.eclipse.org/legal/tck.php
+
+:TCKProcessDoc: https://jakarta.ee/committees/specification/tckprocess
+
+:last-update-label!:
+
+include::sections/01preface.adoc[]
+
+include::sections/02changes.adoc[]
+
+include::sections/03compatibility.adoc[]
+
+include::sections/04prereq.adoc[]
+
+include::sections/05inventory.adoc[]
+
+include::sections/06requirements.adoc[]
+
+include::sections/07runner.adoc[]
+
+include::sections/08running.adoc[]
+
+include::sections/09signature.adoc[]
+
+include::sections/10challenge.adoc[]
+
+include::sections/11certification.adoc[]
+
+include::sections/12rules.adoc[]
+
+include::sections/13links.adoc[]

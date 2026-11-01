@@ -1,0 +1,30 @@
+== Preface
+
+This guide describes how to obtain, install, configure and run the Technology Compatibility Kit (TCK) that verifies the compatibility of an implementation of the {APILongName} specification.
+
+The specification defines a vendor-neutral programming model for AI agents on Jakarta EE: agent classes, the trigger, decision, action, outcome and exception-handling phases of a workflow, the workflow scope, and the `LargeLanguageModel` facade.
+
+=== Licensing
+
+The {APILongName} TCK is provided under the {licenseURL}[*{license}*].
+
+Only a run of the TCK distribution released under that license supports a claim of compatibility.
+The copy of the TCK jar published to Maven Central under the Eclipse Public License is provided for development convenience and carries no such standing.
+
+=== Who Should Use This Guide
+
+This guide is for implementers of {APILongName} who need to run the test suite and certify their implementation.
+
+=== Terminology
+
+Test Client:: The JVM that runs {TCKTestPlatform}, builds each test archive with ShrinkWrap and hands it to Arquillian. The signature test and the structural tests run here.
+Test Server:: The Jakarta EE runtime, with the {APIShortName} implementation installed, that Arquillian deploys the test archives to. The behavioral tests run inside it, driven from the client.
+Implementation:: The product under test: a runtime that dispatches {APILongName} workflows and injects `LargeLanguageModel`.
+Standalone tests:: Test classes tagged `standalone`. They need no container and run on the Test Client.
+Deployed tests:: Test classes tagged `deployed`. Each declares an Arquillian deployment and runs inside the Test Server.
+
+=== Before You Read This Guide
+
+Familiarize yourself with the {APILongName} {APIVersion} specification at {APISpecSite}, and with the {TCKProcessDoc}[Jakarta EE TCK Process], which governs challenges and certification for every Jakarta EE TCK.
+
+Other useful information can be found on the {APIEclipseSite}[Eclipse project page] and in the {APIGitSite}[GitHub repository] of the specification project.
