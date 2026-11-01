@@ -20,7 +20,7 @@ tck/
 │   │   └── integration/      # Deployed smoke test
 │   └── framework/
 │       ├── junit/anno/       # @Assertion, @Standalone, @Deployed
-│       ├── junit/extensions/ # The JUnit conditions behind those annotations
+│       ├── junit/extensions/ # AssertionExtension: reports failed and skipped assertions
 │       ├── arquillian/       # Adds the framework beans to every deployment
 │       ├── llm/              # TckModel: the model behaviour an implementation must provide during a run
 │       ├── trace/            # ExecutionTraceRecorder: phase-order assertions
@@ -52,9 +52,10 @@ The deployed tests are validated by the implementation's run.
 Each test method is annotated with `@Assertion` which maps to a specific specification requirement:
 
 ```java
-@Assertion(id = "AGENTICAI-AGENT-001",
-           strategy = "Verify @Agent annotation exists in the jakarta.ai.agent package")
-public void testAgentAnnotationExists() {
+@Assertion(id = "AGENTICAI-ORDER-002",
+           section = "agent-lifecycle",
+           strategy = "Full T→D→A→O pipeline executes in strict declaration order")
+public void fullPipelineExecutesInStrictOrder() {
     // test implementation
 }
 ```
