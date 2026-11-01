@@ -28,7 +28,7 @@ import java.lang.annotation.Target;
  *
  * <p>{@link ImplementationPresentCondition} runs these tests by default.
  * They are skipped only when the plain-CDI baseline is selected explicitly
- * with {@code -Pbaseline} (see {@link RequiresNoImplementation}).</p>
+ * with the {@code baseline} profile (see {@link RequiresNoImplementation}).</p>
  */
 @Target({ ElementType.METHOD, ElementType.TYPE })
 @Retention(RetentionPolicy.RUNTIME)

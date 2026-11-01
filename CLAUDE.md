@@ -9,7 +9,7 @@ This is the **Jakarta Agentic AI** specification project — a vendor-neutral Ja
 ## Build Commands
 
 ```bash
-# Full build (what CI runs; the baseline and weld-embedded profiles auto-activate)
+# Full build (what CI runs; the tck baseline profile auto-activates)
 mvn clean install
 
 # Build only the TCK and its required upstream modules
@@ -28,7 +28,7 @@ mvn -pl tck verify -Dit.test=AgentSmokeTest
 mvn -pl tck verify -Psignature-generation
 ```
 
-The TCK's `baseline` (plain-CDI mode) and `weld-embedded` (Arquillian container) profiles both auto-activate whenever the `tck.implementation` property is unset, so the plain build runs the baseline TCK in Weld. `-Dtck.implementation=<name>` turns both off; CI uses it with an explicit `-Pweld-embedded` to prove the TCK fails closed without an implementation. Without a container profile, deployed-tagged tests are excluded.
+Weld Embedded is a plain test dependency of the `tck` module, so the deployed tests always run here. The TCK has exactly two audiences and the machinery is kept to what they need: implementors run the published jar from their own runner (see `tck-dist`), and spec developers run the plain-CDI baseline in this repo. The `baseline` profile is active whenever `tck.implementation` is unset; it adds `src/baseline-marker` to the Failsafe class path, which skips `@RequiresImplementation` assertions and enables `@RequiresNoImplementation` ones. `-Dtck.implementation=<name>` turns it off, which CI uses to prove the TCK fails closed (the implementation-dependent assertions must fail, not skip). The marker is deliberately a class path entry, not a system property. Do not reintroduce per-container profiles, group exclusions or extra conditions; a class that must skip in baseline takes `@RequiresImplementation` at the class level.
 
 ## Architecture
 
@@ -54,7 +54,7 @@ TCK tests live in `src/main/java` (not `src/test/java`) and are compiled to clas
 
 **Test categories and assertion mapping** (controlled by JUnit 5 tags and meta-annotations):
 - `@Standalone` — reflection-based structural tests; no container needed.
-- `@Deployed` — Arquillian integration tests; requires a full container (weld-embedded in CI).
+- `@Deployed` — Arquillian integration tests; requires a full container (Weld Embedded in this repo).
 - `@RequiresImplementation` — skips the test when no compatible implementation is present.
 - `@RequiresNoImplementation` — skips the test when a compatible implementation is present; used for plain-CDI baseline assertions (trigger-only).
 - `@Assertion(id, section, strategy)` — wraps `@Test` and maps the test to a specification requirement ID, section, and verification strategy.

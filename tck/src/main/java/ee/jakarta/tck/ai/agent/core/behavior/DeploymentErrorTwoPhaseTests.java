@@ -16,7 +16,7 @@ import ee.jakarta.tck.ai.agent.core.behavior.agents.deploymenterror.TwoPhaseMeth
 import ee.jakarta.tck.ai.agent.core.behavior.agents.deploymenterror.TwoPhaseMethodEvent;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Assertion;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Deployed;
-import ee.jakarta.tck.ai.agent.framework.junit.anno.SkipWhenBaseline;
+import ee.jakarta.tck.ai.agent.framework.junit.anno.RequiresImplementation;
 import jakarta.enterprise.inject.spi.DeploymentException;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.ShouldThrowException;
@@ -30,21 +30,17 @@ import org.jboss.shrinkwrap.api.spec.WebArchive;
  * method declares two phase annotations must be rejected at deployment time.
  *
  * <p>This error is detected by a compatible implementation's CDI extension.
- * Plain CDI ignores the extra annotation and deploys successfully, so without an
- * implementation the deployment does not fail. Unlike the behavioral
- * {@code @RequiresImplementation} tests, the guard here cannot be a per-method
- * condition: the {@link ShouldThrowException} check runs at deployment time, in
- * the client JVM, before an in-container condition can run. The whole class is
- * therefore gated with {@link SkipWhenBaseline}, which sees the baseline
- * profile's classpath marker. Implementation mode is the default, so the
- * deployment runs unless {@code -Pbaseline} is selected.</p>
+ * Plain CDI ignores the extra annotation and deploys successfully, so the
+ * class is gated with {@link RequiresImplementation} at the class level: the
+ * {@link ShouldThrowException} check happens at deployment time, before any
+ * per-method condition could run.</p>
  *
  * <p>The verification is the deployment itself: {@link ShouldThrowException}
  * declares that building the container for this archive must fail with a
  * {@link DeploymentException}; the test body is therefore empty.</p>
  */
 @Deployed
-@SkipWhenBaseline
+@RequiresImplementation
 public class DeploymentErrorTwoPhaseTests {
 
     @Deployment

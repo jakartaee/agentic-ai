@@ -33,8 +33,6 @@
         <assertj.version>3.27.7</assertj.version>
         <yasson.version>3.0.3</yasson.version>
         <cyclonedx.skip>false</cyclonedx.skip>
-        <!-- Deployed groups stay excluded unless a container profile includes them. -->
-        <tck.failsafe.excludedGroups>deployed</tck.failsafe.excludedGroups>
     </properties>
 
     <dependencyManagement>
@@ -153,6 +151,21 @@
             <version>${yasson.version}</version>
             <scope>test</scope>
         </dependency>
+
+        <!-- The container this repository runs the TCK in. Implementations run
+             the published jar from their own runner with their own adapter. -->
+        <dependency>
+            <groupId>org.jboss.arquillian.container</groupId>
+            <artifactId>arquillian-weld-embedded</artifactId>
+            <version>3.0.2.Final</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.jboss.weld</groupId>
+            <artifactId>weld-core-impl</artifactId>
+            <version>5.1.5.Final</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
@@ -179,7 +192,6 @@
                         <include>**/*Tests.java</include>
                         <include>**/*Test.java</include>
                     </includes>
-                    <excludedGroups>${tck.failsafe.excludedGroups}</excludedGroups>
                 </configuration>
                 <executions>
                     <execution>
@@ -215,10 +227,13 @@
 
     <profiles>
         <!--
-            Plain-CDI baseline for specification and TCK development. This
-            reactor has no implementation under test, so baseline and the
-            weld-embedded container both activate unless -Dtck.implementation
-            names one.
+            This repository has no implementation under test, so by default it
+            runs the plain-CDI baseline: a class path marker disables the
+            @RequiresImplementation assertions and enables the trigger-only
+            @RequiresNoImplementation ones. -Dtck.implementation=<name> turns
+            the marker off, which is how CI proves the TCK fails closed. The
+            marker is a class path entry rather than a system property so no
+            -D flag can select baseline mode by accident.
         -->
         <profile>
             <id>baseline</id>
@@ -231,67 +246,15 @@
                 <plugins>
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-resources-plugin</artifactId>
-                        <version>3.3.0</version>
-                        <executions>
-                            <execution>
-                                <id>tck-baseline-marker</id>
-                                <phase>generate-test-resources</phase>
-                                <goals>
-                                    <goal>copy-resources</goal>
-                                </goals>
-                                <configuration>
-                                    <outputDirectory>${project.build.directory}/tck-baseline-marker</outputDirectory>
-                                    <resources>
-                                        <resource>
-                                            <directory>${project.basedir}/src/baseline-marker</directory>
-                                            <filtering>false</filtering>
-                                        </resource>
-                                    </resources>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-failsafe-plugin</artifactId>
                         <configuration>
                             <additionalClasspathElements>
-                                <additionalClasspathElement>${project.build.directory}/tck-baseline-marker</additionalClasspathElement>
+                                <additionalClasspathElement>${project.basedir}/src/baseline-marker</additionalClasspathElement>
                             </additionalClasspathElements>
                         </configuration>
                     </plugin>
                 </plugins>
             </build>
-        </profile>
-        <profile>
-            <id>weld-embedded</id>
-            <!--
-                Supplies the plain-CDI container and includes the deployed
-                integration groups. Auto-activates alongside baseline.
-            -->
-            <activation>
-                <property>
-                    <name>!tck.implementation</name>
-                </property>
-            </activation>
-            <properties>
-                <tck.failsafe.excludedGroups></tck.failsafe.excludedGroups>
-            </properties>
-            <dependencies>
-                <dependency>
-                    <groupId>org.jboss.arquillian.container</groupId>
-                    <artifactId>arquillian-weld-embedded</artifactId>
-                    <version>3.0.2.Final</version>
-                    <scope>test</scope>
-                </dependency>
-                <dependency>
-                    <groupId>org.jboss.weld</groupId>
-                    <artifactId>weld-core-impl</artifactId>
-                    <version>5.1.5.Final</version>
-                    <scope>test</scope>
-                </dependency>
-            </dependencies>
         </profile>
         <profile>
             <id>signature-generation</id>

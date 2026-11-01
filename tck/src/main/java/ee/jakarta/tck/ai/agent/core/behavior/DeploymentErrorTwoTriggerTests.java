@@ -17,7 +17,7 @@ import ee.jakarta.tck.ai.agent.core.behavior.agents.deploymenterror.SecondTrigge
 import ee.jakarta.tck.ai.agent.core.behavior.agents.deploymenterror.TwoTriggerAgent;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Assertion;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Deployed;
-import ee.jakarta.tck.ai.agent.framework.junit.anno.SkipWhenBaseline;
+import ee.jakarta.tck.ai.agent.framework.junit.anno.RequiresImplementation;
 import jakarta.enterprise.inject.spi.DeploymentException;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.ShouldThrowException;
@@ -29,14 +29,9 @@ import org.jboss.shrinkwrap.api.spec.WebArchive;
 /**
  * Deployment-error case G3c (<em>@Trigger cardinality</em>): an agent with more
  * than one {@code @Trigger} method must be rejected at deployment time.
- *
- * <p>See {@link DeploymentErrorTwoPhaseTests} for why this class is gated at the
- * class level with {@link SkipWhenBaseline} rather than a per-method
- * {@code @RequiresImplementation} condition. It runs in the default
- * implementation mode and is skipped when {@code -Pbaseline} is selected.</p>
  */
 @Deployed
-@SkipWhenBaseline
+@RequiresImplementation
 public class DeploymentErrorTwoTriggerTests {
 
     @Deployment
