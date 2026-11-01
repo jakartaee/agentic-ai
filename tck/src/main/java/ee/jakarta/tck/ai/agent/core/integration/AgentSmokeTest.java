@@ -26,8 +26,9 @@ import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.EmptyAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-
 import org.junit.jupiter.api.BeforeEach;
+
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -79,7 +80,7 @@ public class AgentSmokeTest {
     public void deploymentTriggersAgentObserver() {
         events.fire(new GreetEvent("Jakarta AI"));
 
-        trace.assertOrder(Phase.TRIGGER);
+        assertEquals(List.of(Phase.TRIGGER), trace.phases());
 
         ExecutionTraceRecorder.TraceEntry entry = trace.entries().get(0);
         assertEquals("onGreet", entry.methodName(), "Trigger method name");
@@ -101,7 +102,7 @@ public class AgentSmokeTest {
 
         events.fire(new GreetEvent("Jakarta AI"));
 
-        trace.assertOrder(Phase.TRIGGER, Phase.ACTION, Phase.OUTCOME);
+        assertEquals(List.of(Phase.TRIGGER, Phase.ACTION, Phase.OUTCOME), trace.phases());
 
         assertEquals(1, llm.recordedCalls().size(), "LLM should have been called once");
         LargeLanguageModelStub.RecordedCall lastCall = llm.lastCall();

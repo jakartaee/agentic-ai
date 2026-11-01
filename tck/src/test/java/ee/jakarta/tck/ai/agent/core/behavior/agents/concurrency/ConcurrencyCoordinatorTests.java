@@ -12,7 +12,6 @@
  *****************************************************************************/
 package ee.jakarta.tck.ai.agent.core.behavior.agents.concurrency;
 
-import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
@@ -33,10 +32,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * <p>These exercise the TCK's own concurrency harness, not the specification: they
  * confirm the coordinator's barrier and leak-detection logic behaves correctly, so
  * the {@code @RequiresImplementation} concurrency assertions are trustworthy when a
- * compatible implementation finally runs them. Tagged {@code internal} so they do
- * not inflate spec assertion counts.</p>
+ * compatible implementation runs them.</p>
  */
-@Tag("internal")
 public class ConcurrencyCoordinatorTests {
 
     private static final int WORKFLOWS = 8;

@@ -59,7 +59,8 @@ public class SignatureTests {
     static final int JAVA_SE_RELEASE = 17;
 
     @Assertion(id = "AGENTICAI-SIG-001",
-               strategy = "Run the Jakarta TCK signature test engine in strict static mode "
+               section = "programming-model",
+               strategy ="Run the Jakarta TCK signature test engine in strict static mode "
                        + "against the recorded jakarta.ai.agent signature file")
     public void apiMatchesRecordedSignature() throws IOException, URISyntaxException {
         Path signatureFile = Files.createTempFile("jakarta.ai.agent", ".sig");

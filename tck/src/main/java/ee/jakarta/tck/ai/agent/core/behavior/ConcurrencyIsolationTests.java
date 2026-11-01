@@ -51,14 +51,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  * deterministic: regardless of interleaving, every workflow must observe only its
  * own marker, and the recorded model calls must be exactly the per-workflow prompts
  * with no loss or corruption.</p>
- *
- * <p><strong>Scope limitation:</strong> the reference
- * {@link LargeLanguageModelStub} keys its per-workflow conversation history by the
- * TCK's {@code WorkflowContext} thread-local fixture, which a compatible
- * implementation does not populate. Cross-workflow conversation-history isolation
- * is therefore asserted here through the implementation-agnostic global call log
- * (no corruption across concurrent calls) rather than through per-workflow history
- * lookups.</p>
  */
 @Deployed
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)

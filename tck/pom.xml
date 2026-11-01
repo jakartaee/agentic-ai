@@ -30,7 +30,6 @@
         <shrinkwrap.version>1.2.6</shrinkwrap.version>
         <sigtest.version>2.6</sigtest.version>
         <api.signature.file>${project.basedir}/src/main/resources/ee/jakarta/tck/ai/agent/framework/signature/jakarta.ai.agent.sig_${spec.version}</api.signature.file>
-        <assertj.version>3.27.7</assertj.version>
         <yasson.version>3.0.3</yasson.version>
         <cyclonedx.skip>false</cyclonedx.skip>
     </properties>
@@ -91,10 +90,6 @@
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-api</artifactId>
         </dependency>
-        <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter-params</artifactId>
-        </dependency>
 
         <!-- Arquillian -->
         <dependency>
@@ -137,14 +132,6 @@
             </exclusions>
         </dependency>
 
-        <!-- Framework unit tests only; the TCK tests themselves use JUnit assertions so
-             nothing beyond the TCK jar needs to reach a container-side deployment. -->
-        <dependency>
-            <groupId>org.assertj</groupId>
-            <artifactId>assertj-core</artifactId>
-            <version>${assertj.version}</version>
-            <scope>test</scope>
-        </dependency>
         <dependency>
             <groupId>org.eclipse</groupId>
             <artifactId>yasson</artifactId>

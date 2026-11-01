@@ -6,7 +6,6 @@ Technology Compatibility Kit (TCK) for Jakarta Agentic AI 1.0 Specification.
 
 This TCK verifies that implementations of Jakarta Agentic AI conform to the specification requirements. It includes tests for:
 
-- **Structural**: the annotations, `LargeLanguageModel`, `Result` and `LLMException` exist with the attributes, targets and retention the specification requires
 - **Behavioral**: a compatible implementation dispatches workflows as specified — phase ordering and precedence, data propagation into phase parameters, termination, error handling, validation, inherited phases, CDI scoping and event observation, concurrency isolation, deployment errors, and the `LargeLanguageModel` contract
 - **API signature**: the complete public API surface against a recorded baseline
 
@@ -16,9 +15,6 @@ This TCK verifies that implementations of Jakarta Agentic AI conform to the spec
 tck/
 ├── src/main/java/ee/jakarta/tck/ai/agent/
 │   ├── core/
-│   │   ├── agent/            # @Agent, LargeLanguageModel, Result, LLMException (structural)
-│   │   ├── lifecycle/        # @Trigger, @Decision, @Action, @Outcome, @OnException (structural)
-│   │   ├── cdi/              # @WorkflowScoped and @Agent CDI metadata (structural)
 │   │   ├── behavior/         # Deployed workflow tests, one class per concern
 │   │   │   └── agents/       # The agents those tests deploy, one package per concern
 │   │   └── integration/      # Deployed smoke test
@@ -28,7 +24,6 @@ tck/
 │       ├── arquillian/       # Adds the framework beans to every deployment
 │       ├── stub/             # LargeLanguageModelStub: scripted responses, recorded calls
 │       ├── trace/            # ExecutionTraceRecorder: phase-order assertions
-│       ├── workflow/         # Per-workflow keying for the stub outside a container
 │       └── signature/        # API signature test
 ├── src/main/resources/
 │   ├── META-INF/services/    # Registers the Arquillian extension
@@ -70,8 +65,8 @@ public void testAgentAnnotationExists() {
 
 ## Test Categories
 
-### Structural tests (`@Standalone`)
-Reflection over the API; no container needed. These are `core/agent`, `core/lifecycle`, `core/cdi` and the signature test.
+### Signature test (`@Standalone`)
+The API signature check in `framework/signature`; no container needed. It is the structural test: the recorded baseline covers every type, member, target, retention and meta-annotation of the API, so there are no separate reflection tests.
 
 ### Behavioral tests (`@Deployed`)
 Arquillian deployments that run real workflows against the implementation under test. Each class in `core/behavior` covers one concern: phase ordering and precedence, data propagation and resolution tie-breaks, termination, `@OnException` handling, validation, inherited and void phases, topology flexibility, orchestration, CDI integration and event observation, workflow-scope lifecycle, concurrency isolation, deployment errors, and the `LargeLanguageModel` contract. Assertions a plain CDI container cannot satisfy carry `@RequiresImplementation`; the trigger-only assertions the baseline must pass carry `@RequiresNoImplementation`. See [TESTING-GUIDELINE](../TESTING-GUIDELINE.md) for the run modes.
