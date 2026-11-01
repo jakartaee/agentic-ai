@@ -17,7 +17,6 @@ import ee.jakarta.tck.ai.agent.core.behavior.agents.voidphases.VoidPhasesEvent;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Assertion;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Deployed;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.RequiresImplementation;
-import ee.jakarta.tck.ai.agent.framework.stub.LargeLanguageModelStub;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder.Phase;
 import jakarta.enterprise.event.Event;
@@ -27,7 +26,6 @@ import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.EmptyAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.jupiter.api.BeforeEach;
 
 import java.util.List;
 
@@ -45,20 +43,15 @@ public class VoidPhasesTests {
     }
 
     @Inject Event<VoidPhasesEvent> events;
-    @Inject LargeLanguageModelStub llm;
     @Inject ExecutionTraceRecorder trace;
 
-    @BeforeEach
-    public void setUp() {
-        llm.reset();
-        trace.reset();
-    }
 
     @RequiresImplementation
     @Assertion(id = "AGENTICAI-VOID-002",
                section = "agent-lifecycle",
                strategy = "void @Trigger does not pollute the injection context; @Decision receives only the original event")
     public void voidTriggerDoesNotPollutInjectionContext() {
+        trace.reset();
         events.fire(new VoidPhasesEvent("test"));
 
         assertEquals(List.of(Phase.TRIGGER, Phase.DECISION, Phase.ACTION, Phase.OUTCOME), trace.phases());
@@ -72,6 +65,7 @@ public class VoidPhasesTests {
                section = "agent-lifecycle",
                strategy = "void @Action does not break the injection context for @Outcome")
     public void voidActionDoesNotBreakOutcome() {
+        trace.reset();
         events.fire(new VoidPhasesEvent("test"));
 
         assertEquals(List.of(Phase.TRIGGER, Phase.DECISION, Phase.ACTION, Phase.OUTCOME), trace.phases());

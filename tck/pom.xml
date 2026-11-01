@@ -182,6 +182,11 @@
                     <!-- No implementation here: run what plain CDI on Weld can satisfy.
                          A compatibility run excludes nothing. -->
                     <excludedGroups>requires-implementation</excludedGroups>
+                    <!-- testClassesDirectory points at the TCK classes, so the test
+                         output (the Weld stand-in facade) must be added back. -->
+                    <additionalClasspathElements>
+                        <additionalClasspathElement>${project.build.testOutputDirectory}</additionalClasspathElement>
+                    </additionalClasspathElements>
                 </configuration>
                 <executions>
                     <execution>

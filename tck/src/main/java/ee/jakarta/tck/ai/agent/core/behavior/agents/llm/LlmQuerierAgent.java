@@ -12,6 +12,7 @@
  *****************************************************************************/
 package ee.jakarta.tck.ai.agent.core.behavior.agents.llm;
 
+import ee.jakarta.tck.ai.agent.framework.llm.TckModel;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder.Phase;
 import jakarta.ai.agent.Action;
@@ -22,20 +23,25 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.event.Observes;
 import jakarta.inject.Inject;
 
+/**
+ * Queries the model in its trigger and reads the conversation back in its
+ * action, so a test can see which turns the workflow's conversation holds.
+ */
 @Agent
 @ApplicationScoped
 public class LlmQuerierAgent {
 
+    @Inject LargeLanguageModel llm;
     @Inject ExecutionTraceRecorder trace;
 
     @Trigger
-    public void onEvent(@Observes LlmQuerierEvent event, LargeLanguageModel llm) {
+    public void onEvent(@Observes LlmQuerierEvent event) {
         trace.record(Phase.TRIGGER, "onEvent", event);
         llm.query("turn for {}", event.payload());
     }
 
     @Action
     public void execute(LlmQuerierEvent event) {
-        trace.record(Phase.ACTION, "execute", event);
+        trace.record(Phase.ACTION, "execute", event, llm.query(TckModel.HISTORY));
     }
 }

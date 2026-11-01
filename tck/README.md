@@ -22,7 +22,7 @@ tck/
 │       ├── junit/anno/       # @Assertion, @Standalone, @Deployed, @RequiresImplementation, ...
 │       ├── junit/extensions/ # The JUnit conditions behind those annotations
 │       ├── arquillian/       # Adds the framework beans to every deployment
-│       ├── stub/             # LargeLanguageModelStub: scripted responses, recorded calls
+│       ├── llm/              # TckModel: the model behaviour an implementation must provide during a run
 │       ├── trace/            # ExecutionTraceRecorder: phase-order assertions
 │       └── signature/        # API signature test
 ├── src/main/resources/
@@ -113,26 +113,24 @@ TCK Process requires.
 - Java 17 or higher
 - Jakarta EE 10 or higher
 - Maven 3.9+
-- A Jakarta JSON Binding provider on the test classpath
 
-The TCK does not ship a JSON-B provider, so that it does not impose one on
-implementations. A Jakarta EE 10 runtime already supplies one, so nothing extra
-is needed when the TCK runs inside a container. When running the tests outside a
-container, add a provider yourself, for example:
+## The model behind the implementation's `LargeLanguageModel`
 
-```xml
-<dependency>
-    <groupId>org.eclipse</groupId>
-    <artifactId>yasson</artifactId>
-    <version>3.0.3</version>
-    <scope>test</scope>
-</dependency>
-```
+The TCK deploys no `LargeLanguageModel`; the implementation's own facade is
+injected into the agents under test, and the LLM assertions verify its
+placeholder substitution, JSON Binding conversion, `LLMException` mapping and
+per-workflow conversational state. A real model cannot answer deterministically,
+so during a TCK run the implementation must back its facade with the model
+behaviour defined by `framework/llm/TckModel` and spelled out in the Reference
+Guide's "Additional Certification Requirements": a rendered prompt containing
+`TckModel.FAIL` fails, a prompt equal to `TckModel.HISTORY` returns the
+conversation's prior rendered prompts one per line, and anything else is echoed
+verbatim. The tests derive decisions and observations from that echo.
 
-A provider is required because `LargeLanguageModelStub` performs the type
-conversion mandated of `LargeLanguageModel` via `JsonbBuilder.create()`, and
-`LlmContractTests` asserts JSON Binding semantics directly. Without one, those
-assertions error rather than fail informatively.
+This repository has no implementation, so `src/test` carries
+`EchoLargeLanguageModel`, a stand-in facade that follows the same specification
+and is added to every archive here by a test-scoped Arquillian extension. It
+never reaches the jar.
 
 ## License
 

@@ -18,11 +18,8 @@ The TCK is built on three frameworks. Knowing how they interact helps when setti
 === What the TCK supplies inside each deployment
 
 The TCK jar registers an Arquillian `ApplicationArchiveProcessor` through `META-INF/services`.
-It adds to every test archive the TCK framework classes and two CDI beans the tests inject:
+It adds to every test archive the TCK framework classes and one CDI bean the tests inject, `ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder`, which records the order in which workflow phases run and the values they receive.
 
-* `ee.jakarta.tck.ai.agent.framework.stub.LargeLanguageModelStub`, an `@ApplicationScoped` `LargeLanguageModel` that returns scripted responses and records every call, and
-* `ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder`, which records the order in which workflow phases run.
-
-The stub is the only `LargeLanguageModel` bean in a test archive.
-The implementation must inject it into the agents under test and must not contribute a second `LargeLanguageModel` bean that would make resolution ambiguous.
-The stub performs its type conversion with Jakarta JSON Binding, so the Test Server must provide a JSON Binding implementation, as every Jakarta EE 10 runtime does.
+The TCK deploys no `LargeLanguageModel`.
+The bean the agents under test receive is the implementation's own facade, and the TCK verifies it: placeholder substitution, JSON Binding conversion, exception mapping and conversational state are all asserted against the implementation.
+For those assertions to be deterministic, the model behind the facade must behave as <<Additional Certification Requirements>> specifies during the TCK run.

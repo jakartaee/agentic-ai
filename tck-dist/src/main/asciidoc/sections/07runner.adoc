@@ -26,8 +26,7 @@ include::{starterLoc}/pom.xml[tag=testClientDep]
 ----
 
 The adapter is specific to your runtime and is the one item the starter cannot supply.
-A managed or remote adapter runs the Test Server as a separate process.
-An embedded adapter runs it in the Test Client JVM; in that case the Test Client class path must also carry a Jakarta JSON Binding provider, because the TCK's `LargeLanguageModel` stub converts values with it.
+A managed or remote adapter runs the Test Server as a separate process; an embedded adapter runs it in the Test Client JVM, in which case the implementation and everything it needs must be on the Test Client class path.
 
 === Configuring {TCKTestPlatform}
 

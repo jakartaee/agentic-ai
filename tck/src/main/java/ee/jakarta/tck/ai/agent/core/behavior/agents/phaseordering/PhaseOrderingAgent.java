@@ -41,8 +41,8 @@ public class PhaseOrderingAgent {
     @Decision
     public Result decide(PhaseOrderingEvent event, TriggerOutput triggerOutput) {
         trace.record(Phase.DECISION, "decide", event, triggerOutput);
-        String response = llm.query("Should we proceed?", event.payload());
-        return new Result("proceed".equals(response), response);
+        String answer = llm.query(event.payload());
+        return new Result("proceed".equals(answer), answer);
     }
 
     @Action
