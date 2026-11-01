@@ -270,10 +270,6 @@ public class LlmContractTests {
                 assertInstanceOf(LargeLanguageModelStub.class, unwrapped);
     }
 
-    // -------------------------------------------------------------------------
-    // C. Disabled — requires compatible implementation / spec-open
-    // -------------------------------------------------------------------------
-
     @RequiresImplementation
     @Assertion(id = "AGENTICAI-LLM-BHV-007",
                section = "cdi-integration",
@@ -287,17 +283,9 @@ public class LlmContractTests {
         events.fire(new LlmQuerierEvent("workflow-1"));
         events.fire(new LlmQuerierEvent("workflow-2"));
 
-        // Structural: each workflow ran its @Trigger + @Action and produced exactly one LLM call.
-        // LlmQuerierAgent has both @Trigger and @Action; the compatible implementation dispatches both phases per workflow.
         assertEquals(List.of(Phase.TRIGGER, Phase.ACTION, Phase.TRIGGER, Phase.ACTION), trace.phases());
         assertEquals(2, stub.recordedCalls().size());
         assertEquals("turn for \"workflow-1\"", stub.recordedCalls().get(0).effectivePrompt());
         assertEquals("turn for \"workflow-2\"", stub.recordedCalls().get(1).effectivePrompt());
-
-        // Isolation guarantee (BHV-007 proper): each event must materialize its own
-        // @WorkflowScoped LLM context so the second call cannot observe the first
-        // workflow's conversational state. Verifiable only once the compatible implementation exposes
-        // per-workflow conversation history — this test currently asserts only the
-        // structural precondition.
     }
 }

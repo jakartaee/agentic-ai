@@ -70,14 +70,10 @@ public class OrchestrationTests {
     @Inject ExecutionTraceRecorder  trace;
     @Inject BranchingAgent          branchingAgent;
 
-    // -------------------------------------------------------------------------
-    // CDI-only tests (no compatible implementation required)
-    // -------------------------------------------------------------------------
-
     @Assertion(id = "AGENTICAI-ORCHESTRATION-BHV-006",
                section = "agent-lifecycle",
                strategy = "Minimalist pattern: an agent with @Trigger only is a valid complete workflow; "
-                        + "firing the event drives the trigger via CDI without a compatible implementation")
+                        + "firing the event runs the trigger and the workflow completes")
     public void minimalistWorkflowCompletesWithTriggerOnly() {
         trace.reset();
         minimalistEvents.fire(new MinimalistEvent("test"));
@@ -92,8 +88,7 @@ public class OrchestrationTests {
     @Assertion(id = "AGENTICAI-ORCHESTRATION-BHV-001",
                section = "agent-lifecycle",
                strategy = "@Trigger is always the first phase invoked even when declared at the bottom "
-                        + "of the source file. The complete implementation-dispatched workflow proves "
-                        + "that a trigger-only plain-CDI observation cannot satisfy this assertion.")
+                        + "of the source file")
     public void triggerIsAlwaysFirstPhaseRegardlessOfPosition() {
         trace.reset();
         anchoredEvents.fire(new AnchoredEvent("test"));

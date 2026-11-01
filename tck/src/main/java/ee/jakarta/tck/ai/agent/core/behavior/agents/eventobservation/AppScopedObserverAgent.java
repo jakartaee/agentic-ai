@@ -24,9 +24,6 @@ import jakarta.inject.Inject;
  * An {@code @ApplicationScoped} agent that observes events through both a
  * {@code @Trigger} method and a general {@code @Observes} observer method, which
  * is permitted for application-scoped agents.
- *
- * <p>The general observer is standard CDI and is invoked even without a compatible
- * implementation, so plain CDI can verify it.</p>
  */
 @Agent
 @ApplicationScoped

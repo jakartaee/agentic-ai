@@ -28,7 +28,7 @@ Add tests as needed to cover new features and edge cases.
 
 As with other Jakarta EE TCKs, a compatibility run happens in the implementation's own repository, from its own runner project with its own Arquillian adapter. Every test in the TCK jar must run and pass; nothing may be skipped or excluded.
 
-This repository has no implementation, so its build runs the part of the TCK that plain CDI can satisfy on Weld Embedded. Assertions that only a compatible implementation can satisfy — the `@Decision`, `@Action`, `@Outcome` and `@OnException` phases — carry `@RequiresImplementation`, which is a JUnit tag; the `tck` module's Failsafe configuration excludes it, and nothing else does. The trigger-only checks of each test archive, which plain CDI can pass and an implementation could not, are not TCK assertions: they live in `tck/src/test/java` under `plaincdi` and run through Surefire here. Both are part of the plain build:
+This repository has no implementation, so its build runs the part of the TCK that plain CDI can satisfy on Weld Embedded. Assertions that only a compatible implementation can satisfy — the `@Decision`, `@Action`, `@Outcome` and `@OnException` phases — carry `@RequiresImplementation`, which is a JUnit tag; the `tck` module's Failsafe configuration excludes it, and nothing else does. That is the plain build:
 
 ```
 mvn --projects tck --also-make verify

@@ -85,8 +85,6 @@ public class OnExceptionTests {
     @Inject ExecutionTraceRecorder        trace;
     @Inject PhaseFailureAgent             phaseFailureAgent;
 
-    // ── Smoke checks — CDI fires @Trigger without a compatible implementation ─────────────────
-
     // ── Recovery flow (BHV-001–003) ─────────────────────────────────────────
 
     @RequiresImplementation
