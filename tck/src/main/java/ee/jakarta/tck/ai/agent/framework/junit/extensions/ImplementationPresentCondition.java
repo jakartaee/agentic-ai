@@ -33,8 +33,9 @@ import java.util.Optional;
  * message. CDI 4.0 provides no portable way to probe for a registered workflow
  * context, so selection uses an explicit baseline opt-out.</p>
  *
- * <p>The project plain-CDI baseline is selected only with the {@code baseline}
- * Maven profile ({@code -Pbaseline}). That profile adds
+ * <p>The project plain-CDI baseline is selected only by the {@code baseline}
+ * Maven profile of the specification repository, which is active there unless
+ * {@code -Dtck.implementation} is set. That profile adds
  * {@value #BASELINE_MARKER_RESOURCE} to the test classpath. The marker is not
  * a system property, so a Maven {@code -D} cannot select baseline mode.
  * Baseline mode enables {@link RequiresNoImplementation} assertions and

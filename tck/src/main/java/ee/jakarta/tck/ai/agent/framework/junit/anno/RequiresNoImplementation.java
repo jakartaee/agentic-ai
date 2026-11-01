@@ -27,7 +27,7 @@ import java.lang.annotation.Target;
  *
  * <p>Implementation mode is the TCK default, so
  * {@link ImplementationPresentCondition} skips these assertions unless the
- * plain-CDI baseline is selected explicitly with {@code -Pbaseline}. In that
+ * plain-CDI baseline is selected explicitly with the {@code baseline} profile. In that
  * mode they run, and the corresponding {@link RequiresImplementation}
  * behavior tests are skipped.</p>
  */

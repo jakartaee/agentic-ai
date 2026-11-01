@@ -5,7 +5,7 @@ This is the first release of the {APILongName} TCK.
 === How this TCK was validated
 
 No compatible implementation of {APILongName} existed when this TCK was released.
-The TCK is validated in the specification project's continuous integration against its plain-CDI baseline: the trigger-only subset of the behavioral tests, the structural tests and the signature test, run on Weld Embedded with the `baseline` and `weld-embedded` Maven profiles.
+The TCK is validated in the specification project's continuous integration against its plain-CDI baseline: the trigger-only subset of the behavioral tests, the structural tests and the signature test, run on Weld Embedded with the `baseline` Maven profile.
 That run is reproduced by `mvn clean install` at the root of the {APIGitSite}[specification repository].
 
 The baseline run is not a compatibility result.
