@@ -37,7 +37,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.IntStream;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * Verifies that concurrent workflow executions of an {@code @ApplicationScoped}
@@ -90,8 +90,8 @@ public class ConcurrencyIsolationTests {
 
         fireConcurrently(WORKFLOWS);
 
-        assertThat(coordinator.observationCount()).isEqualTo(WORKFLOWS);
-        assertThat(coordinator.mismatches()).isEmpty();
+        assertEquals(WORKFLOWS, coordinator.observationCount());
+        assertEquals(List.of(), coordinator.mismatches());
     }
 
     @RequiresImplementation
@@ -107,11 +107,13 @@ public class ConcurrencyIsolationTests {
 
         List<String> prompts = stub.recordedCalls().stream()
                 .map(RecordedCall::effectivePrompt)
+                .sorted()
                 .toList();
-        String[] expected = IntStream.range(0, WORKFLOWS)
+        List<String> expected = IntStream.range(0, WORKFLOWS)
                 .mapToObj(i -> "turn:\"" + marker(i) + "\"")
-                .toArray(String[]::new);
-        assertThat(prompts).containsExactlyInAnyOrder(expected);
+                .sorted()
+                .toList();
+        assertEquals(expected, prompts);
     }
 
     private void enqueueResponses(int count) {

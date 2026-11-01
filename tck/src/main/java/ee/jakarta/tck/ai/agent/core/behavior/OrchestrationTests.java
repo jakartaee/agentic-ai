@@ -42,7 +42,7 @@ import org.junit.jupiter.api.TestInstance;
 
 import java.util.List;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @Deployed
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -82,7 +82,7 @@ public class OrchestrationTests {
     public void minimalistWorkflowCompletesWithTriggerOnly() {
         trace.reset();
         minimalistEvents.fire(new MinimalistEvent("test"));
-        assertThat(trace.phases()).containsExactly(Phase.TRIGGER);
+        assertEquals(List.of(Phase.TRIGGER), trace.phases());
     }
 
     @RequiresNoImplementation
@@ -92,7 +92,7 @@ public class OrchestrationTests {
     public void linearAgentTriggerObserved() {
         trace.reset();
         linearEvents.fire(new LinearEvent("test"));
-        assertThat(trace.phases()).containsExactly(Phase.TRIGGER);
+        assertEquals(List.of(Phase.TRIGGER), trace.phases());
     }
 
     @RequiresNoImplementation
@@ -102,7 +102,7 @@ public class OrchestrationTests {
     public void intermixedAgentTriggerObserved() {
         trace.reset();
         intermixedEvents.fire(new IntermixedEvent("test"));
-        assertThat(trace.phases()).containsExactly(Phase.TRIGGER);
+        assertEquals(List.of(Phase.TRIGGER), trace.phases());
     }
 
     @RequiresNoImplementation
@@ -114,7 +114,7 @@ public class OrchestrationTests {
         trace.reset();
         branchingAgent.setTerminateAt(BranchingAgent.TerminationPoint.FIRST_DECISION);
         branchingEvents.fire(new BranchingEvent("test"));
-        assertThat(trace.phases()).containsExactly(Phase.TRIGGER);
+        assertEquals(List.of(Phase.TRIGGER), trace.phases());
     }
 
     @RequiresNoImplementation
@@ -124,7 +124,7 @@ public class OrchestrationTests {
     public void outcomeOnlyAgentTriggerObserved() {
         trace.reset();
         outcomeOnlyEvents.fire(new OutcomeOnlyEvent("test"));
-        assertThat(trace.phases()).containsExactly(Phase.TRIGGER);
+        assertEquals(List.of(Phase.TRIGGER), trace.phases());
     }
 
     @RequiresNoImplementation
@@ -134,7 +134,7 @@ public class OrchestrationTests {
     public void anchoredAgentTriggerObserved() {
         trace.reset();
         anchoredEvents.fire(new AnchoredEvent("test"));
-        assertThat(trace.phases()).containsExactly(Phase.TRIGGER);
+        assertEquals(List.of(Phase.TRIGGER), trace.phases());
     }
 
     // -------------------------------------------------------------------------
@@ -150,10 +150,9 @@ public class OrchestrationTests {
     public void triggerIsAlwaysFirstPhaseRegardlessOfPosition() {
         trace.reset();
         anchoredEvents.fire(new AnchoredEvent("test"));
-        assertThat(trace.phases())
-                .hasSize(4)
-                .startsWith(Phase.TRIGGER)
-                .endsWith(Phase.OUTCOME);
+        assertEquals(4, trace.phases().size());
+                assertEquals(Phase.TRIGGER, trace.phases().get(0));
+                assertEquals(Phase.OUTCOME, trace.phases().get(trace.phases().size() - 1));
     }
 
     @RequiresImplementation
@@ -164,10 +163,9 @@ public class OrchestrationTests {
     public void methodsExecuteInDeclarationOrder() {
         trace.reset();
         anchoredEvents.fire(new AnchoredEvent("test"));
-        assertThat(trace.phases())
-                .containsExactly(Phase.TRIGGER, Phase.ACTION, Phase.DECISION, Phase.OUTCOME);
+        assertEquals(List.of(Phase.TRIGGER, Phase.ACTION, Phase.DECISION, Phase.OUTCOME), trace.phases());
         List<String> names = trace.entries().stream().map(TraceEntry::methodName).toList();
-        assertThat(names).containsExactly("onEvent", "act", "decide", "finish");
+        assertEquals(List.of("onEvent", "act", "decide", "finish"), names);
     }
 
     @RequiresImplementation
@@ -178,7 +176,7 @@ public class OrchestrationTests {
     public void outcomeIsAlwaysLastPhaseRegardlessOfPosition() {
         trace.reset();
         anchoredEvents.fire(new AnchoredEvent("test"));
-        assertThat(trace.phases()).endsWith(Phase.OUTCOME);
+        assertEquals(Phase.OUTCOME, trace.phases().get(trace.phases().size() - 1));
     }
 
     @RequiresImplementation
@@ -188,12 +186,10 @@ public class OrchestrationTests {
     public void intermixedDecisionAndActionPhasesSupported() {
         trace.reset();
         intermixedEvents.fire(new IntermixedEvent("test"));
-        assertThat(trace.phases())
-                .containsExactly(Phase.TRIGGER, Phase.DECISION, Phase.ACTION,
-                                 Phase.DECISION, Phase.ACTION, Phase.OUTCOME);
+        assertEquals(List.of(Phase.TRIGGER, Phase.DECISION, Phase.ACTION,
+                                 Phase.DECISION, Phase.ACTION, Phase.OUTCOME), trace.phases());
         List<String> names = trace.entries().stream().map(TraceEntry::methodName).toList();
-        assertThat(names).containsExactly(
-                "onEvent", "firstDecide", "firstAction", "secondDecide", "secondAction", "finish");
+        assertEquals(List.of("onEvent", "firstDecide", "firstAction", "secondDecide", "secondAction", "finish"), names);
     }
 
     @RequiresImplementation
@@ -205,7 +201,7 @@ public class OrchestrationTests {
         trace.reset();
         branchingAgent.setTerminateAt(BranchingAgent.TerminationPoint.FIRST_DECISION);
         branchingEvents.fire(new BranchingEvent("test"));
-        assertThat(trace.phases()).containsExactly(Phase.TRIGGER, Phase.DECISION);
+        assertEquals(List.of(Phase.TRIGGER, Phase.DECISION), trace.phases());
     }
 
     @RequiresImplementation
@@ -218,8 +214,7 @@ public class OrchestrationTests {
         trace.reset();
         branchingAgent.setTerminateAt(BranchingAgent.TerminationPoint.SECOND_DECISION);
         branchingEvents.fire(new BranchingEvent("test"));
-        assertThat(trace.phases())
-                .containsExactly(Phase.TRIGGER, Phase.DECISION, Phase.ACTION, Phase.DECISION);
+        assertEquals(List.of(Phase.TRIGGER, Phase.DECISION, Phase.ACTION, Phase.DECISION), trace.phases());
     }
 
     // -------------------------------------------------------------------------
@@ -233,11 +228,9 @@ public class OrchestrationTests {
     public void linearPatternSupported() {
         trace.reset();
         linearEvents.fire(new LinearEvent("test"));
-        assertThat(trace.phases())
-                .containsExactly(Phase.TRIGGER, Phase.ACTION, Phase.ACTION, Phase.ACTION, Phase.OUTCOME);
+        assertEquals(List.of(Phase.TRIGGER, Phase.ACTION, Phase.ACTION, Phase.ACTION, Phase.OUTCOME), trace.phases());
         List<String> names = trace.entries().stream().map(TraceEntry::methodName).toList();
-        assertThat(names).containsExactly(
-                "onEvent", "firstAction", "secondAction", "thirdAction", "finish");
+        assertEquals(List.of("onEvent", "firstAction", "secondAction", "thirdAction", "finish"), names);
     }
 
     @RequiresImplementation
@@ -247,8 +240,7 @@ public class OrchestrationTests {
     public void evaluativePatternSupported() {
         trace.reset();
         outcomeOnlyEvents.fire(new OutcomeOnlyEvent("test"));
-        assertThat(trace.phases())
-                .containsExactly(Phase.TRIGGER, Phase.DECISION, Phase.OUTCOME);
+        assertEquals(List.of(Phase.TRIGGER, Phase.DECISION, Phase.OUTCOME), trace.phases());
     }
 
     @RequiresImplementation
@@ -258,8 +250,7 @@ public class OrchestrationTests {
     public void intermixedPatternSupported() {
         trace.reset();
         intermixedEvents.fire(new IntermixedEvent("test"));
-        assertThat(trace.phases())
-                .containsExactly(Phase.TRIGGER, Phase.DECISION, Phase.ACTION,
-                                 Phase.DECISION, Phase.ACTION, Phase.OUTCOME);
+        assertEquals(List.of(Phase.TRIGGER, Phase.DECISION, Phase.ACTION,
+                                 Phase.DECISION, Phase.ACTION, Phase.OUTCOME), trace.phases());
     }
 }

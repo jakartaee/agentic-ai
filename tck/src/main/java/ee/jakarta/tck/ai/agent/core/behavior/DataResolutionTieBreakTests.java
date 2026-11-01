@@ -30,7 +30,10 @@ import org.jboss.shrinkwrap.api.asset.EmptyAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.jupiter.api.TestInstance;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 
 /**
  * When more than one earlier phase has returned an object of the same type, a later phase must be
@@ -61,7 +64,7 @@ public class DataResolutionTieBreakTests {
     public void triggerIsObserved() {
         trace.reset();
         events.fire(new TieBreakEvent("input"));
-        assertThat(trace.phases()).containsExactly(Phase.TRIGGER);
+        assertEquals(List.of(Phase.TRIGGER), trace.phases());
     }
 
     @RequiresImplementation
@@ -72,11 +75,10 @@ public class DataResolutionTieBreakTests {
         trace.reset();
         events.fire(new TieBreakEvent("input"));
 
-        assertThat(trace.phases())
-                .containsExactly(Phase.TRIGGER, Phase.DECISION, Phase.ACTION, Phase.OUTCOME);
+        assertEquals(List.of(Phase.TRIGGER, Phase.DECISION, Phase.ACTION, Phase.OUTCOME), trace.phases());
 
         Object[] outcomeArgs = trace.entries().get(3).args();
-        assertThat(outcomeArgs[0]).isInstanceOf(SameTypeOutput.class);
-        assertThat(((SameTypeOutput) outcomeArgs[0]).marker()).isEqualTo("action");
+        assertInstanceOf(SameTypeOutput.class, outcomeArgs[0]);
+        assertEquals("action", ((SameTypeOutput) outcomeArgs[0]).marker());
     }
 }

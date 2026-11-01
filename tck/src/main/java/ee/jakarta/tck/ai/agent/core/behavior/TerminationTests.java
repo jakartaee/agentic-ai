@@ -34,7 +34,9 @@ import org.jboss.shrinkwrap.api.asset.EmptyAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.jupiter.api.TestInstance;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @Deployed
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -62,7 +64,7 @@ public class TerminationTests {
     public void booleanAgentTriggerObserved() {
         trace.reset();
         booleanEvents.fire(new BooleanTerminationEvent("x"));
-        assertThat(trace.phases()).containsExactly(Phase.TRIGGER);
+        assertEquals(List.of(Phase.TRIGGER), trace.phases());
     }
 
     @RequiresNoImplementation
@@ -72,7 +74,7 @@ public class TerminationTests {
     public void resultAgentTriggerObserved() {
         trace.reset();
         resultEvents.fire(new ResultTerminationEvent("x"));
-        assertThat(trace.phases()).containsExactly(Phase.TRIGGER);
+        assertEquals(List.of(Phase.TRIGGER), trace.phases());
     }
 
     @RequiresNoImplementation
@@ -82,7 +84,7 @@ public class TerminationTests {
     public void objectAgentTriggerObserved() {
         trace.reset();
         objectEvents.fire(new ObjectTerminationEvent("x"));
-        assertThat(trace.phases()).containsExactly(Phase.TRIGGER);
+        assertEquals(List.of(Phase.TRIGGER), trace.phases());
     }
 
     @RequiresImplementation
@@ -92,7 +94,7 @@ public class TerminationTests {
     public void booleanFalseTerminatesWorkflow() {
         trace.reset();
         booleanEvents.fire(new BooleanTerminationEvent("x"));
-        assertThat(trace.phases()).containsExactly(Phase.TRIGGER, Phase.DECISION);
+        assertEquals(List.of(Phase.TRIGGER, Phase.DECISION), trace.phases());
     }
 
     @RequiresImplementation
@@ -102,7 +104,7 @@ public class TerminationTests {
     public void resultFalseTerminatesWorkflow() {
         trace.reset();
         resultEvents.fire(new ResultTerminationEvent("x"));
-        assertThat(trace.phases()).containsExactly(Phase.TRIGGER, Phase.DECISION);
+        assertEquals(List.of(Phase.TRIGGER, Phase.DECISION), trace.phases());
     }
 
     @RequiresImplementation
@@ -112,6 +114,6 @@ public class TerminationTests {
     public void objectNullTerminatesWorkflow() {
         trace.reset();
         objectEvents.fire(new ObjectTerminationEvent("x"));
-        assertThat(trace.phases()).containsExactly(Phase.TRIGGER, Phase.DECISION);
+        assertEquals(List.of(Phase.TRIGGER, Phase.DECISION), trace.phases());
     }
 }

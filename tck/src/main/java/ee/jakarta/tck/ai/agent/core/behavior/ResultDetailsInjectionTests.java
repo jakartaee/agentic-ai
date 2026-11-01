@@ -30,7 +30,10 @@ import org.jboss.shrinkwrap.api.asset.EmptyAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.jupiter.api.TestInstance;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 
 /**
  * A non-{@code null} {@code Result.details} becomes part of
@@ -61,7 +64,7 @@ public class ResultDetailsInjectionTests {
     public void triggerIsObserved() {
         trace.reset();
         events.fire(new ResultDetailsEvent("input"));
-        assertThat(trace.phases()).containsExactly(Phase.TRIGGER);
+        assertEquals(List.of(Phase.TRIGGER), trace.phases());
     }
 
     @RequiresImplementation
@@ -72,11 +75,10 @@ public class ResultDetailsInjectionTests {
         trace.reset();
         events.fire(new ResultDetailsEvent("input"));
 
-        assertThat(trace.phases())
-                .containsExactly(Phase.TRIGGER, Phase.DECISION, Phase.ACTION);
+        assertEquals(List.of(Phase.TRIGGER, Phase.DECISION, Phase.ACTION), trace.phases());
 
         Object[] actionArgs = trace.entries().get(2).args();
-        assertThat(actionArgs[0]).isInstanceOf(DecisionDetails.class);
-        assertThat(((DecisionDetails) actionArgs[0]).value()).isEqualTo("details:input");
+        assertInstanceOf(DecisionDetails.class, actionArgs[0]);
+        assertEquals("details:input", ((DecisionDetails) actionArgs[0]).value());
     }
 }

@@ -32,7 +32,9 @@ import org.jboss.shrinkwrap.api.asset.EmptyAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.jupiter.api.TestInstance;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @Deployed
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -59,7 +61,7 @@ public class TopologyFlexTests {
         llm.reset();
         trace.reset();
         noDecisionEvents.fire(new NoDecisionEvent("test"));
-        assertThat(trace.phases()).containsExactly(Phase.TRIGGER);
+        assertEquals(List.of(Phase.TRIGGER), trace.phases());
     }
 
     @RequiresNoImplementation
@@ -70,7 +72,7 @@ public class TopologyFlexTests {
         llm.reset();
         trace.reset();
         noOutcomeEvents.fire(new NoOutcomeEvent("test"));
-        assertThat(trace.phases()).containsExactly(Phase.TRIGGER);
+        assertEquals(List.of(Phase.TRIGGER), trace.phases());
     }
 
     @RequiresImplementation
@@ -81,7 +83,7 @@ public class TopologyFlexTests {
         llm.reset();
         trace.reset();
         noDecisionEvents.fire(new NoDecisionEvent("test"));
-        assertThat(trace.phases()).containsExactly(Phase.TRIGGER, Phase.ACTION, Phase.OUTCOME);
+        assertEquals(List.of(Phase.TRIGGER, Phase.ACTION, Phase.OUTCOME), trace.phases());
     }
 
     @RequiresImplementation
@@ -92,6 +94,6 @@ public class TopologyFlexTests {
         llm.reset();
         trace.reset();
         noOutcomeEvents.fire(new NoOutcomeEvent("test"));
-        assertThat(trace.phases()).containsExactly(Phase.TRIGGER, Phase.DECISION, Phase.ACTION);
+        assertEquals(List.of(Phase.TRIGGER, Phase.DECISION, Phase.ACTION), trace.phases());
     }
 }

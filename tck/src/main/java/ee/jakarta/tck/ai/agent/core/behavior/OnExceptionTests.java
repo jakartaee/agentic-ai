@@ -47,9 +47,14 @@ import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.jupiter.api.TestInstance;
 
 import java.lang.reflect.Method;
+import java.util.List;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Deployed
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -90,7 +95,7 @@ public class OnExceptionTests {
     public void recoveryAgentTriggerObserved() {
         trace.reset();
         recoveryEvents.fire(new RecoveryEvent("x"));
-        assertThat(trace.phases()).containsExactly(Phase.TRIGGER);
+        assertEquals(List.of(Phase.TRIGGER), trace.phases());
     }
 
     @RequiresNoImplementation
@@ -100,7 +105,7 @@ public class OnExceptionTests {
     public void propagationAgentTriggerObserved() {
         trace.reset();
         propagationEvents.fire(new PropagationEvent("x"));
-        assertThat(trace.phases()).containsExactly(Phase.TRIGGER);
+        assertEquals(List.of(Phase.TRIGGER), trace.phases());
     }
 
     @RequiresNoImplementation
@@ -110,7 +115,7 @@ public class OnExceptionTests {
     public void hierarchyAgentTriggerObserved() {
         trace.reset();
         hierarchyEvents.fire(new HierarchyEvent("x"));
-        assertThat(trace.phases()).containsExactly(Phase.TRIGGER);
+        assertEquals(List.of(Phase.TRIGGER), trace.phases());
     }
 
     @RequiresNoImplementation
@@ -120,7 +125,7 @@ public class OnExceptionTests {
     public void recursiveGuardAgentTriggerObserved() {
         trace.reset();
         recursiveGuardEvents.fire(new RecursiveGuardEvent("x"));
-        assertThat(trace.phases()).containsExactly(Phase.TRIGGER);
+        assertEquals(List.of(Phase.TRIGGER), trace.phases());
     }
 
     @RequiresNoImplementation
@@ -131,7 +136,7 @@ public class OnExceptionTests {
         trace.reset();
         phaseFailureAgent.setFailAt(PhaseFailureAgent.FailingPhase.NONE);
         phaseFailureEvents.fire(new PhaseFailureEvent("x"));
-        assertThat(trace.phases()).containsExactly(Phase.TRIGGER);
+        assertEquals(List.of(Phase.TRIGGER), trace.phases());
     }
 
     @RequiresNoImplementation
@@ -141,7 +146,7 @@ public class OnExceptionTests {
     public void noHandlerAgentTriggerObserved() {
         trace.reset();
         noHandlerEvents.fire(new NoHandlerEvent("x"));
-        assertThat(trace.phases()).containsExactly(Phase.TRIGGER);
+        assertEquals(List.of(Phase.TRIGGER), trace.phases());
     }
 
     // ── Recovery flow (BHV-001–003) ─────────────────────────────────────────
@@ -153,8 +158,7 @@ public class OnExceptionTests {
     public void handlerNormalReturnAllowsOutcome() {
         trace.reset();
         recoveryEvents.fire(new RecoveryEvent("x"));
-        assertThat(trace.phases())
-                .containsExactly(Phase.TRIGGER, Phase.ACTION, Phase.HANDLE_EXCEPTION, Phase.OUTCOME);
+        assertEquals(List.of(Phase.TRIGGER, Phase.ACTION, Phase.HANDLE_EXCEPTION, Phase.OUTCOME), trace.phases());
     }
 
     @RequiresImplementation
@@ -164,7 +168,7 @@ public class OnExceptionTests {
     public void handlerIsInvokedOnActionFailure() {
         trace.reset();
         recoveryEvents.fire(new RecoveryEvent("x"));
-        assertThat(trace.phases()).contains(Phase.HANDLE_EXCEPTION);
+        assertTrue(trace.phases().contains(Phase.HANDLE_EXCEPTION));
     }
 
     @RequiresImplementation
@@ -174,7 +178,7 @@ public class OnExceptionTests {
     public void workflowProceedsToOutcomeAfterRecovery() {
         trace.reset();
         recoveryEvents.fire(new RecoveryEvent("x"));
-        assertThat(trace.phases()).last().isEqualTo(Phase.OUTCOME);
+        assertEquals(Phase.OUTCOME, trace.phases().get(trace.phases().size() - 1));
     }
 
     // ── Exception hierarchy (BHV-004) ───────────────────────────────────────
@@ -190,7 +194,7 @@ public class OnExceptionTests {
                 .filter(e -> e.phase() == Phase.HANDLE_EXCEPTION)
                 .findFirst()
                 .orElseThrow();
-        assertThat(handlerEntry.methodName()).isEqualTo("onSpecific");
+        assertEquals("onSpecific", handlerEntry.methodName());
     }
 
     // ── Recursive prevention (BHV-005) ──────────────────────────────────────
@@ -202,13 +206,13 @@ public class OnExceptionTests {
     public void handlerExceptionPropagatesWithoutRecursion() {
         trace.reset();
         // CDI wraps observer exceptions in ObserverException; the cause is the AgentDomainException
-        assertThatThrownBy(() -> recursiveGuardEvents.fire(new RecursiveGuardEvent("x")))
-                .isInstanceOf(ObserverException.class)
-                .hasCauseInstanceOf(AgentDomainException.class);
+        ObserverException thrown = assertThrows(ObserverException.class,
+                () -> recursiveGuardEvents.fire(new RecursiveGuardEvent("x")));
+        assertInstanceOf(AgentDomainException.class, thrown.getCause());
         long count = trace.phases().stream()
                 .filter(p -> p == Phase.HANDLE_EXCEPTION)
                 .count();
-        assertThat(count).isEqualTo(1);
+        assertEquals(1, count);
     }
 
     // ── Cross-phase coverage (BHV-006–009) ──────────────────────────────────
@@ -221,7 +225,7 @@ public class OnExceptionTests {
         trace.reset();
         phaseFailureAgent.setFailAt(PhaseFailureAgent.FailingPhase.TRIGGER);
         phaseFailureEvents.fire(new PhaseFailureEvent("x"));
-        assertThat(trace.phases()).contains(Phase.TRIGGER, Phase.HANDLE_EXCEPTION);
+        assertTrue(trace.phases().containsAll(List.of(Phase.TRIGGER, Phase.HANDLE_EXCEPTION)));
     }
 
     @RequiresImplementation
@@ -232,7 +236,7 @@ public class OnExceptionTests {
         trace.reset();
         phaseFailureAgent.setFailAt(PhaseFailureAgent.FailingPhase.DECISION);
         phaseFailureEvents.fire(new PhaseFailureEvent("x"));
-        assertThat(trace.phases()).contains(Phase.TRIGGER, Phase.DECISION, Phase.HANDLE_EXCEPTION);
+        assertTrue(trace.phases().containsAll(List.of(Phase.TRIGGER, Phase.DECISION, Phase.HANDLE_EXCEPTION)));
     }
 
     @RequiresImplementation
@@ -243,7 +247,7 @@ public class OnExceptionTests {
         trace.reset();
         phaseFailureAgent.setFailAt(PhaseFailureAgent.FailingPhase.ACTION);
         phaseFailureEvents.fire(new PhaseFailureEvent("x"));
-        assertThat(trace.phases()).contains(Phase.TRIGGER, Phase.ACTION, Phase.HANDLE_EXCEPTION);
+        assertTrue(trace.phases().containsAll(List.of(Phase.TRIGGER, Phase.ACTION, Phase.HANDLE_EXCEPTION)));
     }
 
     @RequiresImplementation
@@ -254,7 +258,7 @@ public class OnExceptionTests {
         trace.reset();
         phaseFailureAgent.setFailAt(PhaseFailureAgent.FailingPhase.OUTCOME);
         phaseFailureEvents.fire(new PhaseFailureEvent("x"));
-        assertThat(trace.phases()).contains(Phase.TRIGGER, Phase.OUTCOME, Phase.HANDLE_EXCEPTION);
+        assertTrue(trace.phases().containsAll(List.of(Phase.TRIGGER, Phase.OUTCOME, Phase.HANDLE_EXCEPTION)));
     }
 
     // ── Fallback, parameter identity, method contracts (BHV-010–013) ────────
@@ -266,10 +270,10 @@ public class OnExceptionTests {
     public void uncaughtExceptionPropagatesWithoutHandler() {
         trace.reset();
         // CDI wraps observer exceptions in ObserverException; the cause is the AgentDomainException
-        assertThatThrownBy(() -> noHandlerEvents.fire(new NoHandlerEvent("x")))
-                .isInstanceOf(ObserverException.class)
-                .hasCauseInstanceOf(AgentDomainException.class);
-        assertThat(trace.phases()).doesNotContain(Phase.OUTCOME);
+        ObserverException thrown = assertThrows(ObserverException.class,
+                () -> noHandlerEvents.fire(new NoHandlerEvent("x")));
+        assertInstanceOf(AgentDomainException.class, thrown.getCause());
+        assertFalse(trace.phases().contains(Phase.OUTCOME));
     }
 
     @RequiresImplementation
@@ -279,16 +283,14 @@ public class OnExceptionTests {
     public void handlerReceivesExactExceptionInstance() {
         trace.reset();
         // CDI wraps observer exceptions in ObserverException; unwrap to get the AgentDomainException
-        assertThatThrownBy(() -> propagationEvents.fire(new PropagationEvent("x")))
-                .isInstanceOf(ObserverException.class)
-                .satisfies(thrown -> {
-                    AgentDomainException cause = (AgentDomainException) thrown.getCause();
-                    TraceEntry handlerEntry = trace.entries().stream()
-                            .filter(e -> e.phase() == Phase.HANDLE_EXCEPTION)
-                            .findFirst()
-                            .orElseThrow();
-                    assertThat(handlerEntry.args()[0]).isSameAs(cause);
-                });
+        ObserverException thrown = assertThrows(ObserverException.class,
+                () -> propagationEvents.fire(new PropagationEvent("x")));
+        AgentDomainException cause = (AgentDomainException) thrown.getCause();
+        TraceEntry handlerEntry = trace.entries().stream()
+                .filter(e -> e.phase() == Phase.HANDLE_EXCEPTION)
+                .findFirst()
+                .orElseThrow();
+        assertSame(cause, handlerEntry.args()[0]);
     }
 
     @Assertion(id = "AGENTICAI-ONEXCEPTION-BHV-012",
@@ -297,12 +299,8 @@ public class OnExceptionTests {
     public void handlerParameterMustBeExceptionType() {
         for (Method m : RecoveryAgent.class.getDeclaredMethods()) {
             if (m.isAnnotationPresent(OnException.class)) {
-                assertThat(m.getParameterCount())
-                        .as("@OnException method '%s' must have at least one parameter", m.getName())
-                        .isGreaterThanOrEqualTo(1);
-                assertThat(Throwable.class.isAssignableFrom(m.getParameterTypes()[0]))
-                        .as("@OnException method '%s' first parameter must be a Throwable subtype", m.getName())
-                        .isTrue();
+                assertTrue(m.getParameterCount() >= 1, String.format("@OnException method '%s' must have at least one parameter", m.getName()));
+                assertTrue(Throwable.class.isAssignableFrom(m.getParameterTypes()[0]), String.format("@OnException method '%s' first parameter must be a Throwable subtype", m.getName()));
             }
         }
     }
@@ -313,9 +311,7 @@ public class OnExceptionTests {
     public void handlerMustReturnVoid() {
         for (Method m : RecoveryAgent.class.getDeclaredMethods()) {
             if (m.isAnnotationPresent(OnException.class)) {
-                assertThat(m.getReturnType())
-                        .as("@OnException method '%s' must return void", m.getName())
-                        .isEqualTo(void.class);
+                assertEquals(void.class, m.getReturnType(), String.format("@OnException method '%s' must return void", m.getName()));
             }
         }
     }
@@ -330,7 +326,7 @@ public class OnExceptionTests {
         trace.reset();
         phaseFailureAgent.setFailAt(PhaseFailureAgent.FailingPhase.NONE);
         phaseFailureEvents.fire(new PhaseFailureEvent("x"));
-        assertThat(trace.phases()).last().isEqualTo(Phase.OUTCOME);
+        assertEquals(Phase.OUTCOME, trace.phases().get(trace.phases().size() - 1));
     }
 
     @RequiresImplementation
@@ -340,7 +336,7 @@ public class OnExceptionTests {
     public void decisionBasedTerminationSkipsDownstreamPhases() {
         trace.reset();
         booleanEvents.fire(new BooleanTerminationEvent("x"));
-        assertThat(trace.phases()).containsExactly(Phase.TRIGGER, Phase.DECISION);
+        assertEquals(List.of(Phase.TRIGGER, Phase.DECISION), trace.phases());
     }
 
     @RequiresImplementation
@@ -350,10 +346,10 @@ public class OnExceptionTests {
     public void exceptionBasedTerminationAbortsWorkflow() {
         trace.reset();
         // CDI wraps observer exceptions in ObserverException; the cause is the AgentDomainException
-        assertThatThrownBy(() -> noHandlerEvents.fire(new NoHandlerEvent("x")))
-                .isInstanceOf(ObserverException.class)
-                .hasCauseInstanceOf(AgentDomainException.class);
-        assertThat(trace.phases()).doesNotContain(Phase.OUTCOME);
+        ObserverException thrown = assertThrows(ObserverException.class,
+                () -> noHandlerEvents.fire(new NoHandlerEvent("x")));
+        assertInstanceOf(AgentDomainException.class, thrown.getCause());
+        assertFalse(trace.phases().contains(Phase.OUTCOME));
     }
 
     @RequiresImplementation
@@ -363,9 +359,9 @@ public class OnExceptionTests {
     public void handlerFailureTerminatesWorkflow() {
         trace.reset();
         // CDI wraps observer exceptions in ObserverException; the cause is the AgentDomainException
-        assertThatThrownBy(() -> propagationEvents.fire(new PropagationEvent("x")))
-                .isInstanceOf(ObserverException.class)
-                .hasCauseInstanceOf(AgentDomainException.class);
-        assertThat(trace.phases()).doesNotContain(Phase.OUTCOME);
+        ObserverException thrown = assertThrows(ObserverException.class,
+                () -> propagationEvents.fire(new PropagationEvent("x")));
+        assertInstanceOf(AgentDomainException.class, thrown.getCause());
+        assertFalse(trace.phases().contains(Phase.OUTCOME));
     }
 }

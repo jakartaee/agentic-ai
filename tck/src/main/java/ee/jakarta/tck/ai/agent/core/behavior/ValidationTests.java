@@ -34,8 +34,13 @@ import org.jboss.shrinkwrap.api.asset.EmptyAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.jupiter.api.TestInstance;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Verifies Jakarta Validation integration in the agent workflow
@@ -79,7 +84,7 @@ public class ValidationTests {
     public void triggerObservedWithoutImplementation() {
         trace.reset();
         events.fire(new ValidationEvent("ok"));
-        assertThat(trace.phases()).containsExactly(Phase.TRIGGER);
+        assertEquals(List.of(Phase.TRIGGER), trace.phases());
     }
 
     // ── Valid input proceeds ──────────────────────────────────────────────────
@@ -91,7 +96,7 @@ public class ValidationTests {
     public void validInputProceedsThroughAction() {
         trace.reset();
         events.fire(new ValidationEvent("ok"));
-        assertThat(trace.phases()).containsExactly(Phase.TRIGGER, Phase.ACTION);
+        assertEquals(List.of(Phase.TRIGGER, Phase.ACTION), trace.phases());
     }
 
     // ── Invalid input: body does not run ─────────────────────────────────────
@@ -103,7 +108,7 @@ public class ValidationTests {
     public void invalidInputDoesNotRunActionBody() {
         trace.reset();
         events.fire(new ValidationEvent(null));
-        assertThat(trace.phases()).doesNotContain(Phase.ACTION);
+        assertFalse(trace.phases().contains(Phase.ACTION));
     }
 
     // ── Invalid input: routed to @OnException ────────────────────────────
@@ -116,12 +121,12 @@ public class ValidationTests {
         trace.reset();
         events.fire(new ValidationEvent(null));
 
-        assertThat(trace.phases()).contains(Phase.HANDLE_EXCEPTION);
+        assertTrue(trace.phases().contains(Phase.HANDLE_EXCEPTION));
         TraceEntry handlerEntry = trace.entries().stream()
                 .filter(e -> e.phase() == Phase.HANDLE_EXCEPTION)
                 .findFirst()
                 .orElseThrow();
-        assertThat(handlerEntry.args()[0]).isInstanceOf(ConstraintViolationException.class);
+        assertInstanceOf(ConstraintViolationException.class, handlerEntry.args()[0]);
     }
 
     // ── Invalid input with no handler: propagates to the container ───────────
@@ -133,8 +138,13 @@ public class ValidationTests {
     public void invalidInputPropagatesWithoutHandler() {
         trace.reset();
         // CDI wraps observer exceptions; the cause is the ConstraintViolationException
-        assertThatThrownBy(() -> unhandledEvents.fire(new UnhandledValidationEvent(null)))
-                .hasRootCauseInstanceOf(ConstraintViolationException.class);
-        assertThat(trace.phases()).doesNotContain(Phase.ACTION);
+        Throwable thrown = assertThrows(Throwable.class,
+                () -> unhandledEvents.fire(new UnhandledValidationEvent(null)));
+        Throwable rootCause = thrown;
+        while (rootCause.getCause() != null) {
+            rootCause = rootCause.getCause();
+        }
+        assertInstanceOf(ConstraintViolationException.class, rootCause);
+        assertFalse(trace.phases().contains(Phase.ACTION));
     }
 }

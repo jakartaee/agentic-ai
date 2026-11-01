@@ -31,7 +31,10 @@ import org.jboss.shrinkwrap.api.asset.EmptyAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.jupiter.api.BeforeEach;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 
 @Deployed
 public class PhaseOrderingTests {
@@ -60,12 +63,9 @@ public class PhaseOrderingTests {
     public void triggerIsObservedAndRecorded() {
         events.fire(new PhaseOrderingEvent("test-payload"));
 
-        assertThat(trace.phases()).containsExactly(Phase.TRIGGER);
-        assertThat(trace.entries().get(0).methodName()).isEqualTo("onEvent");
-        assertThat(trace.entries().get(0).args()[0])
-                .isInstanceOf(PhaseOrderingEvent.class)
-                .extracting(e -> ((PhaseOrderingEvent) e).payload())
-                .isEqualTo("test-payload");
+        assertEquals(List.of(Phase.TRIGGER), trace.phases());
+        assertEquals("onEvent", trace.entries().get(0).methodName());
+        assertEquals("test-payload", assertInstanceOf(PhaseOrderingEvent.class, trace.entries().get(0).args()[0]).payload());
     }
 
     @RequiresImplementation
@@ -76,8 +76,7 @@ public class PhaseOrderingTests {
         llm.enqueueResponse("proceed");
         events.fire(new PhaseOrderingEvent("test-payload"));
 
-        assertThat(trace.phases())
-                .containsExactly(Phase.TRIGGER, Phase.DECISION, Phase.ACTION, Phase.OUTCOME);
+        assertEquals(List.of(Phase.TRIGGER, Phase.DECISION, Phase.ACTION, Phase.OUTCOME), trace.phases());
     }
 
     @RequiresImplementation
@@ -89,10 +88,7 @@ public class PhaseOrderingTests {
         events.fire(new PhaseOrderingEvent("test-payload"));
 
         Object[] decisionArgs = trace.entries().get(1).args();
-        assertThat(decisionArgs[0]).isInstanceOf(PhaseOrderingEvent.class);
-        assertThat(decisionArgs[1])
-                .isInstanceOf(TriggerOutput.class)
-                .extracting(o -> ((TriggerOutput) o).fromTrigger())
-                .isEqualTo("trigger:test-payload");
+        assertInstanceOf(PhaseOrderingEvent.class, decisionArgs[0]);
+        assertEquals("trigger:test-payload", assertInstanceOf(TriggerOutput.class, decisionArgs[1]).fromTrigger());
     }
 }

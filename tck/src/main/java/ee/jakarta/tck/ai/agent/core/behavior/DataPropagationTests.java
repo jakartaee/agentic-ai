@@ -33,7 +33,10 @@ import org.jboss.shrinkwrap.api.asset.EmptyAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.jupiter.api.BeforeEach;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 
 @Deployed
 public class DataPropagationTests {
@@ -62,7 +65,7 @@ public class DataPropagationTests {
                strategy = "Trigger fires and records its phase before the implementation dispatches further phases")
     public void triggerIsObserved() {
         events.fire(new DataPropagationEvent("input"));
-        assertThat(trace.phases()).containsExactly(Phase.TRIGGER);
+        assertEquals(List.of(Phase.TRIGGER), trace.phases());
     }
 
     @RequiresImplementation
@@ -72,7 +75,7 @@ public class DataPropagationTests {
     public void triggerOutputIsInjectableInDecision() {
         llm.enqueueResponse("ok");
         events.fire(new DataPropagationEvent("input"));
-        assertThat(trace.entries().get(1).args()[1]).isInstanceOf(TriggerOutput.class);
+        assertInstanceOf(TriggerOutput.class, trace.entries().get(1).args()[1]);
     }
 
     @RequiresImplementation
@@ -82,7 +85,7 @@ public class DataPropagationTests {
     public void decisionOutputIsInjectableInAction() {
         llm.enqueueResponse("ok");
         events.fire(new DataPropagationEvent("input"));
-        assertThat(trace.entries().get(2).args()[1]).isInstanceOf(DecisionOutput.class);
+        assertInstanceOf(DecisionOutput.class, trace.entries().get(2).args()[1]);
     }
 
     @RequiresImplementation
@@ -93,13 +96,12 @@ public class DataPropagationTests {
         llm.enqueueResponse("ok");
         events.fire(new DataPropagationEvent("input"));
 
-        assertThat(trace.phases())
-                .containsExactly(Phase.TRIGGER, Phase.DECISION, Phase.ACTION, Phase.OUTCOME);
+        assertEquals(List.of(Phase.TRIGGER, Phase.DECISION, Phase.ACTION, Phase.OUTCOME), trace.phases());
 
         Object[] outcomeArgs = trace.entries().get(3).args();
-        assertThat(outcomeArgs[0]).isInstanceOf(DataPropagationEvent.class);
-        assertThat(outcomeArgs[1]).isInstanceOf(TriggerOutput.class);
-        assertThat(outcomeArgs[2]).isInstanceOf(DecisionOutput.class);
-        assertThat(outcomeArgs[3]).isInstanceOf(ActionOutput.class);
+        assertInstanceOf(DataPropagationEvent.class, outcomeArgs[0]);
+        assertInstanceOf(TriggerOutput.class, outcomeArgs[1]);
+        assertInstanceOf(DecisionOutput.class, outcomeArgs[2]);
+        assertInstanceOf(ActionOutput.class, outcomeArgs[3]);
     }
 }
