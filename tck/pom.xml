@@ -30,7 +30,6 @@
         <shrinkwrap.version>1.2.6</shrinkwrap.version>
         <sigtest.version>2.6</sigtest.version>
         <api.signature.file>${project.basedir}/src/main/resources/ee/jakarta/tck/ai/agent/framework/signature/jakarta.ai.agent.sig_${spec.version}</api.signature.file>
-        <yasson.version>3.0.3</yasson.version>
         <cyclonedx.skip>false</cyclonedx.skip>
     </properties>
 
@@ -132,27 +131,6 @@
             </exclusions>
         </dependency>
 
-        <dependency>
-            <groupId>org.eclipse</groupId>
-            <artifactId>yasson</artifactId>
-            <version>${yasson.version}</version>
-            <scope>test</scope>
-        </dependency>
-
-        <!-- The container this repository runs the TCK in. Implementations run
-             the published jar from their own runner with their own adapter. -->
-        <dependency>
-            <groupId>org.jboss.arquillian.container</groupId>
-            <artifactId>arquillian-weld-embedded</artifactId>
-            <version>3.0.2.Final</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.jboss.weld</groupId>
-            <artifactId>weld-core-impl</artifactId>
-            <version>5.1.5.Final</version>
-            <scope>test</scope>
-        </dependency>
     </dependencies>
 
     <build>
@@ -179,14 +157,9 @@
                         <include>**/*Tests.java</include>
                         <include>**/*Test.java</include>
                     </includes>
-                    <!-- No implementation here: run what plain CDI on Weld can satisfy.
-                         A compatibility run excludes nothing. -->
-                    <excludedGroups>requires-implementation</excludedGroups>
-                    <!-- testClassesDirectory points at the TCK classes, so the test
-                         output (the Weld stand-in facade) must be added back. -->
-                    <additionalClasspathElements>
-                        <additionalClasspathElement>${project.build.testOutputDirectory}</additionalClasspathElement>
-                    </additionalClasspathElements>
+                    <!-- This repository has no implementation to deploy to, so only
+                         the container-less signature test runs here. -->
+                    <groups>standalone</groups>
                 </configuration>
                 <executions>
                     <execution>

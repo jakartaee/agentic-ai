@@ -6,7 +6,7 @@ This document describes the testing practices for Jakarta Agentic AI, including 
 
 - The TCK module verifies compatibility of implementations with the Jakarta Agentic AI specification.
 - All implementations must pass the TCK to be considered compliant.
-- A compatibility run is made by an implementation from its own runner project with its own Arquillian adapter, following the TCK Reference Guide in `tck-dist`. This repository runs the TCK on Weld Embedded, a test dependency of the `tck` module.
+- A compatibility run is made by an implementation from its own runner project with its own Arquillian adapter, following the TCK Reference Guide in `tck-dist`. This repository builds the TCK and runs only its signature test.
 
 ## Running Tests
 
@@ -28,13 +28,13 @@ Add tests as needed to cover new features and edge cases.
 
 As with other Jakarta EE TCKs, a compatibility run happens in the implementation's own repository, from its own runner project with its own Arquillian adapter. Every test in the TCK jar must run and pass; nothing may be skipped or excluded.
 
-This repository has no implementation, so its build runs the part of the TCK that plain CDI can satisfy on Weld Embedded. Assertions that only a compatible implementation can satisfy — the `@Decision`, `@Action`, `@Outcome` and `@OnException` phases — carry `@RequiresImplementation`, which is a JUnit tag; the `tck` module's Failsafe configuration excludes it, and nothing else does. The TCK deploys no `LargeLanguageModel` of its own — the implementation's facade is what the LLM assertions test, backed during a run by the echo model the TCK Reference Guide specifies under "Additional Certification Requirements". Since this repository has no implementation, `tck/src/test` carries `EchoLargeLanguageModel`, a stand-in facade that follows that specification and is added to every archive here by a test-scoped Arquillian extension; it never reaches the jar. That is the plain build:
+This repository has no implementation to deploy to, so, exactly like the Data and Concurrency TCKs, its build compiles the deployed tests into the jar without executing them; the only test it runs is the container-less signature test. The TCK deploys no `LargeLanguageModel` of its own — the implementation's facade is what the LLM assertions test, backed during a run by the echo model the TCK Reference Guide specifies under "Additional Certification Requirements". The plain build is:
 
 ```
 mvn --projects tck --also-make verify
 ```
 
-That run is the project's CI path. It is not a compatibility result.
+That run is the project's CI path. The deployed tests are validated by the implementation's run of the TCK.
 
 ## TCK Distribution
 

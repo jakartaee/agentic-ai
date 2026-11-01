@@ -14,7 +14,6 @@ package ee.jakarta.tck.ai.agent.core.integration;
 
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Assertion;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Deployed;
-import ee.jakarta.tck.ai.agent.framework.junit.anno.RequiresImplementation;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder.Phase;
 import jakarta.enterprise.event.Event;
@@ -49,9 +48,6 @@ public class AgentSmokeTest {
 
     @Inject
     ExecutionTraceRecorder trace;
-
-
-    @RequiresImplementation
     @Assertion(id = "AGENTICAI-SMOKE-002",
                section = "agent-lifecycle",
                strategy = "Full lifecycle: @Trigger -> @Action -> @Outcome, with the action's query to the "

@@ -17,7 +17,6 @@ import ee.jakarta.tck.ai.agent.core.behavior.agents.datapropagation.TieBreakAgen
 import ee.jakarta.tck.ai.agent.core.behavior.agents.datapropagation.TieBreakEvent;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Assertion;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Deployed;
-import ee.jakarta.tck.ai.agent.framework.junit.anno.RequiresImplementation;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder.Phase;
 import jakarta.enterprise.event.Event;
@@ -55,8 +54,6 @@ public class DataResolutionTieBreakTests {
 
     @Inject Event<TieBreakEvent> events;
     @Inject ExecutionTraceRecorder trace;
-
-    @RequiresImplementation
     @Assertion(id = "AGENTICAI-DATA-005",
                section = "parameter-resolution",
                strategy = "When two phases return the same type, the later phase is injected with the most recently returned instance")

@@ -16,7 +16,6 @@ import ee.jakarta.tck.ai.agent.core.behavior.agents.contextinjection.ContextInje
 import ee.jakarta.tck.ai.agent.core.behavior.agents.contextinjection.ContextInjectionEvent;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Assertion;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Deployed;
-import ee.jakarta.tck.ai.agent.framework.junit.anno.RequiresImplementation;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder.Phase;
 import jakarta.enterprise.event.Event;
@@ -57,8 +56,6 @@ public class ContextInjectionTests {
         ContextInjectionEvent recorded = (ContextInjectionEvent) trace.entries().get(0).args()[0];
         assertEquals("my-payload", recorded.payload());
     }
-
-    @RequiresImplementation
     @Assertion(id = "AGENTICAI-CTX-003",
                section = "parameter-resolution",
                strategy = "Triggering event is available for injection in @Action")
@@ -72,8 +69,6 @@ public class ContextInjectionTests {
                 .orElseThrow()
                 .args()[0]);
     }
-
-    @RequiresImplementation
     @Assertion(id = "AGENTICAI-CTX-004",
                section = "parameter-resolution",
                strategy = "LargeLanguageModel is injectable as a direct method parameter of @Action and is a "

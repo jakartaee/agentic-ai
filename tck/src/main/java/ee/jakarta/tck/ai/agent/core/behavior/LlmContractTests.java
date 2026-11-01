@@ -20,7 +20,6 @@ import ee.jakarta.tck.ai.agent.core.behavior.agents.llm.NonSerializableParam;
 import ee.jakarta.tck.ai.agent.core.behavior.agents.llm.PersonFixture;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Assertion;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Deployed;
-import ee.jakarta.tck.ai.agent.framework.junit.anno.RequiresImplementation;
 import ee.jakarta.tck.ai.agent.framework.llm.TckModel;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder.Phase;
@@ -245,8 +244,6 @@ public class LlmContractTests {
     }
 
     // -- conversational state --------------------------------------------------
-
-    @RequiresImplementation
     @Assertion(id = "AGENTICAI-LLM-BHV-007",
                section = "llm-conversational-state",
                strategy = "each workflow's conversation holds only its own turns: after two sequential workflows, "

@@ -19,7 +19,6 @@ import ee.jakarta.tck.ai.agent.core.behavior.agents.validation.ValidatedAgent;
 import ee.jakarta.tck.ai.agent.core.behavior.agents.validation.ValidationEvent;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Assertion;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Deployed;
-import ee.jakarta.tck.ai.agent.framework.junit.anno.RequiresImplementation;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder.Phase;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder.TraceEntry;
@@ -47,7 +46,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  *
  * <p>Validation is performed by a compatible implementation before parameter
  * injection and phase invocation, so the behavioral assertions are
- * {@link RequiresImplementation}.</p>
+ * a deployment-error test.</p>
  *
  * <p>Note on reset: in {@code @Deployed} classes {@code @BeforeEach} does not run
  * reliably between methods inside the container, so each test resets the trace
@@ -72,8 +71,6 @@ public class ValidationTests {
     @Inject ExecutionTraceRecorder          trace;
 
     // ── Valid input proceeds ──────────────────────────────────────────────────
-
-    @RequiresImplementation
     @Assertion(id = "AGENTICAI-VALIDATION-BHV-001",
                section = "jakarta-validation-constraints",
                strategy = "Valid input passes validation and the @Action body runs, producing the TRIGGER→ACTION sequence")
@@ -84,8 +81,6 @@ public class ValidationTests {
     }
 
     // ── Invalid input: body does not run ─────────────────────────────────────
-
-    @RequiresImplementation
     @Assertion(id = "AGENTICAI-VALIDATION-BHV-002",
                section = "jakarta-validation-constraints",
                strategy = "Invalid input fails validation before injection, so the @Action body never runs")
@@ -96,8 +91,6 @@ public class ValidationTests {
     }
 
     // ── Invalid input: routed to @OnException ────────────────────────────
-
-    @RequiresImplementation
     @Assertion(id = "AGENTICAI-VALIDATION-BHV-003",
                section = "jakarta-validation-constraints",
                strategy = "A ConstraintViolationException from failed validation is routed to a matching @OnException method")
@@ -114,8 +107,6 @@ public class ValidationTests {
     }
 
     // ── Invalid input with no handler: propagates to the container ───────────
-
-    @RequiresImplementation
     @Assertion(id = "AGENTICAI-VALIDATION-BHV-004",
                section = "jakarta-validation-constraints",
                strategy = "Without a matching @OnException, the ConstraintViolationException propagates to the container")

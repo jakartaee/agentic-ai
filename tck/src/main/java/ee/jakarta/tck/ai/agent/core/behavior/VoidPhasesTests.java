@@ -16,7 +16,6 @@ import ee.jakarta.tck.ai.agent.core.behavior.agents.voidphases.VoidPhasesAgent;
 import ee.jakarta.tck.ai.agent.core.behavior.agents.voidphases.VoidPhasesEvent;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Assertion;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Deployed;
-import ee.jakarta.tck.ai.agent.framework.junit.anno.RequiresImplementation;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder.Phase;
 import jakarta.enterprise.event.Event;
@@ -44,9 +43,6 @@ public class VoidPhasesTests {
 
     @Inject Event<VoidPhasesEvent> events;
     @Inject ExecutionTraceRecorder trace;
-
-
-    @RequiresImplementation
     @Assertion(id = "AGENTICAI-VOID-002",
                section = "agent-lifecycle",
                strategy = "void @Trigger does not pollute the injection context; @Decision receives only the original event")
@@ -59,8 +55,6 @@ public class VoidPhasesTests {
         assertEquals(1, decisionArgs.length);
         assertInstanceOf(VoidPhasesEvent.class, decisionArgs[0]);
     }
-
-    @RequiresImplementation
     @Assertion(id = "AGENTICAI-VOID-003",
                section = "agent-lifecycle",
                strategy = "void @Action does not break the injection context for @Outcome")

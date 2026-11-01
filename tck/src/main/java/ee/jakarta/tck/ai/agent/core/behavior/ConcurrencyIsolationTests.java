@@ -18,7 +18,6 @@ import ee.jakarta.tck.ai.agent.core.behavior.agents.concurrency.ConcurrencyEvent
 import ee.jakarta.tck.ai.agent.core.behavior.agents.concurrency.ConcurrentIsolationAgent;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Assertion;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Deployed;
-import ee.jakarta.tck.ai.agent.framework.junit.anno.RequiresImplementation;
 import jakarta.enterprise.event.Event;
 import jakarta.inject.Inject;
 import org.jboss.arquillian.container.test.api.Deployment;
@@ -68,8 +67,6 @@ public class ConcurrencyIsolationTests {
 
     @Inject Event<ConcurrencyEvent> events;
     @Inject ConcurrencyCoordinator coordinator;
-
-    @RequiresImplementation
     @Assertion(id = "AGENTICAI-CONCURRENCY-001",
                section = "cdi-integration",
                strategy = "Concurrent @WorkflowScoped executions each observe only their own workflow state")
@@ -80,8 +77,6 @@ public class ConcurrencyIsolationTests {
         assertEquals(WORKFLOWS, coordinator.observationCount());
         assertEquals(List.of(), coordinator.mismatches());
     }
-
-    @RequiresImplementation
     @Assertion(id = "AGENTICAI-CONCURRENCY-002",
                section = "llm-conversational-state",
                strategy = "Concurrent workflows drive the shared facade without corrupting each other's turns: "

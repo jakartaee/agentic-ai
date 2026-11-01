@@ -17,7 +17,6 @@ import ee.jakarta.tck.ai.agent.core.behavior.agents.datapropagation.ResultDetail
 import ee.jakarta.tck.ai.agent.core.behavior.agents.datapropagation.ResultDetailsEvent;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Assertion;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Deployed;
-import ee.jakarta.tck.ai.agent.framework.junit.anno.RequiresImplementation;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder.Phase;
 import jakarta.enterprise.event.Event;
@@ -55,8 +54,6 @@ public class ResultDetailsInjectionTests {
 
     @Inject Event<ResultDetailsEvent> events;
     @Inject ExecutionTraceRecorder trace;
-
-    @RequiresImplementation
     @Assertion(id = "AGENTICAI-DATA-006",
                section = "parameter-resolution",
                strategy = "A non-null Result.details is injectable by its runtime type into a later phase")

@@ -28,7 +28,7 @@ import org.jboss.shrinkwrap.api.spec.WebArchive;
  * the implementation's own.
  *
  * <p>Unlike an {@code AuxiliaryArchiveAppender}, this processor adds classes
- * to the archive itself, which is required for Weld Embedded to discover them
+ * to the archive itself, so the container discovers them
  * as CDI beans during bean validation.</p>
  */
 public class AgenticAIFrameworkProcessor implements ApplicationArchiveProcessor {

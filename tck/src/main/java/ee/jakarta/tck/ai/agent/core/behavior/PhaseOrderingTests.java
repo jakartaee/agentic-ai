@@ -17,7 +17,6 @@ import ee.jakarta.tck.ai.agent.core.behavior.agents.phaseordering.PhaseOrderingE
 import ee.jakarta.tck.ai.agent.core.behavior.agents.phaseordering.TriggerOutput;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Assertion;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Deployed;
-import ee.jakarta.tck.ai.agent.framework.junit.anno.RequiresImplementation;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder.Phase;
 import jakarta.enterprise.event.Event;
@@ -45,9 +44,6 @@ public class PhaseOrderingTests {
 
     @Inject Event<PhaseOrderingEvent> events;
     @Inject ExecutionTraceRecorder trace;
-
-
-    @RequiresImplementation
     @Assertion(id = "AGENTICAI-ORDER-002",
                section = "agent-lifecycle",
                strategy = "Full T→D→A→O pipeline executes in strict declaration order")
@@ -57,8 +53,6 @@ public class PhaseOrderingTests {
 
         assertEquals(List.of(Phase.TRIGGER, Phase.DECISION, Phase.ACTION, Phase.OUTCOME), trace.phases());
     }
-
-    @RequiresImplementation
     @Assertion(id = "AGENTICAI-ORDER-003",
                section = "agent-lifecycle",
                strategy = "Trigger return value (non-void) is available for injection in Decision")
