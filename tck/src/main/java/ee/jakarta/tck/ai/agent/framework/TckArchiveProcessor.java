@@ -18,14 +18,8 @@ import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 
 /**
- * Arquillian archive processor that injects TCK framework classes directly
- * into every {@link WebArchive} before it is deployed to the container. No
- * {@code LargeLanguageModel} is among them: the facade the agents receive is
- * the implementation's own.
- *
- * <p>Unlike an {@code AuxiliaryArchiveAppender}, this processor adds classes
- * to the archive itself, so the container discovers them
- * as CDI beans during bean validation.</p>
+ * Arquillian archive processor that adds the TCK's trace recorder to every
+ * {@link WebArchive} before it is deployed to the container.
  */
 public class TckArchiveProcessor implements ApplicationArchiveProcessor {
 
@@ -34,6 +28,6 @@ public class TckArchiveProcessor implements ApplicationArchiveProcessor {
         if (!(applicationArchive instanceof WebArchive webArchive)) {
             return;
         }
-        webArchive.addClasses(TckModel.class, ExecutionTraceRecorder.class);
+        webArchive.addClass(ExecutionTraceRecorder.class);
     }
 }

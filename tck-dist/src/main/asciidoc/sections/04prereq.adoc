@@ -18,7 +18,7 @@ The TCK is built on three frameworks. Knowing how they interact helps when setti
 === What the TCK supplies inside each deployment
 
 The TCK jar registers an Arquillian `ApplicationArchiveProcessor` through `META-INF/services`.
-It adds to every test archive the TCK framework classes and one CDI bean the tests inject, `ee.jakarta.tck.ai.agent.framework.ExecutionTraceRecorder`, which records the order in which workflow phases run and the values they receive.
+It adds to every test archive one CDI bean the tests inject, `ee.jakarta.tck.ai.agent.framework.ExecutionTraceRecorder`, which records the order in which workflow phases run and the values they receive.
 
 The TCK deploys no `LargeLanguageModel`.
 The bean the agents under test receive is the implementation's own facade, and the TCK verifies it: placeholder substitution, JSON Binding conversion, exception mapping and conversational state are all asserted against the implementation.
