@@ -128,7 +128,7 @@ body{margin:0;font-family:var(--sans);color:var(--body);background:var(--light);
 <p><strong>Jakarta Agentic AI</strong> is a Jakarta EE specification (package
 <code>jakarta.ai.agent</code>) for building <strong>AI agents</strong> on Jakarta EE
 runtimes. An agent is a <strong>CDI bean</strong> that encapsulates autonomous,
-goal-driven behavior: it <strong>perceives</strong> an event, <strong>reasons</strong>
+goal-driven behavior. It <strong>perceives</strong> an event, <strong>reasons</strong>
 (typically by querying an LLM), <strong>decides</strong> whether and how to proceed, and
 <strong>acts</strong> — all inside a workflow with well-defined phases.</p>
 
@@ -172,7 +172,7 @@ familiar to Jakarta EE developers, even those new to AI.</li>
 <li><strong>Out-of-the-box integrations</strong> — agents still need common capabilities like
 dependency injection, scopes, events, validation, JSON processing, transactions, and persistence.
 Rather than reinventing that, the specification simply integrates with existing Jakarta
-technologies. The component model itself <strong>builds on CDI</strong>: the trigger is a CDI
+technologies. The component model itself <strong>builds on CDI</strong>. The trigger is a CDI
 event, the agent is a bean, and the workflow scope is a custom CDI scope. Everything else
 in the platform — <code>@Inject</code>, <code>@Valid</code>, <code>@Transactional</code>,
 <code>EntityManager</code> — just works. Furthermore, other common integrations such as with LLMs
@@ -266,7 +266,7 @@ payara.agentic.llm.model=gemma3:4b         payara.agentic.llm.model=claude-sonne
 </code></pre>
 <p>No code changes, no <code>pom.xml</code> changes (the provider's client infrastructure
 lives in the <strong>runtime</strong>, not in the WAR), no recompilation — at most a
-redeploy. It is the same leap Jakarta Persistence made over hand-rolled JDBC: the provider
+redeploy. It is the same leap Jakarta Persistence made over hand-rolled JDBC. The provider
 became a configuration detail. The examples run this live — two identically written
 agents, one on local Ollama and one on Claude, differing only in
 <code>microprofile-config.properties</code>.</p>
@@ -429,7 +429,7 @@ properties, or from environment variables. All keys have the
 </tbody></table>
 <p>Two behaviors worth knowing:</p>
 <ul>
-<li><strong>Unknown or absent provider → no-op</strong>, never a failed deployment: injecting
+<li><strong>Unknown or absent provider → no-op</strong>, never a failed deployment. Injecting
 <code>LargeLanguageModel</code> always resolves, even with nothing configured.</li>
 <li><strong>Anthropic without an API key → <code>IllegalStateException</code></strong> at startup, with a
 message naming exactly which key/env var to set — fail fast with a diagnosis.</li>
