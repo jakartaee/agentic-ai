@@ -39,10 +39,84 @@ pipeline {
         booleanParam(
                 name: 'DRY_RUN',
                 defaultValue: false,
-                description: 'Rehearse the promotion without publishing anything to Maven Central.'
+                description: 'Rehearse the release without publishing anything to download.eclipse.org or Maven Central.'
         )
     }
     stages {
+        // Runs before the Maven Central promotion so that a failure here leaves
+        // nothing half-released, and a re-run after a failed promotion simply
+        // overwrites the same files.
+        stage('Publish TCK to download.eclipse.org') {
+            when {
+                beforeAgent true
+                triggeredBy cause: "UserIdCause"
+            }
+            environment {
+                RELEASE_VERSION = "${params.RELEASE_VERSION}"
+                DRY_RUN = "${params.DRY_RUN}"
+            }
+            steps {
+                withCredentials([string(credentialsId: 'github-bot-token', variable: 'GH_TOKEN')]) {
+                    sshagent(['projects-storage.eclipse.org-bot-ssh']) {
+                        sh '''
+                            set -eu
+                            : "${RELEASE_VERSION:?Missing value for parameter RELEASE_VERSION.}"
+
+                            API="https://api.github.com/repos/jakartaee/agentic-ai"
+                            BODY="$(mktemp)"
+
+                            gh_api() {
+                                curl -sS -o "$BODY" -w '%{http_code}' \\
+                                    -H "Authorization: Bearer $GH_TOKEN" \\
+                                    -H "Accept: application/vnd.github+json" \\
+                                    -H "X-GitHub-Api-Version: 2022-11-28" \\
+                                    "$1"
+                            }
+
+                            fail() {
+                                echo "ERROR: $1 (HTTP $2). Response body:"
+                                cat "$BODY"
+                                echo
+                                exit 1
+                            }
+
+                            # The TCK Process requires final EFTL releases on download.eclipse.org;
+                            # milestones stay on the GitHub release only.
+                            STATUS="$(gh_api "$API/releases/tags/${RELEASE_VERSION}")"
+                            [ "$STATUS" = "200" ] || fail "no GitHub release exists for tag ${RELEASE_VERSION}" "$STATUS"
+                            cp "$BODY" release.json
+                            if [ "$(python3 -c 'import json; print(str(json.load(open("release.json"))["prerelease"]).lower())')" = "true" ]; then
+                                echo "Release ${RELEASE_VERSION} is a pre-release; the TCK is published to download.eclipse.org for final releases only."
+                                exit 0
+                            fi
+
+                            # Take the zip the staging job attached to the release, the bytes
+                            # implementations certified against, rather than rebuilding it.
+                            TCK_ZIP="agentic-ai-tck-${RELEASE_VERSION}-dist.zip"
+                            rm -rf tck-download && mkdir tck-download
+                            for name in "$TCK_ZIP" "$TCK_ZIP.sha256"; do
+                                url="$(python3 -c '
+import json, sys
+assets = {a["name"]: a["browser_download_url"] for a in json.load(open("release.json"))["assets"]}
+print(assets.get(sys.argv[1], ""))' "$name")"
+                                [ -n "$url" ] || { echo "ERROR: release ${RELEASE_VERSION} has no asset ${name}."; exit 1; }
+                                curl -sSfL -o "tck-download/$name" "$url"
+                            done
+                            (cd tck-download && sha256sum -c "$TCK_ZIP.sha256")
+
+                            TARGET="/home/data/httpd/download.eclipse.org/ee4j/agentic-ai/${RELEASE_VERSION}"
+                            if [ "$DRY_RUN" = "true" ]; then
+                                echo "DRY_RUN: would publish ${TCK_ZIP} and ${TCK_ZIP}.sha256 to genie.agentic-ai@projects-storage.eclipse.org:${TARGET}/"
+                                exit 0
+                            fi
+                            ssh -o BatchMode=yes genie.agentic-ai@projects-storage.eclipse.org "mkdir -p '${TARGET}'"
+                            scp -o BatchMode=yes "tck-download/${TCK_ZIP}" "tck-download/${TCK_ZIP}.sha256" "genie.agentic-ai@projects-storage.eclipse.org:${TARGET}/"
+                            echo "Published https://download.eclipse.org/ee4j/agentic-ai/${RELEASE_VERSION}/${TCK_ZIP}"
+                        '''
+                    }
+                }
+            }
+        }
         stage('Promote Staged API to Maven Central') {
             when {
                 beforeAgent true
