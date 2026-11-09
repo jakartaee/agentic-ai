@@ -113,7 +113,7 @@ public class OnExceptionTests {
      * A handler that returns normally lets the {@code @Outcome} run, giving the full recovery
      * sequence of trigger, action, handler, outcome.
      *
-     * <p>Specification section {@code error-handling}.
+     * <p>Specification section {@code onexception}.
      */
     @Test
     public void handlerNormalReturnAllowsOutcome() {
@@ -126,7 +126,7 @@ public class OnExceptionTests {
      * An exception rethrown from a handler ends the workflow before the {@code @Outcome} and
      * propagates to the container.
      *
-     * <p>Specification section {@code error-handling}.
+     * <p>Specification section {@code onexception}.
      */
     @Test
     public void rethrowFromHandlerTerminatesWorkflow() {
@@ -141,7 +141,7 @@ public class OnExceptionTests {
      * The most specific handler is selected when several {@code @OnException} methods exist in
      * the same agent.
      *
-     * <p>Specification section {@code error-handling}.
+     * <p>Specification section {@code onexception}.
      */
     @Test
     public void specificHandlerSelectedOverGeneric() {
@@ -154,7 +154,7 @@ public class OnExceptionTests {
      * An exception thrown inside a handler propagates to the container without re-entering the
      * handler.
      *
-     * <p>Specification section {@code error-handling}.
+     * <p>Specification section {@code onexception}.
      */
     @Test
     public void handlerExceptionPropagatesWithoutRecursion() {
@@ -235,7 +235,7 @@ public class OnExceptionTests {
     /**
      * The handler receives the very exception instance that was thrown.
      *
-     * <p>Specification section {@code error-handling}.
+     * <p>Specification section {@code onexception}.
      */
     @Test
     public void handlerReceivesExactExceptionInstance() {
@@ -250,7 +250,7 @@ public class OnExceptionTests {
      * After the required exception parameter, a handler receives workflow state. The triggering
      * event is resolved as its second parameter.
      *
-     * <p>Specification section {@code error-handling}.
+     * <p>Specification section {@code onexception}.
      */
     @Test
     public void handlerReceivesWorkflowStateAfterException() {

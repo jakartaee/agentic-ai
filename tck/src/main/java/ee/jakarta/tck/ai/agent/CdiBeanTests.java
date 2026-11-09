@@ -87,7 +87,7 @@ public class CdiBeanTests {
      * A static nested class annotated {@code @Agent} is discovered as a CDI managed bean, and its
      * {@code @Trigger} fires when the triggering event is fired.
      *
-     * <p>Specification section {@code cdi-integration}.
+     * <p>Specification section {@code agents-as-cdi-beans}.
      */
     @Test
     public void staticNestedAgentIsDiscoveredAsCdiBean() {
@@ -101,7 +101,7 @@ public class CdiBeanTests {
      * valid CDI managed bean. Its {@code @Trigger} fires, so the container created it through
      * its constructor.
      *
-     * <p>Specification section {@code cdi-integration}.
+     * <p>Specification section {@code agents-as-cdi-beans}.
      */
     @Test
     public void constructorInjectedAgentIsDiscoveredAndManaged() {
@@ -114,7 +114,7 @@ public class CdiBeanTests {
      * A CDI interceptor bound through a custom {@code @InterceptorBinding} runs before and after
      * every phase it is bound to, here the {@code @Action} and the {@code @Outcome}.
      *
-     * <p>Specification section {@code cdi-integration}.
+     * <p>Specification section {@code interceptors}.
      */
     @Test
     public void cdiInterceptorExecutesAroundActionAndOutcome() {

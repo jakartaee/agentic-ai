@@ -6,6 +6,7 @@ Contexts and Dependency Injection (CDI), including agent scoping, the
 `@WorkflowScoped` custom scope, event observation rules, interceptors, and
 lifecycle callbacks.
 
+[[agents-as-cdi-beans]]
 === Agents as CDI Beans
 
 Every agent is a CDI managed bean. This provides:
@@ -17,6 +18,7 @@ Every agent is a CDI managed bean. This provides:
 - **Lifecycle callbacks** (`@PostConstruct`, `@PreDestroy`)
 - **Flexible scoping**
 
+[[bean-requirements]]
 ==== Bean Requirements
 
 An agent class:
@@ -24,6 +26,7 @@ An agent class:
 - Must be annotated with `@Agent`
 - Must satisfy CDI managed bean requirements
 
+[[agent-scopes]]
 === Agent Scopes
 
 An agent uses one of two scopes:
@@ -33,6 +36,7 @@ An agent uses one of two scopes:
 
 If no scope is declared, `@WorkflowScoped` applies.
 
+[[workflowscoped]]
 ==== @WorkflowScoped
 
 `@WorkflowScoped` is a custom CDI scope that ties the agent's lifecycle to
@@ -46,6 +50,7 @@ When an agent is `@WorkflowScoped`:
 - The instance is destroyed after the workflow completes or fails.
 - Each concurrent workflow has its own instance.
 
+[[applicationscoped]]
 ==== @ApplicationScoped
 
 When an agent is `@ApplicationScoped`, a single instance is shared across
@@ -55,6 +60,7 @@ invocations, `@ApplicationScoped` agents must be thread-safe; the agent
 itself must either be stateless or guard any shared state with
 appropriate concurrency controls.
 
+[[threading-and-concurrency]]
 ==== Threading and Concurrency
 
 - **Sequential phases** — within a single workflow context, annotated
@@ -87,6 +93,7 @@ agent scope:
 A trigger method may optionally use `@Observes` on the event parameter to
 explicitly declare the observed type.
 
+[[producing-events]]
 ==== Producing Events
 
 [source,java]
@@ -104,6 +111,7 @@ public class EventProducer {
 }
 ----
 
+[[observing-events]]
 ==== Observing Events
 
 [source,java]
@@ -119,6 +127,7 @@ public class EventObserver {
 }
 ----
 
+[[interceptors]]
 === Interceptors
 
 Standard CDI interceptors apply to agent methods. Jakarta Transactions is a
@@ -140,6 +149,7 @@ public class TransactionalAgent {
 }
 ----
 
+[[lifecycle-callbacks]]
 === Lifecycle Callbacks
 
 Agents support standard CDI lifecycle callbacks:

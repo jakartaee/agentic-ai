@@ -46,7 +46,7 @@ public class DeploymentErrorMixedPriorityTests {
      * Mixing a {@code @Priority}-ordered method with an unordered one is a deployment error, the
      * same rule as for order.
      *
-     * <p>Specification section {@code agent-lifecycle}.
+     * <p>Specification section {@code consistency-requirement}.
      */
     @Test
     public void mixedPriorityIsRejected() {

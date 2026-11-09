@@ -99,7 +99,7 @@ public class ParameterResolutionTests {
     /**
      * The {@code @Trigger} receives the triggering event, payload intact.
      *
-     * <p>Specification section {@code agent-lifecycle}.
+     * <p>Specification section {@code trigger-parameters}.
      */
     @Test
     public void eventPayloadIsPreservedInTrigger() {
@@ -112,7 +112,7 @@ public class ParameterResolutionTests {
      * A {@code @Trigger} whose event parameter carries no {@code @Observes} is still invoked by
      * the triggering event and runs the full workflow.
      *
-     * <p>Specification section {@code agent-lifecycle}.
+     * <p>Specification section {@code trigger-parameters}.
      */
     @Test
     public void triggerWithoutObservesRunsWorkflow() {
@@ -158,7 +158,7 @@ public class ParameterResolutionTests {
      * {@code LargeLanguageModel}, then CDI beans. {@code ResolutionOrderAgent}'s action receives
      * them as its first, second and third parameter.
      *
-     * <p>Specification section {@code parameter-resolution}.
+     * <p>Specification section {@code resolution-order}.
      */
     @Test
     public void parameterResolutionFollowsDefinedOrder() {
@@ -233,7 +233,7 @@ public class ParameterResolutionTests {
      * When more than one earlier phase returned a value of the same type, a later phase receives
      * the most recently returned one.
      *
-     * <p>Specification section {@code parameter-resolution}.
+     * <p>Specification section {@code resolution-order}.
      */
     @Test
     public void mostRecentlyReturnedObjectWins() {

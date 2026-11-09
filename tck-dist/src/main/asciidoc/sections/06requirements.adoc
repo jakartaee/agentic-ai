@@ -10,7 +10,7 @@ A compatibility run must execute every test class in the TCK jar and report:
 * every behavioral test passed;
 * zero failures, zero errors and zero skipped tests.
 
-No test may be skipped, disabled or excluded, and the TCK has no switch that turns any assertion off.
+No test may be skipped, disabled or excluded, and the TCK has no switch that turns any test off.
 
 === Results summary
 

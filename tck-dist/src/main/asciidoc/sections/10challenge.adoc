@@ -15,7 +15,7 @@ From the *Jakarta EE TCK Process*:
 === Filing a Challenge
 
 Challenges are tracked as issues labeled `challenge` in the {ExistingChallenges}[specification repository].
-File one with the {RequestChallenge}[TCK Challenge issue template], naming the class and method of the test you are challenging, after reading the challenge section of the TCK Process to understand who may file, what may be challenged and how a challenge is resolved.
+File one with the {RequestChallenge}[TCK Challenge issue template], naming the test by class and method and quoting the assertion of the specification at issue, after reading the challenge section of the TCK Process to understand who may file, what may be challenged and how a challenge is resolved.
 
 === Successful Challenges
 

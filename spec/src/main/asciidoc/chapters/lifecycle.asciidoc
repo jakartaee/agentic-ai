@@ -7,6 +7,7 @@ annotation marks a method as participating in a specific phase of the
 agent workflow. The chapter also defines parameter resolution, validation,
 error handling, return type handling, and workflow termination.
 
+[[workflow-phases]]
 === Workflow Phases and Annotations
 
 Annotations define agent behavior. They are structured per agent class,
@@ -19,11 +20,13 @@ generally in order:
 - `@Outcome` — optional, zero or one (may be relaxed in the future)
 - `@OnException` — optional, zero or more
 
+[[agent]]
 === @Agent
 
 The `@Agent` annotation marks a class as an AI agent. Agent classes are
 CDI beans and follow CDI bean definition rules.
 
+[[agent-semantics]]
 ==== Semantics
 
 - **Required**: every agent class must be annotated with `@Agent`.
@@ -51,6 +54,7 @@ public class WorkflowAgent { /* per-workflow lifecycle */ }
 public class DefaultScopedAgent { /* @WorkflowScoped is implied */ }
 ----
 
+[[workflow-context]]
 ==== Workflow Context
 
 Regardless of the scope, the runtime maintains a fresh workflow context for
@@ -65,15 +69,18 @@ it is bound to the workflow context and remains isolated per workflow
 even when the agent is `@ApplicationScoped`. See
 xref:llm-conversational-state[Conversational State and Threading].
 
+[[trigger]]
 === @Trigger
 
 The `@Trigger` annotation marks the entry point of an agent workflow.
 
+[[trigger-cardinality]]
 ==== Cardinality
 
 Currently there must be exactly one `@Trigger` method per agent class. This
 constraint will be relaxed in future releases.
 
+[[trigger-invocation]]
 ==== Invocation
 
 In the initial release, triggers are invoked by CDI events. A trigger
@@ -90,12 +97,14 @@ requests.
 NOTE: CDI observer behavior depends on agent scope. See the
 xref:cdi-events[Event Observation Rules] in the CDI Integration chapter.
 
+[[trigger-parameters]]
 ==== Parameters
 
 Trigger methods follow the standard 
 xref:parameter-resolution[parameter resolution] rules. The required triggering
 event is the most common parameter.
 
+[[trigger-return-type]]
 ==== Return Type
 
 Trigger methods support two return patterns:
@@ -138,6 +147,7 @@ All workflow methods (annotated with `@Trigger`, `@Decision`, `@Action`,
 resolution based on type and the current workflow state. Each annotation uses 
 this single set of rules.
 
+[[resolution-order]]
 ==== Resolution Order
 
 When a workflow method is invoked, the runtime resolves each parameter in
@@ -167,20 +177,24 @@ is not required. Common scenarios include parameter constraint failures,
 custom constraint violations, and validation of complex domain objects passed
 between phases.
 
+[[decision]]
 === @Decision
 
 The `@Decision` annotation marks a method that decides whether and how the
 workflow should proceed.
 
+[[decision-cardinality]]
 ==== Cardinality
 
 An agent may define zero or more `@Decision` methods.
 
+[[decision-parameters]]
 ==== Parameters
 
 Decision methods follow the standard
 xref:parameter-resolution[parameter resolution] rules.
 
+[[decision-return-type]]
 ==== Return Type
 
 Decisions support three return patterns:
@@ -239,21 +253,25 @@ public class DecisionExamples {
 }
 ----
 
+[[action]]
 === @Action
 
 The `@Action` annotation marks a method that performs work as part of the
 workflow.
 
+[[action-cardinality]]
 ==== Cardinality
 
 An agent may define zero or more `@Action` methods. All actions complete
 before the outcome phase runs.
 
+[[action-parameters]]
 ==== Parameters
 
 Action methods follow the standard
 xref:parameter-resolution[parameter resolution] rules.
 
+[[action-return-type]]
 ==== Return Type
 
 Actions support two return patterns:
@@ -311,6 +329,7 @@ public class TransactionalAgent {
 }
 ----
 
+[[execution-order]]
 === Execution Order
 
 The execution order of `@Action` and `@Decision` methods can be intermixed
@@ -329,6 +348,7 @@ in source declaration order. However, all major implementations do so in
 practice. Portable applications requiring strict ordering must use
  `@Priority` or `order`.
 
+[[consistency-requirement]]
 ==== Consistency Requirement
 
 If any `@Action` or `@Decision` method in an agent declares an explicit
@@ -336,50 +356,59 @@ If any `@Action` or `@Decision` method in an agent declares an explicit
 agent must do the same. Mixing explicitly ordered and unordered methods
 is a deployment error.
 
+[[outcome]]
 === @Outcome
 
 The `@Outcome` annotation marks a method that finalizes the workflow. It
 produces the final workflow result, runs completion logic, and marks the
 end of successful workflow execution.
 
+[[outcome-cardinality]]
 ==== Cardinality
 
 Currently, an agent may declare zero or one `@Outcome` method. This
 constraint may be relaxed in a future release.
 
+[[outcome-parameters]]
 ==== Parameters
 
 Outcome methods follow the standard
 xref:parameter-resolution[parameter resolution] rules. Any object produced by
 an earlier phase is eligible for injection.
 
+[[outcome-return-type]]
 ==== Return Type
 
 Outcome methods must return `void`. The outcome phase is intended for
 finalization and side effects, not for producing further data. Future
 releases may relax this for downstream system integration.
 
+[[onexception]]
 === @OnException
 
 The `@OnException` annotation marks a method that handles exceptions
 occurring during workflow execution. For handler matching and dispatch
 semantics, see xref:error-handling[Error Handling].
 
+[[onexception-cardinality]]
 ==== Cardinality
 
 An agent may define zero or more `@OnException` methods.
 
+[[onexception-parameters]]
 ==== Parameters
 
 Exception handler methods follow the standard
 xref:parameter-resolution[parameter resolution] rules. The thrown exception
 (or any supertype) is the required first parameter.
 
+[[onexception-return-type]]
 ==== Return Type
 
 Exception handler methods must return `void`. They are intended for error
 recovery, logging, and cleanup.
 
+[[onexception-examples]]
 ==== Examples
 
 [source,java]
@@ -460,6 +489,7 @@ public class ResilientAgent {
 }
 ----
 
+[[workflow-termination]]
 === Workflow Termination
 
 A workflow terminates when any of the following occurs:
@@ -474,6 +504,7 @@ A workflow terminates when any of the following occurs:
 Any runtime-managed state associated with the current workflow is discarded
 once the workflow terminates.
 
+[[one-phase-per-method]]
 ==== One Phase per Method
 
 Each lifecycle annotation marks a method as participating in a single
@@ -481,6 +512,7 @@ workflow phase. A method must not declare more than one of `@Trigger`,
 `@Decision`, `@Action`, `@Outcome`, or `@OnException`; combining two or
 more of them on the same method is a deployment error.
 
+[[inherited-methods]]
 ==== Inherited Methods
 
 Phase methods declared on a superclass are inherited by an agent subclass
@@ -489,11 +521,13 @@ that overrides an inherited phase method participates only when the overriding
 method is itself annotated; following Java semantics, phase annotations are
 not implicitly carried onto an unannotated override.
 
+[[workflow-patterns]]
 === Workflow Patterns
 
 Agents are not constrained to a rigid template — only `@Trigger` is
 required. The following patterns illustrate some common shapes.
 
+[[pattern-trigger-action]]
 ==== Trigger + Action
 
 [source,java]
@@ -511,6 +545,7 @@ public class SimpleNotificationAgent {
 }
 ----
 
+[[pattern-sequential-phases]]
 ==== Sequential Phases
 
 [source,java]
@@ -527,6 +562,7 @@ public class DataProcessingAgent {
 }
 ----
 
+[[pattern-intermixed]]
 ==== Intermixed Decisions and Actions
 
 [source,java]

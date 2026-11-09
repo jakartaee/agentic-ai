@@ -50,7 +50,7 @@ public class DeploymentErrorTwoPhaseTests {
     /**
      * Combining two phase annotations on one method is a deployment error rejected at deploy time.
      *
-     * <p>Specification section {@code agent-lifecycle}.
+     * <p>Specification section {@code one-phase-per-method}.
      */
     @Test
     public void twoPhaseMethodIsRejected() {

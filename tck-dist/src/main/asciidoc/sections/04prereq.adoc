@@ -22,4 +22,4 @@ It adds to every test archive the TCK framework classes and one CDI bean the tes
 
 The TCK deploys no `LargeLanguageModel`.
 The bean the agents under test receive is the implementation's own facade, and the TCK verifies it: placeholder substitution, JSON Binding conversion, exception mapping and conversational state are all asserted against the implementation.
-For those assertions to be deterministic, the model behind the facade must behave as <<Additional Certification Requirements>> specifies during the TCK run.
+For those tests to be deterministic, the model behind the facade must behave as <<Additional Certification Requirements>> specifies during the TCK run.

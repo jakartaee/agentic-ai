@@ -42,7 +42,7 @@ public class DeploymentErrorNoTriggerTests {
     /**
      * An agent declaring no {@code @Trigger} method is a deployment error.
      *
-     * <p>Specification section {@code agent-lifecycle}.
+     * <p>Specification section {@code trigger-cardinality}.
      */
     @Test
     public void missingTriggerIsRejected() {

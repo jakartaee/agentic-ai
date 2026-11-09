@@ -64,7 +64,7 @@ public class InheritedMethodsTests {
     /**
      * A phase method declared on a superclass is inherited and participates in the workflow.
      *
-     * <p>Specification section {@code agent-lifecycle}.
+     * <p>Specification section {@code inherited-methods}.
      */
     @Test
     public void inheritedActionParticipates() {
@@ -75,7 +75,7 @@ public class InheritedMethodsTests {
     /**
      * An override that drops the phase annotation does not participate in the workflow.
      *
-     * <p>Specification section {@code agent-lifecycle}.
+     * <p>Specification section {@code inherited-methods}.
      */
     @Test
     public void unannotatedOverrideDoesNotParticipate() {

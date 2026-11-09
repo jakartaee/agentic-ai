@@ -18,7 +18,9 @@ import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
- * Records the sequence of workflow phase invocations for ordering assertions.
+ * Records each workflow phase invocation, with the method called and the
+ * arguments it received, so a test can check the order in which phases ran
+ * and the values resolved into them.
  */
 @ApplicationScoped
 public class ExecutionTraceRecorder {

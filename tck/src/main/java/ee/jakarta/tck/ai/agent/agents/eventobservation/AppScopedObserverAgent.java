@@ -39,7 +39,7 @@ public class AppScopedObserverAgent {
     /**
      * General CDI observer method (no {@code @Trigger}). Recorded under
      * {@link Phase#TRIGGER} because it is an event-observation entry point;
-     * assertions distinguish it from the trigger by method name.
+     * tests distinguish it from the trigger by method name.
      *
      * @param event the observed event
      */

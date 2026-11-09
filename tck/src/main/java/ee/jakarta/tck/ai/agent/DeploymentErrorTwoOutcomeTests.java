@@ -43,7 +43,7 @@ public class DeploymentErrorTwoOutcomeTests {
     /**
      * An agent declaring more than one {@code @Outcome} method is a deployment error.
      *
-     * <p>Specification section {@code agent-lifecycle}.
+     * <p>Specification section {@code outcome-cardinality}.
      */
     @Test
     public void multipleOutcomesAreRejected() {

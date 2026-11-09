@@ -6,6 +6,7 @@ agent is, how a workflow is composed, and how the pieces fit together. The
 xref:agent-lifecycle[Annotations and Lifecycle] chapter then defines each
 annotation normatively.
 
+[[agents-and-workflows]]
 === Agents and Workflows
 
 An agent is a CDI bean annotated with `@Agent` that orchestrates a flexible
@@ -25,6 +26,7 @@ implement simple linear workflows or complex conditional branching.
 In addition, an agent may declare `@OnException` methods to recover from
 errors that occur during workflow execution.
 
+[[workflow-execution]]
 ==== Workflow Execution
 
 The runtime orchestrates annotated methods using a
@@ -40,6 +42,7 @@ sequential execution model:
 The phase rules and per-annotation cardinality are defined normatively in
 the xref:agent-lifecycle[Annotations and Lifecycle] chapter.
 
+[[future-direction]]
 ==== Future Direction
 
 A programmatic workflow API is planned for a subsequent release. It will
@@ -50,6 +53,7 @@ based on agent state or LLM interactions. An initial workflow could be
 defined or loaded from storage in a `@PostConstruct` method and persisted in
 a `@PreDestroy` method.
 
+[[agent-at-a-glance]]
 === An Agent at a Glance
 
 The following agent illustrates the basic model: a CDI bean with a trigger, a
@@ -84,6 +88,7 @@ public class MonitoringAgent {
 }
 ----
 
+[[jakarta-ee-integration]]
 === Jakarta EE Integration
 
 Agents are first-class Jakarta EE citizens. They inject other beans, are

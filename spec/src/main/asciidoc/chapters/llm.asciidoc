@@ -4,6 +4,7 @@
 This chapter defines the `LargeLanguageModel` facade, the `LLMException`
 runtime exception, and provides usage guidance grounded in the contract.
 
+[[why-a-facade]]
 === Why a Facade
 
 Jakarta Agentic AI uses a facade pattern for LLM access. The
@@ -24,6 +25,7 @@ Jakarta Persistence.
 applications from those changes. The facade could be evolved into a 
 separate specification in the future.
 
+[[llm-interface]]
 === LargeLanguageModel Interface
 
 The `jakarta.ai.agent.LargeLanguageModel` interface defines a focused set of
@@ -67,6 +69,7 @@ xref:cdi-integration[CDI Integration].
 - **Thread safety** — implementations must be thread-safe within a single
   workflow context.
 
+[[exceptions]]
 === Exceptions
 
 All `query(...)` methods may throw:
@@ -96,8 +99,10 @@ by methods annotated with the `@OnException` annotation in agent workflows. Comm
 - Response deserialization failures when a typed result is requested and
   the LLM response cannot be converted to the expected Java type
 
+[[usage-guidance]]
 === Usage Guidance
 
+[[prompt-construction]]
 ==== Prompt Construction
 
 When using the varargs versions of the `query(...)` overloaded methods, use the exact token `{}` for
@@ -136,6 +141,7 @@ public String classifyEvent(MyEvent event) {
 }
 ----
 
+[[typed-responses]]
 ==== Typed Responses
 
 Prefer typed responses over manual string parsing. Implementations
@@ -197,6 +203,7 @@ public Priority parsePriority(Issue issue) {
 }
 ----
 
+[[llm-error-handling]]
 ==== Error Handling
 
 Handle LLM failures inline with try-catch, or workflow-wide with
@@ -233,6 +240,7 @@ public void handleLLMError(LLMException e, Task task) {
 }
 ----
 
+[[vendor-specific-access]]
 ==== Vendor-Specific Access
 
 Use the `unwrap()` method to reach vendor-specific features when portability is not
@@ -259,8 +267,10 @@ public class AdvancedAgent {
 }
 ----
 
+[[provider-configuration]]
 === Provider Configuration
 
+[[provider-initial-release]]
 ==== Initial Release
 
 Implementations are free to support whichever LLM libraries and APIs they
@@ -268,6 +278,7 @@ choose (e.g., Spring AI, LangChain4j, or vendor SDKs). Configuration of the
 LLM provider, if supported, is implementation-specific (properties,
 environment variables, or other mechanisms).
 
+[[provider-future-releases]]
 ==== Future Releases
 
 Future releases may introduce standardized configuration for provider

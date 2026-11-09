@@ -16,9 +16,9 @@ body:
       required: true
     attributes:
       label: Specification
-      description: Link to the specification section or API element the challenge relates to
+      description: The assertion of the specification at issue, quoted, with its section
       placeholder: |
-        ex. https://github.com/jakartaee/agentic-ai/blob/main/api/src/main/java/jakarta/ai/agent/Decision.java
+        ex. Execution Order: "Decisions and actions execute in order, intermixed as defined." (spec/src/main/asciidoc/chapters/lifecycle.asciidoc)
   - type: input
     id: test
     validations:

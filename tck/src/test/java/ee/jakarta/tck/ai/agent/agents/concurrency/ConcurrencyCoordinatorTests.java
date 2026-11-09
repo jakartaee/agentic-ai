@@ -31,7 +31,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  *
  * <p>These exercise the TCK's own concurrency harness, not the specification. They
  * confirm the coordinator's barrier and leak-detection logic behaves correctly, so
- * the concurrency assertions are trustworthy when a
+ * the concurrency tests are trustworthy when a
  * compatible implementation runs them.</p>
  */
 public class ConcurrencyCoordinatorTests {

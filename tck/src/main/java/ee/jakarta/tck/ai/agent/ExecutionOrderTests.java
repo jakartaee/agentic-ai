@@ -85,7 +85,7 @@ public class ExecutionOrderTests {
      * A workflow with one phase of each kind runs trigger, decision, action, outcome, in that
      * order.
      *
-     * <p>Specification section {@code agent-lifecycle}.
+     * <p>Specification section {@code execution-order}.
      */
     @Test
     public void fullPipelineExecutesInStrictOrder() {
@@ -99,7 +99,7 @@ public class ExecutionOrderTests {
      * decisions and actions run in their explicit order. {@code AnchoredAgent} declares its
      * outcome first, its trigger last, and orders its action before its decision.
      *
-     * <p>Specification section {@code agent-lifecycle}.
+     * <p>Specification section {@code execution-order}.
      */
     @Test
     public void phasesExecuteInExplicitOrderRegardlessOfDeclaration() {
@@ -113,7 +113,7 @@ public class ExecutionOrderTests {
      * {@code @Action} and {@code @Decision} methods execute by ascending {@code order} attribute,
      * not source declaration order.
      *
-     * <p>Specification section {@code agent-lifecycle}.
+     * <p>Specification section {@code execution-order}.
      */
     @Test
     public void orderAttributeIsHonored() {
@@ -126,7 +126,7 @@ public class ExecutionOrderTests {
      * {@code @Action} and {@code @Decision} methods execute by ascending {@code @Priority} value,
      * not source declaration order.
      *
-     * <p>Specification section {@code agent-lifecycle}.
+     * <p>Specification section {@code execution-order}.
      */
     @Test
     public void priorityIsHonored() {
@@ -139,7 +139,7 @@ public class ExecutionOrderTests {
      * When a method declares both, {@code @Priority} takes precedence over the {@code order}
      * attribute.
      *
-     * <p>Specification section {@code agent-lifecycle}.
+     * <p>Specification section {@code execution-order}.
      */
     @Test
     public void priorityTakesPrecedenceOverOrder() {

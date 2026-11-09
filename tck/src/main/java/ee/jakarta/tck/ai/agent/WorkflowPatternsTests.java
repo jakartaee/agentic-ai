@@ -86,7 +86,7 @@ public class WorkflowPatternsTests {
      * An agent with only a {@code @Trigger} is a complete workflow. Firing the event runs the
      * trigger and the workflow completes.
      *
-     * <p>Specification section {@code agent-lifecycle}.
+     * <p>Specification section {@code workflow-patterns}.
      */
     @Test
     public void triggerOnlyWorkflowCompletes() {
@@ -98,7 +98,7 @@ public class WorkflowPatternsTests {
     /**
      * A workflow without a {@code @Decision} runs trigger, action, outcome.
      *
-     * <p>Specification section {@code agent-lifecycle}.
+     * <p>Specification section {@code workflow-patterns}.
      */
     @Test
     public void workflowWithoutDecisionRunsActions() {
@@ -110,7 +110,7 @@ public class WorkflowPatternsTests {
     /**
      * A workflow without an {@code @Outcome} completes after its last action.
      *
-     * <p>Specification section {@code agent-lifecycle}.
+     * <p>Specification section {@code workflow-patterns}.
      */
     @Test
     public void workflowWithoutOutcomeCompletes() {
@@ -123,7 +123,7 @@ public class WorkflowPatternsTests {
      * Several explicitly ordered {@code @Action} phases execute sequentially without any
      * {@code @Decision}.
      *
-     * <p>Specification section {@code agent-lifecycle}.
+     * <p>Specification section {@code workflow-patterns}.
      */
     @Test
     public void sequentialActionsExecuteInOrder() {
@@ -137,7 +137,7 @@ public class WorkflowPatternsTests {
      * A {@code @Decision} proceeds directly to the {@code @Outcome} when no {@code @Action} is
      * declared.
      *
-     * <p>Specification section {@code agent-lifecycle}.
+     * <p>Specification section {@code workflow-patterns}.
      */
     @Test
     public void decisionProceedsDirectlyToOutcome() {
@@ -150,7 +150,7 @@ public class WorkflowPatternsTests {
      * Alternating {@code @Decision} and {@code @Action} phases all execute, in their explicit
      * order, through to the {@code @Outcome}.
      *
-     * <p>Specification section {@code agent-lifecycle}.
+     * <p>Specification section {@code workflow-patterns}.
      */
     @Test
     public void intermixedDecisionsAndActionsExecuteInOrder() {

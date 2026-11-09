@@ -28,4 +28,4 @@ A passing run reports the class like any other:
 Tests run: 1, Failures: 0, Errors: 0, Skipped: 0 -- in ee.jakarta.tck.ai.agent.SignatureTests
 ----
 
-A failing run includes the engine's report in the assertion message, listing the members that differ from the signature file under headings such as `Missing Methods` or `Added Methods`.
+A failing run includes the engine's report in the failure message, listing the members that differ from the signature file under headings such as `Missing Methods` or `Added Methods`.

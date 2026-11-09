@@ -75,7 +75,7 @@ public class WorkflowTerminationTests {
     /**
      * {@code false} from a {@code @Decision} halts all downstream phases.
      *
-     * <p>Specification section {@code agent-lifecycle}.
+     * <p>Specification section {@code workflow-termination}.
      */
     @Test
     public void booleanFalseTerminatesWorkflow() {
@@ -87,7 +87,7 @@ public class WorkflowTerminationTests {
     /**
      * A {@code Result} whose {@code success} is false halts all downstream phases.
      *
-     * <p>Specification section {@code agent-lifecycle}.
+     * <p>Specification section {@code workflow-termination}.
      */
     @Test
     public void resultFalseTerminatesWorkflow() {
@@ -100,7 +100,7 @@ public class WorkflowTerminationTests {
      * A {@code Result} whose {@code success} is true proceeds through all downstream phases even
      * when its {@code details} are {@code null}.
      *
-     * <p>Specification section {@code agent-lifecycle}.
+     * <p>Specification section {@code workflow-termination}.
      */
     @Test
     public void resultTrueWithNullDetailsProceeds() {
@@ -112,7 +112,7 @@ public class WorkflowTerminationTests {
     /**
      * A {@code null} domain object from a {@code @Decision} halts all downstream phases.
      *
-     * <p>Specification section {@code agent-lifecycle}.
+     * <p>Specification section {@code workflow-termination}.
      */
     @Test
     public void objectNullTerminatesWorkflow() {
@@ -126,7 +126,7 @@ public class WorkflowTerminationTests {
      * remaining actions and the outcome. The implementation must keep checking for termination
      * across the whole chain, not only at the first decision.
      *
-     * <p>Specification section {@code agent-lifecycle}.
+     * <p>Specification section {@code workflow-termination}.
      */
     @Test
     public void falseFromLaterDecisionHaltsRemainingPhases() {

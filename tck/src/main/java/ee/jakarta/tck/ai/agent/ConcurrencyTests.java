@@ -45,7 +45,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  * <p>Several workflows are fired from a thread pool and rendezvous at a
  * {@link ConcurrencyCoordinator} barrier so their
  * agent instances are all alive simultaneously, maximizing the chance that a
- * thread-unsafe implementation leaks state. The assertions themselves are
+ * thread-unsafe implementation leaks state. What the tests check is
  * deterministic. Regardless of interleaving, every workflow must observe only its
  * own marker, and the recorded model calls must be exactly the per-workflow prompts
  * with no loss or corruption.</p>
@@ -70,7 +70,7 @@ public class ConcurrencyTests {
     /**
      * Concurrent {@code @WorkflowScoped} executions each observe only their own workflow state.
      *
-     * <p>Specification section {@code cdi-integration}.
+     * <p>Specification section {@code threading-and-concurrency}.
      */
     @Test
     public void workflowStateIsIsolatedAcrossConcurrentWorkflows() throws Exception {

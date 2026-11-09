@@ -44,7 +44,7 @@ public class DeploymentErrorTwoTriggerTests {
     /**
      * An agent declaring more than one {@code @Trigger} method is a deployment error.
      *
-     * <p>Specification section {@code agent-lifecycle}.
+     * <p>Specification section {@code trigger-cardinality}.
      */
     @Test
     public void multipleTriggersAreRejected() {

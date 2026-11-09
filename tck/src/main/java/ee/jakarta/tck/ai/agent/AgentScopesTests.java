@@ -97,7 +97,7 @@ public class AgentScopesTests {
      * An agent with no explicit scope is {@code @WorkflowScoped}. One instance serves every phase
      * of a workflow, and each workflow gets a distinct instance.
      *
-     * <p>Specification section {@code agent-lifecycle}.
+     * <p>Specification section {@code agent-scopes}.
      */
     @Test
     public void defaultScopeIsWorkflowScopedWithOneInstancePerWorkflow() {
@@ -130,7 +130,7 @@ public class AgentScopesTests {
      * An explicitly {@code @WorkflowScoped} agent gets a distinct instance per workflow. Two
      * sequential events yield two different instance ids.
      *
-     * <p>Specification section {@code cdi-integration}.
+     * <p>Specification section {@code workflowscoped}.
      */
     @Test
     public void workflowScopedAgentHasOneInstancePerWorkflow() {
@@ -147,7 +147,7 @@ public class AgentScopesTests {
      * {@code @PostConstruct} is invoked exactly once per {@code @WorkflowScoped} workflow
      * execution.
      *
-     * <p>Specification section {@code cdi-integration}.
+     * <p>Specification section {@code lifecycle-callbacks}.
      */
     @Test
     public void workflowScopedAgentPostConstructCalledOnce() {
@@ -161,7 +161,7 @@ public class AgentScopesTests {
      * {@code @PreDestroy} is invoked exactly once when the workflow completes through its
      * {@code @Outcome} and the {@code @WorkflowScoped} context is destroyed.
      *
-     * <p>Specification section {@code cdi-integration}.
+     * <p>Specification section {@code lifecycle-callbacks}.
      */
     @Test
     public void workflowScopedAgentPreDestroyCalledAfterWorkflow() {
@@ -177,7 +177,7 @@ public class AgentScopesTests {
      * throws, the workflow never reaches its {@code @Outcome}, and the {@code @WorkflowScoped}
      * context is still torn down.
      *
-     * <p>Specification section {@code cdi-integration}.
+     * <p>Specification section {@code lifecycle-callbacks}.
      */
     @Test
     public void workflowScopedAgentPreDestroyCalledAfterFailure() {
@@ -200,7 +200,7 @@ public class AgentScopesTests {
      * early. The context is destroyed although the {@code @Action} and {@code @Outcome} never
      * run.
      *
-     * <p>Specification section {@code cdi-integration}.
+     * <p>Specification section {@code lifecycle-callbacks}.
      */
     @Test
     public void workflowScopedAgentPreDestroyCalledAfterDecisionStop() {
@@ -215,7 +215,7 @@ public class AgentScopesTests {
      * {@code @PostConstruct} is invoked exactly once for an {@code @ApplicationScoped} agent
      * however many workflow events are fired.
      *
-     * <p>Specification section {@code cdi-integration}.
+     * <p>Specification section {@code applicationscoped}.
      */
     @Test
     public void applicationScopedAgentPostConstructCalledOnce() {
@@ -229,7 +229,7 @@ public class AgentScopesTests {
      * An {@code @ApplicationScoped} agent reuses the same instance across sequential workflows.
      * Both {@code @Trigger} invocations record the same instance id.
      *
-     * <p>Specification section {@code cdi-integration}.
+     * <p>Specification section {@code applicationscoped}.
      */
     @Test
     public void applicationScopedAgentSharesInstanceAcrossWorkflows() {
@@ -248,7 +248,7 @@ public class AgentScopesTests {
      * An {@code @ApplicationScoped} agent uses the same instance across all phases of a
      * workflow. Trigger, action and outcome record the same instance id.
      *
-     * <p>Specification section {@code cdi-integration}.
+     * <p>Specification section {@code applicationscoped}.
      */
     @Test
     public void applicationScopedAgentUsesSameInstanceAcrossAllPhases() {

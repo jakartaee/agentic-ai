@@ -80,7 +80,7 @@ public class LargeLanguageModelTests {
     /**
      * null prompt on query(String) throws IllegalArgumentException.
      *
-     * <p>Specification section {@code llm-integration}.
+     * <p>Specification section {@code llm-interface}.
      */
     @Test
     public void nullPromptThrowsIllegalArgumentException() {
@@ -90,7 +90,7 @@ public class LargeLanguageModelTests {
     /**
      * null prompt on query(String, Object...) throws IllegalArgumentException.
      *
-     * <p>Specification section {@code llm-integration}.
+     * <p>Specification section {@code llm-interface}.
      */
     @Test
     public void nullPromptWithParamsThrowsIllegalArgumentException() {
@@ -100,7 +100,7 @@ public class LargeLanguageModelTests {
     /**
      * null prompt on query(String, Class) throws IllegalArgumentException.
      *
-     * <p>Specification section {@code llm-integration}.
+     * <p>Specification section {@code llm-interface}.
      */
     @Test
     public void nullPromptOnTypedOverloadThrowsIllegalArgumentException() {
@@ -110,7 +110,7 @@ public class LargeLanguageModelTests {
     /**
      * null resultType on query(String, Class) throws IllegalArgumentException.
      *
-     * <p>Specification section {@code llm-integration}.
+     * <p>Specification section {@code llm-interface}.
      */
     @Test
     public void nullResultTypeThrowsIllegalArgumentException() {
@@ -120,7 +120,7 @@ public class LargeLanguageModelTests {
     /**
      * null prompt on query(String, Class, Object...) throws IllegalArgumentException.
      *
-     * <p>Specification section {@code llm-integration}.
+     * <p>Specification section {@code llm-interface}.
      */
     @Test
     public void nullPromptOnTypedVarargsOverloadThrowsIllegalArgumentException() {
@@ -130,7 +130,7 @@ public class LargeLanguageModelTests {
     /**
      * null resultType on query(String, Class, Object...) throws IllegalArgumentException.
      *
-     * <p>Specification section {@code llm-integration}.
+     * <p>Specification section {@code llm-interface}.
      */
     @Test
     public void nullResultTypeOnTypedVarargsOverloadThrowsIllegalArgumentException() {
@@ -140,7 +140,7 @@ public class LargeLanguageModelTests {
     /**
      * more parameters than {} placeholders throws IllegalArgumentException.
      *
-     * <p>Specification section {@code llm-integration}.
+     * <p>Specification section {@code prompt-construction}.
      */
     @Test
     public void arityMoreParamsThanPlaceholdersThrows() {
@@ -150,7 +150,7 @@ public class LargeLanguageModelTests {
     /**
      * fewer parameters than {} placeholders throws IllegalArgumentException.
      *
-     * <p>Specification section {@code llm-integration}.
+     * <p>Specification section {@code prompt-construction}.
      */
     @Test
     public void arityFewerParamsThanPlaceholdersThrows() {
@@ -161,7 +161,7 @@ public class LargeLanguageModelTests {
      * more parameters than {} placeholders on the typed varargs overload throws
      * IllegalArgumentException.
      *
-     * <p>Specification section {@code llm-integration}.
+     * <p>Specification section {@code prompt-construction}.
      */
     @Test
     public void arityMismatchOnTypedVarargsOverloadThrows() {
@@ -172,7 +172,7 @@ public class LargeLanguageModelTests {
     /**
      * a prompt with no placeholder given more than one parameter throws IllegalArgumentException.
      *
-     * <p>Specification section {@code llm-integration}.
+     * <p>Specification section {@code prompt-construction}.
      */
     @Test
     public void noPlaceholderRejectsMultipleParams() {
@@ -182,7 +182,7 @@ public class LargeLanguageModelTests {
     /**
      * a parameter JSON Binding cannot serialize throws IllegalArgumentException.
      *
-     * <p>Specification section {@code llm-integration}.
+     * <p>Specification section {@code prompt-construction}.
      */
     @Test
     public void parameterSerializationFailureThrowsIllegalArgumentException() {
@@ -194,7 +194,7 @@ public class LargeLanguageModelTests {
      * a parameter JSON Binding cannot serialize on the typed varargs overload throws
      * IllegalArgumentException.
      *
-     * <p>Specification section {@code llm-integration}.
+     * <p>Specification section {@code prompt-construction}.
      */
     @Test
     public void parameterSerializationFailureOnTypedOverloadThrowsIllegalArgumentException() {
@@ -205,7 +205,7 @@ public class LargeLanguageModelTests {
     /**
      * unwrap to a type the facade cannot be unwrapped to throws IllegalArgumentException.
      *
-     * <p>Specification section {@code llm-integration}.
+     * <p>Specification section {@code vendor-specific-access}.
      */
     @Test
     public void unwrapToIncompatibleTypeThrowsIllegalArgumentException() {
@@ -215,7 +215,7 @@ public class LargeLanguageModelTests {
     /**
      * unwrap(Object.class) returns the underlying implementation.
      *
-     * <p>Specification section {@code llm-integration}.
+     * <p>Specification section {@code vendor-specific-access}.
      */
     @Test
     public void unwrapToCompatibleTypeReturnsImplementation() {
@@ -228,7 +228,7 @@ public class LargeLanguageModelTests {
      * {} placeholders are substituted in declaration order with the JSON Binding form of each
      * parameter; the echo model returns the rendered prompt.
      *
-     * <p>Specification section {@code llm-integration}.
+     * <p>Specification section {@code prompt-construction}.
      */
     @Test
     public void positionalPlaceholdersSubstitutedInOrderViaJsonB() {
@@ -238,7 +238,7 @@ public class LargeLanguageModelTests {
     /**
      * look-alike tokens ({name}, { }) are literal prompt text, not placeholders.
      *
-     * <p>Specification section {@code llm-integration}.
+     * <p>Specification section {@code prompt-construction}.
      */
     @Test
     public void lookAlikeTokensAreNotPlaceholders() {
@@ -249,7 +249,7 @@ public class LargeLanguageModelTests {
     /**
      * a prompt with no placeholder accepts one structured-context parameter and is sent unchanged.
      *
-     * <p>Specification section {@code llm-integration}.
+     * <p>Specification section {@code prompt-construction}.
      */
     @Test
     public void noPlaceholderAllowsSingleStructuredContextParam() {
@@ -259,7 +259,7 @@ public class LargeLanguageModelTests {
     /**
      * a complex parameter is rendered into the prompt as its JSON Binding serialization.
      *
-     * <p>Specification section {@code llm-integration}.
+     * <p>Specification section {@code prompt-construction}.
      */
     @Test
     public void complexObjectSerializedViaJsonBinding() {
@@ -273,7 +273,7 @@ public class LargeLanguageModelTests {
     /**
      * a typed response is deserialized from the model's JSON text with JSON Binding.
      *
-     * <p>Specification section {@code llm-integration}.
+     * <p>Specification section {@code typed-responses}.
      */
     @Test
     public void typedResponseDeserializedViaJsonBinding() {
@@ -285,7 +285,7 @@ public class LargeLanguageModelTests {
     /**
      * the typed varargs overload renders the parameters and deserializes the model's JSON text.
      *
-     * <p>Specification section {@code llm-integration}.
+     * <p>Specification section {@code typed-responses}.
      */
     @Test
     public void typedVarargsResponseDeserializedViaJsonBinding() {

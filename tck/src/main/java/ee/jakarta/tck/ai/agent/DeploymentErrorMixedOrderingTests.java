@@ -44,7 +44,7 @@ public class DeploymentErrorMixedOrderingTests {
      * Mixing explicitly ordered and unordered {@code @Action}/{@code @Decision} methods is a
      * deployment error.
      *
-     * <p>Specification section {@code agent-lifecycle}.
+     * <p>Specification section {@code consistency-requirement}.
      */
     @Test
     public void mixedOrderingIsRejected() {

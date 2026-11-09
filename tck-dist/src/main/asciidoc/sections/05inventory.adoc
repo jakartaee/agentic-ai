@@ -41,8 +41,8 @@ The TCK jar contains the following packages:
 `ee.jakarta.tck.ai.agent`:: The tests, one class per specification section: CDI beans, agent scopes and lifecycle callbacks, event observation, concurrency, parameter resolution, execution order, workflow patterns, workflow termination, `@OnException`, validation constraints, inherited methods, the `LargeLanguageModel` contract, one class per deployment error, and `SignatureTests`, which verifies the API's public structure — every type, member, target, retention and meta-annotation — against the recorded signature file. The agents each class deploys are under `agents`.
 `ee.jakarta.tck.ai.agent.framework`:: The test infrastructure: the Arquillian extension that adds the TCK's classes to every deployment, the `TckModel` constants that define the model behaviour required during a run, and the trace recorder.
 
-Every test method's documentation states what it verifies and names the specification section that requires it.
-A challenge references a test by its class and method.
+Every test's documentation states what it verifies and names the specification section whose assertions it verifies, by the section's anchor.
+In the terms of the Jakarta EE TCK Process, an assertion is a testable statement of the specification; the tests verify assertions, and a challenge names the test by class and method and quotes the assertion it claims the test misreads.
 
 ==== API signature file
 
