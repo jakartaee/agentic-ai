@@ -115,11 +115,6 @@
                     <dependenciesToScan>
                         <dependency>jakarta.agentic-ai:jakarta.agentic-ai-tck</dependency>
                     </dependenciesToScan>
-                    <!-- tag::systemProperties[] -->
-                    <systemPropertyVariables>
-                        <java.util.logging.config.file>src/test/resources/logging.properties</java.util.logging.config.file>
-                    </systemPropertyVariables>
-                    <!-- end::systemProperties[] -->
                 </configuration>
             </plugin>
             <!-- end::configJunit5[] -->

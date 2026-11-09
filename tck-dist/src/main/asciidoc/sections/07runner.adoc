@@ -48,16 +48,3 @@ The starter ships a commented template.
 
 Deployment archives are complete as the TCK builds them.
 If your runtime needs an additional deployment descriptor in every archive, add it with your own Arquillian `ApplicationArchiveProcessor`, registered through `META-INF/services/org.jboss.arquillian.core.spi.LoadableExtension` in the runner project.
-
-=== Logging
-
-The TCK logs through `java.util.logging`.
-`AssertionExtension` logs the id, section and strategy of every test that fails, aborts or is skipped, which is useful when reading a failed run.
-The starter points the Test Client at a `logging.properties` that enables these messages:
-
-[source,xml]
-----
-include::{starterLoc}/pom.xml[tag=systemProperties]
-----
-
-Set the same property on the Test Server JVM to see the messages logged inside deployments.
