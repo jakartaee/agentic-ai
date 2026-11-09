@@ -29,7 +29,6 @@
         <arquillian.jakarta.version>10.0.0.Final</arquillian.jakarta.version>
         <shrinkwrap.version>1.2.6</shrinkwrap.version>
         <sigtest.version>2.6</sigtest.version>
-        <api.signature.file>${project.basedir}/src/main/resources/ee/jakarta/tck/ai/agent/framework/signature/jakarta.ai.agent.sig_${spec.version}</api.signature.file>
         <cyclonedx.skip>false</cyclonedx.skip>
     </properties>
 
@@ -154,33 +153,27 @@
                     <doclint>none</doclint>
                 </configuration>
             </plugin>
+            <!-- The API signature baseline the deployed SignatureTests compares an
+                 implementation against is generated from the API at build time,
+                 straight into the jar, so it can never disagree with the API. -->
+            <plugin>
+                <groupId>jakarta.tck</groupId>
+                <artifactId>sigtest-maven-plugin</artifactId>
+                <version>${sigtest.version}</version>
+                <configuration>
+                    <sigfile>${project.build.outputDirectory}/ee/jakarta/tck/ai/agent/framework/signature/jakarta.ai.agent.sig_${spec.version}</sigfile>
+                    <packages>jakarta.ai.agent</packages>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>generate-api-signature</id>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
-
-    <profiles>
-        <profile>
-            <id>signature-generation</id>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>jakarta.tck</groupId>
-                        <artifactId>sigtest-maven-plugin</artifactId>
-                        <version>${sigtest.version}</version>
-                        <configuration>
-                            <sigfile>${api.signature.file}</sigfile>
-                            <packages>jakarta.ai.agent</packages>
-                        </configuration>
-                        <executions>
-                            <execution>
-                                <goals>
-                                    <goal>generate</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-    </profiles>
 
 </project>
