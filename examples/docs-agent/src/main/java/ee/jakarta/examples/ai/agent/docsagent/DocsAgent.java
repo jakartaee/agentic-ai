@@ -29,20 +29,24 @@ import java.util.logging.Logger;
  * Documentation Agent - Monitors pull requests and automatically generates
  * documentation updates when needed.
  *
- * WORKFLOW:
- * 1. @Trigger - Detects when a pull request is created
- * 2. @Decision - Analyzes the PR to determine if documentation is needed
- *                Returns DocumentationAnalysis (non-null = proceed, null = stop)
- * 3. @Action - Creates a documentation pull request based on the analysis
- * 4. @Action - Reviews the generated documentation
- * 5. @Outcome - Applies the documentation changes
- * 6. @OnException - Handles any errors during the workflow
+ * <p>WORKFLOW:</p>
+ * <ol>
+ *   <li>{@code @Trigger} - Detects when a pull request is created.</li>
+ *   <li>{@code @Decision} - Analyzes the PR to determine if documentation is needed.
+ *       Returns {@link DocumentationAnalysis} (non-null = proceed, null = stop).</li>
+ *   <li>{@code @Action} - Creates a documentation pull request based on the analysis.</li>
+ *   <li>{@code @Action} - Reviews the generated documentation.</li>
+ *   <li>{@code @Outcome} - Applies the documentation changes.</li>
+ *   <li>{@code @OnException} - Handles any errors during the workflow.</li>
+ * </ol>
  *
- * DEMONSTRATES:
- * - Object return from @Decision phase (DocumentationAnalysis)
- * - Parameter injection of decision result into @Action methods
- * - LLM integration for intelligent decision-making
- * - Exception handling with @OnException
+ * <p>DEMONSTRATES:</p>
+ * <ul>
+ *   <li>Object return from the {@code @Decision} phase ({@link DocumentationAnalysis}).</li>
+ *   <li>Parameter injection of the decision result into {@code @Action} methods.</li>
+ *   <li>LLM integration for intelligent decision-making.</li>
+ *   <li>Exception handling with {@code @OnException}.</li>
+ * </ul>
  */
 @Agent(name = "DocsAgent", description = "Monitors pull requests and automatically generates documentation updates")
 public class DocsAgent {
@@ -65,12 +69,14 @@ public class DocsAgent {
     /**
      * DECISION: Analyzes whether the pull request requires documentation.
      *
-     * This method demonstrates the object return pattern:
-     * - Returns DocumentationAnalysis (non-null) if documentation is needed
-     * - Returns null if no documentation is needed
+     * <p>This method demonstrates the object return pattern:</p>
+     * <ul>
+     *   <li>Returns a {@link DocumentationAnalysis} (non-null) if documentation is needed.</li>
+     *   <li>Returns {@code null} if no documentation is needed.</li>
+     * </ul>
      *
-     * The returned DocumentationAnalysis object will be automatically injected
-     * into subsequent @Action methods.
+     * <p>The returned {@link DocumentationAnalysis} object will be automatically injected
+     * into subsequent {@code @Action} methods.</p>
      */
     @Decision
     DocumentationAnalysis requiresDocumentationPullRequest(PullRequest pullRequest) {
@@ -105,11 +111,13 @@ public class DocsAgent {
     /**
      * ACTION: Generates a documentation pull request.
      *
-     * This method demonstrates parameter injection:
-     * - PullRequest: the original trigger event
-     * - DocumentationAnalysis: the object returned by @Decision phase
+     * <p>This method demonstrates parameter injection:</p>
+     * <ul>
+     *   <li>{@link PullRequest} - the original trigger event.</li>
+     *   <li>{@link DocumentationAnalysis} - the object returned by the {@code @Decision} phase.</li>
+     * </ul>
      *
-     * The analysis object provides context about what documentation is needed.
+     * <p>The analysis object provides context about what documentation is needed.</p>
      */
     @Action
     DocumentationPullRequest produceDocumentationPullRequest(

@@ -81,7 +81,7 @@ public @interface WorkflowScoped {
      * Supports inline instantiation of the WorkflowScoped annotation.
      */
     public final static class Literal extends AnnotationLiteral<WorkflowScoped> {
-        /** Default WorkflowScoped literal */
+        /** The {@code WorkflowScoped} literal. */
         public static final Literal INSTANCE = new Literal();
 
         private static final long serialVersionUID = 1L;

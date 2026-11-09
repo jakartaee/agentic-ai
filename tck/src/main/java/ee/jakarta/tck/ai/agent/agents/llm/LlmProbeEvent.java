@@ -20,6 +20,6 @@ import java.util.function.Function;
  * Carries one call to make against the facade from inside a workflow.
  *
  * @param probe the call; its return value, or the exception it throws, is
- *              recorded as the trigger's trace argument
+ *              recorded as the trigger's trace argument.
  */
 public record LlmProbeEvent(Function<LargeLanguageModel, Object> probe) {}

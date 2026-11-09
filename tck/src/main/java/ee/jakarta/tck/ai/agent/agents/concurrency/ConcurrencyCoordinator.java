@@ -112,23 +112,17 @@ public class ConcurrencyCoordinator {
         llmObservations.put(marker, new LlmObservation(echoed, history));
     }
 
-    /**
-     * @return each workflow's model observation, keyed by marker
-     */
+    /** Each workflow's model observation, keyed by its marker. */
     public Map<String, LlmObservation> llmObservations() {
         return Map.copyOf(llmObservations);
     }
 
-    /**
-     * @return the number of recorded observations
-     */
+    /** The number of observations recorded since the coordinator was last armed. */
     public int observationCount() {
         return observations.get();
     }
 
-    /**
-     * @return descriptions of any detected state leaks or barrier failures
-     */
+    /** A description of every detected state leak or barrier failure, empty when there was none. */
     public List<String> mismatches() {
         return List.copyOf(mismatches);
     }

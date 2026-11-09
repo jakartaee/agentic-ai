@@ -18,9 +18,8 @@ import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
- * Records each workflow phase invocation, with the method called and the
- * arguments it received, so a test can check the order in which phases ran
- * and the values resolved into them.
+ * Records every phase invocation of a workflow, so a test can check which
+ * phases ran, in what order, and with which arguments.
  */
 @ApplicationScoped
 public class ExecutionTraceRecorder {
@@ -29,11 +28,7 @@ public class ExecutionTraceRecorder {
         TRIGGER, DECISION, ACTION, OUTCOME, ON_EXCEPTION
     }
 
-    /**
-     * @param phase the lifecycle phase
-     * @param methodName the name of the method called
-     * @param args the arguments passed to the method
-     */
+    /** One recorded invocation: the phase, the method that ran, and the arguments it received. */
     public record TraceEntry(Phase phase, String methodName, Object[] args) {}
 
     private final List<TraceEntry> entries = new CopyOnWriteArrayList<>();

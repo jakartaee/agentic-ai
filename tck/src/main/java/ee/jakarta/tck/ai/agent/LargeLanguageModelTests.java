@@ -78,7 +78,7 @@ public class LargeLanguageModelTests {
     // -- validation: IllegalArgumentException before any model call ----------
 
     /**
-     * null prompt on query(String) throws IllegalArgumentException.
+     * Null prompt on query(String) throws IllegalArgumentException.
      *
      * <p>Specification section {@code llm-interface}.
      */
@@ -88,7 +88,7 @@ public class LargeLanguageModelTests {
     }
 
     /**
-     * null prompt on query(String, Object...) throws IllegalArgumentException.
+     * Null prompt on query(String, Object...) throws IllegalArgumentException.
      *
      * <p>Specification section {@code llm-interface}.
      */
@@ -98,7 +98,7 @@ public class LargeLanguageModelTests {
     }
 
     /**
-     * null prompt on query(String, Class) throws IllegalArgumentException.
+     * Null prompt on query(String, Class) throws IllegalArgumentException.
      *
      * <p>Specification section {@code llm-interface}.
      */
@@ -108,7 +108,7 @@ public class LargeLanguageModelTests {
     }
 
     /**
-     * null resultType on query(String, Class) throws IllegalArgumentException.
+     * Null resultType on query(String, Class) throws IllegalArgumentException.
      *
      * <p>Specification section {@code llm-interface}.
      */
@@ -118,7 +118,7 @@ public class LargeLanguageModelTests {
     }
 
     /**
-     * null prompt on query(String, Class, Object...) throws IllegalArgumentException.
+     * Null prompt on query(String, Class, Object...) throws IllegalArgumentException.
      *
      * <p>Specification section {@code llm-interface}.
      */
@@ -128,7 +128,7 @@ public class LargeLanguageModelTests {
     }
 
     /**
-     * null resultType on query(String, Class, Object...) throws IllegalArgumentException.
+     * Null resultType on query(String, Class, Object...) throws IllegalArgumentException.
      *
      * <p>Specification section {@code llm-interface}.
      */
@@ -138,7 +138,7 @@ public class LargeLanguageModelTests {
     }
 
     /**
-     * more parameters than {} placeholders throws IllegalArgumentException.
+     * More parameters than {} placeholders throws IllegalArgumentException.
      *
      * <p>Specification section {@code prompt-construction}.
      */
@@ -148,7 +148,7 @@ public class LargeLanguageModelTests {
     }
 
     /**
-     * fewer parameters than {} placeholders throws IllegalArgumentException.
+     * Fewer parameters than {} placeholders throws IllegalArgumentException.
      *
      * <p>Specification section {@code prompt-construction}.
      */
@@ -158,7 +158,7 @@ public class LargeLanguageModelTests {
     }
 
     /**
-     * more parameters than {} placeholders on the typed varargs overload throws
+     * More parameters than {} placeholders on the typed varargs overload throws
      * IllegalArgumentException.
      *
      * <p>Specification section {@code prompt-construction}.
@@ -170,7 +170,7 @@ public class LargeLanguageModelTests {
     }
 
     /**
-     * a prompt with no placeholder given more than one parameter throws IllegalArgumentException.
+     * A prompt with no placeholder given more than one parameter throws IllegalArgumentException.
      *
      * <p>Specification section {@code prompt-construction}.
      */
@@ -180,7 +180,7 @@ public class LargeLanguageModelTests {
     }
 
     /**
-     * a parameter JSON Binding cannot serialize throws IllegalArgumentException.
+     * A parameter JSON Binding cannot serialize throws IllegalArgumentException.
      *
      * <p>Specification section {@code prompt-construction}.
      */
@@ -191,7 +191,7 @@ public class LargeLanguageModelTests {
     }
 
     /**
-     * a parameter JSON Binding cannot serialize on the typed varargs overload throws
+     * A parameter JSON Binding cannot serialize on the typed varargs overload throws
      * IllegalArgumentException.
      *
      * <p>Specification section {@code prompt-construction}.
@@ -203,7 +203,7 @@ public class LargeLanguageModelTests {
     }
 
     /**
-     * unwrap to a type the facade cannot be unwrapped to throws IllegalArgumentException.
+     * Unwrapping to a type the facade cannot be unwrapped to throws IllegalArgumentException.
      *
      * <p>Specification section {@code vendor-specific-access}.
      */
@@ -213,7 +213,7 @@ public class LargeLanguageModelTests {
     }
 
     /**
-     * unwrap(Object.class) returns the underlying implementation.
+     * {@code unwrap(Object.class)} returns the underlying implementation.
      *
      * <p>Specification section {@code vendor-specific-access}.
      */
@@ -236,7 +236,7 @@ public class LargeLanguageModelTests {
     }
 
     /**
-     * look-alike tokens ({name}, { }) are literal prompt text, not placeholders.
+     * Look-alike tokens ({name}, { }) are literal prompt text, not placeholders.
      *
      * <p>Specification section {@code prompt-construction}.
      */
@@ -247,7 +247,7 @@ public class LargeLanguageModelTests {
     }
 
     /**
-     * a prompt with no placeholder accepts one structured-context parameter and is sent unchanged.
+     * A prompt with no placeholder accepts one structured-context parameter and is sent unchanged.
      *
      * <p>Specification section {@code prompt-construction}.
      */
@@ -257,7 +257,7 @@ public class LargeLanguageModelTests {
     }
 
     /**
-     * a complex parameter is rendered into the prompt as its JSON Binding serialization.
+     * A complex parameter is rendered into the prompt as its JSON Binding serialization.
      *
      * <p>Specification section {@code prompt-construction}.
      */
@@ -271,7 +271,7 @@ public class LargeLanguageModelTests {
     }
 
     /**
-     * a typed response is deserialized from the model's JSON text with JSON Binding.
+     * A typed response is deserialized from the model's JSON text with JSON Binding.
      *
      * <p>Specification section {@code typed-responses}.
      */
@@ -283,7 +283,7 @@ public class LargeLanguageModelTests {
     }
 
     /**
-     * the typed varargs overload renders the parameters and deserializes the model's JSON text.
+     * The typed varargs overload renders the parameters and deserializes the model's JSON text.
      *
      * <p>Specification section {@code typed-responses}.
      */
@@ -297,7 +297,7 @@ public class LargeLanguageModelTests {
     // -- failures: LLMException ----------------------------------------------
 
     /**
-     * a model failure surfaces as LLMException.
+     * A model failure surfaces as LLMException.
      *
      * <p>Specification section {@code llm-exception}.
      */
@@ -307,7 +307,7 @@ public class LargeLanguageModelTests {
     }
 
     /**
-     * a model failure surfaces as LLMException on query(String, Class).
+     * A model failure surfaces as LLMException on query(String, Class).
      *
      * <p>Specification section {@code llm-exception}.
      */
@@ -317,7 +317,7 @@ public class LargeLanguageModelTests {
     }
 
     /**
-     * a model failure surfaces as LLMException on query(String, Object...) when the rendered
+     * A model failure surfaces as LLMException on query(String, Object...) when the rendered
      * prompt fails.
      *
      * <p>Specification section {@code llm-exception}.
@@ -328,7 +328,7 @@ public class LargeLanguageModelTests {
     }
 
     /**
-     * a model failure surfaces as LLMException on query(String, Class, Object...) when the
+     * A model failure surfaces as LLMException on query(String, Class, Object...) when the
      * rendered prompt fails.
      *
      * <p>Specification section {@code llm-exception}.
@@ -339,7 +339,7 @@ public class LargeLanguageModelTests {
     }
 
     /**
-     * a response that cannot be deserialized to the requested type surfaces as LLMException.
+     * A response that cannot be deserialized to the requested type surfaces as LLMException.
      *
      * <p>Specification section {@code llm-exception}.
      */
@@ -349,7 +349,7 @@ public class LargeLanguageModelTests {
     }
 
     /**
-     * a response that cannot be deserialized on the typed varargs overload surfaces as
+     * A response that cannot be deserialized on the typed varargs overload surfaces as
      * LLMException.
      *
      * <p>Specification section {@code llm-exception}.
@@ -360,7 +360,7 @@ public class LargeLanguageModelTests {
     }
 
     /**
-     * an LLMException thrown from a phase is routed to a matching {@code @OnException} method, and
+     * An LLMException thrown from a phase is routed to a matching {@code @OnException} method, and
      * the workflow continues to {@code @Outcome} when the handler returns normally.
      *
      * <p>Specification section {@code llm-exception}.
@@ -375,7 +375,7 @@ public class LargeLanguageModelTests {
 
     // -- conversational state --------------------------------------------------
     /**
-     * each workflow's conversation holds only its own turns. After two sequential workflows, the
+     * Each workflow's conversation holds only its own turns. After two sequential workflows, the
      * history the model reports to the second contains only the second's turn.
      *
      * <p>Specification section {@code llm-conversational-state}.
