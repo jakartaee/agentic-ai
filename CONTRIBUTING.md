@@ -70,6 +70,23 @@ on your contributions.
 For more information, please see the Eclipse Committer Handbook:
 https://www.eclipse.org/projects/handbook/#resources-commit
 
+## Dependencies
+
+Every third-party dependency needs Eclipse IP approval, and `DEPENDENCIES` at
+the repository root is the manifest the Eclipse Dash license check generates
+from the build. CI runs the check on every push and fails if a dependency is
+restricted or needs review, or if the committed `DEPENDENCIES` differs from
+the generated one.
+
+After changing dependencies, regenerate the manifest and commit it:
+
+    mvn org.eclipse.dash:license-tool-plugin:license-check -Pdash-licenses -Ddash.summary=DEPENDENCIES
+
+If the Dash API times out, the plugin leaves `DEPENDENCIES` truncated; restore
+it with `git checkout -- DEPENDENCIES` and run again. A failed CI run uploads
+the generated file as the `DEPENDENCIES` artifact. Review of a dependency is
+requested at https://gitlab.eclipse.org/eclipsefdn/emo-team/iplab/-/issues.
+
 ## Contact
 
 Contact the project developers via the project's "dev" list.

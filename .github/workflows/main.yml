@@ -73,21 +73,7 @@ jobs:
                       fi
 
                       if ! grep -qE "$transient_re" "$log"; then
-                          echo "::error title=License check failed::A dependency was rejected by the Eclipse Dash license check. This is not a transient error and was not retried."
-                          cat <<'MSG'
-                  ================================================================
-                  The license check failed for a reason that is not transient, so it
-                  was not retried. Most likely a dependency is restricted or needs
-                  Eclipse IP review.
-
-                  Look for 'restricted' or 'review' entries in the output above, then
-                  either remove the dependency or request a review:
-
-                    https://gitlab.eclipse.org/eclipsefdn/emo-team/iplab/-/issues
-
-                  Approved dependencies are listed in DEPENDENCIES.
-                  ================================================================
-                  MSG
+                          echo "::error title=License check failed::A dependency is restricted or needs Eclipse IP review (look for 'restricted' or 'review' above). See CONTRIBUTING.md, Dependencies."
                           exit 1
                       fi
 
@@ -117,57 +103,8 @@ jobs:
                       exit 0
                   fi
 
-                  RUN_URL="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
-
-                  cat <<MSG
-                  ================================================================
-                  DEPENDENCIES is out of date.
-
-                  The Eclipse Dash license check regenerated it and the result
-                  differs from the copy committed to this repository. The committed
-                  file is the manifest that IP review reads, so it needs updating.
-
-                  Fix it either way:
-
-                  1. Download the generated file from this run and commit it:
-                       ${RUN_URL}
-                     It is the artifact named "DEPENDENCIES". Or with the gh CLI:
-                       gh run download ${GITHUB_RUN_ID} --repo ${GITHUB_REPOSITORY} \\
-                         --name DEPENDENCIES --dir .
-
-                  2. Or regenerate it locally and commit it:
-                       mvn -B org.eclipse.dash:license-tool-plugin:license-check \\
-                         -Pdash-licenses -Ddash.summary=DEPENDENCIES
-
-                     Note: if the Dash API times out, the plugin leaves
-                     DEPENDENCIES truncated. Recover with:
-                       git checkout -- DEPENDENCIES
-
-                  The diff below is committed (-) versus generated (+).
-                  ================================================================
-                  MSG
-
+                  echo "::error title=DEPENDENCIES is out of date::Commit the regenerated manifest (the DEPENDENCIES artifact of this run). See CONTRIBUTING.md, Dependencies. Diff below: committed (-) versus generated (+)."
                   git --no-pager diff -- DEPENDENCIES
-
-                  {
-                      echo "### DEPENDENCIES is out of date"
-                      echo
-                      echo "Download the [generated manifest from this run](${RUN_URL}) (artifact \`DEPENDENCIES\`) and commit it, or regenerate locally:"
-                      echo
-                      echo '```'
-                      echo 'mvn -B org.eclipse.dash:license-tool-plugin:license-check -Pdash-licenses -Ddash.summary=DEPENDENCIES'
-                      echo '```'
-                      echo
-                      echo '<details><summary>Diff (committed → generated)</summary>'
-                      echo
-                      echo '```diff'
-                      git --no-pager diff -- DEPENDENCIES
-                      echo '```'
-                      echo
-                      echo '</details>'
-                  } >> "$GITHUB_STEP_SUMMARY"
-
-                  echo "::error title=DEPENDENCIES is out of date::Commit the regenerated manifest. See this step's log and the run summary for the diff and instructions."
                   exit 1
 
             - name: Upload DEPENDENCIES
