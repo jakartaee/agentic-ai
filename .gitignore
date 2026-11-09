@@ -20,8 +20,4 @@ Thumbs.db
 *.log
 
 # Others
-/node_modules/
 /.claude/
-
-# Release assets staged locally when publishing GitHub Releases
-/release-assets/

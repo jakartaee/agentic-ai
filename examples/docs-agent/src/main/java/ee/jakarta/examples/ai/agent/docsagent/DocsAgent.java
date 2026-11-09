@@ -22,6 +22,8 @@ import jakarta.ai.agent.Trigger;
 import jakarta.inject.Inject;
 
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Documentation Agent - Monitors pull requests and automatically generates
@@ -45,9 +47,10 @@ import java.util.List;
 @Agent(name = "DocsAgent", description = "Monitors pull requests and automatically generates documentation updates")
 public class DocsAgent {
 
+    private static final Logger LOGGER = Logger.getLogger(DocsAgent.class.getName());
+
     @Inject
     private LargeLanguageModel languageModel;
-
 
     /**
      * TRIGGER: Workflow entry point.
@@ -55,8 +58,8 @@ public class DocsAgent {
      */
     @Trigger
     void detectPullRequest(PullRequest pullRequest) {
-        System.out.println("📝 Pull request detected: " + pullRequest.getTitle());
-        System.out.println("   Changed files: " + pullRequest.getChangedFiles());
+        LOGGER.info("[TRIGGER] pull request " + pullRequest.getTitle()
+                + ", changed files " + pullRequest.getChangedFiles());
     }
 
     /**
@@ -84,7 +87,7 @@ public class DocsAgent {
         // Parse LLM response
         if (llmResponse.toUpperCase().contains("YES")) {
             // Documentation is needed - return analysis object
-            System.out.println("✅ Decision: Documentation is required");
+            LOGGER.info("[DECISION] documentation required");
 
             return DocumentationAnalysis.documentationNeeded(
                 "Pull request modifies user-facing API",
@@ -94,7 +97,7 @@ public class DocsAgent {
             );
         } else {
             // No documentation needed - return null to stop workflow
-            System.out.println("⏹️  Decision: No documentation required");
+            LOGGER.info("[DECISION] no documentation required");
             return null;
         }
     }
@@ -113,10 +116,8 @@ public class DocsAgent {
             PullRequest pullRequest,
             DocumentationAnalysis analysis) {
 
-        System.out.println("📄 Generating documentation PR based on analysis:");
-        System.out.println("   Reason: " + analysis.getReason());
-        System.out.println("   Priority: " + analysis.getPriority());
-        System.out.println("   Topics: " + analysis.getSuggestedTopics());
+        LOGGER.info("[ACTION] produceDocumentationPullRequest: " + analysis.getReason()
+                + ", priority " + analysis.getPriority() + ", topics " + analysis.getSuggestedTopics());
 
         // Use LLM to generate documentation content
         String prompt = """
@@ -138,7 +139,7 @@ public class DocsAgent {
         docPR.setTargetBranch("main");
         docPR.setSourceBranch("docs/" + pullRequest.getId());
 
-        System.out.println("✅ Documentation PR created: " + docPR.getId());
+        LOGGER.info("[ACTION] documentation PR " + docPR.getId() + " created");
 
         return docPR;
     }
@@ -150,9 +151,9 @@ public class DocsAgent {
      */
     @Action
     void reviewDocumentationPullRequest(DocumentationPullRequest docPR) {
-        System.out.println("🔍 Reviewing documentation PR: " + docPR.getId());
-        System.out.println("   Linked to code PR: " + docPR.getLinkedCodePullRequestId());
-        System.out.println("   Topics covered: " + docPR.getDocumentedTopics());
+        LOGGER.info("[ACTION] reviewDocumentationPullRequest " + docPR.getId()
+                + ", linked to " + docPR.getLinkedCodePullRequestId()
+                + ", topics " + docPR.getDocumentedTopics());
 
         // Perform automated review (e.g., spell check, formatting, completeness)
         // This is where additional validation logic would go
@@ -165,8 +166,8 @@ public class DocsAgent {
      */
     @Outcome
     void applyDocumentationChange(DocumentationPullRequest docPR) {
-        System.out.println("🚀 Applying documentation changes from PR: " + docPR.getId());
-        System.out.println("   Analysis priority was: " + docPR.getAnalysis().getPriority());
+        LOGGER.info("[OUTCOME] applying documentation PR " + docPR.getId()
+                + ", priority " + docPR.getAnalysis().getPriority());
 
         // Merge the documentation PR
         // Send notifications
@@ -181,10 +182,8 @@ public class DocsAgent {
      */
     @OnException
     void handleDocumentationPullRequestException(RuntimeException error, PullRequest pullRequest) {
-        System.err.println("❌ Error during documentation workflow for PR: " + pullRequest.getId());
-        System.err.println("   Error: " + error.getMessage());
+        LOGGER.log(Level.WARNING, "documentation workflow failed for PR " + pullRequest.getId(), error);
 
-        // Log error for monitoring
         // Send notification to team
         // Create issue for manual review
 
