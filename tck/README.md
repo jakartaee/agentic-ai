@@ -66,7 +66,7 @@ public void fullPipelineExecutesInStrictOrder() {
 The API signature check in `framework/signature`; no container needed. It is the structural test: the recorded baseline covers every type, member, target, retention and meta-annotation of the API, so there are no separate reflection tests.
 
 ### Behavioral tests (`@Deployed`)
-Arquillian deployments that run real workflows against the implementation under test. Each class in `core/behavior` covers one concern: phase ordering and precedence, data propagation and resolution tie-breaks, termination, `@OnException` handling, validation, inherited and void phases, topology flexibility, orchestration, CDI integration and event observation, workflow-scope lifecycle, concurrency isolation, deployment errors, and the `LargeLanguageModel` contract. A compatibility run executes all of them; see [TESTING-GUIDELINE](../TESTING-GUIDELINE.md).
+Arquillian deployments that run real workflows against the implementation under test. Each class in `core/behavior` covers one concern: phase ordering and precedence, data propagation and resolution tie-breaks, termination, `@OnException` handling, validation, inherited and void phases, topology flexibility, orchestration, CDI integration and event observation, workflow-scope lifecycle, concurrency isolation, deployment errors, and the `LargeLanguageModel` contract. A compatibility run executes all of them; see [Running the TCK](../tck-dist/src/main/asciidoc/sections/08running.adoc) in the TCK Reference Guide.
 
 ## API signature baseline
 
