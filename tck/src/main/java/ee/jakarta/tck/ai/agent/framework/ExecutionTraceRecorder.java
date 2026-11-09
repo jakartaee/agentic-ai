@@ -37,15 +37,15 @@ public class ExecutionTraceRecorder {
         entries.add(new TraceEntry(phase, methodName, args));
     }
 
+    public void reset() {
+        entries.clear();
+    }
+
     public List<TraceEntry> entries() {
         return List.copyOf(entries);
     }
 
     public List<Phase> phases() {
         return entries.stream().map(TraceEntry::phase).toList();
-    }
-
-    public void reset() {
-        entries.clear();
     }
 }
