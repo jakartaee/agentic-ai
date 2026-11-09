@@ -25,22 +25,22 @@ import jakarta.inject.Inject;
 
 @Agent
 @ApplicationScoped
-public class ContextInjectionAgent {
+public class LlmParameterAgent {
 
     @Inject ExecutionTraceRecorder trace;
 
     @Trigger
-    public void onEvent(@Observes ContextInjectionEvent event, LargeLanguageModel llm) {
+    public void onEvent(@Observes LlmParameterEvent event, LargeLanguageModel llm) {
         trace.record(Phase.TRIGGER, "onEvent", event, llm.query("classify {}", event.payload()));
     }
 
     @Action
-    public void act(ContextInjectionEvent event, LargeLanguageModel llm) {
+    public void act(LlmParameterEvent event, LargeLanguageModel llm) {
         trace.record(Phase.ACTION, "act", event, llm.query("classify {}", event.payload()));
     }
 
     @Outcome
-    public void finish(ContextInjectionEvent event) {
+    public void finish(LlmParameterEvent event) {
         trace.record(Phase.OUTCOME, "finish", event);
     }
 }

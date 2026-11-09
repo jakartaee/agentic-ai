@@ -13,8 +13,8 @@
 package ee.jakarta.tck.ai.agent;
 
 import ee.jakarta.tck.ai.agent.agents.parameterresolution.ActionOutput;
-import ee.jakarta.tck.ai.agent.agents.parameterresolution.ContextInjectionAgent;
-import ee.jakarta.tck.ai.agent.agents.parameterresolution.ContextInjectionEvent;
+import ee.jakarta.tck.ai.agent.agents.parameterresolution.LlmParameterAgent;
+import ee.jakarta.tck.ai.agent.agents.parameterresolution.LlmParameterEvent;
 import ee.jakarta.tck.ai.agent.agents.parameterresolution.DataPropagationAgent;
 import ee.jakarta.tck.ai.agent.agents.parameterresolution.DataPropagationEvent;
 import ee.jakarta.tck.ai.agent.agents.parameterresolution.DecisionDetails;
@@ -71,7 +71,7 @@ public class ParameterResolutionTests {
     public static Archive<?> createDeployment() {
         return ShrinkWrap.create(WebArchive.class, "parameterresolution.war")
                 .addClasses(
-                        ContextInjectionAgent.class,  ContextInjectionEvent.class,
+                        LlmParameterAgent.class,  LlmParameterEvent.class,
                         ImplicitObservesAgent.class,  ImplicitObservesEvent.class,
                         ResolutionOrderAgent.class,   ResolutionOrderEvent.class, ResolutionCdiBean.class,
                         DataPropagationAgent.class,   DataPropagationEvent.class,
@@ -83,7 +83,7 @@ public class ParameterResolutionTests {
                 .addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml");
     }
 
-    @Inject Event<ContextInjectionEvent>  contextInjectionEvents;
+    @Inject Event<LlmParameterEvent>  llmParameterEvents;
     @Inject Event<ImplicitObservesEvent>  implicitObservesEvents;
     @Inject Event<ResolutionOrderEvent>   resolutionOrderEvents;
     @Inject Event<DataPropagationEvent>   dataPropagationEvents;
@@ -104,8 +104,8 @@ public class ParameterResolutionTests {
     @Test
     public void eventPayloadIsPreservedInTrigger() {
         trace.reset();
-        contextInjectionEvents.fire(new ContextInjectionEvent("my-payload"));
-        assertEquals("my-payload", assertInstanceOf(ContextInjectionEvent.class, trace.entries().get(0).args()[0]).payload());
+        llmParameterEvents.fire(new LlmParameterEvent("my-payload"));
+        assertEquals("my-payload", assertInstanceOf(LlmParameterEvent.class, trace.entries().get(0).args()[0]).payload());
     }
 
     /**
@@ -148,7 +148,7 @@ public class ParameterResolutionTests {
     @Test
     public void llmIsResolvedAsActionParameter() {
         trace.reset();
-        contextInjectionEvents.fire(new ContextInjectionEvent("payload"));
+        llmParameterEvents.fire(new LlmParameterEvent("payload"));
         assertEquals(List.of(Phase.TRIGGER, Phase.ACTION, Phase.OUTCOME), trace.phases());
         assertEquals("classify \"payload\"", trace.entries().get(1).args()[1]);
     }

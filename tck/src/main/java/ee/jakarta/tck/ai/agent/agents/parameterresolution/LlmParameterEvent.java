@@ -12,4 +12,4 @@
  *****************************************************************************/
 package ee.jakarta.tck.ai.agent.agents.parameterresolution;
 
-public record ContextInjectionEvent(String payload) {}
+public record LlmParameterEvent(String payload) {}
