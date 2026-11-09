@@ -151,11 +151,11 @@ Our mailing list is [agentic-ai-dev@eclipse.org](https://accounts.eclipse.org/ma
 
 ## Directories
 
-- [<b>api/</b>](api/): Jakarta Agentic AI API (source code)
-- [<b>spec/</b>](spec/): Specification (sources in AsciiDoc)
-- [<b>tck/</b>](tck/): Technology Compatibility Kit
-- [<b>tck-dist/</b>](tck-dist/): TCK distribution (what implementations use to certify)
-- [<b>examples/</b>](examples/): Example applications
+- [<b>api/</b>](api/): The API that applications program against
+- [<b>spec/</b>](spec/): The specification document (AsciiDoc)
+- [<b>tck/</b>](tck/): The compatibility tests that implementations must pass
+- [<b>tck-dist/</b>](tck-dist/): The TCK download that implementations certify with
+- [<b>examples/</b>](examples/): Example applications built with the API
 
 ## Building
 
