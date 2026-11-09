@@ -29,7 +29,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 /**
  * Unit tests for {@link ConcurrencyCoordinator}.
  *
- * <p>These exercise the TCK's own concurrency harness, not the specification: they
+ * <p>These exercise the TCK's own concurrency harness, not the specification. They
  * confirm the coordinator's barrier and leak-detection logic behaves correctly, so
  * the concurrency assertions are trustworthy when a
  * compatible implementation runs them.</p>
@@ -39,7 +39,7 @@ public class ConcurrencyCoordinatorTests {
     private static final int WORKFLOWS = 8;
 
     /**
-     * Simulates correctly isolated {@code @WorkflowScoped} instances: each thread
+     * Simulates correctly isolated {@code @WorkflowScoped} instances. Each thread
      * keeps its own marker across the barrier, so no leak is reported.
      */
     @Test
@@ -56,11 +56,11 @@ public class ConcurrencyCoordinatorTests {
 
         assertEquals(WORKFLOWS, coordinator.observationCount());
         assertTrue(coordinator.mismatches().isEmpty(),
-                "isolated workflows must not report any leak: " + coordinator.mismatches());
+                "Isolated workflows must not report any leak: " + coordinator.mismatches());
     }
 
     /**
-     * Simulates a thread-unsafe shared instance: all threads write to one holder
+     * Simulates a thread-unsafe shared instance. All threads write to one holder
      * before reading it back, so at least one workflow observes another's marker
      * and the coordinator reports a leak.
      */
