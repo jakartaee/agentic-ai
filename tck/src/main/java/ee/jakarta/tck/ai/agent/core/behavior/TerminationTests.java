@@ -19,24 +19,25 @@ import ee.jakarta.tck.ai.agent.core.behavior.agents.termination.ObjectTerminatio
 import ee.jakarta.tck.ai.agent.core.behavior.agents.termination.ObjectTerminationEvent;
 import ee.jakarta.tck.ai.agent.core.behavior.agents.termination.ResultTerminationAgent;
 import ee.jakarta.tck.ai.agent.core.behavior.agents.termination.ResultTerminationEvent;
-import ee.jakarta.tck.ai.agent.framework.junit.anno.Assertion;
-import ee.jakarta.tck.ai.agent.framework.junit.anno.Deployed;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder.Phase;
 import jakarta.enterprise.event.Event;
 import jakarta.inject.Inject;
 import org.jboss.arquillian.container.test.api.Deployment;
+import org.jboss.arquillian.junit5.ArquillianExtension;
 import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.EmptyAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-@Deployed
+@ExtendWith(ArquillianExtension.class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class TerminationTests {
 
@@ -54,33 +55,46 @@ public class TerminationTests {
     @Inject Event<ResultTerminationEvent>  resultEvents;
     @Inject Event<ObjectTerminationEvent>  objectEvents;
     @Inject ExecutionTraceRecorder trace;
-    @Assertion(id = "AGENTICAI-TERMINATION-001",
-               section = "agent-lifecycle",
-               strategy = "Boolean false from @Decision halts all downstream phases")
+    /**
+     * Boolean false from {@code @Decision} halts all downstream phases.
+     *
+     * <p>Specification section {@code agent-lifecycle}.
+     */
+    @Test
     public void booleanFalseTerminatesWorkflow() {
         trace.reset();
         booleanEvents.fire(new BooleanTerminationEvent("x"));
         assertEquals(List.of(Phase.TRIGGER, Phase.DECISION), trace.phases());
     }
-    @Assertion(id = "AGENTICAI-TERMINATION-002",
-               section = "agent-lifecycle",
-               strategy = "Result(success=false) from @Decision halts all downstream phases")
+    /**
+     * Result(success=false) from {@code @Decision} halts all downstream phases.
+     *
+     * <p>Specification section {@code agent-lifecycle}.
+     */
+    @Test
     public void resultFalseTerminatesWorkflow() {
         trace.reset();
         resultEvents.fire(new ResultTerminationEvent("x"));
         assertEquals(List.of(Phase.TRIGGER, Phase.DECISION), trace.phases());
     }
-    @Assertion(id = "AGENTICAI-TERMINATION-003",
-               section = "agent-lifecycle",
-               strategy = "Result(success=true) with null details from @Decision proceeds through all downstream phases")
+    /**
+     * Result(success=true) with null details from {@code @Decision} proceeds through all
+     * downstream phases.
+     *
+     * <p>Specification section {@code agent-lifecycle}.
+     */
+    @Test
     public void resultTrueWithNullDetailsProceeds() {
         trace.reset();
         resultEvents.fire(new ResultTerminationEvent("proceed"));
         assertEquals(List.of(Phase.TRIGGER, Phase.DECISION, Phase.ACTION, Phase.OUTCOME), trace.phases());
     }
-    @Assertion(id = "AGENTICAI-TERMINATION-004",
-               section = "agent-lifecycle",
-               strategy = "Object null from @Decision halts all downstream phases")
+    /**
+     * Object null from {@code @Decision} halts all downstream phases.
+     *
+     * <p>Specification section {@code agent-lifecycle}.
+     */
+    @Test
     public void objectNullTerminatesWorkflow() {
         trace.reset();
         objectEvents.fire(new ObjectTerminationEvent("x"));

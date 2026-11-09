@@ -15,24 +15,25 @@ package ee.jakarta.tck.ai.agent.core.behavior;
 import ee.jakarta.tck.ai.agent.core.behavior.agents.phaseordering.PhaseOrderingAgent;
 import ee.jakarta.tck.ai.agent.core.behavior.agents.phaseordering.PhaseOrderingEvent;
 import ee.jakarta.tck.ai.agent.core.behavior.agents.phaseordering.TriggerOutput;
-import ee.jakarta.tck.ai.agent.framework.junit.anno.Assertion;
-import ee.jakarta.tck.ai.agent.framework.junit.anno.Deployed;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder.Phase;
 import jakarta.enterprise.event.Event;
 import jakarta.inject.Inject;
 import org.jboss.arquillian.container.test.api.Deployment;
+import org.jboss.arquillian.junit5.ArquillianExtension;
 import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.EmptyAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 
-@Deployed
+@ExtendWith(ArquillianExtension.class)
 public class PhaseOrderingTests {
 
     @Deployment
@@ -44,18 +45,24 @@ public class PhaseOrderingTests {
 
     @Inject Event<PhaseOrderingEvent> events;
     @Inject ExecutionTraceRecorder trace;
-    @Assertion(id = "AGENTICAI-ORDER-001",
-               section = "agent-lifecycle",
-               strategy = "Full T→D→A→O pipeline executes in strict phase order")
+    /**
+     * Full T→D→A→O pipeline executes in strict phase order.
+     *
+     * <p>Specification section {@code agent-lifecycle}.
+     */
+    @Test
     public void fullPipelineExecutesInStrictOrder() {
         trace.reset();
         events.fire(new PhaseOrderingEvent("proceed"));
 
         assertEquals(List.of(Phase.TRIGGER, Phase.DECISION, Phase.ACTION, Phase.OUTCOME), trace.phases());
     }
-    @Assertion(id = "AGENTICAI-ORDER-002",
-               section = "agent-lifecycle",
-               strategy = "Trigger return value (non-void) is available for injection in Decision")
+    /**
+     * Trigger return value (non-void) is available for injection in Decision.
+     *
+     * <p>Specification section {@code agent-lifecycle}.
+     */
+    @Test
     public void triggerReturnValueIsInjectableInDecision() {
         trace.reset();
         events.fire(new PhaseOrderingEvent("proceed"));
@@ -65,9 +72,13 @@ public class PhaseOrderingTests {
         assertEquals("trigger:proceed", assertInstanceOf(TriggerOutput.class, decisionArgs[1]).fromTrigger());
     }
 
-    @Assertion(id = "AGENTICAI-ORDER-003",
-               section = "agent-lifecycle",
-               strategy = "The details of a Result returned by @Decision are available for injection in @Action")
+    /**
+     * The details of a Result returned by {@code @Decision} are available for injection in {@code
+     * @Action}.
+     *
+     * <p>Specification section {@code agent-lifecycle}.
+     */
+    @Test
     public void decisionDetailsAreInjectableInAction() {
         trace.reset();
         events.fire(new PhaseOrderingEvent("proceed"));

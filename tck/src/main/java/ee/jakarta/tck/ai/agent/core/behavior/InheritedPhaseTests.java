@@ -17,18 +17,19 @@ import ee.jakarta.tck.ai.agent.core.behavior.agents.inheritance.InheritEvent;
 import ee.jakarta.tck.ai.agent.core.behavior.agents.inheritance.InheritingAgent;
 import ee.jakarta.tck.ai.agent.core.behavior.agents.inheritance.OverrideEvent;
 import ee.jakarta.tck.ai.agent.core.behavior.agents.inheritance.OverridingAgent;
-import ee.jakarta.tck.ai.agent.framework.junit.anno.Assertion;
-import ee.jakarta.tck.ai.agent.framework.junit.anno.Deployed;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder.Phase;
 import jakarta.enterprise.event.Event;
 import jakarta.inject.Inject;
 import org.jboss.arquillian.container.test.api.Deployment;
+import org.jboss.arquillian.junit5.ArquillianExtension;
 import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.EmptyAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.List;
 
@@ -41,10 +42,10 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
  * override does not participate.
  *
  * <p>Uses {@code @TestInstance(PER_CLASS)} with inline {@code trace.reset()} because
- * {@code @BeforeEach} does not run reliably between methods of a {@code @Deployed}
+ * {@code @BeforeEach} does not run reliably between methods of an Arquillian test
  * class inside the container.</p>
  */
-@Deployed
+@ExtendWith(ArquillianExtension.class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class InheritedPhaseTests {
 
@@ -60,17 +61,23 @@ public class InheritedPhaseTests {
     @Inject Event<InheritEvent> inheritEvents;
     @Inject Event<OverrideEvent> overrideEvents;
     @Inject ExecutionTraceRecorder trace;
-    @Assertion(id = "AGENTICAI-INHERITANCE-001",
-               section = "agent-lifecycle",
-               strategy = "A phase method declared on a superclass is inherited and participates in the workflow")
+    /**
+     * A phase method declared on a superclass is inherited and participates in the workflow.
+     *
+     * <p>Specification section {@code agent-lifecycle}.
+     */
+    @Test
     public void inheritedActionParticipates() {
         trace.reset();
         inheritEvents.fire(new InheritEvent("input"));
         assertEquals(List.of(Phase.TRIGGER, Phase.ACTION), trace.phases());
     }
-    @Assertion(id = "AGENTICAI-INHERITANCE-002",
-               section = "agent-lifecycle",
-               strategy = "An override that drops the phase annotation does not participate in the workflow")
+    /**
+     * An override that drops the phase annotation does not participate in the workflow.
+     *
+     * <p>Specification section {@code agent-lifecycle}.
+     */
+    @Test
     public void unannotatedOverrideDoesNotParticipate() {
         trace.reset();
         overrideEvents.fire(new OverrideEvent("input"));

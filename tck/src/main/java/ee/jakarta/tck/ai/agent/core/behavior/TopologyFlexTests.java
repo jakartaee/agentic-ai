@@ -18,25 +18,26 @@ import ee.jakarta.tck.ai.agent.core.behavior.agents.topologyflex.NoDecisionAgent
 import ee.jakarta.tck.ai.agent.core.behavior.agents.topologyflex.NoDecisionEvent;
 import ee.jakarta.tck.ai.agent.core.behavior.agents.topologyflex.NoOutcomeAgent;
 import ee.jakarta.tck.ai.agent.core.behavior.agents.topologyflex.NoOutcomeEvent;
-import ee.jakarta.tck.ai.agent.framework.junit.anno.Assertion;
-import ee.jakarta.tck.ai.agent.framework.junit.anno.Deployed;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder.Phase;
 import jakarta.enterprise.event.Event;
 import jakarta.inject.Inject;
 import org.jboss.arquillian.container.test.api.Deployment;
+import org.jboss.arquillian.junit5.ArquillianExtension;
 import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.EmptyAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 
-@Deployed
+@ExtendWith(ArquillianExtension.class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class TopologyFlexTests {
 
@@ -53,26 +54,35 @@ public class TopologyFlexTests {
     @Inject Event<NoOutcomeEvent>  noOutcomeEvents;
     @Inject Event<ImplicitObservesEvent> implicitObservesEvents;
     @Inject ExecutionTraceRecorder trace;
-    @Assertion(id = "AGENTICAI-TOPOLOGY-001",
-               section = "agent-lifecycle",
-               strategy = "Workflow without @Decision executes T→A→O without error")
+    /**
+     * Workflow without {@code @Decision} executes T→A→O without error.
+     *
+     * <p>Specification section {@code agent-lifecycle}.
+     */
+    @Test
     public void workflowWithoutDecisionExecutesActions() {
         trace.reset();
         noDecisionEvents.fire(new NoDecisionEvent("test"));
         assertEquals(List.of(Phase.TRIGGER, Phase.ACTION, Phase.OUTCOME), trace.phases());
     }
-    @Assertion(id = "AGENTICAI-TOPOLOGY-002",
-               section = "agent-lifecycle",
-               strategy = "Workflow without @Outcome completes gracefully after @Action")
+    /**
+     * Workflow without {@code @Outcome} completes gracefully after {@code @Action}.
+     *
+     * <p>Specification section {@code agent-lifecycle}.
+     */
+    @Test
     public void workflowWithoutOutcomeCompletesGracefully() {
         trace.reset();
         noOutcomeEvents.fire(new NoOutcomeEvent("test"));
         assertEquals(List.of(Phase.TRIGGER, Phase.DECISION, Phase.ACTION), trace.phases());
     }
-    @Assertion(id = "AGENTICAI-TOPOLOGY-003",
-               section = "agent-lifecycle",
-               strategy = "A @Trigger whose event parameter carries no @Observes is still invoked by the triggering "
-                        + "event and runs the full T→A→O workflow")
+    /**
+     * A {@code @Trigger} whose event parameter carries no {@code @Observes} is still invoked by
+     * the triggering event and runs the full T→A→O workflow.
+     *
+     * <p>Specification section {@code agent-lifecycle}.
+     */
+    @Test
     public void triggerWithoutObservesRunsWorkflow() {
         trace.reset();
         implicitObservesEvents.fire(new ImplicitObservesEvent("test"));

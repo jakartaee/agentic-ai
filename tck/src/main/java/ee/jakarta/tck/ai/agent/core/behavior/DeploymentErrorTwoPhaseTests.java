@@ -14,15 +14,16 @@ package ee.jakarta.tck.ai.agent.core.behavior;
 
 import ee.jakarta.tck.ai.agent.core.behavior.agents.deploymenterror.TwoPhaseMethodAgent;
 import ee.jakarta.tck.ai.agent.core.behavior.agents.deploymenterror.TwoPhaseMethodEvent;
-import ee.jakarta.tck.ai.agent.framework.junit.anno.Assertion;
-import ee.jakarta.tck.ai.agent.framework.junit.anno.Deployed;
 import jakarta.enterprise.inject.spi.DeploymentException;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.ShouldThrowException;
+import org.jboss.arquillian.junit5.ArquillianExtension;
 import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.EmptyAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 /**
  * Deployment-error case G3a (<em>One Phase per Method</em>): an agent whose
@@ -35,7 +36,7 @@ import org.jboss.shrinkwrap.api.spec.WebArchive;
  * declares that building the container for this archive must fail with a
  * {@link DeploymentException}; the test body is therefore empty.</p>
  */
-@Deployed
+@ExtendWith(ArquillianExtension.class)
 public class DeploymentErrorTwoPhaseTests {
 
     @Deployment
@@ -46,9 +47,12 @@ public class DeploymentErrorTwoPhaseTests {
                 .addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml");
     }
 
-    @Assertion(id = "AGENTICAI-DEPLOYMENT-001",
-               section = "agent-lifecycle",
-               strategy = "Combining two phase annotations on one method is a deployment error rejected at deploy time")
+    /**
+     * Combining two phase annotations on one method is a deployment error rejected at deploy time.
+     *
+     * <p>Specification section {@code agent-lifecycle}.
+     */
+    @Test
     public void twoPhaseMethodIsRejected() {
         // Verified by @ShouldThrowException on the deployment.
     }

@@ -13,17 +13,18 @@
 package ee.jakarta.tck.ai.agent.framework.signature;
 
 import com.sun.tdk.signaturetest.SignatureTest;
-import ee.jakarta.tck.ai.agent.framework.junit.anno.Assertion;
-import ee.jakarta.tck.ai.agent.framework.junit.anno.Deployed;
 import jakarta.ai.agent.Agent;
 import jakarta.enterprise.context.NormalScope;
 import jakarta.enterprise.util.AnnotationLiteral;
 import org.jboss.arquillian.container.test.api.Deployment;
+import org.jboss.arquillian.junit5.ArquillianExtension;
 import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.ByteArrayAsset;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.io.File;
 import java.io.IOException;
@@ -62,7 +63,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * recorded against, so the result does not depend on which newer JDK runs
  * the implementation.</p>
  */
-@Deployed
+@ExtendWith(ArquillianExtension.class)
 public class SignatureTests {
 
     static final String PACKAGE = "jakarta.ai.agent";
@@ -80,10 +81,13 @@ public class SignatureTests {
                 .addAsResource(SIGNATURE_RESOURCE);
     }
 
-    @Assertion(id = "AGENTICAI-SIGNATURE-001",
-               section = "programming-model",
-               strategy ="Run the Jakarta TCK signature test engine in strict static mode "
-                       + "against the recorded jakarta.ai.agent signature file")
+    /**
+     * Run the Jakarta TCK signature test engine in strict static mode against the recorded
+     * jakarta.ai.agent signature file.
+     *
+     * <p>Specification section {@code programming-model}.
+     */
+    @Test
     public void apiMatchesRecordedSignature() throws IOException, URISyntaxException {
         Path signatureFile = Files.createTempFile("jakarta.ai.agent", ".sig");
         try {

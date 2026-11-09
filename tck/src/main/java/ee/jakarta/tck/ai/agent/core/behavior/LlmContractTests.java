@@ -20,8 +20,6 @@ import ee.jakarta.tck.ai.agent.core.behavior.agents.llm.LlmQuerierAgent;
 import ee.jakarta.tck.ai.agent.core.behavior.agents.llm.LlmQuerierEvent;
 import ee.jakarta.tck.ai.agent.core.behavior.agents.llm.NonSerializableParam;
 import ee.jakarta.tck.ai.agent.core.behavior.agents.llm.PersonFixture;
-import ee.jakarta.tck.ai.agent.framework.junit.anno.Assertion;
-import ee.jakarta.tck.ai.agent.framework.junit.anno.Deployed;
 import ee.jakarta.tck.ai.agent.framework.llm.TckModel;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder.Phase;
@@ -31,10 +29,13 @@ import jakarta.ai.agent.LargeLanguageModel;
 import jakarta.enterprise.event.Event;
 import jakarta.inject.Inject;
 import org.jboss.arquillian.container.test.api.Deployment;
+import org.jboss.arquillian.junit5.ArquillianExtension;
 import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.EmptyAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.List;
 import java.util.function.Function;
@@ -50,7 +51,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * Every call is made from inside a workflow through {@link LlmProbeAgent},
  * because the facade and its conversational state are defined only there.
  */
-@Deployed
+@ExtendWith(ArquillianExtension.class)
 public class LlmContractTests {
 
     @Deployment
@@ -76,135 +77,191 @@ public class LlmContractTests {
 
     // -- validation: IllegalArgumentException before any model call ----------
 
-    @Assertion(id = "AGENTICAI-LLM-001",
-               section = "llm-integration",
-               strategy = "null prompt on query(String) throws IllegalArgumentException")
+    /**
+     * null prompt on query(String) throws IllegalArgumentException.
+     *
+     * <p>Specification section {@code llm-integration}.
+     */
+    @Test
     public void nullPromptThrowsIllegalArgumentException() {
         assertInstanceOf(IllegalArgumentException.class, probe(llm -> llm.query(null)));
     }
 
-    @Assertion(id = "AGENTICAI-LLM-002",
-               section = "llm-integration",
-               strategy = "null prompt on query(String, Object...) throws IllegalArgumentException")
+    /**
+     * null prompt on query(String, Object...) throws IllegalArgumentException.
+     *
+     * <p>Specification section {@code llm-integration}.
+     */
+    @Test
     public void nullPromptWithParamsThrowsIllegalArgumentException() {
         assertInstanceOf(IllegalArgumentException.class, probe(llm -> llm.query(null, "x")));
     }
 
-    @Assertion(id = "AGENTICAI-LLM-003",
-               section = "llm-integration",
-               strategy = "null prompt on query(String, Class) throws IllegalArgumentException")
+    /**
+     * null prompt on query(String, Class) throws IllegalArgumentException.
+     *
+     * <p>Specification section {@code llm-integration}.
+     */
+    @Test
     public void nullPromptOnTypedOverloadThrowsIllegalArgumentException() {
         assertInstanceOf(IllegalArgumentException.class, probe(llm -> llm.query(null, PersonFixture.class)));
     }
 
-    @Assertion(id = "AGENTICAI-LLM-004",
-               section = "llm-integration",
-               strategy = "null resultType on query(String, Class) throws IllegalArgumentException")
+    /**
+     * null resultType on query(String, Class) throws IllegalArgumentException.
+     *
+     * <p>Specification section {@code llm-integration}.
+     */
+    @Test
     public void nullResultTypeThrowsIllegalArgumentException() {
         assertInstanceOf(IllegalArgumentException.class, probe(llm -> llm.query("p", (Class<?>) null)));
     }
 
-    @Assertion(id = "AGENTICAI-LLM-005",
-               section = "llm-integration",
-               strategy = "null prompt on query(String, Class, Object...) throws IllegalArgumentException")
+    /**
+     * null prompt on query(String, Class, Object...) throws IllegalArgumentException.
+     *
+     * <p>Specification section {@code llm-integration}.
+     */
+    @Test
     public void nullPromptOnTypedVarargsOverloadThrowsIllegalArgumentException() {
         assertInstanceOf(IllegalArgumentException.class, probe(llm -> llm.query(null, PersonFixture.class, "x")));
     }
 
-    @Assertion(id = "AGENTICAI-LLM-006",
-               section = "llm-integration",
-               strategy = "null resultType on query(String, Class, Object...) throws IllegalArgumentException")
+    /**
+     * null resultType on query(String, Class, Object...) throws IllegalArgumentException.
+     *
+     * <p>Specification section {@code llm-integration}.
+     */
+    @Test
     public void nullResultTypeOnTypedVarargsOverloadThrowsIllegalArgumentException() {
         assertInstanceOf(IllegalArgumentException.class, probe(llm -> llm.query("p", (Class<?>) null, "x")));
     }
 
-    @Assertion(id = "AGENTICAI-LLM-007",
-               section = "llm-integration",
-               strategy = "more parameters than {} placeholders throws IllegalArgumentException")
+    /**
+     * more parameters than {} placeholders throws IllegalArgumentException.
+     *
+     * <p>Specification section {@code llm-integration}.
+     */
+    @Test
     public void arityMoreParamsThanPlaceholdersThrows() {
         assertInstanceOf(IllegalArgumentException.class, probe(llm -> llm.query("one {} here", "a", "b")));
     }
 
-    @Assertion(id = "AGENTICAI-LLM-008",
-               section = "llm-integration",
-               strategy = "fewer parameters than {} placeholders throws IllegalArgumentException")
+    /**
+     * fewer parameters than {} placeholders throws IllegalArgumentException.
+     *
+     * <p>Specification section {@code llm-integration}.
+     */
+    @Test
     public void arityFewerParamsThanPlaceholdersThrows() {
         assertInstanceOf(IllegalArgumentException.class, probe(llm -> llm.query("two {} and {}", "only")));
     }
 
-    @Assertion(id = "AGENTICAI-LLM-009",
-               section = "llm-integration",
-               strategy = "more parameters than {} placeholders on the typed varargs overload throws IllegalArgumentException")
+    /**
+     * more parameters than {} placeholders on the typed varargs overload throws
+     * IllegalArgumentException.
+     *
+     * <p>Specification section {@code llm-integration}.
+     */
+    @Test
     public void arityMismatchOnTypedVarargsOverloadThrows() {
         assertInstanceOf(IllegalArgumentException.class,
                 probe(llm -> llm.query("one {} here", PersonFixture.class, "a", "b")));
     }
 
-    @Assertion(id = "AGENTICAI-LLM-010",
-               section = "llm-integration",
-               strategy = "a prompt with no placeholder given more than one parameter throws IllegalArgumentException")
+    /**
+     * a prompt with no placeholder given more than one parameter throws IllegalArgumentException.
+     *
+     * <p>Specification section {@code llm-integration}.
+     */
+    @Test
     public void noPlaceholderRejectsMultipleParams() {
         assertInstanceOf(IllegalArgumentException.class, probe(llm -> llm.query("Analyze this", "a", "b")));
     }
 
-    @Assertion(id = "AGENTICAI-LLM-011",
-               section = "llm-integration",
-               strategy = "a parameter JSON Binding cannot serialize throws IllegalArgumentException")
+    /**
+     * a parameter JSON Binding cannot serialize throws IllegalArgumentException.
+     *
+     * <p>Specification section {@code llm-integration}.
+     */
+    @Test
     public void parameterSerializationFailureThrowsIllegalArgumentException() {
         assertInstanceOf(IllegalArgumentException.class,
                 probe(llm -> llm.query("process {}", new NonSerializableParam())));
     }
 
-    @Assertion(id = "AGENTICAI-LLM-012",
-               section = "llm-integration",
-               strategy = "a parameter JSON Binding cannot serialize on the typed varargs overload throws IllegalArgumentException")
+    /**
+     * a parameter JSON Binding cannot serialize on the typed varargs overload throws
+     * IllegalArgumentException.
+     *
+     * <p>Specification section {@code llm-integration}.
+     */
+    @Test
     public void parameterSerializationFailureOnTypedOverloadThrowsIllegalArgumentException() {
         assertInstanceOf(IllegalArgumentException.class,
                 probe(llm -> llm.query("process {}", PersonFixture.class, new NonSerializableParam())));
     }
 
-    @Assertion(id = "AGENTICAI-LLM-013",
-               section = "llm-integration",
-               strategy = "unwrap to a type the facade cannot be unwrapped to throws IllegalArgumentException")
+    /**
+     * unwrap to a type the facade cannot be unwrapped to throws IllegalArgumentException.
+     *
+     * <p>Specification section {@code llm-integration}.
+     */
+    @Test
     public void unwrapToIncompatibleTypeThrowsIllegalArgumentException() {
         assertInstanceOf(IllegalArgumentException.class, probe(llm -> llm.unwrap(String.class)));
     }
 
-    @Assertion(id = "AGENTICAI-LLM-014",
-               section = "llm-integration",
-               strategy = "unwrap(Object.class) returns the underlying implementation")
+    /**
+     * unwrap(Object.class) returns the underlying implementation.
+     *
+     * <p>Specification section {@code llm-integration}.
+     */
+    @Test
     public void unwrapToCompatibleTypeReturnsImplementation() {
         assertNotNull(probe(llm -> llm.unwrap(Object.class)));
     }
 
     // -- rendering: the echoed response is the rendered prompt -----------------
 
-    @Assertion(id = "AGENTICAI-LLM-015",
-               section = "llm-integration",
-               strategy = "{} placeholders are substituted in declaration order with the JSON Binding form of each parameter; "
-                       + "the echo model returns the rendered prompt")
+    /**
+     * {} placeholders are substituted in declaration order with the JSON Binding form of each
+     * parameter; the echo model returns the rendered prompt.
+     *
+     * <p>Specification section {@code llm-integration}.
+     */
+    @Test
     public void positionalPlaceholdersSubstitutedInOrderViaJsonB() {
         assertEquals("Hello \"Alice\" and \"Bob\"", probe(llm -> llm.query("Hello {} and {}", "Alice", "Bob")));
     }
 
-    @Assertion(id = "AGENTICAI-LLM-016",
-               section = "llm-integration",
-               strategy = "look-alike tokens ({name}, { }) are literal prompt text, not placeholders")
+    /**
+     * look-alike tokens ({name}, { }) are literal prompt text, not placeholders.
+     *
+     * <p>Specification section {@code llm-integration}.
+     */
+    @Test
     public void lookAlikeTokensAreNotPlaceholders() {
         assertEquals("{name} and { } stay literal",
                 probe(llm -> llm.query("{name} and { } stay literal", new Object[0])));
     }
 
-    @Assertion(id = "AGENTICAI-LLM-017",
-               section = "llm-integration",
-               strategy = "a prompt with no placeholder accepts one structured-context parameter and is sent unchanged")
+    /**
+     * a prompt with no placeholder accepts one structured-context parameter and is sent unchanged.
+     *
+     * <p>Specification section {@code llm-integration}.
+     */
+    @Test
     public void noPlaceholderAllowsSingleStructuredContextParam() {
         assertEquals("Analyze this", probe(llm -> llm.query("Analyze this", new PersonFixture("A", 1))));
     }
 
-    @Assertion(id = "AGENTICAI-LLM-018",
-               section = "llm-integration",
-               strategy = "a complex parameter is rendered into the prompt as its JSON Binding serialization")
+    /**
+     * a complex parameter is rendered into the prompt as its JSON Binding serialization.
+     *
+     * <p>Specification section {@code llm-integration}.
+     */
+    @Test
     public void complexObjectSerializedViaJsonBinding() {
         String rendered = assertInstanceOf(String.class,
                 probe(llm -> llm.query("Profile: {}", new PersonFixture("Alice", 30))));
@@ -213,18 +270,24 @@ public class LlmContractTests {
         assertTrue(rendered.contains("\"age\":30"), rendered);
     }
 
-    @Assertion(id = "AGENTICAI-LLM-019",
-               section = "llm-integration",
-               strategy = "a typed response is deserialized from the model's JSON text with JSON Binding")
+    /**
+     * a typed response is deserialized from the model's JSON text with JSON Binding.
+     *
+     * <p>Specification section {@code llm-integration}.
+     */
+    @Test
     public void typedResponseDeserializedViaJsonBinding() {
         PersonFixture p = assertInstanceOf(PersonFixture.class,
                 probe(llm -> llm.query("{\"name\":\"Bob\",\"age\":25}", PersonFixture.class)));
         assertEquals(new PersonFixture("Bob", 25), p);
     }
 
-    @Assertion(id = "AGENTICAI-LLM-020",
-               section = "llm-integration",
-               strategy = "the typed varargs overload renders the parameters and deserializes the model's JSON text")
+    /**
+     * the typed varargs overload renders the parameters and deserializes the model's JSON text.
+     *
+     * <p>Specification section {@code llm-integration}.
+     */
+    @Test
     public void typedVarargsResponseDeserializedViaJsonBinding() {
         PersonFixture p = assertInstanceOf(PersonFixture.class,
                 probe(llm -> llm.query("{\"name\":{},\"age\":{}}", PersonFixture.class, "Bob", 25)));
@@ -233,52 +296,76 @@ public class LlmContractTests {
 
     // -- failures: LLMException ----------------------------------------------
 
-    @Assertion(id = "AGENTICAI-LLM-021",
-               section = "llm-exception",
-               strategy = "a model failure surfaces as LLMException")
+    /**
+     * a model failure surfaces as LLMException.
+     *
+     * <p>Specification section {@code llm-exception}.
+     */
+    @Test
     public void serviceErrorPropagatesAsLlmException() {
         assertInstanceOf(LLMException.class, probe(llm -> llm.query(TckModel.FAIL)));
     }
 
-    @Assertion(id = "AGENTICAI-LLM-022",
-               section = "llm-exception",
-               strategy = "a model failure surfaces as LLMException on query(String, Class)")
+    /**
+     * a model failure surfaces as LLMException on query(String, Class).
+     *
+     * <p>Specification section {@code llm-exception}.
+     */
+    @Test
     public void serviceErrorOnTypedOverloadPropagatesAsLlmException() {
         assertInstanceOf(LLMException.class, probe(llm -> llm.query(TckModel.FAIL, PersonFixture.class)));
     }
 
-    @Assertion(id = "AGENTICAI-LLM-023",
-               section = "llm-exception",
-               strategy = "a model failure surfaces as LLMException on query(String, Object...) when the rendered prompt fails")
+    /**
+     * a model failure surfaces as LLMException on query(String, Object...) when the rendered
+     * prompt fails.
+     *
+     * <p>Specification section {@code llm-exception}.
+     */
+    @Test
     public void serviceErrorOnVarargsOverloadPropagatesAsLlmException() {
         assertInstanceOf(LLMException.class, probe(llm -> llm.query("{} fails", TckModel.FAIL)));
     }
 
-    @Assertion(id = "AGENTICAI-LLM-024",
-               section = "llm-exception",
-               strategy = "a model failure surfaces as LLMException on query(String, Class, Object...) when the rendered prompt fails")
+    /**
+     * a model failure surfaces as LLMException on query(String, Class, Object...) when the
+     * rendered prompt fails.
+     *
+     * <p>Specification section {@code llm-exception}.
+     */
+    @Test
     public void serviceErrorOnTypedVarargsOverloadPropagatesAsLlmException() {
         assertInstanceOf(LLMException.class, probe(llm -> llm.query("{} fails", PersonFixture.class, TckModel.FAIL)));
     }
 
-    @Assertion(id = "AGENTICAI-LLM-025",
-               section = "llm-exception",
-               strategy = "a response that cannot be deserialized to the requested type surfaces as LLMException")
+    /**
+     * a response that cannot be deserialized to the requested type surfaces as LLMException.
+     *
+     * <p>Specification section {@code llm-exception}.
+     */
+    @Test
     public void typeConversionFailurePropagatesAsLlmException() {
         assertInstanceOf(LLMException.class, probe(llm -> llm.query("not json", PersonFixture.class)));
     }
 
-    @Assertion(id = "AGENTICAI-LLM-026",
-               section = "llm-exception",
-               strategy = "a response that cannot be deserialized on the typed varargs overload surfaces as LLMException")
+    /**
+     * a response that cannot be deserialized on the typed varargs overload surfaces as
+     * LLMException.
+     *
+     * <p>Specification section {@code llm-exception}.
+     */
+    @Test
     public void typeConversionFailureOnTypedVarargsOverloadPropagatesAsLlmException() {
         assertInstanceOf(LLMException.class, probe(llm -> llm.query("not json {}", PersonFixture.class, "x")));
     }
 
-    @Assertion(id = "AGENTICAI-LLM-027",
-               section = "llm-exception",
-               strategy = "an LLMException thrown from a phase is routed to a matching @OnException method, "
-                       + "and the workflow continues to @Outcome when the handler returns normally")
+    /**
+     * an LLMException thrown from a phase is routed to a matching {@code @OnException} method, and
+     * the workflow continues to {@code @Outcome} when the handler returns normally.
+     *
+     * <p>Specification section {@code llm-exception}.
+     */
+    @Test
     public void llmExceptionIsHandledByOnException() {
         trace.reset();
         failures.fire(new LlmFailureEvent("x"));
@@ -287,10 +374,13 @@ public class LlmContractTests {
     }
 
     // -- conversational state --------------------------------------------------
-    @Assertion(id = "AGENTICAI-LLM-028",
-               section = "llm-conversational-state",
-               strategy = "each workflow's conversation holds only its own turns: after two sequential workflows, "
-                       + "the history the model reports to the second contains only the second's turn")
+    /**
+     * each workflow's conversation holds only its own turns: after two sequential workflows, the
+     * history the model reports to the second contains only the second's turn.
+     *
+     * <p>Specification section {@code llm-conversational-state}.
+     */
+    @Test
     public void conversationalStateIsolatedBetweenWorkflows() {
         trace.reset();
         queries.fire(new LlmQuerierEvent("workflow-1"));

@@ -15,18 +15,19 @@ package ee.jakarta.tck.ai.agent.core.behavior;
 import ee.jakarta.tck.ai.agent.core.behavior.agents.datapropagation.DecisionDetails;
 import ee.jakarta.tck.ai.agent.core.behavior.agents.datapropagation.ResultDetailsAgent;
 import ee.jakarta.tck.ai.agent.core.behavior.agents.datapropagation.ResultDetailsEvent;
-import ee.jakarta.tck.ai.agent.framework.junit.anno.Assertion;
-import ee.jakarta.tck.ai.agent.framework.junit.anno.Deployed;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder.Phase;
 import jakarta.enterprise.event.Event;
 import jakarta.inject.Inject;
 import org.jboss.arquillian.container.test.api.Deployment;
+import org.jboss.arquillian.junit5.ArquillianExtension;
 import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.EmptyAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.List;
 
@@ -38,10 +39,10 @@ import static org.junit.jupiter.api.Assertions.assertInstanceOf;
  * workflow state and is injectable by its runtime type into later phases.
  *
  * <p>Uses {@code @TestInstance(PER_CLASS)} with inline {@code trace.reset()} because
- * {@code @BeforeEach} does not run reliably between methods of a {@code @Deployed}
+ * {@code @BeforeEach} does not run reliably between methods of an Arquillian test
  * class inside the container.</p>
  */
-@Deployed
+@ExtendWith(ArquillianExtension.class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class ResultDetailsInjectionTests {
 
@@ -54,9 +55,12 @@ public class ResultDetailsInjectionTests {
 
     @Inject Event<ResultDetailsEvent> events;
     @Inject ExecutionTraceRecorder trace;
-    @Assertion(id = "AGENTICAI-RESULT-001",
-               section = "parameter-resolution",
-               strategy = "A non-null Result.details is injectable by its runtime type into a later phase")
+    /**
+     * A non-null Result.details is injectable by its runtime type into a later phase.
+     *
+     * <p>Specification section {@code parameter-resolution}.
+     */
+    @Test
     public void resultDetailsIsInjectableByRuntimeType() {
         trace.reset();
         events.fire(new ResultDetailsEvent("input"));

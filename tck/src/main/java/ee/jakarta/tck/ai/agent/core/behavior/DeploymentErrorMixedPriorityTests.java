@@ -14,15 +14,16 @@ package ee.jakarta.tck.ai.agent.core.behavior;
 
 import ee.jakarta.tck.ai.agent.core.behavior.agents.deploymenterror.DeploymentErrorEvent;
 import ee.jakarta.tck.ai.agent.core.behavior.agents.deploymenterror.MixedPriorityAgent;
-import ee.jakarta.tck.ai.agent.framework.junit.anno.Assertion;
-import ee.jakarta.tck.ai.agent.framework.junit.anno.Deployed;
 import jakarta.enterprise.inject.spi.DeploymentException;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.ShouldThrowException;
+import org.jboss.arquillian.junit5.ArquillianExtension;
 import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.EmptyAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 /**
  * Deployment-error case G3b (<em>Consistency Requirement</em>), {@code @Priority}
@@ -30,7 +31,7 @@ import org.jboss.shrinkwrap.api.spec.WebArchive;
  * method with an unordered one must be rejected at deployment time, exactly as
  * mixing {@code order} with unordered methods is.
  */
-@Deployed
+@ExtendWith(ArquillianExtension.class)
 public class DeploymentErrorMixedPriorityTests {
 
     @Deployment
@@ -41,9 +42,13 @@ public class DeploymentErrorMixedPriorityTests {
                 .addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml");
     }
 
-    @Assertion(id = "AGENTICAI-DEPLOYMENT-003",
-               section = "agent-lifecycle",
-               strategy = "Mixing a @Priority-ordered method with an unordered one is a deployment error, the same rule as for order")
+    /**
+     * Mixing a {@code @Priority}-ordered method with an unordered one is a deployment error, the
+     * same rule as for order.
+     *
+     * <p>Specification section {@code agent-lifecycle}.
+     */
+    @Test
     public void mixedPriorityIsRejected() {
         // Verified by @ShouldThrowException on the deployment.
     }

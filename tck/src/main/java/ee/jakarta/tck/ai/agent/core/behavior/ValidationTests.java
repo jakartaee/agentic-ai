@@ -12,6 +12,7 @@
  *****************************************************************************/
 package ee.jakarta.tck.ai.agent.core.behavior;
 
+import ee.jakarta.tck.ai.agent.core.behavior.agents.errorhandling.AgentDomainException;
 import ee.jakarta.tck.ai.agent.core.behavior.agents.validation.DecisionValidatedAgent;
 import ee.jakarta.tck.ai.agent.core.behavior.agents.validation.DecisionValidationEvent;
 import ee.jakarta.tck.ai.agent.core.behavior.agents.validation.HandlerInput;
@@ -26,9 +27,6 @@ import ee.jakarta.tck.ai.agent.core.behavior.agents.validation.UnhandledValidate
 import ee.jakarta.tck.ai.agent.core.behavior.agents.validation.UnhandledValidationEvent;
 import ee.jakarta.tck.ai.agent.core.behavior.agents.validation.ValidatedAgent;
 import ee.jakarta.tck.ai.agent.core.behavior.agents.validation.ValidationEvent;
-import ee.jakarta.tck.ai.agent.core.behavior.agents.errorhandling.AgentDomainException;
-import ee.jakarta.tck.ai.agent.framework.junit.anno.Assertion;
-import ee.jakarta.tck.ai.agent.framework.junit.anno.Deployed;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder.Phase;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder.TraceEntry;
@@ -36,11 +34,14 @@ import jakarta.enterprise.event.Event;
 import jakarta.inject.Inject;
 import jakarta.validation.ConstraintViolationException;
 import org.jboss.arquillian.container.test.api.Deployment;
+import org.jboss.arquillian.junit5.ArquillianExtension;
 import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.EmptyAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.List;
 
@@ -57,11 +58,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * <p>Validation is performed by the implementation before parameter
  * injection and phase invocation.</p>
  *
- * <p>Note on reset: in {@code @Deployed} classes {@code @BeforeEach} does not run
+ * <p>Note on reset: in Arquillian test classes {@code @BeforeEach} does not run
  * reliably between methods inside the container, so each test resets the trace
  * inline.</p>
  */
-@Deployed
+@ExtendWith(ArquillianExtension.class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class ValidationTests {
 
@@ -88,9 +89,13 @@ public class ValidationTests {
     @Inject ExecutionTraceRecorder          trace;
 
     // ── Valid input proceeds ──────────────────────────────────────────────────
-    @Assertion(id = "AGENTICAI-VALIDATION-001",
-               section = "jakarta-validation-constraints",
-               strategy = "Valid input passes validation and the @Action body runs, producing the TRIGGER→ACTION sequence")
+    /**
+     * Valid input passes validation and the {@code @Action} body runs, producing the
+     * TRIGGER→ACTION sequence.
+     *
+     * <p>Specification section {@code jakarta-validation-constraints}.
+     */
+    @Test
     public void validInputProceedsThroughAction() {
         trace.reset();
         events.fire(new ValidationEvent("ok"));
@@ -98,9 +103,12 @@ public class ValidationTests {
     }
 
     // ── Invalid input: body does not run ─────────────────────────────────────
-    @Assertion(id = "AGENTICAI-VALIDATION-002",
-               section = "jakarta-validation-constraints",
-               strategy = "Invalid input fails validation before injection, so the @Action body never runs")
+    /**
+     * Invalid input fails validation before injection, so the {@code @Action} body never runs.
+     *
+     * <p>Specification section {@code jakarta-validation-constraints}.
+     */
+    @Test
     public void invalidInputDoesNotRunActionBody() {
         trace.reset();
         events.fire(new ValidationEvent(null));
@@ -108,9 +116,13 @@ public class ValidationTests {
     }
 
     // ── Invalid input: routed to @OnException ────────────────────────────
-    @Assertion(id = "AGENTICAI-VALIDATION-003",
-               section = "jakarta-validation-constraints",
-               strategy = "A ConstraintViolationException from failed validation is routed to a matching @OnException method")
+    /**
+     * A ConstraintViolationException from failed validation is routed to a matching {@code
+     * @OnException} method.
+     *
+     * <p>Specification section {@code jakarta-validation-constraints}.
+     */
+    @Test
     public void invalidInputRoutedToHandler() {
         trace.reset();
         events.fire(new ValidationEvent(null));
@@ -124,9 +136,13 @@ public class ValidationTests {
     }
 
     // ── Invalid input with no handler: propagates to the container ───────────
-    @Assertion(id = "AGENTICAI-VALIDATION-004",
-               section = "jakarta-validation-constraints",
-               strategy = "Without a matching @OnException, the ConstraintViolationException propagates to the container")
+    /**
+     * Without a matching {@code @OnException}, the ConstraintViolationException propagates to the
+     * container.
+     *
+     * <p>Specification section {@code jakarta-validation-constraints}.
+     */
+    @Test
     public void invalidInputPropagatesWithoutHandler() {
         trace.reset();
         Throwable thrown = assertThrows(Throwable.class,
@@ -140,10 +156,14 @@ public class ValidationTests {
     }
 
     // ── Constraints on other phases ──────────────────────────────────────────
-    @Assertion(id = "AGENTICAI-VALIDATION-005",
-               section = "jakarta-validation-constraints",
-               strategy = "A constraint on the @Trigger event parameter is validated before the trigger body runs; "
-                        + "the ConstraintViolationException is routed to @OnException and no later phase runs")
+    /**
+     * A constraint on the {@code @Trigger} event parameter is validated before the trigger body
+     * runs; the ConstraintViolationException is routed to {@code @OnException} and no later phase
+     * runs.
+     *
+     * <p>Specification section {@code jakarta-validation-constraints}.
+     */
+    @Test
     public void invalidTriggerEventIsValidatedBeforeTrigger() {
         trace.reset();
         triggerEvents.fire(new TriggerValidationEvent(null));
@@ -156,10 +176,13 @@ public class ValidationTests {
                 .orElseThrow();
         assertInstanceOf(ConstraintViolationException.class, handlerEntry.args()[0]);
     }
-    @Assertion(id = "AGENTICAI-VALIDATION-006",
-               section = "jakarta-validation-constraints",
-               strategy = "A constraint on a @Decision parameter is validated before the decision body runs; "
-                        + "the ConstraintViolationException is routed to @OnException and the chain stops")
+    /**
+     * A constraint on a {@code @Decision} parameter is validated before the decision body runs;
+     * the ConstraintViolationException is routed to {@code @OnException} and the chain stops.
+     *
+     * <p>Specification section {@code jakarta-validation-constraints}.
+     */
+    @Test
     public void invalidDecisionParameterIsValidatedBeforeDecision() {
         trace.reset();
         decisionEvents.fire(new DecisionValidationEvent(null));
@@ -172,9 +195,12 @@ public class ValidationTests {
                 .orElseThrow();
         assertInstanceOf(ConstraintViolationException.class, handlerEntry.args()[0]);
     }
-    @Assertion(id = "AGENTICAI-VALIDATION-007",
-               section = "jakarta-validation-constraints",
-               strategy = "Valid input on the trigger event and the decision parameter runs those phases normally")
+    /**
+     * Valid input on the trigger event and the decision parameter runs those phases normally.
+     *
+     * <p>Specification section {@code jakarta-validation-constraints}.
+     */
+    @Test
     public void validInputOnOtherPhasesProceeds() {
         trace.reset();
         triggerEvents.fire(new TriggerValidationEvent("ok"));
@@ -185,10 +211,14 @@ public class ValidationTests {
         assertEquals(List.of(Phase.TRIGGER, Phase.DECISION, Phase.ACTION), trace.phases());
     }
 
-    @Assertion(id = "AGENTICAI-VALIDATION-008",
-               section = "jakarta-validation-constraints",
-               strategy = "A constraint on an @Outcome parameter is validated before the outcome body runs; "
-                        + "the ConstraintViolationException is routed to @OnException, and valid input reaches the outcome")
+    /**
+     * A constraint on an {@code @Outcome} parameter is validated before the outcome body runs; the
+     * ConstraintViolationException is routed to {@code @OnException}, and valid input reaches the
+     * outcome.
+     *
+     * <p>Specification section {@code jakarta-validation-constraints}.
+     */
+    @Test
     public void invalidOutcomeParameterIsValidatedBeforeOutcome() {
         trace.reset();
         outcomeEvents.fire(new OutcomeValidationEvent(null));
@@ -206,10 +236,13 @@ public class ValidationTests {
     }
 
     // ── Constraints on @OnException parameters ───────────────────────────────
-    @Assertion(id = "AGENTICAI-VALIDATION-009",
-               section = "jakarta-validation-constraints",
-               strategy = "A constraint violation on an @OnException parameter propagates to the container instead of "
-                        + "re-entering exception handling; the handler body does not run")
+    /**
+     * A constraint violation on an {@code @OnException} parameter propagates to the container
+     * instead of re-entering exception handling; the handler body does not run.
+     *
+     * <p>Specification section {@code jakarta-validation-constraints}.
+     */
+    @Test
     public void invalidHandlerParameterPropagatesWithoutRunningHandler() {
         trace.reset();
         Throwable thrown = assertThrows(Throwable.class,

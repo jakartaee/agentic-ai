@@ -25,8 +25,6 @@ import ee.jakarta.tck.ai.agent.core.behavior.agents.cdi.ResolutionOrderAgent;
 import ee.jakarta.tck.ai.agent.core.behavior.agents.cdi.ResolutionOrderEvent;
 import ee.jakarta.tck.ai.agent.core.behavior.agents.cdi.SingletonCdiAgent;
 import ee.jakarta.tck.ai.agent.core.behavior.agents.cdi.SingletonCdiEvent;
-import ee.jakarta.tck.ai.agent.framework.junit.anno.Assertion;
-import ee.jakarta.tck.ai.agent.framework.junit.anno.Deployed;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder.Phase;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder.TraceEntry;
@@ -34,18 +32,21 @@ import jakarta.ai.agent.LargeLanguageModel;
 import jakarta.enterprise.event.Event;
 import jakarta.inject.Inject;
 import org.jboss.arquillian.container.test.api.Deployment;
+import org.jboss.arquillian.junit5.ArquillianExtension;
 import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 
-@Deployed
+@ExtendWith(ArquillianExtension.class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class CdiIntegrationTests {
 
@@ -86,30 +87,41 @@ public class CdiIntegrationTests {
     @Inject Event<InnerAgentEvent>          innerAgentEvents;
     @Inject ExecutionTraceRecorder          trace;
 
-    @Assertion(id = "AGENTICAI-CDI-001",
-               section = "cdi-integration",
-               strategy = "A static nested class annotated @Agent @ApplicationScoped is discovered as a CDI "
-                        + "managed bean and its @Trigger observer fires when the triggering event is fired")
+    /**
+     * A static nested class annotated {@code @Agent} {@code @ApplicationScoped} is discovered as a
+     * CDI managed bean and its {@code @Trigger} observer fires when the triggering event is fired.
+     *
+     * <p>Specification section {@code cdi-integration}.
+     */
+    @Test
     public void staticInnerAgentIsDiscoveredAsCdiBean() {
         trace.reset();
         innerAgentEvents.fire(new InnerAgentEvent("test"));
         assertEquals(List.of(Phase.TRIGGER), trace.phases());
     }
 
-    @Assertion(id = "AGENTICAI-CDI-002",
-               section = "cdi-integration",
-               strategy = "An @Agent bean using @Inject constructor injection (no no-args constructor) is a valid "
-                        + "CDI managed bean; the @Trigger fires, proving the container created it via its constructor")
+    /**
+     * An {@code @Agent} bean using {@code @Inject} constructor injection (no no-args constructor)
+     * is a valid CDI managed bean; the {@code @Trigger} fires, proving the container created it
+     * via its constructor.
+     *
+     * <p>Specification section {@code cdi-integration}.
+     */
+    @Test
     public void constructorInjectedAgentIsDiscoveredAndManaged() {
         trace.reset();
         constructorInjectedEvents.fire(new ConstructorInjectedEvent("test"));
         assertEquals(List.of(Phase.TRIGGER), trace.phases());
     }
 
-    @Assertion(id = "AGENTICAI-CDI-003",
-               section = "cdi-integration",
-               strategy = "@PostConstruct is invoked exactly once for an @ApplicationScoped @Agent regardless of "
-                        + "how many workflow events are fired; the static instance counter stays 1")
+    /**
+     * {@code @PostConstruct} is invoked exactly once for an {@code @ApplicationScoped} {@code
+     * @Agent} regardless of how many workflow events are fired; the static instance counter stays
+     * 1.
+     *
+     * <p>Specification section {@code cdi-integration}.
+     */
+    @Test
     public void applicationScopedAgentPostConstructCalledOnce() {
         trace.reset();
         singletonEvents.fire(new SingletonCdiEvent("first"));
@@ -117,10 +129,13 @@ public class CdiIntegrationTests {
         assertEquals(1, SingletonCdiAgent.getInstanceCount());
     }
 
-    @Assertion(id = "AGENTICAI-CDI-004",
-               section = "cdi-integration",
-               strategy = "An @ApplicationScoped @Agent reuses the same bean instance across sequential workflow "
-                        + "events — both @Trigger invocations record the same instanceId in the trace")
+    /**
+     * An {@code @ApplicationScoped} {@code @Agent} reuses the same bean instance across sequential
+     * workflow events — both {@code @Trigger} invocations record the same instanceId in the trace.
+     *
+     * <p>Specification section {@code cdi-integration}.
+     */
+    @Test
     public void applicationScopedAgentSharesInstanceAcrossWorkflows() {
         trace.reset();
         singletonEvents.fire(new SingletonCdiEvent("first"));
@@ -136,10 +151,14 @@ public class CdiIntegrationTests {
     // -------------------------------------------------------------------------
     // Implementation-required tests
     // -------------------------------------------------------------------------
-    @Assertion(id = "AGENTICAI-CDI-005",
-               section = "cdi-integration",
-               strategy = "An @ApplicationScoped @Agent uses the same bean instance across all phases of a "
-                        + "workflow — @Trigger, @Action, @Outcome all record the same instanceId")
+    /**
+     * An {@code @ApplicationScoped} {@code @Agent} uses the same bean instance across all phases
+     * of a workflow — {@code @Trigger}, {@code @Action}, {@code @Outcome} all record the same
+     * instanceId.
+     *
+     * <p>Specification section {@code cdi-integration}.
+     */
+    @Test
     public void applicationScopedAgentUseSameInstanceAcrossAllPhases() {
         trace.reset();
         singletonEvents.fire(new SingletonCdiEvent("test"));
@@ -150,11 +169,14 @@ public class CdiIntegrationTests {
         assertEquals(triggerId, actionId);
         assertEquals(triggerId, outcomeId);
     }
-    @Assertion(id = "AGENTICAI-CDI-006",
-               section = "parameter-resolution",
-               strategy = "The compatible implementation resolves method parameters in priority order: (1) triggering event, (3) "
-                        + "LargeLanguageModel, (5) CDI beans — ResolutionOrderAgent @Action args are "
-                        + "[0]=event, [1]=LLM, [2]=ResolutionCdiBean")
+    /**
+     * The compatible implementation resolves method parameters in priority order: (1) triggering
+     * event, (3) LargeLanguageModel, (5) CDI beans — ResolutionOrderAgent {@code @Action} args are
+     * [0]=event, [1]=LLM, [2]=ResolutionCdiBean.
+     *
+     * <p>Specification section {@code parameter-resolution}.
+     */
+    @Test
     public void parameterResolutionFollowsDefinedPriority() {
         trace.reset();
         resolutionOrderEvents.fire(new ResolutionOrderEvent("test"));
@@ -166,13 +188,16 @@ public class CdiIntegrationTests {
         assertInstanceOf(LargeLanguageModel.class, actionEntry.args()[1]);
         assertInstanceOf(ResolutionCdiBean.class, actionEntry.args()[2]);
     }
-    @Assertion(id = "AGENTICAI-CDI-007",
-               section = "cdi-integration",
-               strategy = "A CDI interceptor bound via a custom @InterceptorBinding executes before and after the "
-                        + "method body for EVERY business-method phase the compatible implementation dispatches through the CDI proxy — "
-                        + "verified by binding the interceptor to both @Action (process) and @Outcome (finish) and "
-                        + "asserting the interceptor wraps each. Asserts on method-name order because the interceptor "
-                        + "marker uses a fixed phase label")
+    /**
+     * A CDI interceptor bound via a custom {@code @InterceptorBinding} executes before and after
+     * the method body for EVERY business-method phase the compatible implementation dispatches
+     * through the CDI proxy — verified by binding the interceptor to both {@code @Action}
+     * (process) and {@code @Outcome} (finish) and asserting the interceptor wraps each. Asserts on
+     * method-name order because the interceptor marker uses a fixed phase label.
+     *
+     * <p>Specification section {@code cdi-integration}.
+     */
+    @Test
     public void cdiInterceptorExecutesAroundActionAndOutcome() {
         trace.reset();
         interceptedEvents.fire(new InterceptedEvent("test"));
@@ -181,10 +206,13 @@ public class CdiIntegrationTests {
                 "interceptorBefore", "process",  "interceptorAfter",
                 "interceptorBefore", "finish",   "interceptorAfter"), names);
     }
-    @Assertion(id = "AGENTICAI-CDI-008",
-               section = "agent-lifecycle",
-               strategy = "The triggering event object is available as a method parameter in @Decision, @Action, "
-                        + "and @Outcome — all three downstream phases receive it as args()[0]")
+    /**
+     * The triggering event object is available as a method parameter in {@code @Decision}, {@code
+     * @Action}, and {@code @Outcome} — all three downstream phases receive it as args()[0].
+     *
+     * <p>Specification section {@code agent-lifecycle}.
+     */
+    @Test
     public void triggeringEventIsAvailableInAllDownstreamPhases() {
         trace.reset();
         resolutionOrderEvents.fire(new ResolutionOrderEvent("event-payload"));

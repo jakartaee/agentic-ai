@@ -14,21 +14,22 @@ package ee.jakarta.tck.ai.agent.core.behavior;
 
 import ee.jakarta.tck.ai.agent.core.behavior.agents.deploymenterror.DeploymentErrorEvent;
 import ee.jakarta.tck.ai.agent.core.behavior.agents.deploymenterror.TwoOutcomeAgent;
-import ee.jakarta.tck.ai.agent.framework.junit.anno.Assertion;
-import ee.jakarta.tck.ai.agent.framework.junit.anno.Deployed;
 import jakarta.enterprise.inject.spi.DeploymentException;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.ShouldThrowException;
+import org.jboss.arquillian.junit5.ArquillianExtension;
 import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.EmptyAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 /**
  * Deployment-error case G3d (<em>@Outcome cardinality</em>): an agent with more
  * than one {@code @Outcome} method must be rejected at deployment time.
  */
-@Deployed
+@ExtendWith(ArquillianExtension.class)
 public class DeploymentErrorTwoOutcomeTests {
 
     @Deployment
@@ -39,9 +40,12 @@ public class DeploymentErrorTwoOutcomeTests {
                 .addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml");
     }
 
-    @Assertion(id = "AGENTICAI-DEPLOYMENT-007",
-               section = "agent-lifecycle",
-               strategy = "An agent declaring more than one @Outcome method is a deployment error")
+    /**
+     * An agent declaring more than one {@code @Outcome} method is a deployment error.
+     *
+     * <p>Specification section {@code agent-lifecycle}.
+     */
+    @Test
     public void multipleOutcomesAreRejected() {
         // Verified by @ShouldThrowException on the deployment.
     }

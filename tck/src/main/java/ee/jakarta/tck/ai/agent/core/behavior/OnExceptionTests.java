@@ -30,19 +30,20 @@ import ee.jakarta.tck.ai.agent.core.behavior.agents.errorhandling.StatefulHandle
 import ee.jakarta.tck.ai.agent.core.behavior.agents.errorhandling.StatefulHandlerEvent;
 import ee.jakarta.tck.ai.agent.core.behavior.agents.termination.BooleanTerminationAgent;
 import ee.jakarta.tck.ai.agent.core.behavior.agents.termination.BooleanTerminationEvent;
-import ee.jakarta.tck.ai.agent.framework.junit.anno.Assertion;
-import ee.jakarta.tck.ai.agent.framework.junit.anno.Deployed;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder.Phase;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder.TraceEntry;
 import jakarta.enterprise.event.Event;
 import jakarta.inject.Inject;
 import org.jboss.arquillian.container.test.api.Deployment;
+import org.jboss.arquillian.junit5.ArquillianExtension;
 import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.EmptyAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.List;
 
@@ -54,7 +55,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
-@Deployed
+@ExtendWith(ArquillianExtension.class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class OnExceptionTests {
 
@@ -97,25 +98,35 @@ public class OnExceptionTests {
     }
 
     // ── Recovery flow (BHV-001–003) ─────────────────────────────────────────
-    @Assertion(id = "AGENTICAI-ONEXCEPTION-001",
-               section = "error-handling",
-               strategy = "Handler completing normally allows @Outcome to run, producing the full recovery phase sequence")
+    /**
+     * Handler completing normally allows {@code @Outcome} to run, producing the full recovery
+     * phase sequence.
+     *
+     * <p>Specification section {@code error-handling}.
+     */
+    @Test
     public void handlerNormalReturnAllowsOutcome() {
         trace.reset();
         recoveryEvents.fire(new RecoveryEvent("x"));
         assertEquals(List.of(Phase.TRIGGER, Phase.ACTION, Phase.HANDLE_EXCEPTION, Phase.OUTCOME), trace.phases());
     }
-    @Assertion(id = "AGENTICAI-ONEXCEPTION-002",
-               section = "error-handling",
-               strategy = "HANDLE_EXCEPTION phase is recorded when @Action throws")
+    /**
+     * HANDLE_EXCEPTION phase is recorded when {@code @Action} throws.
+     *
+     * <p>Specification section {@code error-handling}.
+     */
+    @Test
     public void handlerIsInvokedOnActionFailure() {
         trace.reset();
         recoveryEvents.fire(new RecoveryEvent("x"));
         assertTrue(trace.phases().contains(Phase.HANDLE_EXCEPTION));
     }
-    @Assertion(id = "AGENTICAI-ONEXCEPTION-003",
-               section = "error-handling",
-               strategy = "@Outcome runs as the final phase after a handler returns normally")
+    /**
+     * {@code @Outcome} runs as the final phase after a handler returns normally.
+     *
+     * <p>Specification section {@code error-handling}.
+     */
+    @Test
     public void workflowProceedsToOutcomeAfterRecovery() {
         trace.reset();
         recoveryEvents.fire(new RecoveryEvent("x"));
@@ -123,9 +134,13 @@ public class OnExceptionTests {
     }
 
     // ── Exception hierarchy (BHV-004) ───────────────────────────────────────
-    @Assertion(id = "AGENTICAI-ONEXCEPTION-004",
-               section = "error-handling",
-               strategy = "The most specific handler is selected when multiple @OnException methods exist in the same agent")
+    /**
+     * The most specific handler is selected when multiple {@code @OnException} methods exist in
+     * the same agent.
+     *
+     * <p>Specification section {@code error-handling}.
+     */
+    @Test
     public void specificHandlerSelectedOverGeneric() {
         trace.reset();
         hierarchyEvents.fire(new HierarchyEvent("x"));
@@ -137,9 +152,13 @@ public class OnExceptionTests {
     }
 
     // ── Recursive prevention (BHV-005) ──────────────────────────────────────
-    @Assertion(id = "AGENTICAI-ONEXCEPTION-005",
-               section = "error-handling",
-               strategy = "An exception thrown inside @OnException propagates to the container without re-entering the handler")
+    /**
+     * An exception thrown inside {@code @OnException} propagates to the container without re-
+     * entering the handler.
+     *
+     * <p>Specification section {@code error-handling}.
+     */
+    @Test
     public void handlerExceptionPropagatesWithoutRecursion() {
         trace.reset();
         Throwable thrown = assertThrows(Throwable.class,
@@ -152,36 +171,48 @@ public class OnExceptionTests {
     }
 
     // ── Cross-phase coverage (BHV-006–009) ──────────────────────────────────
-    @Assertion(id = "AGENTICAI-ONEXCEPTION-006",
-               section = "error-handling",
-               strategy = "@OnException is invoked when an exception originates in the @Trigger phase")
+    /**
+     * {@code @OnException} is invoked when an exception originates in the {@code @Trigger} phase.
+     *
+     * <p>Specification section {@code error-handling}.
+     */
+    @Test
     public void triggerFailureInvokesHandler() {
         trace.reset();
         phaseFailureAgent.setFailAt(PhaseFailureAgent.FailingPhase.TRIGGER);
         phaseFailureEvents.fire(new PhaseFailureEvent("x"));
         assertTrue(trace.phases().containsAll(List.of(Phase.TRIGGER, Phase.HANDLE_EXCEPTION)));
     }
-    @Assertion(id = "AGENTICAI-ONEXCEPTION-007",
-               section = "error-handling",
-               strategy = "@OnException is invoked when an exception originates in the @Decision phase")
+    /**
+     * {@code @OnException} is invoked when an exception originates in the {@code @Decision} phase.
+     *
+     * <p>Specification section {@code error-handling}.
+     */
+    @Test
     public void decisionFailureInvokesHandler() {
         trace.reset();
         phaseFailureAgent.setFailAt(PhaseFailureAgent.FailingPhase.DECISION);
         phaseFailureEvents.fire(new PhaseFailureEvent("x"));
         assertTrue(trace.phases().containsAll(List.of(Phase.TRIGGER, Phase.DECISION, Phase.HANDLE_EXCEPTION)));
     }
-    @Assertion(id = "AGENTICAI-ONEXCEPTION-008",
-               section = "error-handling",
-               strategy = "@OnException is invoked when an exception originates in the @Action phase")
+    /**
+     * {@code @OnException} is invoked when an exception originates in the {@code @Action} phase.
+     *
+     * <p>Specification section {@code error-handling}.
+     */
+    @Test
     public void actionFailureInvokesHandler() {
         trace.reset();
         phaseFailureAgent.setFailAt(PhaseFailureAgent.FailingPhase.ACTION);
         phaseFailureEvents.fire(new PhaseFailureEvent("x"));
         assertTrue(trace.phases().containsAll(List.of(Phase.TRIGGER, Phase.ACTION, Phase.HANDLE_EXCEPTION)));
     }
-    @Assertion(id = "AGENTICAI-ONEXCEPTION-009",
-               section = "error-handling",
-               strategy = "@OnException is invoked when an exception originates in the @Outcome phase")
+    /**
+     * {@code @OnException} is invoked when an exception originates in the {@code @Outcome} phase.
+     *
+     * <p>Specification section {@code error-handling}.
+     */
+    @Test
     public void outcomeFailureInvokesHandler() {
         trace.reset();
         phaseFailureAgent.setFailAt(PhaseFailureAgent.FailingPhase.OUTCOME);
@@ -190,9 +221,13 @@ public class OnExceptionTests {
     }
 
     // ── Fallback, parameter identity, method contracts (BHV-010–013) ────────
-    @Assertion(id = "AGENTICAI-ONEXCEPTION-010",
-               section = "error-handling",
-               strategy = "An unhandled exception propagates to the container when no @OnException method is present")
+    /**
+     * An unhandled exception propagates to the container when no {@code @OnException} method is
+     * present.
+     *
+     * <p>Specification section {@code error-handling}.
+     */
+    @Test
     public void uncaughtExceptionPropagatesWithoutHandler() {
         trace.reset();
         Throwable thrown = assertThrows(Throwable.class,
@@ -200,9 +235,12 @@ public class OnExceptionTests {
         agentExceptionIn(thrown);
         assertFalse(trace.phases().contains(Phase.OUTCOME));
     }
-    @Assertion(id = "AGENTICAI-ONEXCEPTION-011",
-               section = "error-handling",
-               strategy = "The handler receives the exact exception instance that was thrown (referential identity)")
+    /**
+     * The handler receives the exact exception instance that was thrown (referential identity).
+     *
+     * <p>Specification section {@code error-handling}.
+     */
+    @Test
     public void handlerReceivesExactExceptionInstance() {
         trace.reset();
         Throwable thrown = assertThrows(Throwable.class,
@@ -215,10 +253,13 @@ public class OnExceptionTests {
         assertSame(cause, handlerEntry.args()[0]);
     }
 
-    @Assertion(id = "AGENTICAI-ONEXCEPTION-012",
-               section = "error-handling",
-               strategy = "After the required exception parameter, an @OnException method receives workflow state: "
-                        + "the triggering event is resolved as its second parameter")
+    /**
+     * After the required exception parameter, an {@code @OnException} method receives workflow
+     * state: the triggering event is resolved as its second parameter.
+     *
+     * <p>Specification section {@code error-handling}.
+     */
+    @Test
     public void handlerReceivesWorkflowStateAfterException() {
         trace.reset();
         StatefulHandlerEvent event = new StatefulHandlerEvent("x");
@@ -230,26 +271,37 @@ public class OnExceptionTests {
     }
 
     // ── Termination states (TERMINATION-BHV-001–004) ─────────────────────────
-    @Assertion(id = "AGENTICAI-ONEXCEPTION-013",
-               section = "agent-lifecycle",
-               strategy = "Normal workflow completion ends with @Outcome as the final recorded phase")
+    /**
+     * Normal workflow completion ends with {@code @Outcome} as the final recorded phase.
+     *
+     * <p>Specification section {@code agent-lifecycle}.
+     */
+    @Test
     public void normalTerminationCompletesOutcome() {
         trace.reset();
         phaseFailureAgent.setFailAt(PhaseFailureAgent.FailingPhase.NONE);
         phaseFailureEvents.fire(new PhaseFailureEvent("x"));
         assertEquals(Phase.OUTCOME, trace.phases().get(trace.phases().size() - 1));
     }
-    @Assertion(id = "AGENTICAI-ONEXCEPTION-014",
-               section = "agent-lifecycle",
-               strategy = "@Decision returning false halts execution before @Action and @Outcome")
+    /**
+     * {@code @Decision} returning false halts execution before {@code @Action} and {@code
+     * @Outcome}.
+     *
+     * <p>Specification section {@code agent-lifecycle}.
+     */
+    @Test
     public void decisionBasedTerminationSkipsDownstreamPhases() {
         trace.reset();
         booleanEvents.fire(new BooleanTerminationEvent("x"));
         assertEquals(List.of(Phase.TRIGGER, Phase.DECISION), trace.phases());
     }
-    @Assertion(id = "AGENTICAI-ONEXCEPTION-015",
-               section = "agent-lifecycle",
-               strategy = "An unhandled exception terminates the workflow before @Outcome runs and propagates to the container")
+    /**
+     * An unhandled exception terminates the workflow before {@code @Outcome} runs and propagates
+     * to the container.
+     *
+     * <p>Specification section {@code agent-lifecycle}.
+     */
+    @Test
     public void exceptionBasedTerminationAbortsWorkflow() {
         trace.reset();
         Throwable thrown = assertThrows(Throwable.class,
@@ -257,9 +309,13 @@ public class OnExceptionTests {
         agentExceptionIn(thrown);
         assertFalse(trace.phases().contains(Phase.OUTCOME));
     }
-    @Assertion(id = "AGENTICAI-ONEXCEPTION-016",
-               section = "agent-lifecycle",
-               strategy = "An exception re-thrown from @OnException terminates the workflow without reaching @Outcome and propagates to the container")
+    /**
+     * An exception re-thrown from {@code @OnException} terminates the workflow without reaching
+     * {@code @Outcome} and propagates to the container.
+     *
+     * <p>Specification section {@code agent-lifecycle}.
+     */
+    @Test
     public void handlerFailureTerminatesWorkflow() {
         trace.reset();
         Throwable thrown = assertThrows(Throwable.class,

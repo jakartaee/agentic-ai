@@ -16,16 +16,17 @@ import ee.jakarta.tck.ai.agent.core.behavior.agents.concurrency.ConcurrencyCoord
 import ee.jakarta.tck.ai.agent.core.behavior.agents.concurrency.ConcurrencyCoordinator.LlmObservation;
 import ee.jakarta.tck.ai.agent.core.behavior.agents.concurrency.ConcurrencyEvent;
 import ee.jakarta.tck.ai.agent.core.behavior.agents.concurrency.ConcurrentIsolationAgent;
-import ee.jakarta.tck.ai.agent.framework.junit.anno.Assertion;
-import ee.jakarta.tck.ai.agent.framework.junit.anno.Deployed;
 import jakarta.enterprise.event.Event;
 import jakarta.inject.Inject;
 import org.jboss.arquillian.container.test.api.Deployment;
+import org.jboss.arquillian.junit5.ArquillianExtension;
 import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.EmptyAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -41,16 +42,15 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  * Verifies that concurrent workflow executions of an {@code @ApplicationScoped}
  * model bean and a {@code @WorkflowScoped} agent remain isolated from one another.
  *
- * <p>This is the real concurrency exercise that supersedes the earlier sequential
- * "v1 proxy" (see {@code AGENTICAI-LLM-BHV-007}). Several workflows are fired from
- * a thread pool and rendezvous at a {@link ConcurrencyCoordinator} barrier so their
+ * <p>Several workflows are fired from a thread pool and rendezvous at a
+ * {@link ConcurrencyCoordinator} barrier so their
  * agent instances are all alive simultaneously, maximizing the chance that a
  * thread-unsafe implementation leaks state. The assertions themselves are
  * deterministic: regardless of interleaving, every workflow must observe only its
  * own marker, and the recorded model calls must be exactly the per-workflow prompts
  * with no loss or corruption.</p>
  */
-@Deployed
+@ExtendWith(ArquillianExtension.class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class ConcurrencyIsolationTests {
 
@@ -67,9 +67,12 @@ public class ConcurrencyIsolationTests {
 
     @Inject Event<ConcurrencyEvent> events;
     @Inject ConcurrencyCoordinator coordinator;
-    @Assertion(id = "AGENTICAI-CONCURRENCY-001",
-               section = "cdi-integration",
-               strategy = "Concurrent @WorkflowScoped executions each observe only their own workflow state")
+    /**
+     * Concurrent {@code @WorkflowScoped} executions each observe only their own workflow state.
+     *
+     * <p>Specification section {@code cdi-integration}.
+     */
+    @Test
     public void workflowStateIsIsolatedAcrossConcurrentWorkflows() throws Exception {
         coordinator.arm(WORKFLOWS);
         fireConcurrently(WORKFLOWS);
@@ -77,10 +80,13 @@ public class ConcurrencyIsolationTests {
         assertEquals(WORKFLOWS, coordinator.observationCount());
         assertEquals(List.of(), coordinator.mismatches());
     }
-    @Assertion(id = "AGENTICAI-CONCURRENCY-002",
-               section = "llm-conversational-state",
-               strategy = "Concurrent workflows drive the shared facade without corrupting each other's turns: "
-                        + "each gets its own turn echoed back and a conversation holding only that turn")
+    /**
+     * Concurrent workflows drive the shared facade without corrupting each other's turns: each
+     * gets its own turn echoed back and a conversation holding only that turn.
+     *
+     * <p>Specification section {@code llm-conversational-state}.
+     */
+    @Test
     public void llmCallsAreNotCorruptedAcrossConcurrentWorkflows() throws Exception {
         coordinator.arm(WORKFLOWS);
         fireConcurrently(WORKFLOWS);

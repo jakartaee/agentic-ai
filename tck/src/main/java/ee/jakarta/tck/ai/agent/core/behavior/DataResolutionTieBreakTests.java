@@ -15,18 +15,19 @@ package ee.jakarta.tck.ai.agent.core.behavior;
 import ee.jakarta.tck.ai.agent.core.behavior.agents.datapropagation.SameTypeOutput;
 import ee.jakarta.tck.ai.agent.core.behavior.agents.datapropagation.TieBreakAgent;
 import ee.jakarta.tck.ai.agent.core.behavior.agents.datapropagation.TieBreakEvent;
-import ee.jakarta.tck.ai.agent.framework.junit.anno.Assertion;
-import ee.jakarta.tck.ai.agent.framework.junit.anno.Deployed;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder.Phase;
 import jakarta.enterprise.event.Event;
 import jakarta.inject.Inject;
 import org.jboss.arquillian.container.test.api.Deployment;
+import org.jboss.arquillian.junit5.ArquillianExtension;
 import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.EmptyAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.List;
 
@@ -38,10 +39,10 @@ import static org.junit.jupiter.api.Assertions.assertInstanceOf;
  * injected with the most recently returned instance.
  *
  * <p>Uses {@code @TestInstance(PER_CLASS)} with inline {@code trace.reset()} because
- * {@code @BeforeEach} does not run reliably between methods of a {@code @Deployed}
+ * {@code @BeforeEach} does not run reliably between methods of an Arquillian test
  * class inside the container.</p>
  */
-@Deployed
+@ExtendWith(ArquillianExtension.class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class DataResolutionTieBreakTests {
 
@@ -54,9 +55,13 @@ public class DataResolutionTieBreakTests {
 
     @Inject Event<TieBreakEvent> events;
     @Inject ExecutionTraceRecorder trace;
-    @Assertion(id = "AGENTICAI-RESOLUTION-001",
-               section = "parameter-resolution",
-               strategy = "When two phases return the same type, the later phase is injected with the most recently returned instance")
+    /**
+     * When two phases return the same type, the later phase is injected with the most recently
+     * returned instance.
+     *
+     * <p>Specification section {@code parameter-resolution}.
+     */
+    @Test
     public void mostRecentlyReturnedObjectWins() {
         trace.reset();
         events.fire(new TieBreakEvent("input"));

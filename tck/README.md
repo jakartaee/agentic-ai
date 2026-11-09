@@ -23,18 +23,9 @@ mvn --projects tck --also-make clean install
 mvn --projects tck --also-make verify
 ```
 
-## Test Assertions
+## Tests
 
-Each test method is annotated with `@Assertion`. The id is unique to the test and is what a TCK challenge quotes; the section is the anchor of the specification section that states the requirement:
-
-```java
-@Assertion(id = "AGENTICAI-ORDER-001",
-           section = "agent-lifecycle",
-           strategy = "Full T→D→A→O pipeline executes in strict phase order")
-public void fullPipelineExecutesInStrictOrder() {
-    // test implementation
-}
-```
+Test classes are plain Arquillian JUnit 5 tests (`@ExtendWith(ArquillianExtension.class)`, `@Test`). Each test method's javadoc states what it verifies and names the specification section that requires it; a TCK challenge references a test by class and method.
 
 ## API signature baseline
 

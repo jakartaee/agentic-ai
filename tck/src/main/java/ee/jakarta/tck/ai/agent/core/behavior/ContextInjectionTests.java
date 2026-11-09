@@ -14,25 +14,26 @@ package ee.jakarta.tck.ai.agent.core.behavior;
 
 import ee.jakarta.tck.ai.agent.core.behavior.agents.contextinjection.ContextInjectionAgent;
 import ee.jakarta.tck.ai.agent.core.behavior.agents.contextinjection.ContextInjectionEvent;
-import ee.jakarta.tck.ai.agent.framework.junit.anno.Assertion;
-import ee.jakarta.tck.ai.agent.framework.junit.anno.Deployed;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder.Phase;
 import jakarta.enterprise.event.Event;
 import jakarta.inject.Inject;
 import org.jboss.arquillian.container.test.api.Deployment;
+import org.jboss.arquillian.junit5.ArquillianExtension;
 import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.EmptyAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 
-@Deployed
+@ExtendWith(ArquillianExtension.class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class ContextInjectionTests {
 
@@ -46,9 +47,12 @@ public class ContextInjectionTests {
     @Inject Event<ContextInjectionEvent> events;
     @Inject ExecutionTraceRecorder trace;
 
-    @Assertion(id = "AGENTICAI-CONTEXT-001",
-               section = "agent-lifecycle",
-               strategy = "Triggering event payload is accessible in @Trigger and preserved in the trace")
+    /**
+     * Triggering event payload is accessible in {@code @Trigger} and preserved in the trace.
+     *
+     * <p>Specification section {@code agent-lifecycle}.
+     */
+    @Test
     public void eventPayloadIsPreservedInTrigger() {
         trace.reset();
         events.fire(new ContextInjectionEvent("my-payload"));
@@ -56,9 +60,12 @@ public class ContextInjectionTests {
         ContextInjectionEvent recorded = (ContextInjectionEvent) trace.entries().get(0).args()[0];
         assertEquals("my-payload", recorded.payload());
     }
-    @Assertion(id = "AGENTICAI-CONTEXT-002",
-               section = "parameter-resolution",
-               strategy = "Triggering event is available for injection in @Action")
+    /**
+     * Triggering event is available for injection in {@code @Action}.
+     *
+     * <p>Specification section {@code parameter-resolution}.
+     */
+    @Test
     public void eventIsInjectableInAction() {
         trace.reset();
         events.fire(new ContextInjectionEvent("payload"));
@@ -69,10 +76,13 @@ public class ContextInjectionTests {
                 .orElseThrow()
                 .args()[0]);
     }
-    @Assertion(id = "AGENTICAI-CONTEXT-003",
-               section = "parameter-resolution",
-               strategy = "LargeLanguageModel is injectable as a direct method parameter of @Action and is a "
-                        + "working facade: its echoed response is the rendered prompt")
+    /**
+     * LargeLanguageModel is injectable as a direct method parameter of {@code @Action} and is a
+     * working facade: its echoed response is the rendered prompt.
+     *
+     * <p>Specification section {@code parameter-resolution}.
+     */
+    @Test
     public void llmIsInjectedInAction() {
         trace.reset();
         events.fire(new ContextInjectionEvent("payload"));

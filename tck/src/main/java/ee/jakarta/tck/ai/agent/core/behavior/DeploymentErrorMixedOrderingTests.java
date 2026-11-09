@@ -14,22 +14,23 @@ package ee.jakarta.tck.ai.agent.core.behavior;
 
 import ee.jakarta.tck.ai.agent.core.behavior.agents.deploymenterror.DeploymentErrorEvent;
 import ee.jakarta.tck.ai.agent.core.behavior.agents.deploymenterror.MixedOrderingAgent;
-import ee.jakarta.tck.ai.agent.framework.junit.anno.Assertion;
-import ee.jakarta.tck.ai.agent.framework.junit.anno.Deployed;
 import jakarta.enterprise.inject.spi.DeploymentException;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.ShouldThrowException;
+import org.jboss.arquillian.junit5.ArquillianExtension;
 import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.EmptyAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 /**
  * Deployment-error case G3b (<em>Consistency Requirement</em>): mixing explicitly
  * ordered and unordered {@code @Action}/{@code @Decision} methods must be rejected
  * at deployment time.
  */
-@Deployed
+@ExtendWith(ArquillianExtension.class)
 public class DeploymentErrorMixedOrderingTests {
 
     @Deployment
@@ -40,9 +41,13 @@ public class DeploymentErrorMixedOrderingTests {
                 .addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml");
     }
 
-    @Assertion(id = "AGENTICAI-DEPLOYMENT-002",
-               section = "agent-lifecycle",
-               strategy = "Mixing explicitly ordered and unordered @Action/@Decision methods is a deployment error")
+    /**
+     * Mixing explicitly ordered and unordered {@code @Action}/{@code @Decision} methods is a
+     * deployment error.
+     *
+     * <p>Specification section {@code agent-lifecycle}.
+     */
+    @Test
     public void mixedOrderingIsRejected() {
         // Verified by @ShouldThrowException on the deployment.
     }

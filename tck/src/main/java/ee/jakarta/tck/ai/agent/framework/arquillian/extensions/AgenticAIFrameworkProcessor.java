@@ -12,8 +12,6 @@
  *****************************************************************************/
 package ee.jakarta.tck.ai.agent.framework.arquillian.extensions;
 
-import ee.jakarta.tck.ai.agent.framework.junit.anno.Assertion;
-import ee.jakarta.tck.ai.agent.framework.junit.extensions.AssertionExtension;
 import ee.jakarta.tck.ai.agent.framework.llm.TckModel;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder;
 import org.jboss.arquillian.container.test.spi.client.deployment.ApplicationArchiveProcessor;
@@ -38,11 +36,6 @@ public class AgenticAIFrameworkProcessor implements ApplicationArchiveProcessor 
         if (!(applicationArchive instanceof WebArchive webArchive)) {
             return;
         }
-        webArchive.addPackages(false,
-                Assertion.class.getPackage(),
-                AssertionExtension.class.getPackage(),
-                TckModel.class.getPackage(),
-                ExecutionTraceRecorder.class.getPackage()
-        );
+        webArchive.addPackages(false, TckModel.class.getPackage(), ExecutionTraceRecorder.class.getPackage());
     }
 }

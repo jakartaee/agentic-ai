@@ -24,25 +24,26 @@ import ee.jakarta.tck.ai.agent.core.behavior.agents.orchestration.MinimalistAgen
 import ee.jakarta.tck.ai.agent.core.behavior.agents.orchestration.MinimalistEvent;
 import ee.jakarta.tck.ai.agent.core.behavior.agents.orchestration.OutcomeOnlyAgent;
 import ee.jakarta.tck.ai.agent.core.behavior.agents.orchestration.OutcomeOnlyEvent;
-import ee.jakarta.tck.ai.agent.framework.junit.anno.Assertion;
-import ee.jakarta.tck.ai.agent.framework.junit.anno.Deployed;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder.Phase;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder.TraceEntry;
 import jakarta.enterprise.event.Event;
 import jakarta.inject.Inject;
 import org.jboss.arquillian.container.test.api.Deployment;
+import org.jboss.arquillian.junit5.ArquillianExtension;
 import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.EmptyAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-@Deployed
+@ExtendWith(ArquillianExtension.class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class OrchestrationTests {
 
@@ -69,10 +70,13 @@ public class OrchestrationTests {
     @Inject ExecutionTraceRecorder  trace;
     @Inject BranchingAgent          branchingAgent;
 
-    @Assertion(id = "AGENTICAI-ORCHESTRATION-001",
-               section = "agent-lifecycle",
-               strategy = "Minimalist pattern: an agent with @Trigger only is a valid complete workflow; "
-                        + "firing the event runs the trigger and the workflow completes")
+    /**
+     * Minimalist pattern: an agent with {@code @Trigger} only is a valid complete workflow; firing
+     * the event runs the trigger and the workflow completes.
+     *
+     * <p>Specification section {@code agent-lifecycle}.
+     */
+    @Test
     public void minimalistWorkflowCompletesWithTriggerOnly() {
         trace.reset();
         minimalistEvents.fire(new MinimalistEvent("test"));
@@ -82,10 +86,13 @@ public class OrchestrationTests {
     // -------------------------------------------------------------------------
     // Implementation-required tests — core orchestration rules
     // -------------------------------------------------------------------------
-    @Assertion(id = "AGENTICAI-ORCHESTRATION-002",
-               section = "agent-lifecycle",
-               strategy = "@Trigger is always the first phase invoked even when declared at the bottom "
-                        + "of the source file")
+    /**
+     * {@code @Trigger} is always the first phase invoked even when declared at the bottom of the
+     * source file.
+     *
+     * <p>Specification section {@code agent-lifecycle}.
+     */
+    @Test
     public void triggerIsAlwaysFirstPhaseRegardlessOfPosition() {
         trace.reset();
         anchoredEvents.fire(new AnchoredEvent("test"));
@@ -93,10 +100,13 @@ public class OrchestrationTests {
                 assertEquals(Phase.TRIGGER, trace.phases().get(0));
                 assertEquals(Phase.OUTCOME, trace.phases().get(trace.phases().size() - 1));
     }
-    @Assertion(id = "AGENTICAI-ORCHESTRATION-003",
-               section = "agent-lifecycle",
-               strategy = "@Decision and @Action execute in the order given by their explicit order attributes, "
-                        + "independent of source position: AnchoredAgent orders act() before decide()")
+    /**
+     * {@code @Decision} and {@code @Action} execute in the order given by their explicit order
+     * attributes, independent of source position: AnchoredAgent orders act() before decide().
+     *
+     * <p>Specification section {@code agent-lifecycle}.
+     */
+    @Test
     public void methodsExecuteInExplicitOrder() {
         trace.reset();
         anchoredEvents.fire(new AnchoredEvent("test"));
@@ -104,18 +114,26 @@ public class OrchestrationTests {
         List<String> names = trace.entries().stream().map(TraceEntry::methodName).toList();
         assertEquals(List.of("onEvent", "act", "decide", "finish"), names);
     }
-    @Assertion(id = "AGENTICAI-ORCHESTRATION-004",
-               section = "agent-lifecycle",
-               strategy = "@Outcome is always the last phase invoked in a successful workflow even when declared "
-                        + "at the top of the source file — verified via AnchoredAgent where @Outcome is the FIRST method declared")
+    /**
+     * {@code @Outcome} is always the last phase invoked in a successful workflow even when
+     * declared at the top of the source file — verified via AnchoredAgent where {@code @Outcome}
+     * is the FIRST method declared.
+     *
+     * <p>Specification section {@code agent-lifecycle}.
+     */
+    @Test
     public void outcomeIsAlwaysLastPhaseRegardlessOfPosition() {
         trace.reset();
         anchoredEvents.fire(new AnchoredEvent("test"));
         assertEquals(Phase.OUTCOME, trace.phases().get(trace.phases().size() - 1));
     }
-    @Assertion(id = "AGENTICAI-ORCHESTRATION-005",
-               section = "agent-lifecycle",
-               strategy = "Multiple alternating @Decision and @Action phases all execute in their explicit order")
+    /**
+     * Multiple alternating {@code @Decision} and {@code @Action} phases all execute in their
+     * explicit order.
+     *
+     * <p>Specification section {@code agent-lifecycle}.
+     */
+    @Test
     public void intermixedDecisionAndActionPhasesSupported() {
         trace.reset();
         intermixedEvents.fire(new IntermixedEvent("test"));
@@ -124,21 +142,27 @@ public class OrchestrationTests {
         List<String> names = trace.entries().stream().map(TraceEntry::methodName).toList();
         assertEquals(List.of("onEvent", "firstDecide", "firstAction", "secondDecide", "secondAction", "finish"), names);
     }
-    @Assertion(id = "AGENTICAI-ORCHESTRATION-006",
-               section = "agent-lifecycle",
-               strategy = "false from the FIRST @Decision in a chain immediately prevents ALL subsequent phases "
-                        + "including the trailing @Outcome anchor")
+    /**
+     * false from the FIRST {@code @Decision} in a chain immediately prevents ALL subsequent phases
+     * including the trailing {@code @Outcome} anchor.
+     *
+     * <p>Specification section {@code agent-lifecycle}.
+     */
+    @Test
     public void terminationAtFirstDecisionHaltsEntirePipeline() {
         trace.reset();
         branchingAgent.setTerminateAt(BranchingAgent.TerminationPoint.FIRST_DECISION);
         branchingEvents.fire(new BranchingEvent("test"));
         assertEquals(List.of(Phase.TRIGGER, Phase.DECISION), trace.phases());
     }
-    @Assertion(id = "AGENTICAI-ORCHESTRATION-007",
-               section = "agent-lifecycle",
-               strategy = "false from a MID-CHAIN @Decision (after an upstream decision proceeded) prevents the "
-                        + "remaining @Action and the trailing @Outcome anchor — the implementation must keep checking termination "
-                        + "across the whole chain, not just at the first decision")
+    /**
+     * false from a MID-CHAIN {@code @Decision} (after an upstream decision proceeded) prevents the
+     * remaining {@code @Action} and the trailing {@code @Outcome} anchor — the implementation must
+     * keep checking termination across the whole chain, not just at the first decision.
+     *
+     * <p>Specification section {@code agent-lifecycle}.
+     */
+    @Test
     public void terminationAtSecondDecisionHaltsRemainingPipeline() {
         trace.reset();
         branchingAgent.setTerminateAt(BranchingAgent.TerminationPoint.SECOND_DECISION);
@@ -149,9 +173,13 @@ public class OrchestrationTests {
     // -------------------------------------------------------------------------
     // Implementation-required tests — composition patterns (BHV-006)
     // -------------------------------------------------------------------------
-    @Assertion(id = "AGENTICAI-ORCHESTRATION-008",
-               section = "agent-lifecycle",
-               strategy = "Linear pattern: multiple explicitly ordered @Action phases execute sequentially without any @Decision")
+    /**
+     * Linear pattern: multiple explicitly ordered {@code @Action} phases execute sequentially
+     * without any {@code @Decision}.
+     *
+     * <p>Specification section {@code agent-lifecycle}.
+     */
+    @Test
     public void linearPatternSupported() {
         trace.reset();
         linearEvents.fire(new LinearEvent("test"));
@@ -159,17 +187,25 @@ public class OrchestrationTests {
         List<String> names = trace.entries().stream().map(TraceEntry::methodName).toList();
         assertEquals(List.of("onEvent", "firstAction", "secondAction", "thirdAction", "finish"), names);
     }
-    @Assertion(id = "AGENTICAI-ORCHESTRATION-009",
-               section = "agent-lifecycle",
-               strategy = "Evaluative pattern: @Decision proceeds directly to @Outcome when no @Action is declared")
+    /**
+     * Evaluative pattern: {@code @Decision} proceeds directly to {@code @Outcome} when no {@code
+     * @Action} is declared.
+     *
+     * <p>Specification section {@code agent-lifecycle}.
+     */
+    @Test
     public void evaluativePatternSupported() {
         trace.reset();
         outcomeOnlyEvents.fire(new OutcomeOnlyEvent("test"));
         assertEquals(List.of(Phase.TRIGGER, Phase.DECISION, Phase.OUTCOME), trace.phases());
     }
-    @Assertion(id = "AGENTICAI-ORCHESTRATION-010",
-               section = "agent-lifecycle",
-               strategy = "Intermixed pattern: an explicitly ordered alternating @Decision/@Action chain executes through @Outcome")
+    /**
+     * Intermixed pattern: an explicitly ordered alternating {@code @Decision}/{@code @Action}
+     * chain executes through {@code @Outcome}.
+     *
+     * <p>Specification section {@code agent-lifecycle}.
+     */
+    @Test
     public void intermixedPatternSupported() {
         trace.reset();
         intermixedEvents.fire(new IntermixedEvent("test"));

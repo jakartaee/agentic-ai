@@ -18,18 +18,19 @@ import ee.jakarta.tck.ai.agent.core.behavior.agents.ordering.PriorityAgent;
 import ee.jakarta.tck.ai.agent.core.behavior.agents.ordering.PriorityEvent;
 import ee.jakarta.tck.ai.agent.core.behavior.agents.ordering.PriorityOverOrderAgent;
 import ee.jakarta.tck.ai.agent.core.behavior.agents.ordering.PriorityOverOrderEvent;
-import ee.jakarta.tck.ai.agent.framework.junit.anno.Assertion;
-import ee.jakarta.tck.ai.agent.framework.junit.anno.Deployed;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder.TraceEntry;
 import jakarta.enterprise.event.Event;
 import jakarta.inject.Inject;
 import org.jboss.arquillian.container.test.api.Deployment;
+import org.jboss.arquillian.junit5.ArquillianExtension;
 import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.EmptyAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.List;
 
@@ -45,11 +46,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  * proves the rule is honored. Ordering is performed by the implementation when
  * it dispatches phases.</p>
  *
- * <p>Note on reset: in {@code @Deployed} classes {@code @BeforeEach} does not run
+ * <p>Note on reset: in Arquillian test classes {@code @BeforeEach} does not run
  * reliably between methods inside the container, so each test resets the trace
  * inline.</p>
  */
-@Deployed
+@ExtendWith(ArquillianExtension.class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class OrderingPrecedenceTests {
 
@@ -75,9 +76,13 @@ public class OrderingPrecedenceTests {
     }
 
     // ── order attribute is honored ───────────────────────────────────────────
-    @Assertion(id = "AGENTICAI-PRECEDENCE-001",
-               section = "agent-lifecycle",
-               strategy = "@Action/@Decision methods execute by ascending order attribute, not source declaration order")
+    /**
+     * {@code @Action}/{@code @Decision} methods execute by ascending order attribute, not source
+     * declaration order.
+     *
+     * <p>Specification section {@code agent-lifecycle}.
+     */
+    @Test
     public void orderAttributeIsHonored() {
         trace.reset();
         orderAttrEvents.fire(new OrderAttrEvent("x"));
@@ -85,9 +90,13 @@ public class OrderingPrecedenceTests {
     }
 
     // ── @Priority is honored ─────────────────────────────────────────────────
-    @Assertion(id = "AGENTICAI-PRECEDENCE-002",
-               section = "agent-lifecycle",
-               strategy = "@Action/@Decision methods execute by ascending @Priority value, not source declaration order")
+    /**
+     * {@code @Action}/{@code @Decision} methods execute by ascending {@code @Priority} value, not
+     * source declaration order.
+     *
+     * <p>Specification section {@code agent-lifecycle}.
+     */
+    @Test
     public void priorityIsHonored() {
         trace.reset();
         priorityEvents.fire(new PriorityEvent("x"));
@@ -95,9 +104,12 @@ public class OrderingPrecedenceTests {
     }
 
     // ── @Priority takes precedence over order ────────────────────────────────
-    @Assertion(id = "AGENTICAI-PRECEDENCE-003",
-               section = "agent-lifecycle",
-               strategy = "When a method declares both, @Priority takes precedence over the order attribute")
+    /**
+     * When a method declares both, {@code @Priority} takes precedence over the order attribute.
+     *
+     * <p>Specification section {@code agent-lifecycle}.
+     */
+    @Test
     public void priorityTakesPrecedenceOverOrder() {
         trace.reset();
         priorityOverOrderEvents.fire(new PriorityOverOrderEvent("x"));

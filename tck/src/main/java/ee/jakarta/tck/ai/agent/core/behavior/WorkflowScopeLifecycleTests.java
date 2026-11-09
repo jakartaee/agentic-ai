@@ -19,8 +19,6 @@ import ee.jakarta.tck.ai.agent.core.behavior.agents.cdi.LifecycleSpyAgent;
 import ee.jakarta.tck.ai.agent.core.behavior.agents.cdi.LifecycleSpyEvent;
 import ee.jakarta.tck.ai.agent.core.behavior.agents.cdi.ScopeDefaultAgent;
 import ee.jakarta.tck.ai.agent.core.behavior.agents.cdi.ScopeDefaultEvent;
-import ee.jakarta.tck.ai.agent.framework.junit.anno.Assertion;
-import ee.jakarta.tck.ai.agent.framework.junit.anno.Deployed;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder.Phase;
 import jakarta.ai.agent.WorkflowScoped;
@@ -29,11 +27,14 @@ import jakarta.enterprise.inject.spi.Bean;
 import jakarta.enterprise.inject.spi.BeanManager;
 import jakarta.inject.Inject;
 import org.jboss.arquillian.container.test.api.Deployment;
+import org.jboss.arquillian.junit5.ArquillianExtension;
 import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.List;
 import java.util.Set;
@@ -43,7 +44,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-@Deployed
+@ExtendWith(ArquillianExtension.class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class WorkflowScopeLifecycleTests {
 
@@ -78,11 +79,14 @@ public class WorkflowScopeLifecycleTests {
     @Inject ExecutionTraceRecorder    trace;
     @Inject LifecycleCallbackRecorder lifecycleRecorder;
     @Inject BeanManager               beanManager;
-    @Assertion(id = "AGENTICAI-SCOPE-001",
-               section = "agent-lifecycle",
-               strategy = "An @Agent with no explicit scope is registered as @WorkflowScoped, uses one "
-                        + "instance across every phase, and creates a distinct instance for each workflow. "
-                        + "Sequential events are used as a v1 proxy for concurrent workflows.")
+    /**
+     * An {@code @Agent} with no explicit scope is registered as {@code @WorkflowScoped}, uses one
+     * instance across every phase, and creates a distinct instance for each workflow. Sequential
+     * events are used as a v1 proxy for concurrent workflows.
+     *
+     * <p>Specification section {@code agent-lifecycle}.
+     */
+    @Test
     public void defaultScopeProducesDistinctInstancePerWorkflow() {
         Set<Bean<?>> beans = beanManager.getBeans(ScopeDefaultAgent.class);
         assertEquals(1, beans.size());
@@ -108,39 +112,53 @@ public class WorkflowScopeLifecycleTests {
         assertEquals(List.of(ids.get(0), ids.get(0), ids.get(0),
                 ids.get(1), ids.get(1), ids.get(1)), phaseInstanceIds);
     }
-    @Assertion(id = "AGENTICAI-SCOPE-002",
-               section = "agent-lifecycle",
-               strategy = "An @Agent with no explicit name runs its full workflow. The derived name itself "
-                        + "is not asserted: the specification does not yet say how an agent name is exposed.")
+    /**
+     * An {@code @Agent} with no explicit name runs its full workflow. The derived name itself is
+     * not asserted: the specification does not yet say how an agent name is exposed.
+     *
+     * <p>Specification section {@code agent-lifecycle}.
+     */
+    @Test
     public void scopeDefaultAgentRunsFullWorkflow() {
         trace.reset();
         scopeDefaultEvents.fire(new ScopeDefaultEvent("naming"));
         assertEquals(List.of(Phase.TRIGGER, Phase.ACTION, Phase.OUTCOME), trace.phases());
     }
-    @Assertion(id = "AGENTICAI-SCOPE-003",
-               section = "agent-lifecycle",
-               strategy = "An @Agent with an explicit name, here @Agent(name = \"lifecycleSpy\"), runs its full "
-                        + "workflow. The name is not asserted as a CDI bean name.")
+    /**
+     * An {@code @Agent} with an explicit name, here {@code @Agent}(name = "lifecycleSpy"), runs
+     * its full workflow. The name is not asserted as a CDI bean name.
+     *
+     * <p>Specification section {@code agent-lifecycle}.
+     */
+    @Test
     public void lifecycleSpyAgentRunsFullWorkflow() {
 
         trace.reset();
         lifecycleSpyEvents.fire(new LifecycleSpyEvent("naming"));
         assertEquals(List.of(Phase.TRIGGER, Phase.ACTION, Phase.OUTCOME), trace.phases());
     }
-    @Assertion(id = "AGENTICAI-SCOPE-004",
-               section = "cdi-integration",
-               strategy = "@PostConstruct is invoked exactly once per @WorkflowScoped workflow execution — "
-                        + "LifecycleCallbackRecorder counts one @PostConstruct call after a single workflow")
+    /**
+     * {@code @PostConstruct} is invoked exactly once per {@code @WorkflowScoped} workflow
+     * execution — LifecycleCallbackRecorder counts one {@code @PostConstruct} call after a single
+     * workflow.
+     *
+     * <p>Specification section {@code cdi-integration}.
+     */
+    @Test
     public void workflowScopedAgentPostConstructCalledOnce() {
         lifecycleRecorder.reset();
         trace.reset();
         lifecycleSpyEvents.fire(new LifecycleSpyEvent("workflow-1"));
         assertEquals(1, lifecycleRecorder.getPostConstructCount());
     }
-    @Assertion(id = "AGENTICAI-SCOPE-005",
-               section = "cdi-integration",
-               strategy = "@PreDestroy is invoked exactly once after the @WorkflowScoped context is destroyed "
-                        + "(workflow completes through @Outcome) — LifecycleCallbackRecorder counts one call")
+    /**
+     * {@code @PreDestroy} is invoked exactly once after the {@code @WorkflowScoped} context is
+     * destroyed (workflow completes through {@code @Outcome}) — LifecycleCallbackRecorder counts
+     * one call.
+     *
+     * <p>Specification section {@code cdi-integration}.
+     */
+    @Test
     public void workflowScopedAgentPreDestroyCalledAfterWorkflow() {
         lifecycleRecorder.reset();
         trace.reset();
@@ -148,12 +166,15 @@ public class WorkflowScopeLifecycleTests {
         assertEquals(Phase.OUTCOME, trace.phases().get(trace.phases().size() - 1));
         assertEquals(1, lifecycleRecorder.getPreDestroyCount());
     }
-    @Assertion(id = "AGENTICAI-SCOPE-006",
-               section = "cdi-integration",
-               strategy = "@PreDestroy is invoked exactly once even when the workflow FAILS (the issue requires "
-                        + "cleanup 'after the workflow completes or fails'). LifecycleSpyAgent.setFailInAction(true) "
-                        + "makes @Action throw; the compatible implementation must still tear down the @WorkflowScoped context and the "
-                        + "workflow must not reach @Outcome")
+    /**
+     * {@code @PreDestroy} is invoked exactly once even when the workflow FAILS (the issue requires
+     * cleanup 'after the workflow completes or fails'). LifecycleSpyAgent.setFailInAction(true)
+     * makes {@code @Action} throw; the compatible implementation must still tear down the {@code
+     * @WorkflowScoped} context and the workflow must not reach {@code @Outcome}.
+     *
+     * <p>Specification section {@code cdi-integration}.
+     */
+    @Test
     public void workflowScopedAgentPreDestroyCalledAfterFailure() {
         lifecycleRecorder.reset();
         trace.reset();
@@ -168,10 +189,14 @@ public class WorkflowScopeLifecycleTests {
         assertFalse(trace.phases().contains(Phase.OUTCOME));
         assertEquals(1, lifecycleRecorder.getPreDestroyCount());
     }
-    @Assertion(id = "AGENTICAI-SCOPE-007",
-               section = "cdi-integration",
-               strategy = "@PreDestroy is invoked exactly once when the workflow terminates at a @Decision returning "
-                        + "false: the @WorkflowScoped context is destroyed although @Action and @Outcome never run")
+    /**
+     * {@code @PreDestroy} is invoked exactly once when the workflow terminates at a {@code
+     * @Decision} returning false: the {@code @WorkflowScoped} context is destroyed although {@code
+     * @Action} and {@code @Outcome} never run.
+     *
+     * <p>Specification section {@code cdi-integration}.
+     */
+    @Test
     public void workflowScopedAgentPreDestroyCalledAfterDecisionStop() {
         lifecycleRecorder.reset();
         trace.reset();
@@ -179,10 +204,13 @@ public class WorkflowScopeLifecycleTests {
         assertEquals(List.of(Phase.TRIGGER, Phase.DECISION), trace.phases());
         assertEquals(1, lifecycleRecorder.getPreDestroyCount());
     }
-    @Assertion(id = "AGENTICAI-SCOPE-008",
-               section = "cdi-integration",
-               strategy = "@WorkflowScoped creates a distinct bean instance per workflow execution — two "
-                        + "sequential events yield two different instanceIds (v1 proxy for concurrent workflows)")
+    /**
+     * {@code @WorkflowScoped} creates a distinct bean instance per workflow execution — two
+     * sequential events yield two different instanceIds (v1 proxy for concurrent workflows).
+     *
+     * <p>Specification section {@code cdi-integration}.
+     */
+    @Test
     public void workflowScopedAgentHasUniqueInstancePerWorkflow() {
         lifecycleRecorder.reset();
         trace.reset();

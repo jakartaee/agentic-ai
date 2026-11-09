@@ -15,21 +15,22 @@ package ee.jakarta.tck.ai.agent.core.behavior;
 import ee.jakarta.tck.ai.agent.core.behavior.agents.deploymenterror.DeploymentErrorEvent;
 import ee.jakarta.tck.ai.agent.core.behavior.agents.deploymenterror.SecondTriggerEvent;
 import ee.jakarta.tck.ai.agent.core.behavior.agents.deploymenterror.TwoTriggerAgent;
-import ee.jakarta.tck.ai.agent.framework.junit.anno.Assertion;
-import ee.jakarta.tck.ai.agent.framework.junit.anno.Deployed;
 import jakarta.enterprise.inject.spi.DeploymentException;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.ShouldThrowException;
+import org.jboss.arquillian.junit5.ArquillianExtension;
 import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.EmptyAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 /**
  * Deployment-error case G3c (<em>@Trigger cardinality</em>): an agent with more
  * than one {@code @Trigger} method must be rejected at deployment time.
  */
-@Deployed
+@ExtendWith(ArquillianExtension.class)
 public class DeploymentErrorTwoTriggerTests {
 
     @Deployment
@@ -40,9 +41,12 @@ public class DeploymentErrorTwoTriggerTests {
                 .addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml");
     }
 
-    @Assertion(id = "AGENTICAI-DEPLOYMENT-005",
-               section = "agent-lifecycle",
-               strategy = "An agent declaring more than one @Trigger method is a deployment error")
+    /**
+     * An agent declaring more than one {@code @Trigger} method is a deployment error.
+     *
+     * <p>Specification section {@code agent-lifecycle}.
+     */
+    @Test
     public void multipleTriggersAreRejected() {
         // Verified by @ShouldThrowException on the deployment.
     }

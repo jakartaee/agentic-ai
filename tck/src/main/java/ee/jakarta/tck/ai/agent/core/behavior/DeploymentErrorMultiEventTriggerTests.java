@@ -15,22 +15,23 @@ package ee.jakarta.tck.ai.agent.core.behavior;
 import ee.jakarta.tck.ai.agent.core.behavior.agents.deploymenterror.DeploymentErrorEvent;
 import ee.jakarta.tck.ai.agent.core.behavior.agents.deploymenterror.MultiEventTriggerAgent;
 import ee.jakarta.tck.ai.agent.core.behavior.agents.deploymenterror.SecondTriggerEvent;
-import ee.jakarta.tck.ai.agent.framework.junit.anno.Assertion;
-import ee.jakarta.tck.ai.agent.framework.junit.anno.Deployed;
 import jakarta.enterprise.inject.spi.DeploymentException;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.ShouldThrowException;
+import org.jboss.arquillian.junit5.ArquillianExtension;
 import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.EmptyAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 /**
  * Deployment-error case G3c (<em>exactly one event parameter</em>): a
  * {@code @Trigger} method declaring more than one event parameter must be rejected
  * at deployment time.
  */
-@Deployed
+@ExtendWith(ArquillianExtension.class)
 public class DeploymentErrorMultiEventTriggerTests {
 
     @Deployment
@@ -41,9 +42,12 @@ public class DeploymentErrorMultiEventTriggerTests {
                 .addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml");
     }
 
-    @Assertion(id = "AGENTICAI-DEPLOYMENT-006",
-               section = "agent-lifecycle",
-               strategy = "A @Trigger method declaring more than one event parameter is a deployment error")
+    /**
+     * A {@code @Trigger} method declaring more than one event parameter is a deployment error.
+     *
+     * <p>Specification section {@code agent-lifecycle}.
+     */
+    @Test
     public void multipleEventParametersAreRejected() {
         // Verified by @ShouldThrowException on the deployment.
     }

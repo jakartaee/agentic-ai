@@ -17,19 +17,20 @@ import ee.jakarta.tck.ai.agent.core.behavior.agents.eventobservation.EventObserv
 import ee.jakarta.tck.ai.agent.core.behavior.agents.eventobservation.GeneralObservationEvent;
 import ee.jakarta.tck.ai.agent.core.behavior.agents.eventobservation.WorkflowScopedObserverAgent;
 import ee.jakarta.tck.ai.agent.core.behavior.agents.eventobservation.WorkflowScopedTriggerEvent;
-import ee.jakarta.tck.ai.agent.framework.junit.anno.Assertion;
-import ee.jakarta.tck.ai.agent.framework.junit.anno.Deployed;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder.Phase;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder.TraceEntry;
 import jakarta.enterprise.event.Event;
 import jakarta.inject.Inject;
 import org.jboss.arquillian.container.test.api.Deployment;
+import org.jboss.arquillian.junit5.ArquillianExtension;
 import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.EmptyAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.List;
 
@@ -42,10 +43,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  * through its {@code @Trigger} method.
  *
  * <p>Uses {@code @TestInstance(PER_CLASS)} with inline {@code trace.reset()} because
- * {@code @BeforeEach} does not run reliably between methods of a {@code @Deployed}
+ * {@code @BeforeEach} does not run reliably between methods of an Arquillian test
  * class inside the container.</p>
  */
-@Deployed
+@ExtendWith(ArquillianExtension.class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class EventObservationTests {
 
@@ -66,18 +67,25 @@ public class EventObservationTests {
     private List<String> recordedMethodNames() {
         return trace.entries().stream().map(TraceEntry::methodName).toList();
     }
-    @Assertion(id = "AGENTICAI-EVENT-001",
-               section = "cdi-events",
-               strategy = "A @WorkflowScoped agent observes an event through its @Trigger method")
+    /**
+     * A {@code @WorkflowScoped} agent observes an event through its {@code @Trigger} method.
+     *
+     * <p>Specification section {@code cdi-events}.
+     */
+    @Test
     public void workflowScopedAgentObservesViaTrigger() {
         trace.reset();
         workflowScopedEvents.fire(new WorkflowScopedTriggerEvent("input"));
         assertEquals(List.of(Phase.TRIGGER), trace.phases());
         assertEquals(List.of("onTriggerEvent"), recordedMethodNames());
     }
-    @Assertion(id = "AGENTICAI-EVENT-002",
-               section = "cdi-events",
-               strategy = "An @ApplicationScoped agent also observes events through a general @Observes method that is not a @Trigger")
+    /**
+     * An {@code @ApplicationScoped} agent also observes events through a general {@code @Observes}
+     * method that is not a {@code @Trigger}.
+     *
+     * <p>Specification section {@code cdi-events}.
+     */
+    @Test
     public void applicationScopedAgentObservesViaGeneralObserver() {
         trace.reset();
         generalEvents.fire(new GeneralObservationEvent("input"));
