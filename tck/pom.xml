@@ -158,7 +158,7 @@
                 <artifactId>sigtest-maven-plugin</artifactId>
                 <version>${sigtest.version}</version>
                 <configuration>
-                    <sigfile>${project.build.outputDirectory}/ee/jakarta/tck/ai/agent/framework/signature/jakarta.ai.agent.sig_${spec.version}</sigfile>
+                    <sigfile>${project.build.outputDirectory}/ee/jakarta/tck/ai/agent/jakarta.ai.agent.sig_${spec.version}</sigfile>
                     <packages>jakarta.ai.agent</packages>
                 </configuration>
                 <executions>

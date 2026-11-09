@@ -5,7 +5,7 @@ It catches an incomplete or modified copy of the API in a runtime that ships its
 
 === How it runs
 
-`ee.jakarta.tck.ai.agent.framework.signature.SignatureTests` is a test class in the TCK jar like every other. It declares an Arquillian deployment and runs inside the Test Server, in the same {TCKTestPlatform} execution, with no plugin configuration:
+`ee.jakarta.tck.ai.agent.SignatureTests` is a test class in the TCK jar like every other. It declares an Arquillian deployment and runs inside the Test Server, in the same {TCKTestPlatform} execution, with no plugin configuration:
 
 . Its deployment carries the signature file `jakarta.ai.agent.sig_{APIVersion}` and the Jakarta TCK signature test engine, both taken from the Test Client class path.
 . Inside the Test Server it locates the jar or directory that supplies `{APIPackage}.Agent`, plus the one that supplies the CDI types the API refers to.
@@ -25,7 +25,7 @@ A passing run reports the class like any other:
 
 [source,txt]
 ----
-Tests run: 1, Failures: 0, Errors: 0, Skipped: 0 -- in ee.jakarta.tck.ai.agent.framework.signature.SignatureTests
+Tests run: 1, Failures: 0, Errors: 0, Skipped: 0 -- in ee.jakarta.tck.ai.agent.SignatureTests
 ----
 
 A failing run includes the engine's report in the assertion message, listing the members that differ from the signature file under headings such as `Missing Methods` or `Added Methods`.

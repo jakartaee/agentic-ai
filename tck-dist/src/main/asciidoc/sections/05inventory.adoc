@@ -38,8 +38,8 @@ agentic-ai-tck-{TCKVersion}/
 
 The TCK jar contains the following packages:
 
-`ee.jakarta.tck.ai.agent.behavior`:: Behavioral tests, one class per concern: phase ordering and precedence, data propagation and resolution order, termination, `@OnException` handling, validation, inherited and void phases, optional phases, orchestration, CDI integration and event observation, workflow-scope lifecycle, concurrency isolation, deployment errors and the `LargeLanguageModel` contract. The agents each class deploys are under `behavior.agents`.
-`ee.jakarta.tck.ai.agent.framework`:: The test framework: the Arquillian extension that adds the TCK's classes to every deployment, the `TckModel` constants that define the model behaviour required during a run, the trace recorder and the signature test. The signature test verifies the API's public structure — every type, member, target, retention and meta-annotation — against the recorded signature file.
+`ee.jakarta.tck.ai.agent`:: The tests, one class per specification section: CDI beans, agent scopes and lifecycle callbacks, event observation, concurrency, parameter resolution, execution order, workflow patterns, workflow termination, `@OnException`, validation constraints, inherited methods, the `LargeLanguageModel` contract, one class per deployment error, and `SignatureTests`, which verifies the API's public structure — every type, member, target, retention and meta-annotation — against the recorded signature file. The agents each class deploys are under `agents`.
+`ee.jakarta.tck.ai.agent.framework`:: The test infrastructure: the Arquillian extension that adds the TCK's classes to every deployment, the `TckModel` constants that define the model behaviour required during a run, and the trace recorder.
 
 Every test method's documentation states what it verifies and names the specification section that requires it.
 A challenge references a test by its class and method.

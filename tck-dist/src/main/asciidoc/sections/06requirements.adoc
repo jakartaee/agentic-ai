@@ -6,7 +6,7 @@ Maven offers flexibility in how a TCK execution is configured, so this section s
 
 A compatibility run must execute every test class in the TCK jar and report:
 
-* the signature test `ee.jakarta.tck.ai.agent.framework.signature.SignatureTests` passed;
+* the signature test `ee.jakarta.tck.ai.agent.SignatureTests` passed;
 * every behavioral test passed;
 * zero failures, zero errors and zero skipped tests.
 

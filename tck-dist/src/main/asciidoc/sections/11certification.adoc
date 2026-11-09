@@ -20,7 +20,7 @@ It asks for the organization, the product and its version, the specification and
 
 The TCK verifies the implementation's own `LargeLanguageModel` facade.
 A real model cannot give deterministic answers, so for the duration of the TCK run the implementation must back its facade with a model that behaves as follows.
-The constants are in `ee.jakarta.tck.ai.agent.framework.llm.TckModel`, and "rendered prompt" means the text the facade sends to the model after substituting each `{}` placeholder with the Jakarta JSON Binding serialization of the corresponding parameter (a prompt without placeholders is sent unchanged, whether or not a structured-context parameter accompanies it).
+The constants are in `ee.jakarta.tck.ai.agent.framework.TckModel`, and "rendered prompt" means the text the facade sends to the model after substituting each `{}` placeholder with the Jakarta JSON Binding serialization of the corresponding parameter (a prompt without placeholders is sent unchanged, whether or not a structured-context parameter accompanies it).
 
 . If the rendered prompt contains `TckModel.FAIL` (`[tck:fail]`), the model fails. The facade must surface that failure as `LLMException`.
 . If the rendered prompt is exactly `TckModel.HISTORY` (`[tck:history]`), the model returns the rendered prompts previously sent in the current conversation — the current workflow context — in order, one per line, joined with `\n`; the empty string if there are none. History requests are not themselves recorded.

@@ -38,7 +38,7 @@
             <outputDirectory>artifacts</outputDirectory>
         </fileSet>
         <fileSet>
-            <directory>${project.parent.basedir}/tck/target/classes/ee/jakarta/tck/ai/agent/framework/signature</directory>
+            <directory>${project.parent.basedir}/tck/target/classes/ee/jakarta/tck/ai/agent</directory>
             <outputDirectory>artifacts</outputDirectory>
             <includes>
                 <include>*.sig*</include>
