@@ -21,17 +21,18 @@ import java.lang.annotation.Target;
 
 /**
  * Marks a test method as an assertion test for the Jakarta Agentic AI specification.
- * This annotation maps the test to a specific specification requirement.
+ * Marks a test method and names the specification requirement it verifies.
  *
- * <p>Each assertion test should verify a specific behavior defined in the
- * Jakarta Agentic AI 1.0 specification.
+ * <p>The id is unique to the test, {@code AGENTICAI-<CONCERN>-NNN}, and is
+ * the reference to quote in a TCK challenge. The section is the anchor of
+ * the specification section that states the requirement.
  *
  * <h2>Example Usage</h2>
  * <pre>{@code
- * @Assertion(id = "AGENTICAI-001",
+ * @Assertion(id = "AGENTICAI-ORDER-001",
  *            section = "agent-lifecycle",
- *            strategy = "Verify @Agent annotation is retained at runtime")
- * public void testAgentAnnotationRetention() {
+ *            strategy = "Full T→D→A→O pipeline executes in strict phase order")
+ * public void fullPipelineExecutesInStrictOrder() {
  *     // test implementation
  * }
  * }</pre>

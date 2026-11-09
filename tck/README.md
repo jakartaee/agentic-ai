@@ -25,12 +25,12 @@ mvn --projects tck --also-make verify
 
 ## Test Assertions
 
-Each test method is annotated with `@Assertion` which maps to a specific specification requirement:
+Each test method is annotated with `@Assertion`. The id is unique to the test and is what a TCK challenge quotes; the section is the anchor of the specification section that states the requirement:
 
 ```java
-@Assertion(id = "AGENTICAI-ORDER-002",
+@Assertion(id = "AGENTICAI-ORDER-001",
            section = "agent-lifecycle",
-           strategy = "Full T→D→A→O pipeline executes in strict declaration order")
+           strategy = "Full T→D→A→O pipeline executes in strict phase order")
 public void fullPipelineExecutesInStrictOrder() {
     // test implementation
 }

@@ -46,7 +46,7 @@ public class ContextInjectionTests {
     @Inject Event<ContextInjectionEvent> events;
     @Inject ExecutionTraceRecorder trace;
 
-    @Assertion(id = "AGENTICAI-CTX-002",
+    @Assertion(id = "AGENTICAI-CONTEXT-001",
                section = "agent-lifecycle",
                strategy = "Triggering event payload is accessible in @Trigger and preserved in the trace")
     public void eventPayloadIsPreservedInTrigger() {
@@ -56,7 +56,7 @@ public class ContextInjectionTests {
         ContextInjectionEvent recorded = (ContextInjectionEvent) trace.entries().get(0).args()[0];
         assertEquals("my-payload", recorded.payload());
     }
-    @Assertion(id = "AGENTICAI-CTX-003",
+    @Assertion(id = "AGENTICAI-CONTEXT-002",
                section = "parameter-resolution",
                strategy = "Triggering event is available for injection in @Action")
     public void eventIsInjectableInAction() {
@@ -69,7 +69,7 @@ public class ContextInjectionTests {
                 .orElseThrow()
                 .args()[0]);
     }
-    @Assertion(id = "AGENTICAI-CTX-004",
+    @Assertion(id = "AGENTICAI-CONTEXT-003",
                section = "parameter-resolution",
                strategy = "LargeLanguageModel is injectable as a direct method parameter of @Action and is a "
                         + "working facade: its echoed response is the rendered prompt")

@@ -54,7 +54,7 @@ public class TerminationTests {
     @Inject Event<ResultTerminationEvent>  resultEvents;
     @Inject Event<ObjectTerminationEvent>  objectEvents;
     @Inject ExecutionTraceRecorder trace;
-    @Assertion(id = "AGENTICAI-TERM-004",
+    @Assertion(id = "AGENTICAI-TERMINATION-001",
                section = "agent-lifecycle",
                strategy = "Boolean false from @Decision halts all downstream phases")
     public void booleanFalseTerminatesWorkflow() {
@@ -62,7 +62,7 @@ public class TerminationTests {
         booleanEvents.fire(new BooleanTerminationEvent("x"));
         assertEquals(List.of(Phase.TRIGGER, Phase.DECISION), trace.phases());
     }
-    @Assertion(id = "AGENTICAI-TERM-005",
+    @Assertion(id = "AGENTICAI-TERMINATION-002",
                section = "agent-lifecycle",
                strategy = "Result(success=false) from @Decision halts all downstream phases")
     public void resultFalseTerminatesWorkflow() {
@@ -70,7 +70,7 @@ public class TerminationTests {
         resultEvents.fire(new ResultTerminationEvent("x"));
         assertEquals(List.of(Phase.TRIGGER, Phase.DECISION), trace.phases());
     }
-    @Assertion(id = "AGENTICAI-TERM-005",
+    @Assertion(id = "AGENTICAI-TERMINATION-003",
                section = "agent-lifecycle",
                strategy = "Result(success=true) with null details from @Decision proceeds through all downstream phases")
     public void resultTrueWithNullDetailsProceeds() {
@@ -78,7 +78,7 @@ public class TerminationTests {
         resultEvents.fire(new ResultTerminationEvent("proceed"));
         assertEquals(List.of(Phase.TRIGGER, Phase.DECISION, Phase.ACTION, Phase.OUTCOME), trace.phases());
     }
-    @Assertion(id = "AGENTICAI-TERM-006",
+    @Assertion(id = "AGENTICAI-TERMINATION-004",
                section = "agent-lifecycle",
                strategy = "Object null from @Decision halts all downstream phases")
     public void objectNullTerminatesWorkflow() {

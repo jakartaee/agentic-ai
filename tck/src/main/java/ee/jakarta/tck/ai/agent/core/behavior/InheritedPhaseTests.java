@@ -60,7 +60,7 @@ public class InheritedPhaseTests {
     @Inject Event<InheritEvent> inheritEvents;
     @Inject Event<OverrideEvent> overrideEvents;
     @Inject ExecutionTraceRecorder trace;
-    @Assertion(id = "AGENTICAI-INHERIT-001",
+    @Assertion(id = "AGENTICAI-INHERITANCE-001",
                section = "agent-lifecycle",
                strategy = "A phase method declared on a superclass is inherited and participates in the workflow")
     public void inheritedActionParticipates() {
@@ -68,7 +68,7 @@ public class InheritedPhaseTests {
         inheritEvents.fire(new InheritEvent("input"));
         assertEquals(List.of(Phase.TRIGGER, Phase.ACTION), trace.phases());
     }
-    @Assertion(id = "AGENTICAI-INHERIT-002",
+    @Assertion(id = "AGENTICAI-INHERITANCE-002",
                section = "agent-lifecycle",
                strategy = "An override that drops the phase annotation does not participate in the workflow")
     public void unannotatedOverrideDoesNotParticipate() {

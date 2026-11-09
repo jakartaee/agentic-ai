@@ -75,7 +75,7 @@ public class OrderingPrecedenceTests {
     }
 
     // ── order attribute is honored ───────────────────────────────────────────
-    @Assertion(id = "AGENTICAI-ORDER-004",
+    @Assertion(id = "AGENTICAI-PRECEDENCE-001",
                section = "agent-lifecycle",
                strategy = "@Action/@Decision methods execute by ascending order attribute, not source declaration order")
     public void orderAttributeIsHonored() {
@@ -85,7 +85,7 @@ public class OrderingPrecedenceTests {
     }
 
     // ── @Priority is honored ─────────────────────────────────────────────────
-    @Assertion(id = "AGENTICAI-ORDER-005",
+    @Assertion(id = "AGENTICAI-PRECEDENCE-002",
                section = "agent-lifecycle",
                strategy = "@Action/@Decision methods execute by ascending @Priority value, not source declaration order")
     public void priorityIsHonored() {
@@ -95,7 +95,7 @@ public class OrderingPrecedenceTests {
     }
 
     // ── @Priority takes precedence over order ────────────────────────────────
-    @Assertion(id = "AGENTICAI-ORDER-006",
+    @Assertion(id = "AGENTICAI-PRECEDENCE-003",
                section = "agent-lifecycle",
                strategy = "When a method declares both, @Priority takes precedence over the order attribute")
     public void priorityTakesPrecedenceOverOrder() {

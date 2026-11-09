@@ -54,7 +54,7 @@ public class DataResolutionTieBreakTests {
 
     @Inject Event<TieBreakEvent> events;
     @Inject ExecutionTraceRecorder trace;
-    @Assertion(id = "AGENTICAI-DATA-005",
+    @Assertion(id = "AGENTICAI-RESOLUTION-001",
                section = "parameter-resolution",
                strategy = "When two phases return the same type, the later phase is injected with the most recently returned instance")
     public void mostRecentlyReturnedObjectWins() {

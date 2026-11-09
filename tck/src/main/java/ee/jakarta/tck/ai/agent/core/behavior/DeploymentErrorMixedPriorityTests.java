@@ -41,7 +41,7 @@ public class DeploymentErrorMixedPriorityTests {
                 .addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml");
     }
 
-    @Assertion(id = "AGENTICAI-DEPLOY-ERR-002B",
+    @Assertion(id = "AGENTICAI-DEPLOYMENT-003",
                section = "agent-lifecycle",
                strategy = "Mixing a @Priority-ordered method with an unordered one is a deployment error, the same rule as for order")
     public void mixedPriorityIsRejected() {

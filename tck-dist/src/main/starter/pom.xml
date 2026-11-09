@@ -64,8 +64,8 @@
             <scope>test</scope>
         </dependency>
 
-        <!-- The API the signature test verifies. Use the API jar your
-             implementation ships if it bundles its own copy. -->
+        <!-- The API the test classes reference on the Test Client. The
+             signature test verifies the copy the Test Server provides. -->
         <dependency>
             <groupId>jakarta.agentic-ai</groupId>
             <artifactId>jakarta.agentic-ai-api</artifactId>

@@ -86,7 +86,7 @@ public class CdiIntegrationTests {
     @Inject Event<InnerAgentEvent>          innerAgentEvents;
     @Inject ExecutionTraceRecorder          trace;
 
-    @Assertion(id = "AGENTICAI-CDI-BHV-002",
+    @Assertion(id = "AGENTICAI-CDI-001",
                section = "cdi-integration",
                strategy = "A static nested class annotated @Agent @ApplicationScoped is discovered as a CDI "
                         + "managed bean and its @Trigger observer fires when the triggering event is fired")
@@ -96,7 +96,7 @@ public class CdiIntegrationTests {
         assertEquals(List.of(Phase.TRIGGER), trace.phases());
     }
 
-    @Assertion(id = "AGENTICAI-CDI-BHV-002",
+    @Assertion(id = "AGENTICAI-CDI-002",
                section = "cdi-integration",
                strategy = "An @Agent bean using @Inject constructor injection (no no-args constructor) is a valid "
                         + "CDI managed bean; the @Trigger fires, proving the container created it via its constructor")
@@ -106,7 +106,7 @@ public class CdiIntegrationTests {
         assertEquals(List.of(Phase.TRIGGER), trace.phases());
     }
 
-    @Assertion(id = "AGENTICAI-CDI-BHV-003",
+    @Assertion(id = "AGENTICAI-CDI-003",
                section = "cdi-integration",
                strategy = "@PostConstruct is invoked exactly once for an @ApplicationScoped @Agent regardless of "
                         + "how many workflow events are fired; the static instance counter stays 1")
@@ -117,7 +117,7 @@ public class CdiIntegrationTests {
         assertEquals(1, SingletonCdiAgent.getInstanceCount());
     }
 
-    @Assertion(id = "AGENTICAI-CDI-BHV-004",
+    @Assertion(id = "AGENTICAI-CDI-004",
                section = "cdi-integration",
                strategy = "An @ApplicationScoped @Agent reuses the same bean instance across sequential workflow "
                         + "events — both @Trigger invocations record the same instanceId in the trace")
@@ -136,7 +136,7 @@ public class CdiIntegrationTests {
     // -------------------------------------------------------------------------
     // Implementation-required tests
     // -------------------------------------------------------------------------
-    @Assertion(id = "AGENTICAI-CDI-BHV-004",
+    @Assertion(id = "AGENTICAI-CDI-005",
                section = "cdi-integration",
                strategy = "An @ApplicationScoped @Agent uses the same bean instance across all phases of a "
                         + "workflow — @Trigger, @Action, @Outcome all record the same instanceId")
@@ -150,7 +150,7 @@ public class CdiIntegrationTests {
         assertEquals(triggerId, actionId);
         assertEquals(triggerId, outcomeId);
     }
-    @Assertion(id = "AGENTICAI-CDI-BHV-005",
+    @Assertion(id = "AGENTICAI-CDI-006",
                section = "parameter-resolution",
                strategy = "The compatible implementation resolves method parameters in priority order: (1) triggering event, (3) "
                         + "LargeLanguageModel, (5) CDI beans — ResolutionOrderAgent @Action args are "
@@ -166,7 +166,7 @@ public class CdiIntegrationTests {
         assertInstanceOf(LargeLanguageModel.class, actionEntry.args()[1]);
         assertInstanceOf(ResolutionCdiBean.class, actionEntry.args()[2]);
     }
-    @Assertion(id = "AGENTICAI-CDI-BHV-006",
+    @Assertion(id = "AGENTICAI-CDI-007",
                section = "cdi-integration",
                strategy = "A CDI interceptor bound via a custom @InterceptorBinding executes before and after the "
                         + "method body for EVERY business-method phase the compatible implementation dispatches through the CDI proxy — "
@@ -181,7 +181,7 @@ public class CdiIntegrationTests {
                 "interceptorBefore", "process",  "interceptorAfter",
                 "interceptorBefore", "finish",   "interceptorAfter"), names);
     }
-    @Assertion(id = "AGENTICAI-CDI-BHV-007",
+    @Assertion(id = "AGENTICAI-CDI-008",
                section = "agent-lifecycle",
                strategy = "The triggering event object is available as a method parameter in @Decision, @Action, "
                         + "and @Outcome — all three downstream phases receive it as args()[0]")

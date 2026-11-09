@@ -76,63 +76,63 @@ public class LlmContractTests {
 
     // -- validation: IllegalArgumentException before any model call ----------
 
-    @Assertion(id = "AGENTICAI-LLM-BHV-002",
+    @Assertion(id = "AGENTICAI-LLM-001",
                section = "llm-integration",
                strategy = "null prompt on query(String) throws IllegalArgumentException")
     public void nullPromptThrowsIllegalArgumentException() {
         assertInstanceOf(IllegalArgumentException.class, probe(llm -> llm.query(null)));
     }
 
-    @Assertion(id = "AGENTICAI-LLM-BHV-002",
+    @Assertion(id = "AGENTICAI-LLM-002",
                section = "llm-integration",
                strategy = "null prompt on query(String, Object...) throws IllegalArgumentException")
     public void nullPromptWithParamsThrowsIllegalArgumentException() {
         assertInstanceOf(IllegalArgumentException.class, probe(llm -> llm.query(null, "x")));
     }
 
-    @Assertion(id = "AGENTICAI-LLM-BHV-002",
+    @Assertion(id = "AGENTICAI-LLM-003",
                section = "llm-integration",
                strategy = "null prompt on query(String, Class) throws IllegalArgumentException")
     public void nullPromptOnTypedOverloadThrowsIllegalArgumentException() {
         assertInstanceOf(IllegalArgumentException.class, probe(llm -> llm.query(null, PersonFixture.class)));
     }
 
-    @Assertion(id = "AGENTICAI-LLM-BHV-002",
+    @Assertion(id = "AGENTICAI-LLM-004",
                section = "llm-integration",
                strategy = "null resultType on query(String, Class) throws IllegalArgumentException")
     public void nullResultTypeThrowsIllegalArgumentException() {
         assertInstanceOf(IllegalArgumentException.class, probe(llm -> llm.query("p", (Class<?>) null)));
     }
 
-    @Assertion(id = "AGENTICAI-LLM-BHV-002",
+    @Assertion(id = "AGENTICAI-LLM-005",
                section = "llm-integration",
                strategy = "null prompt on query(String, Class, Object...) throws IllegalArgumentException")
     public void nullPromptOnTypedVarargsOverloadThrowsIllegalArgumentException() {
         assertInstanceOf(IllegalArgumentException.class, probe(llm -> llm.query(null, PersonFixture.class, "x")));
     }
 
-    @Assertion(id = "AGENTICAI-LLM-BHV-002",
+    @Assertion(id = "AGENTICAI-LLM-006",
                section = "llm-integration",
                strategy = "null resultType on query(String, Class, Object...) throws IllegalArgumentException")
     public void nullResultTypeOnTypedVarargsOverloadThrowsIllegalArgumentException() {
         assertInstanceOf(IllegalArgumentException.class, probe(llm -> llm.query("p", (Class<?>) null, "x")));
     }
 
-    @Assertion(id = "AGENTICAI-LLM-BHV-002",
+    @Assertion(id = "AGENTICAI-LLM-007",
                section = "llm-integration",
                strategy = "more parameters than {} placeholders throws IllegalArgumentException")
     public void arityMoreParamsThanPlaceholdersThrows() {
         assertInstanceOf(IllegalArgumentException.class, probe(llm -> llm.query("one {} here", "a", "b")));
     }
 
-    @Assertion(id = "AGENTICAI-LLM-BHV-002",
+    @Assertion(id = "AGENTICAI-LLM-008",
                section = "llm-integration",
                strategy = "fewer parameters than {} placeholders throws IllegalArgumentException")
     public void arityFewerParamsThanPlaceholdersThrows() {
         assertInstanceOf(IllegalArgumentException.class, probe(llm -> llm.query("two {} and {}", "only")));
     }
 
-    @Assertion(id = "AGENTICAI-LLM-BHV-002",
+    @Assertion(id = "AGENTICAI-LLM-009",
                section = "llm-integration",
                strategy = "more parameters than {} placeholders on the typed varargs overload throws IllegalArgumentException")
     public void arityMismatchOnTypedVarargsOverloadThrows() {
@@ -140,14 +140,14 @@ public class LlmContractTests {
                 probe(llm -> llm.query("one {} here", PersonFixture.class, "a", "b")));
     }
 
-    @Assertion(id = "AGENTICAI-LLM-BHV-002",
+    @Assertion(id = "AGENTICAI-LLM-010",
                section = "llm-integration",
                strategy = "a prompt with no placeholder given more than one parameter throws IllegalArgumentException")
     public void noPlaceholderRejectsMultipleParams() {
         assertInstanceOf(IllegalArgumentException.class, probe(llm -> llm.query("Analyze this", "a", "b")));
     }
 
-    @Assertion(id = "AGENTICAI-LLM-BHV-002",
+    @Assertion(id = "AGENTICAI-LLM-011",
                section = "llm-integration",
                strategy = "a parameter JSON Binding cannot serialize throws IllegalArgumentException")
     public void parameterSerializationFailureThrowsIllegalArgumentException() {
@@ -155,7 +155,7 @@ public class LlmContractTests {
                 probe(llm -> llm.query("process {}", new NonSerializableParam())));
     }
 
-    @Assertion(id = "AGENTICAI-LLM-BHV-002",
+    @Assertion(id = "AGENTICAI-LLM-012",
                section = "llm-integration",
                strategy = "a parameter JSON Binding cannot serialize on the typed varargs overload throws IllegalArgumentException")
     public void parameterSerializationFailureOnTypedOverloadThrowsIllegalArgumentException() {
@@ -163,14 +163,14 @@ public class LlmContractTests {
                 probe(llm -> llm.query("process {}", PersonFixture.class, new NonSerializableParam())));
     }
 
-    @Assertion(id = "AGENTICAI-LLM-BHV-006",
+    @Assertion(id = "AGENTICAI-LLM-013",
                section = "llm-integration",
                strategy = "unwrap to a type the facade cannot be unwrapped to throws IllegalArgumentException")
     public void unwrapToIncompatibleTypeThrowsIllegalArgumentException() {
         assertInstanceOf(IllegalArgumentException.class, probe(llm -> llm.unwrap(String.class)));
     }
 
-    @Assertion(id = "AGENTICAI-LLM-BHV-006",
+    @Assertion(id = "AGENTICAI-LLM-014",
                section = "llm-integration",
                strategy = "unwrap(Object.class) returns the underlying implementation")
     public void unwrapToCompatibleTypeReturnsImplementation() {
@@ -179,7 +179,7 @@ public class LlmContractTests {
 
     // -- rendering: the echoed response is the rendered prompt -----------------
 
-    @Assertion(id = "AGENTICAI-LLM-BHV-001",
+    @Assertion(id = "AGENTICAI-LLM-015",
                section = "llm-integration",
                strategy = "{} placeholders are substituted in declaration order with the JSON Binding form of each parameter; "
                        + "the echo model returns the rendered prompt")
@@ -187,7 +187,7 @@ public class LlmContractTests {
         assertEquals("Hello \"Alice\" and \"Bob\"", probe(llm -> llm.query("Hello {} and {}", "Alice", "Bob")));
     }
 
-    @Assertion(id = "AGENTICAI-LLM-BHV-001",
+    @Assertion(id = "AGENTICAI-LLM-016",
                section = "llm-integration",
                strategy = "look-alike tokens ({name}, { }) are literal prompt text, not placeholders")
     public void lookAlikeTokensAreNotPlaceholders() {
@@ -195,14 +195,14 @@ public class LlmContractTests {
                 probe(llm -> llm.query("{name} and { } stay literal", new Object[0])));
     }
 
-    @Assertion(id = "AGENTICAI-LLM-BHV-002",
+    @Assertion(id = "AGENTICAI-LLM-017",
                section = "llm-integration",
                strategy = "a prompt with no placeholder accepts one structured-context parameter and is sent unchanged")
     public void noPlaceholderAllowsSingleStructuredContextParam() {
         assertEquals("Analyze this", probe(llm -> llm.query("Analyze this", new PersonFixture("A", 1))));
     }
 
-    @Assertion(id = "AGENTICAI-LLM-BHV-003",
+    @Assertion(id = "AGENTICAI-LLM-018",
                section = "llm-integration",
                strategy = "a complex parameter is rendered into the prompt as its JSON Binding serialization")
     public void complexObjectSerializedViaJsonBinding() {
@@ -213,7 +213,7 @@ public class LlmContractTests {
         assertTrue(rendered.contains("\"age\":30"), rendered);
     }
 
-    @Assertion(id = "AGENTICAI-LLM-BHV-004",
+    @Assertion(id = "AGENTICAI-LLM-019",
                section = "llm-integration",
                strategy = "a typed response is deserialized from the model's JSON text with JSON Binding")
     public void typedResponseDeserializedViaJsonBinding() {
@@ -222,7 +222,7 @@ public class LlmContractTests {
         assertEquals(new PersonFixture("Bob", 25), p);
     }
 
-    @Assertion(id = "AGENTICAI-LLM-BHV-004",
+    @Assertion(id = "AGENTICAI-LLM-020",
                section = "llm-integration",
                strategy = "the typed varargs overload renders the parameters and deserializes the model's JSON text")
     public void typedVarargsResponseDeserializedViaJsonBinding() {
@@ -233,49 +233,49 @@ public class LlmContractTests {
 
     // -- failures: LLMException ----------------------------------------------
 
-    @Assertion(id = "AGENTICAI-LLM-BHV-005",
+    @Assertion(id = "AGENTICAI-LLM-021",
                section = "llm-exception",
                strategy = "a model failure surfaces as LLMException")
     public void serviceErrorPropagatesAsLlmException() {
         assertInstanceOf(LLMException.class, probe(llm -> llm.query(TckModel.FAIL)));
     }
 
-    @Assertion(id = "AGENTICAI-LLM-BHV-005",
+    @Assertion(id = "AGENTICAI-LLM-022",
                section = "llm-exception",
                strategy = "a model failure surfaces as LLMException on query(String, Class)")
     public void serviceErrorOnTypedOverloadPropagatesAsLlmException() {
         assertInstanceOf(LLMException.class, probe(llm -> llm.query(TckModel.FAIL, PersonFixture.class)));
     }
 
-    @Assertion(id = "AGENTICAI-LLM-BHV-005",
+    @Assertion(id = "AGENTICAI-LLM-023",
                section = "llm-exception",
                strategy = "a model failure surfaces as LLMException on query(String, Object...) when the rendered prompt fails")
     public void serviceErrorOnVarargsOverloadPropagatesAsLlmException() {
         assertInstanceOf(LLMException.class, probe(llm -> llm.query("{} fails", TckModel.FAIL)));
     }
 
-    @Assertion(id = "AGENTICAI-LLM-BHV-005",
+    @Assertion(id = "AGENTICAI-LLM-024",
                section = "llm-exception",
                strategy = "a model failure surfaces as LLMException on query(String, Class, Object...) when the rendered prompt fails")
     public void serviceErrorOnTypedVarargsOverloadPropagatesAsLlmException() {
         assertInstanceOf(LLMException.class, probe(llm -> llm.query("{} fails", PersonFixture.class, TckModel.FAIL)));
     }
 
-    @Assertion(id = "AGENTICAI-LLM-BHV-005",
+    @Assertion(id = "AGENTICAI-LLM-025",
                section = "llm-exception",
                strategy = "a response that cannot be deserialized to the requested type surfaces as LLMException")
     public void typeConversionFailurePropagatesAsLlmException() {
         assertInstanceOf(LLMException.class, probe(llm -> llm.query("not json", PersonFixture.class)));
     }
 
-    @Assertion(id = "AGENTICAI-LLM-BHV-005",
+    @Assertion(id = "AGENTICAI-LLM-026",
                section = "llm-exception",
                strategy = "a response that cannot be deserialized on the typed varargs overload surfaces as LLMException")
     public void typeConversionFailureOnTypedVarargsOverloadPropagatesAsLlmException() {
         assertInstanceOf(LLMException.class, probe(llm -> llm.query("not json {}", PersonFixture.class, "x")));
     }
 
-    @Assertion(id = "AGENTICAI-LLM-BHV-008",
+    @Assertion(id = "AGENTICAI-LLM-027",
                section = "llm-exception",
                strategy = "an LLMException thrown from a phase is routed to a matching @OnException method, "
                        + "and the workflow continues to @Outcome when the handler returns normally")
@@ -287,7 +287,7 @@ public class LlmContractTests {
     }
 
     // -- conversational state --------------------------------------------------
-    @Assertion(id = "AGENTICAI-LLM-BHV-007",
+    @Assertion(id = "AGENTICAI-LLM-028",
                section = "llm-conversational-state",
                strategy = "each workflow's conversation holds only its own turns: after two sequential workflows, "
                        + "the history the model reports to the second contains only the second's turn")

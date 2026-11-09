@@ -53,7 +53,7 @@ public class TopologyFlexTests {
     @Inject Event<NoOutcomeEvent>  noOutcomeEvents;
     @Inject Event<ImplicitObservesEvent> implicitObservesEvents;
     @Inject ExecutionTraceRecorder trace;
-    @Assertion(id = "AGENTICAI-FLEX-003",
+    @Assertion(id = "AGENTICAI-TOPOLOGY-001",
                section = "agent-lifecycle",
                strategy = "Workflow without @Decision executes T→A→O without error")
     public void workflowWithoutDecisionExecutesActions() {
@@ -61,7 +61,7 @@ public class TopologyFlexTests {
         noDecisionEvents.fire(new NoDecisionEvent("test"));
         assertEquals(List.of(Phase.TRIGGER, Phase.ACTION, Phase.OUTCOME), trace.phases());
     }
-    @Assertion(id = "AGENTICAI-FLEX-004",
+    @Assertion(id = "AGENTICAI-TOPOLOGY-002",
                section = "agent-lifecycle",
                strategy = "Workflow without @Outcome completes gracefully after @Action")
     public void workflowWithoutOutcomeCompletesGracefully() {
@@ -69,7 +69,7 @@ public class TopologyFlexTests {
         noOutcomeEvents.fire(new NoOutcomeEvent("test"));
         assertEquals(List.of(Phase.TRIGGER, Phase.DECISION, Phase.ACTION), trace.phases());
     }
-    @Assertion(id = "AGENTICAI-FLEX-005",
+    @Assertion(id = "AGENTICAI-TOPOLOGY-003",
                section = "agent-lifecycle",
                strategy = "A @Trigger whose event parameter carries no @Observes is still invoked by the triggering "
                         + "event and runs the full T→A→O workflow")

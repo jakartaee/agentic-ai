@@ -69,7 +69,7 @@ public class OrchestrationTests {
     @Inject ExecutionTraceRecorder  trace;
     @Inject BranchingAgent          branchingAgent;
 
-    @Assertion(id = "AGENTICAI-ORCHESTRATION-BHV-006",
+    @Assertion(id = "AGENTICAI-ORCHESTRATION-001",
                section = "agent-lifecycle",
                strategy = "Minimalist pattern: an agent with @Trigger only is a valid complete workflow; "
                         + "firing the event runs the trigger and the workflow completes")
@@ -82,7 +82,7 @@ public class OrchestrationTests {
     // -------------------------------------------------------------------------
     // Implementation-required tests — core orchestration rules
     // -------------------------------------------------------------------------
-    @Assertion(id = "AGENTICAI-ORCHESTRATION-BHV-001",
+    @Assertion(id = "AGENTICAI-ORCHESTRATION-002",
                section = "agent-lifecycle",
                strategy = "@Trigger is always the first phase invoked even when declared at the bottom "
                         + "of the source file")
@@ -93,7 +93,7 @@ public class OrchestrationTests {
                 assertEquals(Phase.TRIGGER, trace.phases().get(0));
                 assertEquals(Phase.OUTCOME, trace.phases().get(trace.phases().size() - 1));
     }
-    @Assertion(id = "AGENTICAI-ORCHESTRATION-BHV-002",
+    @Assertion(id = "AGENTICAI-ORCHESTRATION-003",
                section = "agent-lifecycle",
                strategy = "@Decision and @Action execute in the order given by their explicit order attributes, "
                         + "independent of source position: AnchoredAgent orders act() before decide()")
@@ -104,7 +104,7 @@ public class OrchestrationTests {
         List<String> names = trace.entries().stream().map(TraceEntry::methodName).toList();
         assertEquals(List.of("onEvent", "act", "decide", "finish"), names);
     }
-    @Assertion(id = "AGENTICAI-ORCHESTRATION-BHV-003",
+    @Assertion(id = "AGENTICAI-ORCHESTRATION-004",
                section = "agent-lifecycle",
                strategy = "@Outcome is always the last phase invoked in a successful workflow even when declared "
                         + "at the top of the source file — verified via AnchoredAgent where @Outcome is the FIRST method declared")
@@ -113,7 +113,7 @@ public class OrchestrationTests {
         anchoredEvents.fire(new AnchoredEvent("test"));
         assertEquals(Phase.OUTCOME, trace.phases().get(trace.phases().size() - 1));
     }
-    @Assertion(id = "AGENTICAI-ORCHESTRATION-BHV-004",
+    @Assertion(id = "AGENTICAI-ORCHESTRATION-005",
                section = "agent-lifecycle",
                strategy = "Multiple alternating @Decision and @Action phases all execute in their explicit order")
     public void intermixedDecisionAndActionPhasesSupported() {
@@ -124,7 +124,7 @@ public class OrchestrationTests {
         List<String> names = trace.entries().stream().map(TraceEntry::methodName).toList();
         assertEquals(List.of("onEvent", "firstDecide", "firstAction", "secondDecide", "secondAction", "finish"), names);
     }
-    @Assertion(id = "AGENTICAI-ORCHESTRATION-BHV-005",
+    @Assertion(id = "AGENTICAI-ORCHESTRATION-006",
                section = "agent-lifecycle",
                strategy = "false from the FIRST @Decision in a chain immediately prevents ALL subsequent phases "
                         + "including the trailing @Outcome anchor")
@@ -134,7 +134,7 @@ public class OrchestrationTests {
         branchingEvents.fire(new BranchingEvent("test"));
         assertEquals(List.of(Phase.TRIGGER, Phase.DECISION), trace.phases());
     }
-    @Assertion(id = "AGENTICAI-ORCHESTRATION-BHV-005",
+    @Assertion(id = "AGENTICAI-ORCHESTRATION-007",
                section = "agent-lifecycle",
                strategy = "false from a MID-CHAIN @Decision (after an upstream decision proceeded) prevents the "
                         + "remaining @Action and the trailing @Outcome anchor — the implementation must keep checking termination "
@@ -149,7 +149,7 @@ public class OrchestrationTests {
     // -------------------------------------------------------------------------
     // Implementation-required tests — composition patterns (BHV-006)
     // -------------------------------------------------------------------------
-    @Assertion(id = "AGENTICAI-ORCHESTRATION-BHV-006",
+    @Assertion(id = "AGENTICAI-ORCHESTRATION-008",
                section = "agent-lifecycle",
                strategy = "Linear pattern: multiple explicitly ordered @Action phases execute sequentially without any @Decision")
     public void linearPatternSupported() {
@@ -159,7 +159,7 @@ public class OrchestrationTests {
         List<String> names = trace.entries().stream().map(TraceEntry::methodName).toList();
         assertEquals(List.of("onEvent", "firstAction", "secondAction", "thirdAction", "finish"), names);
     }
-    @Assertion(id = "AGENTICAI-ORCHESTRATION-BHV-006",
+    @Assertion(id = "AGENTICAI-ORCHESTRATION-009",
                section = "agent-lifecycle",
                strategy = "Evaluative pattern: @Decision proceeds directly to @Outcome when no @Action is declared")
     public void evaluativePatternSupported() {
@@ -167,7 +167,7 @@ public class OrchestrationTests {
         outcomeOnlyEvents.fire(new OutcomeOnlyEvent("test"));
         assertEquals(List.of(Phase.TRIGGER, Phase.DECISION, Phase.OUTCOME), trace.phases());
     }
-    @Assertion(id = "AGENTICAI-ORCHESTRATION-BHV-006",
+    @Assertion(id = "AGENTICAI-ORCHESTRATION-010",
                section = "agent-lifecycle",
                strategy = "Intermixed pattern: an explicitly ordered alternating @Decision/@Action chain executes through @Outcome")
     public void intermixedPatternSupported() {

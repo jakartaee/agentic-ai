@@ -54,7 +54,7 @@ public class ResultDetailsInjectionTests {
 
     @Inject Event<ResultDetailsEvent> events;
     @Inject ExecutionTraceRecorder trace;
-    @Assertion(id = "AGENTICAI-DATA-006",
+    @Assertion(id = "AGENTICAI-RESULT-001",
                section = "parameter-resolution",
                strategy = "A non-null Result.details is injectable by its runtime type into a later phase")
     public void resultDetailsIsInjectableByRuntimeType() {

@@ -38,7 +38,7 @@ public class DeploymentErrorNoTriggerTests {
                 .addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml");
     }
 
-    @Assertion(id = "AGENTICAI-DEPLOY-ERR-003A",
+    @Assertion(id = "AGENTICAI-DEPLOYMENT-004",
                section = "agent-lifecycle",
                strategy = "An agent declaring no @Trigger method is a deployment error")
     public void missingTriggerIsRejected() {

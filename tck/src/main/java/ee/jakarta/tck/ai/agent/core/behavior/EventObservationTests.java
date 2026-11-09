@@ -66,7 +66,7 @@ public class EventObservationTests {
     private List<String> recordedMethodNames() {
         return trace.entries().stream().map(TraceEntry::methodName).toList();
     }
-    @Assertion(id = "AGENTICAI-EVENT-OBS-003",
+    @Assertion(id = "AGENTICAI-EVENT-001",
                section = "cdi-events",
                strategy = "A @WorkflowScoped agent observes an event through its @Trigger method")
     public void workflowScopedAgentObservesViaTrigger() {
@@ -75,7 +75,7 @@ public class EventObservationTests {
         assertEquals(List.of(Phase.TRIGGER), trace.phases());
         assertEquals(List.of("onTriggerEvent"), recordedMethodNames());
     }
-    @Assertion(id = "AGENTICAI-EVENT-OBS-004",
+    @Assertion(id = "AGENTICAI-EVENT-002",
                section = "cdi-events",
                strategy = "An @ApplicationScoped agent also observes events through a general @Observes method that is not a @Trigger")
     public void applicationScopedAgentObservesViaGeneralObserver() {

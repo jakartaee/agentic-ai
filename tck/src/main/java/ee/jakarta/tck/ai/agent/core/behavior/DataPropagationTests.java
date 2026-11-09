@@ -47,7 +47,7 @@ public class DataPropagationTests {
 
     @Inject Event<DataPropagationEvent> events;
     @Inject ExecutionTraceRecorder trace;
-    @Assertion(id = "AGENTICAI-DATA-002",
+    @Assertion(id = "AGENTICAI-DATA-001",
                section = "parameter-resolution",
                strategy = "TriggerOutput returned by @Trigger is injectable as a parameter in @Decision")
     public void triggerOutputIsInjectableInDecision() {
@@ -55,7 +55,7 @@ public class DataPropagationTests {
         events.fire(new DataPropagationEvent("input"));
         assertInstanceOf(TriggerOutput.class, trace.entries().get(1).args()[1]);
     }
-    @Assertion(id = "AGENTICAI-DATA-003",
+    @Assertion(id = "AGENTICAI-DATA-002",
                section = "parameter-resolution",
                strategy = "DecisionOutput returned by @Decision is injectable as a parameter in @Action")
     public void decisionOutputIsInjectableInAction() {
@@ -64,7 +64,7 @@ public class DataPropagationTests {
         DecisionOutput decision = assertInstanceOf(DecisionOutput.class, trace.entries().get(2).args()[1]);
         assertEquals("decision:trigger:input", decision.fromDecision());
     }
-    @Assertion(id = "AGENTICAI-DATA-004",
+    @Assertion(id = "AGENTICAI-DATA-003",
                section = "parameter-resolution",
                strategy = "@Outcome can inject objects from all preceding phases simultaneously")
     public void allPhaseOutputsAreInjectableInOutcome() {

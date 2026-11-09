@@ -88,7 +88,7 @@ public class ValidationTests {
     @Inject ExecutionTraceRecorder          trace;
 
     // ── Valid input proceeds ──────────────────────────────────────────────────
-    @Assertion(id = "AGENTICAI-VALIDATION-BHV-001",
+    @Assertion(id = "AGENTICAI-VALIDATION-001",
                section = "jakarta-validation-constraints",
                strategy = "Valid input passes validation and the @Action body runs, producing the TRIGGER→ACTION sequence")
     public void validInputProceedsThroughAction() {
@@ -98,7 +98,7 @@ public class ValidationTests {
     }
 
     // ── Invalid input: body does not run ─────────────────────────────────────
-    @Assertion(id = "AGENTICAI-VALIDATION-BHV-002",
+    @Assertion(id = "AGENTICAI-VALIDATION-002",
                section = "jakarta-validation-constraints",
                strategy = "Invalid input fails validation before injection, so the @Action body never runs")
     public void invalidInputDoesNotRunActionBody() {
@@ -108,7 +108,7 @@ public class ValidationTests {
     }
 
     // ── Invalid input: routed to @OnException ────────────────────────────
-    @Assertion(id = "AGENTICAI-VALIDATION-BHV-003",
+    @Assertion(id = "AGENTICAI-VALIDATION-003",
                section = "jakarta-validation-constraints",
                strategy = "A ConstraintViolationException from failed validation is routed to a matching @OnException method")
     public void invalidInputRoutedToHandler() {
@@ -124,7 +124,7 @@ public class ValidationTests {
     }
 
     // ── Invalid input with no handler: propagates to the container ───────────
-    @Assertion(id = "AGENTICAI-VALIDATION-BHV-004",
+    @Assertion(id = "AGENTICAI-VALIDATION-004",
                section = "jakarta-validation-constraints",
                strategy = "Without a matching @OnException, the ConstraintViolationException propagates to the container")
     public void invalidInputPropagatesWithoutHandler() {
@@ -140,7 +140,7 @@ public class ValidationTests {
     }
 
     // ── Constraints on other phases ──────────────────────────────────────────
-    @Assertion(id = "AGENTICAI-VALIDATION-BHV-005",
+    @Assertion(id = "AGENTICAI-VALIDATION-005",
                section = "jakarta-validation-constraints",
                strategy = "A constraint on the @Trigger event parameter is validated before the trigger body runs; "
                         + "the ConstraintViolationException is routed to @OnException and no later phase runs")
@@ -156,7 +156,7 @@ public class ValidationTests {
                 .orElseThrow();
         assertInstanceOf(ConstraintViolationException.class, handlerEntry.args()[0]);
     }
-    @Assertion(id = "AGENTICAI-VALIDATION-BHV-005",
+    @Assertion(id = "AGENTICAI-VALIDATION-006",
                section = "jakarta-validation-constraints",
                strategy = "A constraint on a @Decision parameter is validated before the decision body runs; "
                         + "the ConstraintViolationException is routed to @OnException and the chain stops")
@@ -172,7 +172,7 @@ public class ValidationTests {
                 .orElseThrow();
         assertInstanceOf(ConstraintViolationException.class, handlerEntry.args()[0]);
     }
-    @Assertion(id = "AGENTICAI-VALIDATION-BHV-005",
+    @Assertion(id = "AGENTICAI-VALIDATION-007",
                section = "jakarta-validation-constraints",
                strategy = "Valid input on the trigger event and the decision parameter runs those phases normally")
     public void validInputOnOtherPhasesProceeds() {
@@ -185,7 +185,7 @@ public class ValidationTests {
         assertEquals(List.of(Phase.TRIGGER, Phase.DECISION, Phase.ACTION), trace.phases());
     }
 
-    @Assertion(id = "AGENTICAI-VALIDATION-BHV-007",
+    @Assertion(id = "AGENTICAI-VALIDATION-008",
                section = "jakarta-validation-constraints",
                strategy = "A constraint on an @Outcome parameter is validated before the outcome body runs; "
                         + "the ConstraintViolationException is routed to @OnException, and valid input reaches the outcome")
@@ -206,7 +206,7 @@ public class ValidationTests {
     }
 
     // ── Constraints on @OnException parameters ───────────────────────────────
-    @Assertion(id = "AGENTICAI-VALIDATION-BHV-006",
+    @Assertion(id = "AGENTICAI-VALIDATION-009",
                section = "jakarta-validation-constraints",
                strategy = "A constraint violation on an @OnException parameter propagates to the container instead of "
                         + "re-entering exception handling; the handler body does not run")

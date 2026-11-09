@@ -40,7 +40,7 @@ public class DeploymentErrorTwoTriggerTests {
                 .addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml");
     }
 
-    @Assertion(id = "AGENTICAI-DEPLOY-ERR-003B",
+    @Assertion(id = "AGENTICAI-DEPLOYMENT-005",
                section = "agent-lifecycle",
                strategy = "An agent declaring more than one @Trigger method is a deployment error")
     public void multipleTriggersAreRejected() {

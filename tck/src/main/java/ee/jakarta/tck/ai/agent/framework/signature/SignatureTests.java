@@ -80,7 +80,7 @@ public class SignatureTests {
                 .addAsResource(SIGNATURE_RESOURCE);
     }
 
-    @Assertion(id = "AGENTICAI-SIG-001",
+    @Assertion(id = "AGENTICAI-SIGNATURE-001",
                section = "programming-model",
                strategy ="Run the Jakarta TCK signature test engine in strict static mode "
                        + "against the recorded jakarta.ai.agent signature file")

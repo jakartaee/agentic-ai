@@ -12,9 +12,8 @@
  *****************************************************************************/
 package ee.jakarta.tck.ai.agent.core.behavior.agents.cdi;
 
-// NOTE: NO @Priority here — the interceptor is enabled via the <interceptors>
-// element of beans.xml (see CdiIntegrationTests deployment). Enabling it through
-// both @Priority and beans.xml would enable it twice (non-portable; Weld may reject).
+// No @Priority: the interceptor is enabled through the <interceptors> element
+// of the beans.xml in the CdiIntegrationTests deployment.
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder.Phase;
 import jakarta.inject.Inject;

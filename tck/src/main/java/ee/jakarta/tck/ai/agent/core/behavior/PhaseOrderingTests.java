@@ -44,7 +44,7 @@ public class PhaseOrderingTests {
 
     @Inject Event<PhaseOrderingEvent> events;
     @Inject ExecutionTraceRecorder trace;
-    @Assertion(id = "AGENTICAI-ORDER-002",
+    @Assertion(id = "AGENTICAI-ORDER-001",
                section = "agent-lifecycle",
                strategy = "Full T→D→A→O pipeline executes in strict phase order")
     public void fullPipelineExecutesInStrictOrder() {
@@ -53,7 +53,7 @@ public class PhaseOrderingTests {
 
         assertEquals(List.of(Phase.TRIGGER, Phase.DECISION, Phase.ACTION, Phase.OUTCOME), trace.phases());
     }
-    @Assertion(id = "AGENTICAI-ORDER-003",
+    @Assertion(id = "AGENTICAI-ORDER-002",
                section = "agent-lifecycle",
                strategy = "Trigger return value (non-void) is available for injection in Decision")
     public void triggerReturnValueIsInjectableInDecision() {

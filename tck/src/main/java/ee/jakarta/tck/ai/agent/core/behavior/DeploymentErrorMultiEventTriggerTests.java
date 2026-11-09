@@ -41,7 +41,7 @@ public class DeploymentErrorMultiEventTriggerTests {
                 .addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml");
     }
 
-    @Assertion(id = "AGENTICAI-DEPLOY-ERR-003C",
+    @Assertion(id = "AGENTICAI-DEPLOYMENT-006",
                section = "agent-lifecycle",
                strategy = "A @Trigger method declaring more than one event parameter is a deployment error")
     public void multipleEventParametersAreRejected() {

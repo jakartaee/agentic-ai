@@ -46,7 +46,7 @@ public class DeploymentErrorTwoPhaseTests {
                 .addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml");
     }
 
-    @Assertion(id = "AGENTICAI-DEPLOY-ERR-001",
+    @Assertion(id = "AGENTICAI-DEPLOYMENT-001",
                section = "agent-lifecycle",
                strategy = "Combining two phase annotations on one method is a deployment error rejected at deploy time")
     public void twoPhaseMethodIsRejected() {

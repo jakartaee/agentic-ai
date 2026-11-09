@@ -39,7 +39,7 @@ public class DeploymentErrorTwoOutcomeTests {
                 .addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml");
     }
 
-    @Assertion(id = "AGENTICAI-DEPLOY-ERR-004",
+    @Assertion(id = "AGENTICAI-DEPLOYMENT-007",
                section = "agent-lifecycle",
                strategy = "An agent declaring more than one @Outcome method is a deployment error")
     public void multipleOutcomesAreRejected() {

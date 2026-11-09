@@ -40,7 +40,7 @@ public class DeploymentErrorMixedOrderingTests {
                 .addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml");
     }
 
-    @Assertion(id = "AGENTICAI-DEPLOY-ERR-002",
+    @Assertion(id = "AGENTICAI-DEPLOYMENT-002",
                section = "agent-lifecycle",
                strategy = "Mixing explicitly ordered and unordered @Action/@Decision methods is a deployment error")
     public void mixedOrderingIsRejected() {

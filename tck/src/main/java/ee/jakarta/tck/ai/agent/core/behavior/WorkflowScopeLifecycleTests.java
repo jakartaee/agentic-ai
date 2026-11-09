@@ -78,7 +78,7 @@ public class WorkflowScopeLifecycleTests {
     @Inject ExecutionTraceRecorder    trace;
     @Inject LifecycleCallbackRecorder lifecycleRecorder;
     @Inject BeanManager               beanManager;
-    @Assertion(id = "AGENTICAI-CDI-BHV-001",
+    @Assertion(id = "AGENTICAI-SCOPE-001",
                section = "agent-lifecycle",
                strategy = "An @Agent with no explicit scope is registered as @WorkflowScoped, uses one "
                         + "instance across every phase, and creates a distinct instance for each workflow. "
@@ -108,7 +108,7 @@ public class WorkflowScopeLifecycleTests {
         assertEquals(List.of(ids.get(0), ids.get(0), ids.get(0),
                 ids.get(1), ids.get(1), ids.get(1)), phaseInstanceIds);
     }
-    @Assertion(id = "AGENTICAI-CDI-BHV-009",
+    @Assertion(id = "AGENTICAI-SCOPE-002",
                section = "agent-lifecycle",
                strategy = "An @Agent with no explicit name runs its full workflow. The derived name itself "
                         + "is not asserted: the specification does not yet say how an agent name is exposed.")
@@ -117,7 +117,7 @@ public class WorkflowScopeLifecycleTests {
         scopeDefaultEvents.fire(new ScopeDefaultEvent("naming"));
         assertEquals(List.of(Phase.TRIGGER, Phase.ACTION, Phase.OUTCOME), trace.phases());
     }
-    @Assertion(id = "AGENTICAI-CDI-BHV-009",
+    @Assertion(id = "AGENTICAI-SCOPE-003",
                section = "agent-lifecycle",
                strategy = "An @Agent with an explicit name, here @Agent(name = \"lifecycleSpy\"), runs its full "
                         + "workflow. The name is not asserted as a CDI bean name.")
@@ -127,7 +127,7 @@ public class WorkflowScopeLifecycleTests {
         lifecycleSpyEvents.fire(new LifecycleSpyEvent("naming"));
         assertEquals(List.of(Phase.TRIGGER, Phase.ACTION, Phase.OUTCOME), trace.phases());
     }
-    @Assertion(id = "AGENTICAI-CDI-BHV-010",
+    @Assertion(id = "AGENTICAI-SCOPE-004",
                section = "cdi-integration",
                strategy = "@PostConstruct is invoked exactly once per @WorkflowScoped workflow execution — "
                         + "LifecycleCallbackRecorder counts one @PostConstruct call after a single workflow")
@@ -137,7 +137,7 @@ public class WorkflowScopeLifecycleTests {
         lifecycleSpyEvents.fire(new LifecycleSpyEvent("workflow-1"));
         assertEquals(1, lifecycleRecorder.getPostConstructCount());
     }
-    @Assertion(id = "AGENTICAI-CDI-BHV-010",
+    @Assertion(id = "AGENTICAI-SCOPE-005",
                section = "cdi-integration",
                strategy = "@PreDestroy is invoked exactly once after the @WorkflowScoped context is destroyed "
                         + "(workflow completes through @Outcome) — LifecycleCallbackRecorder counts one call")
@@ -148,7 +148,7 @@ public class WorkflowScopeLifecycleTests {
         assertEquals(Phase.OUTCOME, trace.phases().get(trace.phases().size() - 1));
         assertEquals(1, lifecycleRecorder.getPreDestroyCount());
     }
-    @Assertion(id = "AGENTICAI-CDI-BHV-010",
+    @Assertion(id = "AGENTICAI-SCOPE-006",
                section = "cdi-integration",
                strategy = "@PreDestroy is invoked exactly once even when the workflow FAILS (the issue requires "
                         + "cleanup 'after the workflow completes or fails'). LifecycleSpyAgent.setFailInAction(true) "
@@ -168,7 +168,7 @@ public class WorkflowScopeLifecycleTests {
         assertFalse(trace.phases().contains(Phase.OUTCOME));
         assertEquals(1, lifecycleRecorder.getPreDestroyCount());
     }
-    @Assertion(id = "AGENTICAI-CDI-BHV-010",
+    @Assertion(id = "AGENTICAI-SCOPE-007",
                section = "cdi-integration",
                strategy = "@PreDestroy is invoked exactly once when the workflow terminates at a @Decision returning "
                         + "false: the @WorkflowScoped context is destroyed although @Action and @Outcome never run")
@@ -179,7 +179,7 @@ public class WorkflowScopeLifecycleTests {
         assertEquals(List.of(Phase.TRIGGER, Phase.DECISION), trace.phases());
         assertEquals(1, lifecycleRecorder.getPreDestroyCount());
     }
-    @Assertion(id = "AGENTICAI-CDI-BHV-011",
+    @Assertion(id = "AGENTICAI-SCOPE-008",
                section = "cdi-integration",
                strategy = "@WorkflowScoped creates a distinct bean instance per workflow execution — two "
                         + "sequential events yield two different instanceIds (v1 proxy for concurrent workflows)")
