@@ -47,15 +47,15 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Verifies the public API surface of {@code jakarta.ai.agent} against the
- * signature baseline shipped in the TCK, using the Jakarta TCK signature
+ * signature file shipped in the TCK, using the Jakarta TCK signature
  * test engine.
  *
  * <p>Like every other test, this one deploys to the implementation and runs
  * inside it, so the API it verifies is the {@code jakarta.ai.agent} the
  * implementation provides to applications: the API jar the runtime ships, or
  * the implementation jar if it bundles the API. The deployment carries the
- * baseline and the engine itself, both taken from the test client's class
- * path.</p>
+ * signature file and the engine itself, both taken from the test client's
+ * class path.</p>
  *
  * <p>The check is strict in both directions: a removed, changed <em>or
  * added</em> public member fails it. JDK types are resolved at the Java SE
@@ -92,7 +92,7 @@ public class SignatureTests {
         Path signatureFile = Files.createTempFile("jakarta.ai.agent", ".sig");
         try {
             try (InputStream in = SignatureTests.class.getClassLoader().getResourceAsStream(SIGNATURE_RESOURCE)) {
-                assertNotNull(in, "Signature baseline " + SIGNATURE_RESOURCE + " is missing from the deployment");
+                assertNotNull(in, "Signature file " + SIGNATURE_RESOURCE + " is missing from the deployment");
                 Files.copy(in, signatureFile, StandardCopyOption.REPLACE_EXISTING);
             }
             Path apiLocation = locationOf(Agent.class);
@@ -114,7 +114,7 @@ public class SignatureTests {
             test.run(args, new PrintWriter(report, true), null);
 
             assertTrue(test.isPassed(), () -> PACKAGE + " at " + apiLocation
-                    + " differs from the recorded signature baseline:" + System.lineSeparator() + report);
+                    + " differs from the recorded signature file:" + System.lineSeparator() + report);
         } finally {
             Files.deleteIfExists(signatureFile);
         }

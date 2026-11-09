@@ -13,7 +13,7 @@ The TCK is built on three frameworks. Knowing how they interact helps when setti
 
 . **{TCKTestPlatform}** (5.11 or later) — the entry point for every test.
 . **Arquillian** (1.10 or later, with the Arquillian Jakarta integration) — deploys each test's archive to the Test Server and runs the test inside it. You must configure an https://arquillian.org/guides/developing_a_container_adapter/[Arquillian adapter] for your runtime. The adapter must report a failed deployment with a `jakarta.enterprise.inject.spi.DeploymentException` in the exception chain, because the deployment-error tests assert on that type with `@ShouldThrowException`; adapters that pass the CDI TCK already do.
-. **Jakarta TCK signature test engine** (version {SigPluginVersion} exactly, coordinates `{SigPluginGAV}`) — verifies that the `{APIPackage}` API the Test Server provides matches the signature baseline recorded for this release. It is a transitive dependency of the TCK jar, and the signature test carries it into its own deployment; no action is needed. An exact version is required because signature test tools differ in small ways.
+. **Jakarta TCK signature test engine** (version {SigPluginVersion} exactly, coordinates `{SigPluginGAV}`) — verifies that the `{APIPackage}` API the Test Server provides matches the signature file recorded for this release. It is a transitive dependency of the TCK jar, and the signature test carries it into its own deployment; no action is needed. An exact version is required because signature test tools differ in small ways.
 
 === What the TCK supplies inside each deployment
 

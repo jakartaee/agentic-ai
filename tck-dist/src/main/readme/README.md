@@ -11,7 +11,7 @@ Contents:
   installation, how to run the TCK, the signature test, how to file challenges and
   certification requests, and the compatibility rules.
 - `artifacts/` — the TCK jar, its sources jar, the parent pom it needs, the API signature
-  baseline (`jakarta.ai.agent.sig_*`) for reference, and `artifact-install.sh`, which installs
+  file (`jakarta.ai.agent.sig_*`) for reference, and `artifact-install.sh`, which installs
   the jar and pom into a local Maven repository.
 - `starter/` — a minimal Maven runner project to copy and configure for your implementation.
 - `LICENSE` — the EFTL terms.

@@ -16,7 +16,7 @@
     <name>Jakarta Agentic AI TCK Distribution</name>
     <description>
         The certifiable distribution of the Jakarta Agentic AI TCK: the TCK jar
-        and sources, the signature baseline, the reference guide and a starter
+        and sources, the API signature file, the reference guide and a starter
         runner, bundled under the Eclipse Foundation Technology Compatibility
         Kit License. It is released to download.eclipse.org, not to Maven Central.
     </description>

@@ -27,7 +27,7 @@ agentic-ai-tck-{TCKVersion}/
   README.md
 ----
 
-* `artifacts/` holds the TCK jar and its sources, the parent pom the jar's own pom refers to, a reference copy of the API signature baseline, and a script that installs the jar and pom into a local Maven repository.
+* `artifacts/` holds the TCK jar and its sources, the parent pom the jar's own pom refers to, a reference copy of the API signature file, and a script that installs the jar and pom into a local Maven repository.
 * `docs/` holds this guide.
 * `starter/` is a minimal Maven project that runs the TCK once an Arquillian adapter is configured.
 * `LICENSE` is the {license}.
@@ -39,12 +39,12 @@ agentic-ai-tck-{TCKVersion}/
 The TCK jar contains the following packages:
 
 `ee.jakarta.tck.ai.agent.core.behavior`:: Behavioral tests, one class per concern: phase ordering and precedence, data propagation and resolution tie-breaks, termination, `@OnException` handling, validation, inherited and void phases, topology flexibility, orchestration, CDI integration and event observation, workflow-scope lifecycle, concurrency isolation, deployment errors and the `LargeLanguageModel` contract. The agents each class deploys are under `core.behavior.agents`.
-`ee.jakarta.tck.ai.agent.framework`:: The test framework: the Arquillian extension that adds the TCK's classes to every deployment, the `TckModel` constants that define the model behaviour required during a run, the trace recorder and the signature test. The signature test is the structural test of the API: the recorded baseline covers every type, member, target, retention and meta-annotation.
+`ee.jakarta.tck.ai.agent.framework`:: The test framework: the Arquillian extension that adds the TCK's classes to every deployment, the `TckModel` constants that define the model behaviour required during a run, the trace recorder and the signature test. The signature test is the structural test of the API: the recorded signature file covers every type, member, target, retention and meta-annotation.
 
 Every test method's documentation states what it verifies and names the specification section that requires it.
 A challenge references a test by its class and method.
 
-==== API signature baseline
+==== API signature file
 
 `artifacts/jakarta.ai.agent.sig_{APIVersion}` records the public signature of the `{APIPackage}` package for this release.
 It is included for reference; the copy the signature test uses is inside the TCK jar.

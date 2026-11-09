@@ -13,7 +13,7 @@
     <artifactId>jakarta.agentic-ai-tck</artifactId>
 
     <name>Jakarta Agentic AI TCK</name>
-    <description>Technology Compatibility Kit for Jakarta Agentic AI 1.0</description>
+    <description>Technology Compatibility Kit for Jakarta Agentic AI</description>
 
     <licenses>
         <license>
@@ -153,9 +153,6 @@
                     <doclint>none</doclint>
                 </configuration>
             </plugin>
-            <!-- The API signature baseline the deployed SignatureTests compares an
-                 implementation against is generated from the API at build time,
-                 straight into the jar, so it can never disagree with the API. -->
             <plugin>
                 <groupId>jakarta.tck</groupId>
                 <artifactId>sigtest-maven-plugin</artifactId>
