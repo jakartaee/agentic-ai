@@ -1,25 +1,23 @@
 == Signature Test
 
-The signature test validates the integrity of the `{APIPackage}` package as seen by the Test Client.
-It matters most for an implementation that packages its own copy of the API jar, where the API must be verified in its entirety, and it also catches non-specified additions to `{APIPackage}` in any API jar.
+The signature test validates the integrity of the `{APIPackage}` package as the Test Server provides it to applications.
+It catches an incomplete or modified copy of the API in a runtime that ships its own, and non-specified additions to `{APIPackage}` in any.
 
 === How it runs
 
-`ee.jakarta.tck.ai.agent.framework.signature.SignatureTests` is a `standalone` test class in the TCK jar.
-It runs in the same {TCKTestPlatform} execution as every other test, on the Test Client, and needs no plugin configuration:
+`ee.jakarta.tck.ai.agent.framework.signature.SignatureTests` is a test class in the TCK jar like every other: it declares an Arquillian deployment and runs inside the Test Server, in the same {TCKTestPlatform} execution, with no plugin configuration:
 
-. It extracts the baseline `jakarta.ai.agent.sig_{APIVersion}` from the TCK jar.
-. It locates the jar or directory that supplies `{APIPackage}.Agent` on the class path, plus the one that supplies the CDI types the API refers to.
-. It runs the Jakarta TCK signature test engine in strict static mode over those locations, resolving JDK types from the running JDK's `lib/ct.sym` at the Java SE {JavaVersion} level.
+. Its deployment carries the baseline `jakarta.ai.agent.sig_{APIVersion}` and the Jakarta TCK signature test engine, both taken from the Test Client class path.
+. Inside the Test Server it locates the jar or directory that supplies `{APIPackage}.Agent`, plus the one that supplies the CDI types the API refers to.
+. It runs the engine in strict static mode over those locations, resolving JDK types at the Java SE {JavaVersion} level.
 
 The check is strict in both directions: a missing, changed or added public or protected member fails it.
 Because the JDK view is pinned to Java SE {JavaVersion}, the result is the same on any JDK of that version or later, and no `jimage` extraction, module exports or additional JVM options are needed.
 
 === Which API is tested
 
-Whatever `{APIPackage}` the Test Client class path resolves is tested.
-The starter declares `jakarta.agentic-ai:jakarta.agentic-ai-api`, the API as released by the specification project.
-If your implementation ships its own API jar, declare that jar instead so the signature test verifies what your users will see.
+Whatever supplies `{APIPackage}` to applications deployed on the Test Server is tested: the API jar your runtime ships, or your implementation jar if it bundles the API.
+With a managed or remote adapter this is independent of the `jakarta.agentic-ai:jakarta.agentic-ai-api` dependency the starter declares, which only compiles and loads the test classes on the Test Client.
 
 === Expected output
 

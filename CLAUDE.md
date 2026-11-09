@@ -18,14 +18,11 @@ mvn --projects tck --also-make verify
 # Clean build of TCK and upstream
 mvn --projects tck --also-make clean install
 
-# Run a single TCK assertion class (tests are compiled from src/main/java and executed by Failsafe)
-mvn -pl tck verify -Dgroups=standalone -Dit.test=SignatureTests
-
 # Generate API signature files
 mvn -pl tck verify -Psignature-generation
 ```
 
-The TCK has the same shape as the Data and Concurrency TCKs: this repository builds the jar and runs only the container-less signature test (`<groups>standalone</groups>` in the `tck` Failsafe config); every deployed test is executed by the implementation (Payara) from its own repository, all of them, `Skipped: 0`. There is no Weld, no stand-in `LargeLanguageModel`, no run mode, no tag, no profile, no marker, no execution condition and no `tck.implementation` property — all of that existed before an implementation did and was removed as scaffolding. Nothing in the module may exist that an implementation is not required to pass; do not add tests whose assertions hold only without an implementation, tests that reflect over fixtures instead of exercising the implementation, or TCK-owned doubles for things the implementation provides. If a spec-dev wants to run the deployed tests, that happens through the implementation's runner, like every other spec.
+The TCK has the same shape as the Data and Concurrency TCKs: this repository only builds the jar and runs none of its tests — not even the signature test, which deploys to the implementation like every other test; every test is executed by the implementation (Payara) from its own repository, all of them, `Skipped: 0`. The only thing Surefire runs here is the harness unit test in `src/test/java`. There is no Weld, no stand-in `LargeLanguageModel`, no run mode, no tag, no profile, no marker, no execution condition and no `tck.implementation` property — all of that existed before an implementation did and was removed as scaffolding. Nothing in the module may exist that an implementation is not required to pass; do not add tests whose assertions hold only without an implementation, tests that reflect over fixtures instead of exercising the implementation, or TCK-owned doubles for things the implementation provides. If a spec-dev wants to run the deployed tests, that happens through the implementation's runner, like every other spec.
 
 ## Architecture
 
@@ -49,15 +46,14 @@ Defines the `jakarta.ai.agent` package. Most types are annotations or interfaces
 
 TCK tests live in `src/main/java` (not `src/test/java`) and are compiled to classes that implementors run against their implementation. Only the internal framework unit tests live in `src/test/java`.
 
-**Test categories and assertion mapping** (controlled by JUnit 5 tags and meta-annotations):
-- `@Standalone` — no container needed; only the signature test carries it. There are no reflection-based structural tests: the strict signature baseline already covers targets, retention, members and meta-annotations, and Data/Concurrency have no such layer either.
-- `@Deployed` — Arquillian integration tests; run only by an implementation's runner, never in this repository.
+**Meta-annotations:**
+- `@Deployed` — carried by every test class: `ArquillianExtension` plus `AssertionExtension`. It carries no JUnit tag — there is one category of test and nothing selects by tag. There is no `@Standalone` and there are no reflection-based structural tests: the strict signature baseline already covers targets, retention, members and meta-annotations, and Data/Concurrency have no such layer either.
 - `@Assertion(id, section, strategy)` — wraps `@Test` and maps the test to a specification requirement ID, section, and verification strategy.
 
 **Test infrastructure** (not specification tests):
 - The TCK deploys **no** `LargeLanguageModel`: the implementation's own facade is injected and verified. Determinism comes from a certification requirement on the model behind it, defined by the constants in `framework/llm/TckModel` and the guide's "Additional Certification Requirements": a rendered prompt containing `TckModel.FAIL` fails (→ `LLMException`), a prompt equal to `TckModel.HISTORY` returns the conversation's prior rendered prompts one per line, anything else is echoed verbatim. Tests derive decisions and observations from the echo; `LlmContractTests` exercises the facade only from inside an agent phase (`LlmProbeAgent`), never from the test method, because conversational state is defined per workflow context. Do not reintroduce a TCK-owned `LargeLanguageModel` anywhere — it would test the TCK instead of the implementation.
 - `ExecutionTraceRecorder` — `@ApplicationScoped` CDI bean. Records lifecycle phase calls (`TRIGGER`, `DECISION`, `ACTION`, `OUTCOME`, `HANDLE_EXCEPTION`); tests assert ordering with `assertEquals(List.of(...), trace.phases())`.
-- `SignatureTests` — a `@Standalone` JUnit test that drives the Jakarta TCK signature engine (`jakarta.tck:sigtest-maven-plugin`, a compile dependency with the Maven layer excluded) against the shipped `.sig` baseline, strict in both directions, resolving JDK types from the JDK's `lib/ct.sym` at the Java SE 17 level. This is how the Data and Concurrency TCKs do it, so vendors get the signature check in their normal run. Do not reintroduce a plugin-only `strictcheck` execution as the sole check.
+- `SignatureTests` — a deployed test like every other. Its `@Deployment` carries the shipped `.sig` baseline and the Jakarta TCK signature engine (`jakarta.tck:sigtest-maven-plugin`, a compile dependency with the Maven layer excluded; only `com/sun/tdk/` and `META-INF/sigtest*` are repackaged into the archive, the latter being the engine's bundled Java SE API data) and runs the engine inside the implementation against the `jakarta.ai.agent` the server provides to applications, strict in both directions, JDK types pinned to Java SE 17 via `-BootCP`. Data and Concurrency deploy their signature tests too; a client-side run would only verify whatever API jar the runner itself put on its class path. Do not move it back to the client and do not reintroduce a plugin-only `strictcheck` execution as the sole check.
 
 **Conventions that follow the Data/Concurrency TCKs:** tests use plain JUnit `Assertions`, never AssertJ, because deployed tests run inside the container and a third-party assertion library would not be in the archive on a real server; AssertJ is not a dependency at all. Vendors run the TCK jar through Surefire `dependenciesToScan`; the starter in `tck-dist` shows the shape.
 

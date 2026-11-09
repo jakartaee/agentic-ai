@@ -5,4 +5,4 @@ This is the first release of the {APILongName} TCK.
 === How this TCK was validated
 
 Like other Jakarta EE TCKs, this TCK is run in full by a compatible implementation from that implementation's own repository.
-The specification repository builds the TCK and runs only its container-less signature test; it has no implementation to deploy the behavioral tests to.
+The specification repository only builds the TCK; it has no implementation to deploy to, so it runs none of the tests.

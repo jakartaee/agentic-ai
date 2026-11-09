@@ -38,7 +38,7 @@ include::{starterLoc}/pom.xml[tag=configJunit5]
 ----
 
 Surefire's default include patterns match the TCK's test classes, which are named `*Tests` and `*Test`.
-No `groups` or `excludedGroups` configuration is needed or permitted: a compatibility run executes every test, `standalone` and `deployed` alike.
+No `groups` or `excludedGroups` configuration is needed or permitted: a compatibility run executes every test.
 
 === Configuring Arquillian
 

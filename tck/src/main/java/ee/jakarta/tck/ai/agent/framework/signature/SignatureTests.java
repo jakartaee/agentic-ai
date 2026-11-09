@@ -14,20 +14,30 @@ package ee.jakarta.tck.ai.agent.framework.signature;
 
 import com.sun.tdk.signaturetest.SignatureTest;
 import ee.jakarta.tck.ai.agent.framework.junit.anno.Assertion;
-import ee.jakarta.tck.ai.agent.framework.junit.anno.Standalone;
+import ee.jakarta.tck.ai.agent.framework.junit.anno.Deployed;
 import jakarta.ai.agent.Agent;
 import jakarta.enterprise.context.NormalScope;
 import jakarta.enterprise.util.AnnotationLiteral;
+import org.jboss.arquillian.container.test.api.Deployment;
+import org.jboss.shrinkwrap.api.Archive;
+import org.jboss.shrinkwrap.api.ShrinkWrap;
+import org.jboss.shrinkwrap.api.asset.ByteArrayAsset;
+import org.jboss.shrinkwrap.api.spec.JavaArchive;
+import org.jboss.shrinkwrap.api.spec.WebArchive;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.util.Enumeration;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -39,24 +49,36 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * signature baseline shipped in the TCK, using the Jakarta TCK signature
  * test engine.
  *
- * <p>The check is strict in both directions: a removed, changed <em>or
- * added</em> public member fails it. JDK types are resolved from the running
- * JDK's {@code lib/ct.sym} view of Java SE {@value #JAVA_SE_RELEASE}, the
- * baseline the signature file was recorded against, so the result does not
- * depend on which newer JDK runs the TCK. The test therefore needs a JDK,
- * not a JRE.</p>
+ * <p>Like every other test, this one deploys to the implementation and runs
+ * inside it, so the API it verifies is the {@code jakarta.ai.agent} the
+ * implementation provides to applications: the API jar the runtime ships, or
+ * the implementation jar if it bundles the API. The deployment carries the
+ * baseline and the engine itself, both taken from the test client's class
+ * path.</p>
  *
- * <p>The API under test is whichever {@code jakarta.ai.agent} the test
- * class path resolves, so an implementation that bundles its own copy of the
- * API is verified against that copy.</p>
+ * <p>The check is strict in both directions: a removed, changed <em>or
+ * added</em> public member fails it. JDK types are resolved at the Java SE
+ * {@value #JAVA_SE_RELEASE} level, the baseline the signature file was
+ * recorded against, so the result does not depend on which newer JDK runs
+ * the implementation.</p>
  */
-@Standalone
+@Deployed
 public class SignatureTests {
 
     static final String PACKAGE = "jakarta.ai.agent";
     static final String SIGNATURE_RESOURCE =
             "ee/jakarta/tck/ai/agent/framework/signature/jakarta.ai.agent.sig_1.0";
     static final int JAVA_SE_RELEASE = 17;
+
+    /** The engine's own classes and the Java SE API data it resolves JDK types from. */
+    private static final String[] ENGINE_ENTRIES = { "com/sun/tdk/", "META-INF/sigtest" };
+
+    @Deployment
+    public static Archive<?> createDeployment() {
+        return ShrinkWrap.create(WebArchive.class, "signature.war")
+                .addAsLibrary(signatureEngine())
+                .addAsResource(SIGNATURE_RESOURCE);
+    }
 
     @Assertion(id = "AGENTICAI-SIG-001",
                section = "programming-model",
@@ -66,7 +88,7 @@ public class SignatureTests {
         Path signatureFile = Files.createTempFile("jakarta.ai.agent", ".sig");
         try {
             try (InputStream in = SignatureTests.class.getClassLoader().getResourceAsStream(SIGNATURE_RESOURCE)) {
-                assertNotNull(in, "Signature baseline " + SIGNATURE_RESOURCE + " is missing from the TCK");
+                assertNotNull(in, "Signature baseline " + SIGNATURE_RESOURCE + " is missing from the deployment");
                 Files.copy(in, signatureFile, StandardCopyOption.REPLACE_EXISTING);
             }
             Path apiLocation = locationOf(Agent.class);
@@ -94,7 +116,46 @@ public class SignatureTests {
         }
     }
 
+    /**
+     * Repackages the signature test engine from the jar it was loaded from on
+     * the test client: its own classes and the Java SE API data they read, not
+     * the Maven plugin layer the same jar carries.
+     */
+    private static JavaArchive signatureEngine() {
+        JavaArchive engine = ShrinkWrap.create(JavaArchive.class, "sigtest.jar");
+        try (JarFile jar = new JarFile(locationOf(SignatureTest.class).toFile())) {
+            Enumeration<JarEntry> entries = jar.entries();
+            while (entries.hasMoreElements()) {
+                JarEntry entry = entries.nextElement();
+                if (entry.isDirectory() || Stream.of(ENGINE_ENTRIES).noneMatch(entry.getName()::startsWith)) {
+                    continue;
+                }
+                try (InputStream in = jar.getInputStream(entry)) {
+                    engine.add(new ByteArrayAsset(in.readAllBytes()), entry.getName());
+                }
+            }
+        } catch (IOException | URISyntaxException e) {
+            throw new IllegalStateException("Cannot repackage the signature test engine for deployment", e);
+        }
+        return engine;
+    }
+
+    /**
+     * The jar or directory a class was loaded from. A server may report the
+     * code source as a {@code jar:} URL; the file behind it is what the engine
+     * reads.
+     */
     private static Path locationOf(Class<?> type) throws URISyntaxException {
-        return Path.of(type.getProtectionDomain().getCodeSource().getLocation().toURI());
+        URI location = type.getProtectionDomain().getCodeSource().getLocation().toURI();
+        if ("jar".equals(location.getScheme())) {
+            String inner = location.getSchemeSpecificPart();
+            int separator = inner.indexOf("!/");
+            location = URI.create(separator == -1 ? inner : inner.substring(0, separator));
+        }
+        try {
+            return Path.of(location);
+        } catch (RuntimeException e) {
+            throw new IllegalStateException(type.getName() + " was not loaded from a file system location: " + location, e);
+        }
     }
 }

@@ -14,7 +14,6 @@ package ee.jakarta.tck.ai.agent.framework.junit.anno;
 
 import ee.jakarta.tck.ai.agent.framework.junit.extensions.AssertionExtension;
 import org.jboss.arquillian.junit5.ArquillianExtension;
-import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.lang.annotation.ElementType;
@@ -23,15 +22,12 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Meta-annotation for TCK tests that require a full CDI container and
- * the Jakarta Agentic AI runtime.
- *
- * <p>Deployed tests verify behavioral aspects of the specification
- * within a managed environment.</p>
+ * Meta-annotation carried by every TCK test class: each declares an
+ * Arquillian deployment and runs inside the implementation under test, and a
+ * failure is reported against the {@link Assertion} the test verifies.
  */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
-@Tag("deployed")
 @ExtendWith({ ArquillianExtension.class, AssertionExtension.class })
 public @interface Deployed {
 }

@@ -4,10 +4,10 @@ Technology Compatibility Kit (TCK) for Jakarta Agentic AI.
 
 ## Overview
 
-This TCK verifies that implementations of Jakarta Agentic AI conform to the specification requirements. It includes tests for:
-
-- **Behavioral** (`core/behavior`, `@Deployed`): Arquillian deployments that run real workflows against the implementation under test, one class per concern — phase ordering and precedence, data propagation, termination, `@OnException` handling, validation, inherited and void phases, topology flexibility, orchestration, CDI integration and event observation, workflow-scope lifecycle, concurrency isolation, deployment errors, and the `LargeLanguageModel` contract
-- **API signature** (`framework/signature`, `@Standalone`): the complete public API surface against a recorded baseline; see [API signature baseline](#api-signature-baseline)
+This TCK verifies that implementations of Jakarta Agentic AI conform to the
+specification: the tests in `core/behavior` deploy workflows to the
+implementation under test, and `framework/signature` checks the public API
+against a recorded baseline (see [API signature baseline](#api-signature-baseline)).
 
 Tests live in `src/main/java` so they ship in the TCK jar for implementors to run; nothing in `src/test/java` reaches the jar.
 
@@ -15,15 +15,13 @@ Tests live in `src/main/java` so they ship in the TCK jar for implementors to ru
 
 Compatibility runs happen in an implementation's own repository: it runs the published jar from its own runner with its own Arquillian adapter, every test included, as [Running the TCK](../tck-dist/src/main/asciidoc/sections/08running.adoc) in the TCK Reference Guide describes.
 
-This repository has no implementation to deploy to, so, as in the Data and Concurrency TCKs, its build compiles the deployed tests into the jar without running them. The only test it executes is the container-less signature test (`<groups>standalone</groups>` in this module's Failsafe configuration):
+This repository has no implementation to deploy to, so, as in the Data and Concurrency TCKs, its build compiles the tests into the jar without running any of them; the signature test deploys to the implementation like every other test. The build is:
 
 ```bash
 mvn clean install
 mvn --projects tck --also-make clean install
 mvn --projects tck --also-make verify
 ```
-
-The deployed tests are validated by the implementation's run.
 
 ## Test Assertions
 
@@ -43,17 +41,17 @@ public void fullPipelineExecutesInStrictOrder() {
 `src/main/resources/ee/jakarta/tck/ai/agent/framework/signature/jakarta.ai.agent.sig_1.0`
 records the exact public signature of the `jakarta.ai.agent` package. It ships
 inside the TCK jar together with the Jakarta TCK signature test engine
-(`jakarta.tck:sigtest-maven-plugin`, a dependency of the TCK), and
-`SignatureTests` runs the engine against it as an ordinary `@Standalone` JUnit
-test. Implementors therefore run the signature check in the same execution as
-every other test, with no plugin configuration of their own.
+(`jakarta.tck:sigtest-maven-plugin`, a dependency of the TCK). `SignatureTests`
+carries both into its deployment and runs the engine inside the implementation,
+against the `jakarta.ai.agent` the implementation provides to applications.
+Implementors therefore run the signature check in the same execution as every
+other test, with no plugin configuration of their own.
 
 The check is strict in both directions: removing, changing **or adding** a
 public member fails it. A one-way check would let additions through as
 backward-compatible, which is not what a specification wants. JDK types are
-resolved from the running JDK's `lib/ct.sym` at the Java SE 17 level, so the
-result does not depend on which newer JDK runs the test; a JDK, not a JRE, is
-required.
+resolved at the Java SE 17 level, so the result does not depend on which newer
+JDK runs the implementation.
 
 When an API change is intended, regenerate the baseline and commit it:
 

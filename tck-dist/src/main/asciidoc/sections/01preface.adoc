@@ -17,11 +17,9 @@ This guide is for implementers of {APILongName} who need to run the test suite a
 
 === Terminology
 
-Test Client:: The JVM that runs {TCKTestPlatform}, builds each test archive with ShrinkWrap and hands it to Arquillian. The signature test and the structural tests run here.
-Test Server:: The Jakarta EE runtime, with the {APIShortName} implementation installed, that Arquillian deploys the test archives to. The behavioral tests run inside it, driven from the client.
+Test Client:: The JVM that runs {TCKTestPlatform}, builds each test archive with ShrinkWrap and hands it to Arquillian.
+Test Server:: The Jakarta EE runtime, with the {APIShortName} implementation installed, that Arquillian deploys the test archives to. Every test runs inside it, driven from the client.
 Implementation:: The product under test: a runtime that dispatches {APILongName} workflows and injects `LargeLanguageModel`.
-Standalone tests:: Test classes tagged `standalone`. They need no container and run on the Test Client.
-Deployed tests:: Test classes tagged `deployed`. Each declares an Arquillian deployment and runs inside the Test Server.
 
 === Before You Read This Guide
 
