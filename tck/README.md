@@ -1,41 +1,19 @@
 # Jakarta Agentic AI TCK
 
-Technology Compatibility Kit (TCK) for Jakarta Agentic AI 1.0 Specification.
+Technology Compatibility Kit (TCK) for Jakarta Agentic AI.
 
 ## Overview
 
 This TCK verifies that implementations of Jakarta Agentic AI conform to the specification requirements. It includes tests for:
 
-- **Behavioral**: a compatible implementation dispatches workflows as specified — phase ordering and precedence, data propagation into phase parameters, termination, error handling, validation, inherited phases, CDI scoping and event observation, concurrency isolation, deployment errors, and the `LargeLanguageModel` contract
-- **API signature**: the complete public API surface against a recorded baseline
-
-## Test Structure
-
-```
-tck/
-├── src/main/java/ee/jakarta/tck/ai/agent/
-│   ├── core/
-│   │   ├── behavior/         # Deployed workflow tests, one class per concern
-│   │   │   └── agents/       # The agents those tests deploy, one package per concern
-│   │   └── integration/      # Deployed smoke test
-│   └── framework/
-│       ├── junit/anno/       # @Assertion, @Standalone, @Deployed
-│       ├── junit/extensions/ # AssertionExtension: reports failed and skipped assertions
-│       ├── arquillian/       # Adds the framework beans to every deployment
-│       ├── llm/              # TckModel: the model behaviour an implementation must provide during a run
-│       ├── trace/            # ExecutionTraceRecorder: phase-order assertions
-│       └── signature/        # API signature test
-├── src/main/resources/
-│   ├── META-INF/services/    # Registers the Arquillian extension
-│   └── ee/jakarta/tck/ai/agent/framework/signature/   # Signature baseline
-└── src/test/java/            # A unit test of the TCK's concurrency harness; not part of the TCK
-```
+- **Behavioral** (`core/behavior`, `@Deployed`): Arquillian deployments that run real workflows against the implementation under test, one class per concern — phase ordering and precedence, data propagation, termination, `@OnException` handling, validation, inherited and void phases, topology flexibility, orchestration, CDI integration and event observation, workflow-scope lifecycle, concurrency isolation, deployment errors, and the `LargeLanguageModel` contract
+- **API signature** (`framework/signature`, `@Standalone`): the complete public API surface against a recorded baseline; see [API signature baseline](#api-signature-baseline)
 
 Tests live in `src/main/java` so they ship in the TCK jar for implementors to run; nothing in `src/test/java` reaches the jar.
 
 ## Building and running the TCK
 
-Compatibility runs happen in an implementation's own repository: it runs the published jar from its own runner with its own Arquillian adapter, every test included, as the TCK Reference Guide in `tck-dist` describes.
+Compatibility runs happen in an implementation's own repository: it runs the published jar from its own runner with its own Arquillian adapter, every test included, as [Running the TCK](../tck-dist/src/main/asciidoc/sections/08running.adoc) in the TCK Reference Guide describes.
 
 This repository has no implementation to deploy to, so, as in the Data and Concurrency TCKs, its build compiles the deployed tests into the jar without running them. The only test it executes is the container-less signature test (`<groups>standalone</groups>` in this module's Failsafe configuration):
 
@@ -59,14 +37,6 @@ public void fullPipelineExecutesInStrictOrder() {
     // test implementation
 }
 ```
-
-## Test Categories
-
-### Signature test (`@Standalone`)
-The API signature check in `framework/signature`; no container needed. It is the structural test: the recorded baseline covers every type, member, target, retention and meta-annotation of the API, so there are no separate reflection tests.
-
-### Behavioral tests (`@Deployed`)
-Arquillian deployments that run real workflows against the implementation under test. Each class in `core/behavior` covers one concern: phase ordering and precedence, data propagation and resolution tie-breaks, termination, `@OnException` handling, validation, inherited and void phases, topology flexibility, orchestration, CDI integration and event observation, workflow-scope lifecycle, concurrency isolation, deployment errors, and the `LargeLanguageModel` contract. A compatibility run executes all of them; see [Running the TCK](../tck-dist/src/main/asciidoc/sections/08running.adoc) in the TCK Reference Guide.
 
 ## API signature baseline
 
