@@ -57,6 +57,9 @@
             <directory>src/main/starter</directory>
             <outputDirectory>starter</outputDirectory>
             <filtered>true</filtered>
+            <excludes>
+                <exclude>target/**</exclude>
+            </excludes>
         </fileSet>
     </fileSets>
 </assembly>
