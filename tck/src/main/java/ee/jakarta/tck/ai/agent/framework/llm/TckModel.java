@@ -43,7 +43,7 @@ package ee.jakarta.tck.ai.agent.framework.llm;
  *     queries are not themselves recorded in the conversation.</li>
  * <li>Otherwise the response is the rendered prompt, verbatim. A typed
  *     overload therefore returns the echoed text deserialized with JSON
- *     Binding, which is how the TCK drives typed responses: it sends JSON and
+ *     Binding, which is how the TCK drives typed responses. It sends JSON and
  *     expects the object back.</li>
  * </ol>
  */

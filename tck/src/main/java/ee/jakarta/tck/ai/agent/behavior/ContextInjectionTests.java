@@ -78,7 +78,7 @@ public class ContextInjectionTests {
     }
     /**
      * LargeLanguageModel is injectable as a direct method parameter of {@code @Action} and is a
-     * working facade: its echoed response is the rendered prompt.
+     * working facade. Its echoed response is the rendered prompt.
      *
      * <p>Specification section {@code parameter-resolution}.
      */

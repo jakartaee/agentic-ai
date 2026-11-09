@@ -94,7 +94,7 @@ public class OnExceptionTests {
                 return domain;
             }
         }
-        return fail("no AgentDomainException in the cause chain of " + thrown);
+        return fail("No AgentDomainException in the cause chain of " + thrown);
     }
 
     // ── Recovery flow (BHV-001–003) ─────────────────────────────────────────
@@ -255,7 +255,7 @@ public class OnExceptionTests {
 
     /**
      * After the required exception parameter, an {@code @OnException} method receives workflow
-     * state: the triggering event is resolved as its second parameter.
+     * state. The triggering event is resolved as its second parameter.
      *
      * <p>Specification section {@code error-handling}.
      */

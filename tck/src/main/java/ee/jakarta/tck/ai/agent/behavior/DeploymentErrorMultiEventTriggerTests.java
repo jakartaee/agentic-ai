@@ -27,9 +27,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 /**
- * Deployment-error case G3c (<em>exactly one event parameter</em>): a
- * {@code @Trigger} method declaring more than one event parameter must be rejected
- * at deployment time.
+ * A {@code @Trigger} method declaring more than one event parameter must be
+ * rejected at deployment time (<em>exactly one event parameter</em>).
  */
 @ExtendWith(ArquillianExtension.class)
 public class DeploymentErrorMultiEventTriggerTests {

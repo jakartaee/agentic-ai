@@ -255,7 +255,7 @@ public class ValidationTests {
             first = first.getCause();
         }
         assertInstanceOf(ConstraintViolationException.class, first,
-                "the validation exception, not the handled one, must propagate");
+                "The validation exception, not the handled one, must propagate");
         assertEquals(List.of(Phase.TRIGGER, Phase.ACTION), trace.phases());
     }
 }

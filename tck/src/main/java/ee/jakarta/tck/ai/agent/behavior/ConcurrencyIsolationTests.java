@@ -46,7 +46,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  * {@link ConcurrencyCoordinator} barrier so their
  * agent instances are all alive simultaneously, maximizing the chance that a
  * thread-unsafe implementation leaks state. The assertions themselves are
- * deterministic: regardless of interleaving, every workflow must observe only its
+ * deterministic. Regardless of interleaving, every workflow must observe only its
  * own marker, and the recorded model calls must be exactly the per-workflow prompts
  * with no loss or corruption.</p>
  */
@@ -81,7 +81,7 @@ public class ConcurrencyIsolationTests {
         assertEquals(List.of(), coordinator.mismatches());
     }
     /**
-     * Concurrent workflows drive the shared facade without corrupting each other's turns: each
+     * Concurrent workflows drive the shared facade without corrupting each other's turns. Each
      * gets its own turn echoed back and a conversation holding only that turn.
      *
      * <p>Specification section {@code llm-conversational-state}.
@@ -96,8 +96,8 @@ public class ConcurrencyIsolationTests {
         for (int i = 0; i < WORKFLOWS; i++) {
             String turn = "turn:\"" + marker(i) + "\"";
             LlmObservation observation = observed.get(marker(i));
-            assertEquals(turn, observation.echoed(), "echoed turn of " + marker(i));
-            assertEquals(turn, observation.history(), "conversation of " + marker(i));
+            assertEquals(turn, observation.echoed(), "Echoed turn of " + marker(i));
+            assertEquals(turn, observation.history(), "Conversation of " + marker(i));
         }
     }
 

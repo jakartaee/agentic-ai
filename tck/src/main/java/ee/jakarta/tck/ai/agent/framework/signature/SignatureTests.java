@@ -57,7 +57,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * signature file and the engine itself, both taken from the test client's
  * class path.</p>
  *
- * <p>The check is strict in both directions: a removed, changed <em>or
+ * <p>The check is strict in both directions. A removed, changed <em>or
  * added</em> public member fails it. JDK types are resolved at the Java SE
  * {@value #JAVA_SE_RELEASE} level, the baseline the signature file was
  * recorded against, so the result does not depend on which newer JDK runs

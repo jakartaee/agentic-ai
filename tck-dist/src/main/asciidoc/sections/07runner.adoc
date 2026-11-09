@@ -2,7 +2,7 @@
 
 == Creating a TCK Runner
 
-A small Maven project controls the TCK's lifecycle: it declares the TCK and your Arquillian adapter as dependencies and lets Surefire discover the tests inside the TCK jar.
+A small Maven project controls the TCK's lifecycle. It declares the TCK and your Arquillian adapter as dependencies and lets Surefire discover the tests inside the TCK jar.
 The `starter/` directory of the distribution is such a project; copy it and complete the two `TODO` items.
 
 === Installing the TCK artifacts
@@ -38,7 +38,7 @@ include::{starterLoc}/pom.xml[tag=configJunit5]
 ----
 
 Surefire's default include patterns match the TCK's test classes, which are named `*Tests` and `*Test`.
-No `groups` or `excludedGroups` configuration is needed or permitted: a compatibility run executes every test.
+No `groups` or `excludedGroups` configuration is needed or permitted. A compatibility run executes every test.
 
 === Configuring Arquillian
 

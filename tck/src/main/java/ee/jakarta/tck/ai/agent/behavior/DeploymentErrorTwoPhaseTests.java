@@ -26,8 +26,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 /**
- * Deployment-error case G3a (<em>One Phase per Method</em>): an agent whose
- * method declares two phase annotations must be rejected at deployment time.
+ * An agent whose method declares two phase annotations must be rejected at
+ * deployment time (<em>One Phase per Method</em>).
  *
  * <p>This error is detected by a compatible implementation's CDI extension.
  * The check is the deployment itself.</p>

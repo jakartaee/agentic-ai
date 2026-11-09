@@ -113,7 +113,7 @@ public class WorkflowScopeLifecycleTests {
     }
     /**
      * An {@code @Agent} with no explicit name runs its full workflow. The derived name itself is
-     * not asserted: the specification does not yet say how an agent name is exposed.
+     * not asserted. The specification does not yet say how an agent name is exposed.
      *
      * <p>Specification section {@code agent-lifecycle}.
      */

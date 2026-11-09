@@ -152,7 +152,7 @@ public class CatalogAgent {
     @Action(order = 6)
     Summary describe() {
         LOGGER.info("[ACTION] describe");
-        // The lesson and its coverage are not re-sent: the LLM facade keeps
+        // The lesson and its coverage are not re-sent. The LLM facade keeps
         // per-workflow conversational state, so the earlier queries in this agent are
         // still in the model's context.
         return new Summary(model.query(

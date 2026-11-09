@@ -20,7 +20,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.event.Observes;
 
 /**
- * Invalid agent: a single method is annotated with two phase annotations
+ * Invalid agent. A single method is annotated with two phase annotations
  * ({@code @Action} and {@code @Decision}). The spec (<em>One Phase per Method</em>)
  * declares this a deployment error, so a compatible implementation must reject
  * this agent at deployment time.

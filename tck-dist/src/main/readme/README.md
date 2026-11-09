@@ -7,7 +7,7 @@ Maven Central carries no such standing.
 
 Contents:
 
-- `docs/` — the TCK Reference Guide (HTML and PDF). Start here: it covers requirements,
+- `docs/` — the TCK Reference Guide (HTML and PDF). Start here. It covers requirements,
   installation, how to run the TCK, the signature test, how to file challenges and
   certification requests, and the compatibility rules.
 - `artifacts/` — the TCK jar, its sources jar, the parent pom it needs, the API signature

@@ -18,7 +18,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.event.Observes;
 
 /**
- * Invalid agent (case G3c, <em>@Trigger cardinality</em>): the agent declares two
+ * Invalid agent for <em>@Trigger cardinality</em>. The agent declares two
  * {@code @Trigger} methods. There must be exactly one {@code @Trigger} per agent,
  * so a compatible implementation must reject this agent at deployment time.
  */

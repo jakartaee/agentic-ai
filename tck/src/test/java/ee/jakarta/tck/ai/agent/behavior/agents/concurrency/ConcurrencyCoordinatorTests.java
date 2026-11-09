@@ -79,7 +79,7 @@ public class ConcurrencyCoordinatorTests {
 
         assertEquals(WORKFLOWS, coordinator.observationCount());
         assertFalse(coordinator.mismatches().isEmpty(),
-                "a shared instance must produce at least one detected leak");
+                "A shared instance must produce at least one detected leak");
     }
 
     private void runConcurrently(int count, MarkerTask task) throws Exception {

@@ -26,8 +26,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 /**
- * Deployment-error case G3d (<em>@Outcome cardinality</em>): an agent with more
- * than one {@code @Outcome} method must be rejected at deployment time.
+ * An agent with more than one {@code @Outcome} method must be rejected at
+ * deployment time (<em>@Outcome cardinality</em>).
  */
 @ExtendWith(ArquillianExtension.class)
 public class DeploymentErrorTwoOutcomeTests {

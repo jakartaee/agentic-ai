@@ -74,7 +74,7 @@ public class LessonAgent {
     @Action(order = 3)
     void writeConclusion(Lesson draft) {
         LOGGER.info("[ACTION] writeConclusion");
-        // The material, introduction and quiz are not re-sent: the LLM facade keeps
+        // The material, introduction and quiz are not re-sent. The LLM facade keeps
         // per-workflow conversational state, so the earlier queries in this agent are
         // still in the model's context.
         draft.setConclusion(model.query(

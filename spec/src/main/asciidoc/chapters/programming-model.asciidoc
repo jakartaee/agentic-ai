@@ -32,7 +32,7 @@ sequential execution model:
 
 . The trigger fires.
 . Decisions and actions execute in order, intermixed as defined.
-. Decisions control flow: a positive return continues, negative terminates.
+. Decisions control flow. A positive return continues, a negative one terminates.
 . The outcome executes once the workflow completes without
   early termination.
 . Exception handlers execute if exceptions occur in any phase.

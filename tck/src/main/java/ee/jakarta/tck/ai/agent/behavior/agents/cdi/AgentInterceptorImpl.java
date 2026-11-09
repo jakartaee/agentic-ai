@@ -12,7 +12,7 @@
  *****************************************************************************/
 package ee.jakarta.tck.ai.agent.behavior.agents.cdi;
 
-// No @Priority: the interceptor is enabled through the <interceptors> element
+// No @Priority. The interceptor is enabled through the <interceptors> element
 // of the beans.xml in the CdiIntegrationTests deployment.
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder;
 import ee.jakarta.tck.ai.agent.framework.trace.ExecutionTraceRecorder.Phase;

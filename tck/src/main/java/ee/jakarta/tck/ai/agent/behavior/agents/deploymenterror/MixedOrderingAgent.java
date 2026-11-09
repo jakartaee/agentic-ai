@@ -19,7 +19,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.event.Observes;
 
 /**
- * Invalid agent (case G3b, <em>Consistency Requirement</em>): one {@code @Action}
+ * Invalid agent for the <em>Consistency Requirement</em>. One {@code @Action}
  * declares an explicit {@code order} while another declares none. Mixing
  * explicitly ordered and unordered {@code @Action}/{@code @Decision} methods is a
  * deployment error, so a compatible implementation must reject this agent.

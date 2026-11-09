@@ -17,7 +17,7 @@ import jakarta.ai.agent.Agent;
 import jakarta.enterprise.context.ApplicationScoped;
 
 /**
- * Invalid agent (case G3c, <em>@Trigger cardinality</em>): the agent declares no
+ * Invalid agent for <em>@Trigger cardinality</em>. The agent declares no
  * {@code @Trigger} method. There must be exactly one {@code @Trigger} per agent,
  * so a compatible implementation must reject this agent at deployment time.
  */

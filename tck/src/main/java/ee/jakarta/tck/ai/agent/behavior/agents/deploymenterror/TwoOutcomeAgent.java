@@ -19,7 +19,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.event.Observes;
 
 /**
- * Invalid agent (case G3d, <em>@Outcome cardinality</em>): the agent declares two
+ * Invalid agent for <em>@Outcome cardinality</em>. The agent declares two
  * {@code @Outcome} methods. An agent may declare zero or one {@code @Outcome}, so
  * a compatible implementation must reject this agent at deployment time.
  */

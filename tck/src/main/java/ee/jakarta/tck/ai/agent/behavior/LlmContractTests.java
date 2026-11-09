@@ -375,7 +375,7 @@ public class LlmContractTests {
 
     // -- conversational state --------------------------------------------------
     /**
-     * each workflow's conversation holds only its own turns: after two sequential workflows, the
+     * each workflow's conversation holds only its own turns. After two sequential workflows, the
      * history the model reports to the second contains only the second's turn.
      *
      * <p>Specification section {@code llm-conversational-state}.

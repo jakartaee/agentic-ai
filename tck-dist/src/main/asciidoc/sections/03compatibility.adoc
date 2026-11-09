@@ -15,4 +15,4 @@ The signature test is an ordinary {TCKTestPlatform} test class in the TCK jar an
 {APILongName} {APIVersion} requires Java SE {JavaVersion} or later.
 The signature test resolves JDK types at the Java SE {JavaVersion} level whatever JDK runs the Test Server, so any JDK of that version or later produces the same result.
 
-Use one JDK consistently for the whole certification run: the same `java -version` must apply to the Test Client, the Test Server and the results you publish.
+Use one JDK consistently for the whole certification run. The same `java -version` must apply to the Test Client, the Test Server and the results you publish.

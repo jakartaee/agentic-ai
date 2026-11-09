@@ -5,13 +5,13 @@ It catches an incomplete or modified copy of the API in a runtime that ships its
 
 === How it runs
 
-`ee.jakarta.tck.ai.agent.framework.signature.SignatureTests` is a test class in the TCK jar like every other: it declares an Arquillian deployment and runs inside the Test Server, in the same {TCKTestPlatform} execution, with no plugin configuration:
+`ee.jakarta.tck.ai.agent.framework.signature.SignatureTests` is a test class in the TCK jar like every other. It declares an Arquillian deployment and runs inside the Test Server, in the same {TCKTestPlatform} execution, with no plugin configuration:
 
 . Its deployment carries the signature file `jakarta.ai.agent.sig_{APIVersion}` and the Jakarta TCK signature test engine, both taken from the Test Client class path.
 . Inside the Test Server it locates the jar or directory that supplies `{APIPackage}.Agent`, plus the one that supplies the CDI types the API refers to.
 . It runs the engine in strict static mode over those locations, resolving JDK types at the Java SE {JavaVersion} level.
 
-The check is strict in both directions: a missing, changed or added public or protected member fails it.
+The check is strict in both directions. A missing, changed or added public or protected member fails it.
 Because the JDK view is pinned to Java SE {JavaVersion}, the result is the same on any JDK of that version or later, and no `jimage` extraction, module exports or additional JVM options are needed.
 
 === Which API is tested

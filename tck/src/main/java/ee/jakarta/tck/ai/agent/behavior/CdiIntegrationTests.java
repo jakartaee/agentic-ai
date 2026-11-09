@@ -50,7 +50,7 @@ import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class CdiIntegrationTests {
 
-    // AgentInterceptorImpl carries no @Priority: enabling it both ways would enable it twice.
+    // AgentInterceptorImpl carries no @Priority. Enabling it both ways would enable it twice.
     private static final String BEANS_XML = """
             <?xml version="1.0" encoding="UTF-8"?>
             <beans xmlns="https://jakarta.ee/xml/ns/jakartaee"

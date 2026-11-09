@@ -35,6 +35,6 @@ public class OverridingAgent extends BasePhaseAgent {
 
     @Override
     public void act() {
-        // Intentionally unannotated: must not run as an @Action phase.
+        // Intentionally unannotated, so it must not run as an @Action phase.
     }
 }

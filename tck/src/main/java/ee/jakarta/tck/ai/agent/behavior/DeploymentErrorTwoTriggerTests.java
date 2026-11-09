@@ -27,8 +27,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 /**
- * Deployment-error case G3c (<em>@Trigger cardinality</em>): an agent with more
- * than one {@code @Trigger} method must be rejected at deployment time.
+ * An agent with more than one {@code @Trigger} method must be rejected at
+ * deployment time (<em>@Trigger cardinality</em>).
  */
 @ExtendWith(ArquillianExtension.class)
 public class DeploymentErrorTwoTriggerTests {

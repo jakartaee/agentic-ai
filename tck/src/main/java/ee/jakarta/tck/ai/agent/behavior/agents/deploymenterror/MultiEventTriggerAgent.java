@@ -17,7 +17,7 @@ import jakarta.ai.agent.Trigger;
 import jakarta.enterprise.context.ApplicationScoped;
 
 /**
- * Invalid agent (case G3c, <em>exactly one event parameter</em>): the
+ * Invalid agent for the <em>exactly one event parameter</em> rule. The
  * {@code @Trigger} method declares two event parameters. Neither carries
  * {@code @Observes}, so plain CDI accepts the method and only the rule that a
  * trigger has exactly one event parameter can reject this agent at deployment

@@ -26,9 +26,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 /**
- * Deployment-error case G3b (<em>Consistency Requirement</em>), {@code @Priority}
- * variant: mixing a {@code @Priority}-ordered {@code @Action}/{@code @Decision}
- * method with an unordered one must be rejected at deployment time, exactly as
+ * Mixing a {@code @Priority}-ordered {@code @Action}/{@code @Decision} method with an
+ * unordered one must be rejected at deployment time (<em>Consistency Requirement</em>),
+ * exactly as
  * mixing {@code order} with unordered methods is.
  */
 @ExtendWith(ArquillianExtension.class)

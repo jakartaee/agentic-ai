@@ -15,7 +15,7 @@ package ee.jakarta.tck.ai.agent.behavior.agents.validation;
 /**
  * Triggering event for the validation fixtures. The {@code payload} carries the
  * value the {@link ValidatedAgent} turns into an {@link InputData} to be
- * validated downstream: a non-{@code null} payload produces valid input, a
+ * validated downstream. A non-{@code null} payload produces valid input, a
  * {@code null} payload produces input that fails {@code @NotNull} validation.
  */
 public record ValidationEvent(String payload) {

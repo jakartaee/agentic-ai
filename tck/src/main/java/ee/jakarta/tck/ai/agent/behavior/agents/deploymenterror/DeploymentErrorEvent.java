@@ -14,7 +14,7 @@ package ee.jakarta.tck.ai.agent.behavior.agents.deploymenterror;
 
 /**
  * Shared triggering event for the deployment-error fixtures. Never actually
- * fired: the fixtures exist so their agents are discovered at deployment time,
+ * fired. The fixtures exist so their agents are discovered at deployment time,
  * where the invalid declarations must be rejected.
  */
 public record DeploymentErrorEvent(String payload) {
