@@ -27,7 +27,7 @@ body:
       label: Test
       description: The test class and method, with a link to the source
       placeholder: |
-        ex. PhaseOrderingTests.fullPipelineExecutesInStrictOrder, https://github.com/jakartaee/agentic-ai/blob/main/tck/src/main/java/ee/jakarta/tck/ai/agent/core/behavior/PhaseOrderingTests.java
+        ex. PhaseOrderingTests.fullPipelineExecutesInStrictOrder, https://github.com/jakartaee/agentic-ai/blob/main/tck/src/main/java/ee/jakarta/tck/ai/agent/behavior/PhaseOrderingTests.java
   - type: input
     id: version
     validations:

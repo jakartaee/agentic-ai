@@ -24,7 +24,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 public class ExecutionTraceRecorder {
 
     public enum Phase {
-        TRIGGER, DECISION, ACTION, OUTCOME, HANDLE_EXCEPTION
+        TRIGGER, DECISION, ACTION, OUTCOME, ON_EXCEPTION
     }
 
     /**
