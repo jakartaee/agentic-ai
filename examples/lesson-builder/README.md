@@ -21,9 +21,11 @@ payara.agentic.llm.max-tokens=8192
 payara.agentic.llm.system=You are an expert curriculum designer and teacher...
 ```
 
-> The `payara.agentic.llm.*` keys are the configuration surface of the Payara
-> implementation used to run this example. On another Jakarta Agentic AI
-> implementation, configure the provider the way that implementation
+> Payara Server Community (7.2026.8 or newer) is currently the first
+> implementation of the Jakarta Agentic AI specification, and the
+> `payara.agentic.llm.*` keys are its configuration surface. Provider
+> configuration is not yet standardized, so on another implementation
+> configure the provider the way that implementation
 > documents. To run fully local instead of Claude, switch to
 > `payara.agentic.llm.provider=ollama` / `model=gemma3:12b` — a 12B-class
 > model is recommended so the quiz and catalog steps produce well-formed
@@ -31,9 +33,10 @@ payara.agentic.llm.system=You are an expert curriculum designer and teacher...
 
 ## Prerequisites
 
-- JDK 17+ and Maven 3.9+
-- A Jakarta EE 10 runtime with a Jakarta Agentic AI implementation (for example
-  a Payara Server build that includes the `agentic-ai-core` runtime module).
+- JDK 21+ and Maven 3.9+ (JDK 21 is what Payara 7 itself requires to run; the example code compiles at Java 17)
+- Payara Server Community 7.2026.8 or newer, which bundles Jakarta Agentic AI.
+  Download, start and `asadmin` setup are in
+  [Set up the environment](../README.md#set-up-the-environment-payara-server-community).
 - An LLM backend. For the default configuration, Application Default
   Credentials for a GCP project that has Claude enabled on Vertex AI
   (`gcloud auth application-default login`), with
@@ -42,9 +45,11 @@ payara.agentic.llm.system=You are an expert curriculum designer and teacher...
 
 ## Build & deploy
 
+Run from the repository root, with the Payara domain started (`asadmin start-domain`).
+
 ```bash
-mvn -pl examples/lesson-builder -am package
-asadmin deploy examples/lesson-builder/target/lesson-builder.war
+mvn -pl examples/lesson-builder -am clean package
+asadmin deploy --force examples/lesson-builder/target/lesson-builder.war
 ```
 
 Open <http://localhost:8080/lesson-builder/>, pick **Physics**, enter the topic
@@ -54,3 +59,7 @@ to the **Catalog** tab to see the entry the catalog agent filed, with its
 coverage, curriculum-standard tags, class-time estimate and abstract. Then
 publish the same lesson a second time to see the duplicate-detection halt, or
 rename it to *Momentum* and publish to see the content-match halt.
+
+## Verify and troubleshoot
+
+Watch `$PAYARA_HOME/glassfish/domains/domain1/logs/server.log` while you use the example; each agent logs its phases. If answers look canned, the LLM provider is not configured. See [Troubleshooting](../README.md#troubleshooting).
