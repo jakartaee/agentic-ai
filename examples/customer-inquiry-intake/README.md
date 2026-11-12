@@ -22,18 +22,21 @@ payara.agentic.llm.max-tokens=4096
 payara.agentic.llm.system=You are an intake assistant for a customer-facing contact form...
 ```
 
-> The `payara.agentic.llm.*` keys are the configuration surface of the Payara
-> implementation used to run this example. On another Jakarta Agentic AI
-> implementation, configure the provider the way that implementation
+> Payara Server Community (7.2026.8 or newer) is currently the first
+> implementation of the Jakarta Agentic AI specification, and the
+> `payara.agentic.llm.*` keys are its configuration surface. Provider
+> configuration is not yet standardized, so on another implementation
+> configure the provider the way that implementation
 > documents. To run fully local instead of Claude, switch to
 > `payara.agentic.llm.provider=ollama` / `model=gemma3:12b` — a 12B-class
 > model is recommended so the extract step produces well-formed JSON.
 
 ## Prerequisites
 
-- JDK 17+ and Maven 3.9+
-- A Jakarta EE 10 runtime with a Jakarta Agentic AI implementation (for example
-  a Payara Server build that includes the `agentic-ai-core` runtime module).
+- JDK 21+ and Maven 3.9+ (JDK 21 is what Payara 7 itself requires to run; the example code compiles at Java 17)
+- Payara Server Community 7.2026.8 or newer, which bundles Jakarta Agentic AI.
+  Download, start and `asadmin` setup are in
+  [Set up the environment](../README.md#set-up-the-environment-payara-server-community).
 - An LLM backend. For the default configuration, Application Default
   Credentials for a GCP project that has Claude enabled on Vertex AI
   (`gcloud auth application-default login`), with
@@ -42,9 +45,11 @@ payara.agentic.llm.system=You are an intake assistant for a customer-facing cont
 
 ## Build & deploy
 
+Run from the repository root, with the Payara domain started (`asadmin start-domain`).
+
 ```bash
-mvn -pl examples/customer-inquiry-intake -am package
-asadmin deploy examples/customer-inquiry-intake/target/customer-inquiry-intake.war
+mvn -pl examples/customer-inquiry-intake -am clean package
+asadmin deploy --force examples/customer-inquiry-intake/target/customer-inquiry-intake.war
 ```
 
 Open <http://localhost:8080/customer-inquiry-intake/>, leave the identity
@@ -52,3 +57,7 @@ fields blank, type a message that mentions you by name (for example *"Hi, I'm
 Jane Smith from Acme &lt;jane@acme.com&gt; — our EE 8 app on Payara 5 needs
 to be on EE 10 before our audit in three months. Who should we talk to?"*),
 and click **Prepare inquiry**.
+
+## Verify and troubleshoot
+
+Watch `$PAYARA_HOME/glassfish/domains/domain1/logs/server.log` while you use the example; each agent logs its phases. If answers look canned, the LLM provider is not configured. See [Troubleshooting](../README.md#troubleshooting).
