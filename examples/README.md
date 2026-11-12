@@ -25,7 +25,8 @@ earlier results it declares as parameters. See its
 
 ### Fraud Detection Agent
 
-Located in `fraud-detection/`, this example demonstrates:
+Located in `fraud-detection/`, a compile-only code sample (JAR, no web layer,
+nothing fires its `@Trigger` — see the table below). This example demonstrates:
 
 - Using the `@Agent`, `@Trigger`, `@Decision`, `@Action`, and `@Outcome` annotations
 - Integrating a Large Language Model (LLM) for fraud analysis
@@ -37,7 +38,8 @@ Detects potentially fraudulent bank transactions and demonstrates a typical agen
 
 ### Documentation Agent
 
-Located in `docs-agent/`, this example demonstrates:
+Located in `docs-agent/`, a compile-only code sample like `fraud-detection`
+above: a JAR with no web layer to deploy. This example demonstrates:
 
 - Monitoring pull requests for documentation needs
 - Using the `@Decision` annotation to analyze PRs with an LLM
@@ -116,7 +118,8 @@ asadmin list-applications                # "Nothing to list." means the server i
 `asadmin` is not installed globally; every `asadmin` command in these READMEs
 assumes the `PATH` line above. Stop the server with `asadmin stop-domain`.
 
-> **Set LLM credentials before `start-domain`.** The server inherits the
+> **Set LLM credentials before `start-domain`**, if the example you picked
+> needs any (step 4 below lists them per provider). The server inherits the
 > environment of the shell that starts it. Exporting a variable afterwards
 > has no effect until you run `asadmin restart-domain` from that shell.
 
@@ -213,7 +216,7 @@ Local models can take tens of seconds per phase, especially on first use while
 the model loads. The first request is often much slower than the rest.
 
 The specification's own conformance suite lives in the `tck` module. See
-[TESTING-GUIDELINE.md](../TESTING-GUIDELINE.md).
+[its README](../tck/README.md).
 
 ## Troubleshooting
 
