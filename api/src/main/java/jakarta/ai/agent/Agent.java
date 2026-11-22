@@ -12,6 +12,8 @@
  *****************************************************************************/
 package jakarta.ai.agent;
 
+import jakarta.enterprise.inject.Stereotype;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -21,12 +23,13 @@ import java.lang.annotation.Target;
  * Declares a class as an AI agent.
  * <p>
  * An agent is a CDI bean that encapsulates autonomous, goal-driven behavior.
- * The agent's lifecycle, workflow, and actions are fully defined using 
+ * The agent's lifecycle, workflow, and actions are fully defined using
  * additional annotations.
  * <p>
- * Agents support two scope annotations: {@link WorkflowScoped} and 
- * {@code @ApplicationScoped}. If no scope annotation is present on the class, the
- * agent will be assumed to be {@link WorkflowScoped}.
+ * {@code @Agent} is a CDI stereotype. It declares {@link WorkflowScoped} as the
+ * default scope, which applies when the agent declares no scope of its own.
+ * Agents support two scopes, {@link WorkflowScoped} and
+ * {@code @ApplicationScoped}.
  * <p>
  * A workflow context will still be created for each workflow execution even 
  * when the agent is @ApplicationScoped, beginning with a trigger and in most 
@@ -38,6 +41,8 @@ import java.lang.annotation.Target;
  *
  * @since 1.0
  */
+@Stereotype
+@WorkflowScoped
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Agent {

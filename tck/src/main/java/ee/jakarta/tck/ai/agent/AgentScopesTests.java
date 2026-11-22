@@ -32,7 +32,7 @@ import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.junit5.ArquillianExtension;
 import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
-import org.jboss.shrinkwrap.api.asset.StringAsset;
+import org.jboss.shrinkwrap.api.asset.EmptyAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -60,18 +60,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class AgentScopesTests {
 
-    // bean-discovery-mode="all" is required so that ScopeDefaultAgent, which carries no CDI scope
-    // annotation, is discovered and given the default @WorkflowScoped scope by the implementation.
-    private static final String BEANS_XML = """
-            <?xml version="1.0" encoding="UTF-8"?>
-            <beans xmlns="https://jakarta.ee/xml/ns/jakartaee"
-                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                   xsi:schemaLocation="https://jakarta.ee/xml/ns/jakartaee
-                       https://jakarta.ee/xml/ns/jakartaee/beans_4_0.xsd"
-                   version="4.0" bean-discovery-mode="all">
-            </beans>
-            """;
-
     @Deployment
     public static Archive<?> createDeployment() {
         return ShrinkWrap.create(WebArchive.class, "agentscopes.war")
@@ -82,7 +70,7 @@ public class AgentScopesTests {
                         LifecycleCallbackRecorder.class,
                         SingletonCdiAgent.class,     SingletonCdiEvent.class
                 )
-                .addAsWebInfResource(new StringAsset(BEANS_XML), "beans.xml");
+                .addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml");
     }
 
     @Inject Event<ScopeDefaultEvent>  scopeDefaultEvents;
@@ -94,10 +82,11 @@ public class AgentScopesTests {
     @Inject BeanManager               beanManager;
 
     /**
-     * An agent with no explicit scope is {@code @WorkflowScoped}. One instance serves every phase
+     * An agent with no explicit scope is discovered as a CDI bean in an archive whose
+     * {@code beans.xml} is empty, and is {@code @WorkflowScoped}. One instance serves every phase
      * of a workflow, and each workflow gets a distinct instance.
      *
-     * <p>Specification section {@code agent-scopes}.
+     * <p>Specification section {@code agent-semantics}.
      */
     @Test
     public void defaultScopeIsWorkflowScopedWithOneInstancePerWorkflow() {

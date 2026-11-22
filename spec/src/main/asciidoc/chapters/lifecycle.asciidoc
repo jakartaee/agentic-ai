@@ -30,11 +30,11 @@ CDI beans and follow CDI bean definition rules.
 ==== Semantics
 
 - **Required**: every agent class must be annotated with `@Agent`.
-- **CDI bean**: the annotated class becomes a CDI managed bean.
-- **Discovery**: implementations must discover all `@Agent`-annotated
-  classes during deployment.
-- **Default scope**: if no scope is specified, `@WorkflowScoped` is the
-  default. Agents can also be `@ApplicationScoped`.
+- **CDI stereotype**: `@Agent` is a CDI stereotype. An agent class is
+  therefore a CDI managed bean.
+- **Default scope**: `@Agent` declares `@WorkflowScoped` as its default
+  scope, which applies when the agent declares no scope of its own. Agents
+  can also be `@ApplicationScoped`.
   See xref:cdi-integration[CDI Integration] for scope semantics and bean
   requirements.
 - **Naming**: the agent name defaults to the simple class name with the first
