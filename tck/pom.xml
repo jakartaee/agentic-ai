@@ -104,8 +104,7 @@
         </dependency>
         <!--
             The signature test engine. SignatureTests drives it in-process, so
-            it ships with the TCK the way it does in the Data and Concurrency
-            TCKs. Only the engine is needed; the Maven plugin layer is excluded
+            it ships with the TCK. The Maven plugin layer is excluded
             so it does not reach an implementation's test class path.
         -->
         <dependency>
