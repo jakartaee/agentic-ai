@@ -1,115 +1,115 @@
 name: Main build
 
 on:
-    push:
-        branches:
-            - main
-    pull_request:
-        types:
-            - opened
-            - synchronize
-            - reopened
-    workflow_dispatch:
+  push:
+    branches:
+      - main
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+  workflow_dispatch:
 
 jobs:
-    build:
-        runs-on: ubuntu-24.04
-        strategy:
-            fail-fast: false
-            matrix:
-                # The Java SE baseline and the later LTS releases an implementation may certify on.
-                java-version: [ 17, 21, 25 ]
-        name: build (JDK ${{ matrix.java-version }})
-        steps:
-            - name: Checkout
-              uses: actions/checkout@v7
-            - name: Setup Java
-              uses: actions/setup-java@v6
-              with:
-                  distribution: 'temurin'
-                  java-version: ${{ matrix.java-version }}
+  build:
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        # The Java SE baseline and the later LTS releases an implementation may certify on.
+        java-version: [17, 21, 25]
+    name: build (JDK ${{ matrix.java-version }})
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+      - name: Setup Java
+        uses: actions/setup-java@v6
+        with:
+          distribution: "temurin"
+          java-version: ${{ matrix.java-version }}
 
-            - name: Cache Maven packages
-              uses: actions/cache@v6
-              with:
-                  path: ~/.m2/repository
-                  key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
-                  restore-keys: ${{ runner.os }}-m2
+      - name: Cache Maven packages
+        uses: actions/cache@v6
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-m2
 
-            - name: Build
-              run: mvn clean install
+      - name: Build
+        run: mvn clean install
 
-            # The starter an implementation copies must resolve against the jar just built.
-            - name: Analyze the TCK starter
-              run: |
-                  set -euo pipefail
-                  version="$(mvn -q help:evaluate -Dexpression=project.version -DforceStdout)"
-                  mvn -B dependency:analyze -Djakarta.agentic-ai.version="$version" --file tck-dist/src/main/starter/pom.xml
+      # The starter an implementation copies must resolve against the jar just built.
+      - name: Analyze the TCK starter
+        run: |
+          set -euo pipefail
+          version="$(mvn -q help:evaluate -Dexpression=project.version -DforceStdout)"
+          mvn -B dependency:analyze -Djakarta.agentic-ai.version="$version" --file tck-dist/src/main/starter/pom.xml
 
-            # IP hygiene runs once; it does not depend on the JDK.
-            - name: License Check
-              if: matrix.java-version == 17
-              run: |
-                  set -euo pipefail
+      # IP hygiene runs once; it does not depend on the JDK.
+      - name: License Check
+        if: matrix.java-version == 17
+        run: |
+          set -euo pipefail
 
-                  attempt=1
-                  max_attempts=5
-                  base_sleep=30
-                  max_sleep=300
-                  log="$(mktemp)"
+          attempt=1
+          max_attempts=5
+          base_sleep=30
+          max_sleep=300
+          log="$(mktemp)"
 
-                  transient_re='HttpTimeoutException|SocketTimeoutException|ConnectException|UnknownHostException|request timed out|Connection reset|connect timed out|Error response from the Eclipse Foundation 5[0-9][0-9]|50[234]( |$)'
+          transient_re='HttpTimeoutException|SocketTimeoutException|ConnectException|UnknownHostException|request timed out|Connection reset|connect timed out|Error response from the Eclipse Foundation 5[0-9][0-9]|50[234]( |$)'
 
-                  while :; do
-                      if mvn -B \
-                          -Dmaven.wagon.http.retryHandler.count=5 \
-                          -Dmaven.wagon.httpconnectionManager.ttlSeconds=120 \
-                          org.eclipse.dash:license-tool-plugin:license-check \
-                          -Pdash-licenses \
-                          -Ddash.summary=DEPENDENCIES \
-                          -Ddash.fail=true 2>&1 | tee "$log"; then
-                          echo "License check passed on attempt ${attempt}/${max_attempts}."
-                          break
-                      fi
+          while :; do
+              if mvn -B \
+                  -Dmaven.wagon.http.retryHandler.count=5 \
+                  -Dmaven.wagon.httpconnectionManager.ttlSeconds=120 \
+                  org.eclipse.dash:license-tool-plugin:license-check \
+                  -Pdash-licenses \
+                  -Ddash.summary=DEPENDENCIES \
+                  -Ddash.fail=true 2>&1 | tee "$log"; then
+                  echo "License check passed on attempt ${attempt}/${max_attempts}."
+                  break
+              fi
 
-                      if ! grep -qE "$transient_re" "$log"; then
-                          echo "::error title=License check failed::A dependency is restricted or needs Eclipse IP review (look for 'restricted' or 'review' above). See CONTRIBUTING.md, Dependencies."
-                          exit 1
-                      fi
-
-                      if [ "$attempt" -ge "$max_attempts" ]; then
-                          echo "::error title=License check unavailable::The Eclipse Dash API was unreachable after ${max_attempts} attempts. This is an upstream outage, not a dependency problem; re-run the job."
-                          exit 1
-                      fi
-
-                      jitter=$(( RANDOM % 10 ))
-                      sleep_base=$(( base_sleep * (2 ** (attempt - 1)) ))
-                      if [ "$sleep_base" -gt "$max_sleep" ]; then
-                          sleep_base=$max_sleep
-                      fi
-                      sleep_for=$(( sleep_base + jitter ))
-                      echo "Attempt ${attempt}/${max_attempts} hit a transient upstream error. Retrying in ${sleep_for}s..."
-                      attempt=$(( attempt + 1 ))
-                      sleep "$sleep_for"
-                  done
-
-            - name: Verify DEPENDENCIES is up to date
-              if: matrix.java-version == 17
-              run: |
-                  set -euo pipefail
-
-                  if git diff --quiet -- DEPENDENCIES; then
-                      echo "DEPENDENCIES matches the generated manifest."
-                      exit 0
-                  fi
-
-                  echo "::error title=DEPENDENCIES is out of date::Commit the regenerated manifest (the DEPENDENCIES artifact of this run). See CONTRIBUTING.md, Dependencies. Diff below: committed (-) versus generated (+)."
-                  git --no-pager diff -- DEPENDENCIES
+              if ! grep -qE "$transient_re" "$log"; then
+                  echo "::error title=License check failed::A dependency is restricted or needs Eclipse IP review (look for 'restricted' or 'review' above). See CONTRIBUTING.md, Dependencies."
                   exit 1
+              fi
 
-            - name: Upload DEPENDENCIES
-              uses: actions/upload-artifact@v7
-              if: always() && matrix.java-version == 17
-              with:
-                  name: DEPENDENCIES
-                  path: DEPENDENCIES
+              if [ "$attempt" -ge "$max_attempts" ]; then
+                  echo "::error title=License check unavailable::The Eclipse Dash API was unreachable after ${max_attempts} attempts. This is an upstream outage, not a dependency problem; re-run the job."
+                  exit 1
+              fi
+
+              jitter=$(( RANDOM % 10 ))
+              sleep_base=$(( base_sleep * (2 ** (attempt - 1)) ))
+              if [ "$sleep_base" -gt "$max_sleep" ]; then
+                  sleep_base=$max_sleep
+              fi
+              sleep_for=$(( sleep_base + jitter ))
+              echo "Attempt ${attempt}/${max_attempts} hit a transient upstream error. Retrying in ${sleep_for}s..."
+              attempt=$(( attempt + 1 ))
+              sleep "$sleep_for"
+          done
+
+      - name: Verify DEPENDENCIES is up to date
+        if: matrix.java-version == 17
+        run: |
+          set -euo pipefail
+
+          if git diff --quiet -- DEPENDENCIES; then
+              echo "DEPENDENCIES matches the generated manifest."
+              exit 0
+          fi
+
+          echo "::error title=DEPENDENCIES is out of date::Commit the regenerated manifest (the DEPENDENCIES artifact of this run). See CONTRIBUTING.md, Dependencies. Diff below: committed (-) versus generated (+)."
+          git --no-pager diff -- DEPENDENCIES
+          exit 1
+
+      - name: Upload DEPENDENCIES
+        uses: actions/upload-artifact@v7
+        if: always() && matrix.java-version == 17
+        with:
+          name: DEPENDENCIES
+          path: DEPENDENCIES
