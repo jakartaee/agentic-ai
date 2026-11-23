@@ -56,9 +56,17 @@
 
 /* ---------- tweaks ---------- */
 
-.api-table td:first-child { white-space: nowrap; }
-.api-table code { background: none; padding: 0; border: 0; }
+.api-table td:first-child {
+  white-space: nowrap;
+}
+.api-table code {
+  background: none;
+  padding: 0;
+  border: 0;
+}
 
 @media (max-width: 767px) {
-  .agent-flow li { flex-basis: 100%; }
+  .agent-flow li {
+    flex-basis: 100%;
+  }
 }
