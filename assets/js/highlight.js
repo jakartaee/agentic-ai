@@ -11,14 +11,17 @@
 
   // Chroma class per keyword group: kd declaration, kt type, kc constant, k other.
   var GROUPS = {
-    kd: ["abstract", "class", "final", "interface", "private", "protected", "public",
-         "record", "static"],
+    kd: [
+      "abstract", "class", "final", "interface", "private", "protected", "public", "record",
+      "static"
+    ],
     kt: ["boolean", "char", "double", "float", "int", "long", "short", "void"],
     kc: ["false", "null", "true"],
-    k:  ["break", "case", "catch", "continue", "default", "do", "else", "enum",
-         "extends", "finally", "for", "if", "implements", "import", "instanceof",
-         "new", "package", "return", "super", "switch", "this", "throw", "throws",
-         "try", "while"]
+    k: [
+      "break", "case", "catch", "continue", "default", "do", "else", "enum", "extends",
+      "finally", "for", "if", "implements", "import", "instanceof", "new", "package",
+      "return", "super", "switch", "this", "throw", "throws", "try", "while"
+    ]
   };
 
   var KEYWORD_CLASS = {};

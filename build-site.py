@@ -30,7 +30,9 @@ analytics container. Note that nothing here strips it: it simply falls outside t
 two slices taken below. Check the output if the mega-menu markup is ever
 restructured upstream.
 """
-import re, sys, pathlib
+import pathlib
+import re
+import sys
 
 REF = pathlib.Path(sys.argv[1])
 OUT = pathlib.Path(sys.argv[2])
@@ -38,8 +40,10 @@ CONTENT = pathlib.Path(sys.argv[3])
 
 lines = REF.read_text(encoding="utf-8").split("\n")
 
+
 def find(pattern, after=0):
-    return next(i for i, l in enumerate(lines) if i >= after and re.search(pattern, l))
+    return next(i for i, line in enumerate(lines) if i >= after and re.search(pattern, line))
+
 
 # Chrome header: the skip link through the end of the navigation, i.e. everything
 # before the page's own <header class="header-wrapper">.
@@ -52,6 +56,7 @@ foot = find(r'id="solstice-footer"') - 1
 foot_end = find(r"^</footer>", foot)
 chrome_footer = "\n".join(lines[foot:foot_end + 1])
 
+
 def absolutize(markup):
     """The shell is written for jakarta.ee, where root-relative URLs resolve against
     that host. Served from jakartaee.github.io they would resolve against this site,
@@ -59,6 +64,7 @@ def absolutize(markup):
     markup = re.sub(r'(href|src|action)="/(?!/)', r'\1="https://jakarta.ee/', markup)
     markup = re.sub(r'(href|src)="//', r'\1="https://', markup)
     return markup
+
 
 chrome_header = absolutize(chrome_header)
 chrome_footer = absolutize(chrome_footer)
