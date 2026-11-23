@@ -46,8 +46,8 @@ operations:
 See the API Javadoc for the full method signatures, parameter semantics,
 and per-overload behavioral requirements.
 
-Implementations are provided as CDI beans and injected into agents like
-any other bean; see
+Implementations are provided as CDI beans and injected like any other
+bean; see
 xref:llm-as-cdi-bean[LargeLanguageModel as a CDI Bean] for the injection
 contract.
 

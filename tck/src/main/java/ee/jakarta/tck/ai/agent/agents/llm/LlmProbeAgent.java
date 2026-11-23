@@ -22,9 +22,9 @@ import jakarta.enterprise.event.Observes;
 import jakarta.inject.Inject;
 
 /**
- * Applies a probe to the implementation's facade inside a workflow, so the
- * facade is exercised where the specification defines it, and records the
- * result or the exception for the test to assert on.
+ * Applies a probe to the implementation's facade inside a workflow, where the
+ * facade's full contract applies, and records the result or the exception for
+ * the test to assert on.
  */
 @Agent
 @ApplicationScoped

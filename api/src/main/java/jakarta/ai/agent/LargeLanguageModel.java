@@ -15,7 +15,7 @@ package jakarta.ai.agent;
 /**
  * Minimal facade for Large Language Model (LLM) operations.
  * <p>
- * Intended to be injected via CDI into agents. Provides a unified interface
+ * Injected via CDI. Provides a unified interface
  * for parameterized querying of LLMs with support for type conversion of
  * parameters and results.
  * <p>

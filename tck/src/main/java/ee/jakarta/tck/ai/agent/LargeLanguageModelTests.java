@@ -48,8 +48,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 /**
  * The {@link LargeLanguageModel} facade contract, verified against the
  * implementation's facade backed by the {@link TckModel} echo behaviour.
- * Every call is made from inside a workflow through {@link LlmProbeAgent},
- * because the facade and its conversational state are defined only there.
+ * Calls are made from inside a workflow through {@link LlmProbeAgent}, where the
+ * facade's full contract applies, except the one verifying that the facade is
+ * usable outside a workflow context.
  */
 @ExtendWith(ArquillianExtension.class)
 public class LargeLanguageModelTests {
@@ -68,6 +69,7 @@ public class LargeLanguageModelTests {
     @Inject Event<LlmQuerierEvent> queries;
     @Inject Event<LlmFailureEvent> failures;
     @Inject ExecutionTraceRecorder trace;
+    @Inject LargeLanguageModel     llm;
 
     private Object probe(Function<LargeLanguageModel, Object> call) {
         trace.reset();
@@ -371,6 +373,19 @@ public class LargeLanguageModelTests {
         failures.fire(new LlmFailureEvent("x"));
         assertEquals(List.of(Phase.TRIGGER, Phase.ACTION, Phase.ON_EXCEPTION, Phase.OUTCOME), trace.phases());
         assertInstanceOf(LLMException.class, trace.entries().get(2).args()[0]);
+    }
+
+    // -- use outside a workflow ------------------------------------------------
+
+    /**
+     * The facade can be used outside a workflow context. A call made directly from the test,
+     * with no workflow running, returns the rendered prompt.
+     *
+     * <p>Specification section {@code llm-as-cdi-bean}.
+     */
+    @Test
+    public void facadeIsUsableOutsideWorkflowContext() {
+        assertEquals("Hello \"Alice\"", llm.query("Hello {}", "Alice"));
     }
 
     // -- conversational state --------------------------------------------------

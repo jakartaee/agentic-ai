@@ -184,7 +184,7 @@ public class LifecycleAwareAgent {
 === LargeLanguageModel as a CDI Bean
 
 The `LargeLanguageModel` interface is provided as a CDI bean by the
-implementation and is injected into agents like any other bean. Its
+implementation and is injected like any other bean. Its
 conversational state lifecycle aligns with workflow context boundaries; see
 xref:llm-conversational-state[Conversational State and Threading] for the
 full contract.
