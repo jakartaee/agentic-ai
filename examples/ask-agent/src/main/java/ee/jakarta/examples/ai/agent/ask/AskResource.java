@@ -67,12 +67,9 @@ public class AskResource {
         return Response.ok(new AskResponse(text, answers.get(text))).build();
     }
 
-    public record AskRequest(String question) {
-    }
+    public record AskRequest(String question) {}
 
-    public record AskResponse(String question, String answer) {
-    }
+    public record AskResponse(String question, String answer) {}
 
-    public record Message(String message) {
-    }
+    public record Message(String message) {}
 }

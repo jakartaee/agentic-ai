@@ -24,5 +24,4 @@ package jakarta.ai.agent;
  *
  * @since 1.0
  */
-public record Result(boolean success, Object details) {
-}
+public record Result(boolean success, Object details) {}

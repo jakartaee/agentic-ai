@@ -22,5 +22,6 @@ import jakarta.validation.constraints.Size;
 public record Topic(
         @NotBlank String subject,
         @NotBlank String title,
-        @NotBlank @Size(min = 80, message = "paste at least 80 characters of material") String material) {
-}
+
+        @NotBlank @Size(min = 80, message = "paste at least 80 characters of material")
+        String material) {}

@@ -38,8 +38,10 @@ public class DeploymentErrorWorkflowScopedObserverTests {
     @ShouldThrowException(DeploymentException.class)
     public static Archive<?> createDeployment() {
         return ShrinkWrap.create(WebArchive.class, "deployerror-workflowscopedobserver.war")
-                .addClasses(WorkflowScopedGeneralObserverAgent.class,
-                        DeploymentErrorEvent.class, GeneralObserverEvent.class)
+                .addClasses(
+                        WorkflowScopedGeneralObserverAgent.class,
+                        DeploymentErrorEvent.class,
+                        GeneralObserverEvent.class)
                 .addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml");
     }
 
@@ -52,11 +54,9 @@ public class DeploymentErrorWorkflowScopedObserverTests {
     public static class WorkflowScopedGeneralObserverAgent {
 
         @Trigger
-        public void onEvent(@Observes DeploymentErrorEvent event) {
-        }
+        public void onEvent(@Observes DeploymentErrorEvent event) {}
 
-        public void onGeneralEvent(@Observes GeneralObserverEvent event) {
-        }
+        public void onGeneralEvent(@Observes GeneralObserverEvent event) {}
     }
 
     /**

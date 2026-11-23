@@ -19,8 +19,7 @@ package ee.jakarta.examples.ai.agent.lessonbuilder.model;
 public record ContentCheck(boolean matches, String actualTopic, String reason) {
 
     /** The JSON shape a model reply must have to bind to this record. */
-    public static final String SCHEMA =
-            "Return ONLY valid JSON of the form {\"matches\":true|false,"
+    public static final String SCHEMA = "Return ONLY valid JSON of the form {\"matches\":true|false,"
             + "\"actualTopic\":\"short phrase naming what the content is actually about\","
             + "\"reason\":\"one sentence\"}.";
 }

@@ -20,6 +20,5 @@ public record Identity(String name, String email, String company) {
 
     /** The JSON shape a model reply must have to bind to this record. */
     public static final String SCHEMA =
-            "Return ONLY valid JSON of the form "
-            + "{\"name\":\"...\",\"email\":\"...\",\"company\":\"...\"}.";
+            "Return ONLY valid JSON of the form " + "{\"name\":\"...\",\"email\":\"...\",\"company\":\"...\"}.";
 }

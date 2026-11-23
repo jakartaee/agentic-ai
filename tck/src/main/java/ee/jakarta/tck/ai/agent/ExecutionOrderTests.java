@@ -59,21 +59,36 @@ public class ExecutionOrderTests {
     public static Archive<?> createDeployment() {
         return ShrinkWrap.create(WebArchive.class, "executionorder.war")
                 .addClasses(
-                        PhaseOrderingAgent.class,      PhaseOrderingEvent.class,
-                        OrderAttrAgent.class,          OrderAttrEvent.class,
-                        PriorityAgent.class,           PriorityEvent.class,
-                        PriorityOverOrderAgent.class,  PriorityOverOrderEvent.class,
-                        AnchoredAgent.class,           AnchoredEvent.class
-                )
+                        PhaseOrderingAgent.class,
+                        PhaseOrderingEvent.class,
+                        OrderAttrAgent.class,
+                        OrderAttrEvent.class,
+                        PriorityAgent.class,
+                        PriorityEvent.class,
+                        PriorityOverOrderAgent.class,
+                        PriorityOverOrderEvent.class,
+                        AnchoredAgent.class,
+                        AnchoredEvent.class)
                 .addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml");
     }
 
-    @Inject Event<PhaseOrderingEvent>     phaseOrderingEvents;
-    @Inject Event<OrderAttrEvent>         orderAttrEvents;
-    @Inject Event<PriorityEvent>          priorityEvents;
-    @Inject Event<PriorityOverOrderEvent> priorityOverOrderEvents;
-    @Inject Event<AnchoredEvent>          anchoredEvents;
-    @Inject ExecutionTraceRecorder        trace;
+    @Inject
+    Event<PhaseOrderingEvent> phaseOrderingEvents;
+
+    @Inject
+    Event<OrderAttrEvent> orderAttrEvents;
+
+    @Inject
+    Event<PriorityEvent> priorityEvents;
+
+    @Inject
+    Event<PriorityOverOrderEvent> priorityOverOrderEvents;
+
+    @Inject
+    Event<AnchoredEvent> anchoredEvents;
+
+    @Inject
+    ExecutionTraceRecorder trace;
 
     private List<String> recordedMethodNames() {
         return trace.entries().stream().map(TraceEntry::methodName).toList();
@@ -87,7 +102,8 @@ public class ExecutionOrderTests {
     @ApplicationScoped
     public static class PhaseOrderingAgent {
 
-        @Inject ExecutionTraceRecorder trace;
+        @Inject
+        ExecutionTraceRecorder trace;
 
         @Trigger
         public void onEvent(@Observes PhaseOrderingEvent event) {
@@ -121,6 +137,7 @@ public class ExecutionOrderTests {
     public void fullPipelineExecutesInStrictOrder() {
         trace.reset();
         phaseOrderingEvents.fire(new PhaseOrderingEvent("proceed"));
+
         assertEquals(List.of(Phase.TRIGGER, Phase.DECISION, Phase.ACTION, Phase.OUTCOME), trace.phases());
     }
 
@@ -130,7 +147,8 @@ public class ExecutionOrderTests {
     @ApplicationScoped
     public static class AnchoredAgent {
 
-        @Inject ExecutionTraceRecorder trace;
+        @Inject
+        ExecutionTraceRecorder trace;
 
         @Outcome
         public void finish() {
@@ -165,6 +183,7 @@ public class ExecutionOrderTests {
     public void phasesExecuteInExplicitOrderRegardlessOfDeclaration() {
         trace.reset();
         anchoredEvents.fire(new AnchoredEvent("test"));
+
         assertEquals(List.of(Phase.TRIGGER, Phase.ACTION, Phase.DECISION, Phase.OUTCOME), trace.phases());
         assertEquals(List.of("onEvent", "act", "decide", "finish"), recordedMethodNames());
     }
@@ -178,7 +197,8 @@ public class ExecutionOrderTests {
     @ApplicationScoped
     public static class OrderAttrAgent {
 
-        @Inject ExecutionTraceRecorder trace;
+        @Inject
+        ExecutionTraceRecorder trace;
 
         @Trigger
         public void onEvent(@Observes OrderAttrEvent event) {
@@ -212,6 +232,7 @@ public class ExecutionOrderTests {
     public void orderAttributeIsHonored() {
         trace.reset();
         orderAttrEvents.fire(new OrderAttrEvent("x"));
+
         assertEquals(List.of("onEvent", "first", "second", "third"), recordedMethodNames());
     }
 
@@ -222,7 +243,8 @@ public class ExecutionOrderTests {
     @ApplicationScoped
     public static class PriorityAgent {
 
-        @Inject ExecutionTraceRecorder trace;
+        @Inject
+        ExecutionTraceRecorder trace;
 
         @Trigger
         public void onEvent(@Observes PriorityEvent event) {
@@ -259,6 +281,7 @@ public class ExecutionOrderTests {
     public void priorityIsHonored() {
         trace.reset();
         priorityEvents.fire(new PriorityEvent("x"));
+
         assertEquals(List.of("onEvent", "first", "second", "third"), recordedMethodNames());
     }
 
@@ -269,7 +292,8 @@ public class ExecutionOrderTests {
     @ApplicationScoped
     public static class PriorityOverOrderAgent {
 
-        @Inject ExecutionTraceRecorder trace;
+        @Inject
+        ExecutionTraceRecorder trace;
 
         @Trigger
         public void onEvent(@Observes PriorityOverOrderEvent event) {
@@ -301,6 +325,7 @@ public class ExecutionOrderTests {
     public void priorityTakesPrecedenceOverOrder() {
         trace.reset();
         priorityOverOrderEvents.fire(new PriorityOverOrderEvent("x"));
+
         assertEquals(List.of("onEvent", "runsFirst", "runsThird"), recordedMethodNames());
     }
 }

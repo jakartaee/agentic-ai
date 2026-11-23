@@ -53,17 +53,14 @@ public class DeploymentErrorMixedPriorityTests {
     public static class MixedPriorityAgent {
 
         @Trigger
-        public void onEvent(@Observes DeploymentErrorEvent event) {
-        }
+        public void onEvent(@Observes DeploymentErrorEvent event) {}
 
         @Action
         @Priority(1)
-        public void prioritized() {
-        }
+        public void prioritized() {}
 
         @Action
-        public void unordered() {
-        }
+        public void unordered() {}
     }
 
     /**

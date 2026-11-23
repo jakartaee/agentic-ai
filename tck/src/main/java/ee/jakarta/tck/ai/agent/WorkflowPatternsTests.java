@@ -55,23 +55,41 @@ public class WorkflowPatternsTests {
     public static Archive<?> createDeployment() {
         return ShrinkWrap.create(WebArchive.class, "workflowpatterns.war")
                 .addClasses(
-                        MinimalistAgent.class,   MinimalistEvent.class,
-                        NoDecisionAgent.class,   NoDecisionEvent.class,
-                        NoOutcomeAgent.class,    NoOutcomeEvent.class,
-                        LinearAgent.class,       LinearEvent.class,
-                        OutcomeOnlyAgent.class,  OutcomeOnlyEvent.class,
-                        IntermixedAgent.class,   IntermixedEvent.class
-                )
+                        MinimalistAgent.class,
+                        MinimalistEvent.class,
+                        NoDecisionAgent.class,
+                        NoDecisionEvent.class,
+                        NoOutcomeAgent.class,
+                        NoOutcomeEvent.class,
+                        LinearAgent.class,
+                        LinearEvent.class,
+                        OutcomeOnlyAgent.class,
+                        OutcomeOnlyEvent.class,
+                        IntermixedAgent.class,
+                        IntermixedEvent.class)
                 .addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml");
     }
 
-    @Inject Event<MinimalistEvent>  minimalistEvents;
-    @Inject Event<NoDecisionEvent>  noDecisionEvents;
-    @Inject Event<NoOutcomeEvent>   noOutcomeEvents;
-    @Inject Event<LinearEvent>      linearEvents;
-    @Inject Event<OutcomeOnlyEvent> outcomeOnlyEvents;
-    @Inject Event<IntermixedEvent>  intermixedEvents;
-    @Inject ExecutionTraceRecorder  trace;
+    @Inject
+    Event<MinimalistEvent> minimalistEvents;
+
+    @Inject
+    Event<NoDecisionEvent> noDecisionEvents;
+
+    @Inject
+    Event<NoOutcomeEvent> noOutcomeEvents;
+
+    @Inject
+    Event<LinearEvent> linearEvents;
+
+    @Inject
+    Event<OutcomeOnlyEvent> outcomeOnlyEvents;
+
+    @Inject
+    Event<IntermixedEvent> intermixedEvents;
+
+    @Inject
+    ExecutionTraceRecorder trace;
 
     private List<String> recordedMethodNames() {
         return trace.entries().stream().map(TraceEntry::methodName).toList();
@@ -83,7 +101,8 @@ public class WorkflowPatternsTests {
     @ApplicationScoped
     public static class MinimalistAgent {
 
-        @Inject ExecutionTraceRecorder trace;
+        @Inject
+        ExecutionTraceRecorder trace;
 
         @Trigger
         public void onEvent(@Observes MinimalistEvent event) {
@@ -101,6 +120,7 @@ public class WorkflowPatternsTests {
     public void triggerOnlyWorkflowCompletes() {
         trace.reset();
         minimalistEvents.fire(new MinimalistEvent("test"));
+
         assertEquals(List.of(Phase.TRIGGER), trace.phases());
     }
 
@@ -110,7 +130,8 @@ public class WorkflowPatternsTests {
     @ApplicationScoped
     public static class NoDecisionAgent {
 
-        @Inject ExecutionTraceRecorder trace;
+        @Inject
+        ExecutionTraceRecorder trace;
 
         @Trigger
         public NoDecisionEvent onEvent(@Observes NoDecisionEvent event) {
@@ -139,6 +160,7 @@ public class WorkflowPatternsTests {
     public void workflowWithoutDecisionRunsActions() {
         trace.reset();
         noDecisionEvents.fire(new NoDecisionEvent("test"));
+
         assertEquals(List.of(Phase.TRIGGER, Phase.ACTION, Phase.OUTCOME), trace.phases());
     }
 
@@ -148,7 +170,8 @@ public class WorkflowPatternsTests {
     @ApplicationScoped
     public static class NoOutcomeAgent {
 
-        @Inject ExecutionTraceRecorder trace;
+        @Inject
+        ExecutionTraceRecorder trace;
 
         @Trigger
         public void onEvent(@Observes NoOutcomeEvent event) {
@@ -176,6 +199,7 @@ public class WorkflowPatternsTests {
     public void workflowWithoutOutcomeCompletes() {
         trace.reset();
         noOutcomeEvents.fire(new NoOutcomeEvent("test"));
+
         assertEquals(List.of(Phase.TRIGGER, Phase.DECISION, Phase.ACTION), trace.phases());
     }
 
@@ -185,7 +209,8 @@ public class WorkflowPatternsTests {
     @ApplicationScoped
     public static class LinearAgent {
 
-        @Inject ExecutionTraceRecorder trace;
+        @Inject
+        ExecutionTraceRecorder trace;
 
         @Trigger
         public void onEvent(@Observes LinearEvent event) {
@@ -223,6 +248,7 @@ public class WorkflowPatternsTests {
     public void sequentialActionsExecuteInOrder() {
         trace.reset();
         linearEvents.fire(new LinearEvent("test"));
+
         assertEquals(List.of(Phase.TRIGGER, Phase.ACTION, Phase.ACTION, Phase.ACTION, Phase.OUTCOME), trace.phases());
         assertEquals(List.of("onEvent", "firstAction", "secondAction", "thirdAction", "finish"), recordedMethodNames());
     }
@@ -233,7 +259,8 @@ public class WorkflowPatternsTests {
     @ApplicationScoped
     public static class OutcomeOnlyAgent {
 
-        @Inject ExecutionTraceRecorder trace;
+        @Inject
+        ExecutionTraceRecorder trace;
 
         @Trigger
         public void onEvent(@Observes OutcomeOnlyEvent event) {
@@ -262,6 +289,7 @@ public class WorkflowPatternsTests {
     public void decisionProceedsDirectlyToOutcome() {
         trace.reset();
         outcomeOnlyEvents.fire(new OutcomeOnlyEvent("test"));
+
         assertEquals(List.of(Phase.TRIGGER, Phase.DECISION, Phase.OUTCOME), trace.phases());
     }
 
@@ -271,7 +299,8 @@ public class WorkflowPatternsTests {
     @ApplicationScoped
     public static class IntermixedAgent {
 
-        @Inject ExecutionTraceRecorder trace;
+        @Inject
+        ExecutionTraceRecorder trace;
 
         @Trigger
         public void onEvent(@Observes IntermixedEvent event) {
@@ -316,9 +345,12 @@ public class WorkflowPatternsTests {
     public void intermixedDecisionsAndActionsExecuteInOrder() {
         trace.reset();
         intermixedEvents.fire(new IntermixedEvent("test"));
-        assertEquals(List.of(Phase.TRIGGER, Phase.DECISION, Phase.ACTION,
-                             Phase.DECISION, Phase.ACTION, Phase.OUTCOME), trace.phases());
-        assertEquals(List.of("onEvent", "firstDecide", "firstAction", "secondDecide", "secondAction", "finish"),
-                     recordedMethodNames());
+
+        assertEquals(
+                List.of(Phase.TRIGGER, Phase.DECISION, Phase.ACTION, Phase.DECISION, Phase.ACTION, Phase.OUTCOME),
+                trace.phases());
+        assertEquals(
+                List.of("onEvent", "firstDecide", "firstAction", "secondDecide", "secondAction", "finish"),
+                recordedMethodNames());
     }
 }

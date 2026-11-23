@@ -77,18 +77,28 @@ public class CdiBeanTests {
     public static Archive<?> createDeployment() {
         return ShrinkWrap.create(WebArchive.class, "cdibeans.war")
                 .addClasses(
-                        InnerAgent.class,                InnerAgentEvent.class,
-                        ConstructorInjectedAgent.class,  ConstructorInjectedEvent.class,
-                        InterceptedAgent.class,          InterceptedEvent.class,
-                        AgentInterceptorBinding.class,   AgentInterceptorImpl.class
-                )
+                        InnerAgent.class,
+                        InnerAgentEvent.class,
+                        ConstructorInjectedAgent.class,
+                        ConstructorInjectedEvent.class,
+                        InterceptedAgent.class,
+                        InterceptedEvent.class,
+                        AgentInterceptorBinding.class,
+                        AgentInterceptorImpl.class)
                 .addAsWebInfResource(new StringAsset(BEANS_XML), "beans.xml");
     }
 
-    @Inject Event<InnerAgentEvent>          innerAgentEvents;
-    @Inject Event<ConstructorInjectedEvent> constructorInjectedEvents;
-    @Inject Event<InterceptedEvent>         interceptedEvents;
-    @Inject ExecutionTraceRecorder          trace;
+    @Inject
+    Event<InnerAgentEvent> innerAgentEvents;
+
+    @Inject
+    Event<ConstructorInjectedEvent> constructorInjectedEvents;
+
+    @Inject
+    Event<InterceptedEvent> interceptedEvents;
+
+    @Inject
+    ExecutionTraceRecorder trace;
 
     // -- static nested agent ---------------------------------------------------
 
@@ -98,7 +108,8 @@ public class CdiBeanTests {
     @ApplicationScoped
     public static class InnerAgent {
 
-        @Inject ExecutionTraceRecorder trace;
+        @Inject
+        ExecutionTraceRecorder trace;
 
         @Trigger
         public void onEvent(@Observes InnerAgentEvent event) {
@@ -116,6 +127,7 @@ public class CdiBeanTests {
     public void staticNestedAgentIsDiscoveredAsCdiBean() {
         trace.reset();
         innerAgentEvents.fire(new InnerAgentEvent("test"));
+
         assertEquals(List.of(Phase.TRIGGER), trace.phases());
     }
 
@@ -156,6 +168,7 @@ public class CdiBeanTests {
     public void constructorInjectedAgentIsDiscoveredAndManaged() {
         trace.reset();
         constructorInjectedEvents.fire(new ConstructorInjectedEvent("test"));
+
         assertEquals(List.of(Phase.TRIGGER), trace.phases());
     }
 
@@ -172,7 +185,8 @@ public class CdiBeanTests {
     @Interceptor
     public static class AgentInterceptorImpl {
 
-        @Inject ExecutionTraceRecorder trace;
+        @Inject
+        ExecutionTraceRecorder trace;
 
         @AroundInvoke
         public Object intercept(InvocationContext ctx) throws Exception {
@@ -189,7 +203,8 @@ public class CdiBeanTests {
     @ApplicationScoped
     public static class InterceptedAgent {
 
-        @Inject ExecutionTraceRecorder trace;
+        @Inject
+        ExecutionTraceRecorder trace;
 
         @Trigger
         public void onEvent(@Observes InterceptedEvent event) {
@@ -221,9 +236,18 @@ public class CdiBeanTests {
     public void cdiInterceptorExecutesAroundActionAndOutcome() {
         trace.reset();
         interceptedEvents.fire(new InterceptedEvent("test"));
-        List<String> names = trace.entries().stream().map(TraceEntry::methodName).toList();
-        assertEquals(List.of("onEvent",
-                "interceptorBefore", "process", "interceptorAfter",
-                "interceptorBefore", "finish",  "interceptorAfter"), names);
+
+        List<String> names =
+                trace.entries().stream().map(TraceEntry::methodName).toList();
+        assertEquals(
+                List.of(
+                        "onEvent",
+                        "interceptorBefore",
+                        "process",
+                        "interceptorAfter",
+                        "interceptorBefore",
+                        "finish",
+                        "interceptorAfter"),
+                names);
     }
 }

@@ -46,8 +46,7 @@ public class DeploymentErrorNoTriggerTests {
     public static class NoTriggerAgent {
 
         @Action
-        public void act() {
-        }
+        public void act() {}
     }
 
     /**

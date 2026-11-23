@@ -31,8 +31,8 @@ import java.lang.annotation.Target;
  * Agents support two scopes, {@link WorkflowScoped} and
  * {@code @ApplicationScoped}.
  * <p>
- * A workflow context will still be created for each workflow execution even 
- * when the agent is @ApplicationScoped, beginning with a trigger and in most 
+ * A workflow context will still be created for each workflow execution even
+ * when the agent is @ApplicationScoped, beginning with a trigger and in most
  * cases ending with an outcome.
  * Any conversational state maintained by injected
  * {@link LargeLanguageModel} implementations is expected to follow this
@@ -53,7 +53,7 @@ public @interface Agent {
      * If not specified, the simple class name with the first letter lowercased
      * will be used as a default (e.g., {@code MyAgent} becomes {@code myAgent}).
      *
-     * @return the configured agent name, or an empty string to use the default 
+     * @return the configured agent name, or an empty string to use the default
      * derived name
      */
     String name() default "";

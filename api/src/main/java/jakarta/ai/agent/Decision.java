@@ -56,30 +56,30 @@ import java.lang.annotation.Target;
  * Decision methods can have the following types of parameters that will be
  * automatically resolved:
  * <ul>
- *   <li>Workflow state domain objects - Any objects used by prior phases 
+ *   <li>Workflow state domain objects - Any objects used by prior phases
  *       in the workflow, particularly the triggering event object</li>
  *   <li>{@link LargeLanguageModel} - LLM instance</li>
  *   <li>Any other CDI injectable dependencies available to the agent
- *       - typically in the application scope or managed by the 
+ *       - typically in the application scope or managed by the
  *       container</li>
  * </ul>
  * <p>
  * Parameters can declare Jakarta Validation constraints (e.g., {@code @Valid},
- * {@code @NotNull}, {@code @Email}). Validation occurs before the decision 
- * method is invoked. Validation failures raise 
+ * {@code @NotNull}, {@code @Email}). Validation occurs before the decision
+ * method is invoked. Validation failures raise
  * {@code jakarta.validation.ConstraintViolationException}, which can be
  * handled by {@link OnException @OnException} methods.
  * <p>
  * <b>Return types</b><br>
  * Decision methods support multiple return patterns:
  * <ul>
- *   <li><strong>Boolean</strong>: {@code true} means proceed with the 
+ *   <li><strong>Boolean</strong>: {@code true} means proceed with the
  *       workflow, {@code false} means stop the workflow</li>
- *   <li><strong>{@link Result}</strong>: A {@code Result} record with 
- *       success flag and optional details to control workflow and pass 
+ *   <li><strong>{@link Result}</strong>: A {@code Result} record with
+ *       success flag and optional details to control workflow and pass
  *       data to subsequent phases</li>
- *   <li><strong>Object</strong>: A non-null object means proceed (and 
- *       the object is available for injection into subsequent phases), 
+ *   <li><strong>Object</strong>: A non-null object means proceed (and
+ *       the object is available for injection into subsequent phases),
  *       {@code null} means stop the workflow</li>
  * </ul>
  * <p>

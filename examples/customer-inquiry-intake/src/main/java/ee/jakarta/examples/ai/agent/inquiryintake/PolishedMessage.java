@@ -16,5 +16,4 @@ package ee.jakarta.examples.ai.agent.inquiryintake;
  * The customer's message, rewritten by the agent in a tone that matches
  * the inquiry's category.
  */
-public record PolishedMessage(String value) {
-}
+public record PolishedMessage(String value) {}

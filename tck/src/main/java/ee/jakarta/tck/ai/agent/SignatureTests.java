@@ -67,12 +67,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 public class SignatureTests {
 
     static final String PACKAGE = "jakarta.ai.agent";
-    static final String SIGNATURE_RESOURCE =
-            "ee/jakarta/tck/ai/agent/jakarta.ai.agent.sig_1.0";
+    static final String SIGNATURE_RESOURCE = "ee/jakarta/tck/ai/agent/jakarta.ai.agent.sig_1.0";
     static final int JAVA_SE_RELEASE = 17;
 
     /** The engine's own classes and the Java SE API data it resolves JDK types from. */
-    private static final String[] ENGINE_ENTRIES = { "com/sun/tdk/", "META-INF/sigtest" };
+    private static final String[] ENGINE_ENTRIES = {"com/sun/tdk/", "META-INF/sigtest"};
 
     @Deployment
     public static Archive<?> createDeployment() {
@@ -97,24 +96,31 @@ public class SignatureTests {
             }
             Path apiLocation = locationOf(Agent.class);
             // The CDI types the API extends and is annotated with must be resolvable too.
-            String classpath = Stream.of(apiLocation, locationOf(NormalScope.class), locationOf(AnnotationLiteral.class))
+            String classpath = Stream.of(
+                            apiLocation, locationOf(NormalScope.class), locationOf(AnnotationLiteral.class))
                     .distinct()
                     .map(Path::toString)
                     .collect(Collectors.joining(File.pathSeparator));
 
             String[] args = {
-                    "-Static",
-                    "-FileName", signatureFile.toString(),
-                    "-PackageWithoutSubpackages", PACKAGE,
-                    "-BootCP", Integer.toString(JAVA_SE_RELEASE),
-                    "-Classpath", classpath
+                "-Static",
+                "-FileName",
+                signatureFile.toString(),
+                "-PackageWithoutSubpackages",
+                PACKAGE,
+                "-BootCP",
+                Integer.toString(JAVA_SE_RELEASE),
+                "-Classpath",
+                classpath
             };
             StringWriter report = new StringWriter();
             SignatureTest test = new SignatureTest();
             test.run(args, new PrintWriter(report, true), null);
 
-            assertTrue(test.isPassed(), () -> PACKAGE + " at " + apiLocation
-                    + " differs from the recorded signature file:" + System.lineSeparator() + report);
+            assertTrue(
+                    test.isPassed(),
+                    () -> PACKAGE + " at " + apiLocation + " differs from the recorded signature file:"
+                            + System.lineSeparator() + report);
         } finally {
             Files.deleteIfExists(signatureFile);
         }
@@ -159,7 +165,8 @@ public class SignatureTests {
         try {
             return Path.of(location);
         } catch (RuntimeException e) {
-            throw new IllegalStateException(type.getName() + " was not loaded from a file system location: " + location, e);
+            throw new IllegalStateException(
+                    type.getName() + " was not loaded from a file system location: " + location, e);
         }
     }
 }

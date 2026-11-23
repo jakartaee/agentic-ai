@@ -42,7 +42,8 @@ import java.util.logging.Logger;
  * pass, the agent tags the lesson against the curriculum standards, estimates
  * the class time it needs, writes a short abstract, and files the entry.
  */
-@Agent(name = "CatalogAgent",
+@Agent(
+        name = "CatalogAgent",
         description = "Files a published lesson in the course catalog, "
                 + "with coverage, curriculum standards, class-time estimate and a short abstract.")
 public class CatalogAgent {
@@ -86,7 +87,9 @@ public class CatalogAgent {
                         + " or whether the teacher pasted material that drifted onto a different topic. "
                         + ContentCheck.SCHEMA,
                 ContentCheck.class,
-                lesson.getSubject(), lesson.getTitle(), coverage.covers());
+                lesson.getSubject(),
+                lesson.getTitle(),
+                coverage.covers());
         if (!check.matches()) {
             output.setStopReason("Published, but not cataloged: the content mostly covers "
                     + check.actualTopic() + ", not " + lesson.getTitle()
@@ -111,10 +114,13 @@ public class CatalogAgent {
                         + "New lesson: {} ({}) covering {}\n"
                         + "Catalog: {}",
                 DuplicateCheck.class,
-                lesson.getTitle(), lesson.getSubject(), coverage.covers(), existing);
+                lesson.getTitle(),
+                lesson.getSubject(),
+                coverage.covers(),
+                existing);
         if (!check.unique()) {
-            output.setStopReason("Published, but not cataloged: " + check.matchedTitle()
-                    + " already covers this. " + check.reason() + " Merge, or title this as a variant.");
+            output.setStopReason("Published, but not cataloged: " + check.matchedTitle() + " already covers this. "
+                    + check.reason() + " Merge, or title this as a variant.");
         }
         LOGGER.info("[DECISION] notDuplicate: " + check.unique() + " — " + check.reason());
         return check.unique();
@@ -135,7 +141,9 @@ public class CatalogAgent {
                         + "Lesson covers: {}\n"
                         + "Lesson: {}",
                 TaggedStandards.class,
-                candidates, coverage.covers(), lesson);
+                candidates,
+                coverage.covers(),
+                lesson);
     }
 
     @Action(order = 5)
@@ -146,7 +154,8 @@ public class CatalogAgent {
                         + "(introductory, intermediate or advanced). It covers: {}\n"
                         + Estimate.SCHEMA + "\n{}",
                 Estimate.class,
-                coverage.covers(), lesson);
+                coverage.covers(),
+                lesson);
     }
 
     @Action(order = 6)
@@ -155,16 +164,14 @@ public class CatalogAgent {
         // The lesson and its coverage are not re-sent. The LLM facade keeps
         // per-workflow conversational state, so the earlier queries in this agent are
         // still in the model's context.
-        return new Summary(model.query(
-                "Write a three-sentence catalog abstract for the lesson, in neutral prose that"
-                        + " another teacher browsing the library could use to decide whether to open"
-                        + " it. Name the topic, say what the lesson teaches, and say who it is for."
-                        + " Return plain prose only, no quotation marks or markdown."));
+        return new Summary(model.query("Write a three-sentence catalog abstract for the lesson, in neutral prose that"
+                + " another teacher browsing the library could use to decide whether to open"
+                + " it. Name the topic, say what the lesson teaches, and say who it is for."
+                + " Return plain prose only, no quotation marks or markdown."));
     }
 
     @Outcome
-    void file(Lesson lesson, Coverage coverage, TaggedStandards tagged,
-              Estimate estimate, Summary summary) {
+    void file(Lesson lesson, Coverage coverage, TaggedStandards tagged, Estimate estimate, Summary summary) {
         CatalogEntry entry = new CatalogEntry(
                 slug(lesson.getSubject(), lesson.getTitle()),
                 lesson.getSubject(),

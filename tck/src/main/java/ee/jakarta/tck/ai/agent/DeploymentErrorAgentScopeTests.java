@@ -50,8 +50,7 @@ public class DeploymentErrorAgentScopeTests {
     public static class DependentScopedAgent {
 
         @Trigger
-        public void onEvent(@Observes DeploymentErrorEvent event) {
-        }
+        public void onEvent(@Observes DeploymentErrorEvent event) {}
     }
 
     /**

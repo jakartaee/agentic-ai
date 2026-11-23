@@ -53,14 +53,22 @@ public class InheritedMethodsTests {
     public static Archive<?> createDeployment() {
         return ShrinkWrap.create(WebArchive.class, "inheritedmethods.war")
                 .addClasses(
-                        BasePhaseAgent.class, InheritingAgent.class, InheritEvent.class,
-                        OverridingAgent.class, OverrideEvent.class)
+                        BasePhaseAgent.class,
+                        InheritingAgent.class,
+                        InheritEvent.class,
+                        OverridingAgent.class,
+                        OverrideEvent.class)
                 .addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml");
     }
 
-    @Inject Event<InheritEvent> inheritEvents;
-    @Inject Event<OverrideEvent> overrideEvents;
-    @Inject ExecutionTraceRecorder trace;
+    @Inject
+    Event<InheritEvent> inheritEvents;
+
+    @Inject
+    Event<OverrideEvent> overrideEvents;
+
+    @Inject
+    ExecutionTraceRecorder trace;
 
     /**
      * Superclass, not itself an {@code @Agent}, that declares an {@code @Action}. Whether the
@@ -101,6 +109,7 @@ public class InheritedMethodsTests {
     public void inheritedActionParticipates() {
         trace.reset();
         inheritEvents.fire(new InheritEvent("input"));
+
         assertEquals(List.of(Phase.TRIGGER, Phase.ACTION), trace.phases());
     }
 
@@ -136,6 +145,7 @@ public class InheritedMethodsTests {
     public void unannotatedOverrideDoesNotParticipate() {
         trace.reset();
         overrideEvents.fire(new OverrideEvent("input"));
+
         assertEquals(List.of(Phase.TRIGGER), trace.phases());
         assertFalse(trace.phases().contains(Phase.ACTION));
     }

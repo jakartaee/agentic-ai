@@ -24,8 +24,7 @@ public class Lesson {
     private String conclusion;
     private String notice;
 
-    public Lesson() {
-    }
+    public Lesson() {}
 
     public Lesson(String subject, String title) {
         this.subject = subject;

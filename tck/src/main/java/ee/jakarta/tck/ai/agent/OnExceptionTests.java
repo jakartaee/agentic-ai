@@ -62,27 +62,51 @@ public class OnExceptionTests {
     public static Archive<?> createDeployment() {
         return ShrinkWrap.create(WebArchive.class, "onexception.war")
                 .addClasses(
-                        AgentDomainException.class,   SpecificDomainException.class,
-                        RecoveryAgent.class,           RecoveryEvent.class,
-                        PropagationAgent.class,        PropagationEvent.class,
-                        HierarchyAgent.class,          HierarchyEvent.class,
-                        RecursiveGuardAgent.class,     RecursiveGuardEvent.class,
-                        PhaseFailureAgent.class,       PhaseFailureEvent.class,
-                        NoHandlerAgent.class,          NoHandlerEvent.class,
-                        StatefulHandlerAgent.class,    StatefulHandlerEvent.class
-                )
+                        AgentDomainException.class,
+                        SpecificDomainException.class,
+                        RecoveryAgent.class,
+                        RecoveryEvent.class,
+                        PropagationAgent.class,
+                        PropagationEvent.class,
+                        HierarchyAgent.class,
+                        HierarchyEvent.class,
+                        RecursiveGuardAgent.class,
+                        RecursiveGuardEvent.class,
+                        PhaseFailureAgent.class,
+                        PhaseFailureEvent.class,
+                        NoHandlerAgent.class,
+                        NoHandlerEvent.class,
+                        StatefulHandlerAgent.class,
+                        StatefulHandlerEvent.class)
                 .addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml");
     }
 
-    @Inject Event<RecoveryEvent>        recoveryEvents;
-    @Inject Event<PropagationEvent>     propagationEvents;
-    @Inject Event<HierarchyEvent>       hierarchyEvents;
-    @Inject Event<RecursiveGuardEvent>  recursiveGuardEvents;
-    @Inject Event<PhaseFailureEvent>    phaseFailureEvents;
-    @Inject Event<NoHandlerEvent>       noHandlerEvents;
-    @Inject Event<StatefulHandlerEvent> statefulHandlerEvents;
-    @Inject ExecutionTraceRecorder      trace;
-    @Inject PhaseFailureAgent           phaseFailureAgent;
+    @Inject
+    Event<RecoveryEvent> recoveryEvents;
+
+    @Inject
+    Event<PropagationEvent> propagationEvents;
+
+    @Inject
+    Event<HierarchyEvent> hierarchyEvents;
+
+    @Inject
+    Event<RecursiveGuardEvent> recursiveGuardEvents;
+
+    @Inject
+    Event<PhaseFailureEvent> phaseFailureEvents;
+
+    @Inject
+    Event<NoHandlerEvent> noHandlerEvents;
+
+    @Inject
+    Event<StatefulHandlerEvent> statefulHandlerEvents;
+
+    @Inject
+    ExecutionTraceRecorder trace;
+
+    @Inject
+    PhaseFailureAgent phaseFailureAgent;
 
     public static class AgentDomainException extends RuntimeException {
 
@@ -118,7 +142,8 @@ public class OnExceptionTests {
     @ApplicationScoped
     public static class RecoveryAgent {
 
-        @Inject ExecutionTraceRecorder trace;
+        @Inject
+        ExecutionTraceRecorder trace;
 
         @Trigger
         public void onEvent(@Observes RecoveryEvent event) {
@@ -153,6 +178,7 @@ public class OnExceptionTests {
     public void handlerNormalReturnAllowsOutcome() {
         trace.reset();
         recoveryEvents.fire(new RecoveryEvent("x"));
+
         assertEquals(List.of(Phase.TRIGGER, Phase.ACTION, Phase.ON_EXCEPTION, Phase.OUTCOME), trace.phases());
     }
 
@@ -162,7 +188,8 @@ public class OnExceptionTests {
     @ApplicationScoped
     public static class PropagationAgent {
 
-        @Inject ExecutionTraceRecorder trace;
+        @Inject
+        ExecutionTraceRecorder trace;
 
         @Trigger
         public void onEvent(@Observes PropagationEvent event) {
@@ -191,8 +218,8 @@ public class OnExceptionTests {
     @Test
     public void rethrowFromHandlerTerminatesWorkflow() {
         trace.reset();
-        Throwable thrown = assertThrows(Throwable.class,
-                () -> propagationEvents.fire(new PropagationEvent("x")));
+        Throwable thrown = assertThrows(Throwable.class, () -> propagationEvents.fire(new PropagationEvent("x")));
+
         agentExceptionIn(thrown);
         assertFalse(trace.phases().contains(Phase.OUTCOME));
     }
@@ -205,8 +232,8 @@ public class OnExceptionTests {
     @Test
     public void handlerReceivesExactExceptionInstance() {
         trace.reset();
-        Throwable thrown = assertThrows(Throwable.class,
-                () -> propagationEvents.fire(new PropagationEvent("x")));
+        Throwable thrown = assertThrows(Throwable.class, () -> propagationEvents.fire(new PropagationEvent("x")));
+
         AgentDomainException cause = agentExceptionIn(thrown);
         assertSame(cause, handlerEntry().args()[0]);
     }
@@ -217,7 +244,8 @@ public class OnExceptionTests {
     @ApplicationScoped
     public static class RecursiveGuardAgent {
 
-        @Inject ExecutionTraceRecorder trace;
+        @Inject
+        ExecutionTraceRecorder trace;
 
         @Trigger
         public void onEvent(@Observes RecursiveGuardEvent event) {
@@ -246,10 +274,11 @@ public class OnExceptionTests {
     @Test
     public void handlerExceptionPropagatesWithoutRecursion() {
         trace.reset();
-        Throwable thrown = assertThrows(Throwable.class,
-                () -> recursiveGuardEvents.fire(new RecursiveGuardEvent("x")));
+        Throwable thrown = assertThrows(Throwable.class, () -> recursiveGuardEvents.fire(new RecursiveGuardEvent("x")));
+
         agentExceptionIn(thrown);
-        assertEquals(1, trace.phases().stream().filter(p -> p == Phase.ON_EXCEPTION).count());
+        assertEquals(
+                1, trace.phases().stream().filter(p -> p == Phase.ON_EXCEPTION).count());
     }
 
     // -- handler selection -----------------------------------------------------
@@ -258,7 +287,9 @@ public class OnExceptionTests {
 
         private static final long serialVersionUID = 1L;
 
-        public SpecificDomainException(String message) { super(message); }
+        public SpecificDomainException(String message) {
+            super(message);
+        }
     }
 
     public record HierarchyEvent(String payload) {}
@@ -267,7 +298,8 @@ public class OnExceptionTests {
     @ApplicationScoped
     public static class HierarchyAgent {
 
-        @Inject ExecutionTraceRecorder trace;
+        @Inject
+        ExecutionTraceRecorder trace;
 
         @Trigger
         public void onEvent(@Observes HierarchyEvent event) {
@@ -301,6 +333,7 @@ public class OnExceptionTests {
     public void specificHandlerSelectedOverGeneric() {
         trace.reset();
         hierarchyEvents.fire(new HierarchyEvent("x"));
+
         assertEquals("onSpecific", handlerEntry().methodName());
     }
 
@@ -313,9 +346,17 @@ public class OnExceptionTests {
     @ApplicationScoped
     public static class PhaseFailureAgent {
 
-        public enum FailingPhase { NONE, TRIGGER, DECISION, ACTION, OUTCOME }
+        public enum FailingPhase {
+            NONE,
+            TRIGGER,
+            DECISION,
+            ACTION,
+            OUTCOME
+        }
 
-        @Inject ExecutionTraceRecorder trace;
+        @Inject
+        ExecutionTraceRecorder trace;
+
         private volatile FailingPhase failAt = FailingPhase.NONE;
 
         public void setFailAt(FailingPhase failAt) {
@@ -325,30 +366,26 @@ public class OnExceptionTests {
         @Trigger
         public void onEvent(@Observes PhaseFailureEvent event) {
             trace.record(Phase.TRIGGER, "onEvent", event);
-            if (failAt == FailingPhase.TRIGGER)
-                throw new AgentDomainException("trigger failure");
+            if (failAt == FailingPhase.TRIGGER) throw new AgentDomainException("trigger failure");
         }
 
         @Decision(order = 1)
         public boolean decide(PhaseFailureEvent event) {
             trace.record(Phase.DECISION, "decide", event);
-            if (failAt == FailingPhase.DECISION)
-                throw new AgentDomainException("decision failure");
+            if (failAt == FailingPhase.DECISION) throw new AgentDomainException("decision failure");
             return true;
         }
 
         @Action(order = 2)
         public void act(PhaseFailureEvent event) {
             trace.record(Phase.ACTION, "act", event);
-            if (failAt == FailingPhase.ACTION)
-                throw new AgentDomainException("action failure");
+            if (failAt == FailingPhase.ACTION) throw new AgentDomainException("action failure");
         }
 
         @Outcome
         public void finish() {
             trace.record(Phase.OUTCOME, "finish");
-            if (failAt == FailingPhase.OUTCOME)
-                throw new AgentDomainException("outcome failure");
+            if (failAt == FailingPhase.OUTCOME) throw new AgentDomainException("outcome failure");
         }
 
         @OnException
@@ -367,6 +404,7 @@ public class OnExceptionTests {
         trace.reset();
         phaseFailureAgent.setFailAt(PhaseFailureAgent.FailingPhase.TRIGGER);
         phaseFailureEvents.fire(new PhaseFailureEvent("x"));
+
         assertTrue(trace.phases().containsAll(List.of(Phase.TRIGGER, Phase.ON_EXCEPTION)));
     }
 
@@ -380,6 +418,7 @@ public class OnExceptionTests {
         trace.reset();
         phaseFailureAgent.setFailAt(PhaseFailureAgent.FailingPhase.DECISION);
         phaseFailureEvents.fire(new PhaseFailureEvent("x"));
+
         assertTrue(trace.phases().containsAll(List.of(Phase.TRIGGER, Phase.DECISION, Phase.ON_EXCEPTION)));
     }
 
@@ -393,6 +432,7 @@ public class OnExceptionTests {
         trace.reset();
         phaseFailureAgent.setFailAt(PhaseFailureAgent.FailingPhase.ACTION);
         phaseFailureEvents.fire(new PhaseFailureEvent("x"));
+
         assertTrue(trace.phases().containsAll(List.of(Phase.TRIGGER, Phase.ACTION, Phase.ON_EXCEPTION)));
     }
 
@@ -406,6 +446,7 @@ public class OnExceptionTests {
         trace.reset();
         phaseFailureAgent.setFailAt(PhaseFailureAgent.FailingPhase.OUTCOME);
         phaseFailureEvents.fire(new PhaseFailureEvent("x"));
+
         assertTrue(trace.phases().containsAll(List.of(Phase.TRIGGER, Phase.OUTCOME, Phase.ON_EXCEPTION)));
     }
 
@@ -417,7 +458,8 @@ public class OnExceptionTests {
     @ApplicationScoped
     public static class NoHandlerAgent {
 
-        @Inject ExecutionTraceRecorder trace;
+        @Inject
+        ExecutionTraceRecorder trace;
 
         @Trigger
         public void onEvent(@Observes NoHandlerEvent event) {
@@ -445,8 +487,8 @@ public class OnExceptionTests {
     @Test
     public void uncaughtExceptionPropagatesWithoutHandler() {
         trace.reset();
-        Throwable thrown = assertThrows(Throwable.class,
-                () -> noHandlerEvents.fire(new NoHandlerEvent("x")));
+        Throwable thrown = assertThrows(Throwable.class, () -> noHandlerEvents.fire(new NoHandlerEvent("x")));
+
         agentExceptionIn(thrown);
         assertFalse(trace.phases().contains(Phase.OUTCOME));
     }
@@ -459,7 +501,8 @@ public class OnExceptionTests {
     @ApplicationScoped
     public static class StatefulHandlerAgent {
 
-        @Inject ExecutionTraceRecorder trace;
+        @Inject
+        ExecutionTraceRecorder trace;
 
         @Trigger
         public void onEvent(@Observes StatefulHandlerEvent event) {
@@ -493,9 +536,12 @@ public class OnExceptionTests {
     public void handlerReceivesWorkflowStateAfterException() {
         trace.reset();
         statefulHandlerEvents.fire(new StatefulHandlerEvent("x"));
+
         assertEquals(List.of(Phase.TRIGGER, Phase.ACTION, Phase.ON_EXCEPTION, Phase.OUTCOME), trace.phases());
         TraceEntry handler = trace.entries().get(2);
         assertInstanceOf(AgentDomainException.class, handler.args()[0]);
-        assertEquals("x", assertInstanceOf(StatefulHandlerEvent.class, handler.args()[1]).payload());
+        assertEquals(
+                "x",
+                assertInstanceOf(StatefulHandlerEvent.class, handler.args()[1]).payload());
     }
 }

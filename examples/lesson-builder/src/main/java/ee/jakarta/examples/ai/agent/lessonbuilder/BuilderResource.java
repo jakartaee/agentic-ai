@@ -85,8 +85,8 @@ public class BuilderResource {
             throw new BadRequestException(error(Response.Status.BAD_REQUEST, describe(violations)));
         } catch (LLMException e) {
             LOGGER.log(Level.WARNING, "LLM call failed", e);
-            throw new ServiceUnavailableException(error(Response.Status.SERVICE_UNAVAILABLE,
-                    "The LLM backend failed: " + e.getMessage()));
+            throw new ServiceUnavailableException(
+                    error(Response.Status.SERVICE_UNAVAILABLE, "The LLM backend failed: " + e.getMessage()));
         }
         return Response.ok(drafts.current()).build();
     }
@@ -128,16 +128,16 @@ public class BuilderResource {
     }
 
     private static Response found(Object entity, String otherwise) {
-        return entity == null ? error(Response.Status.NOT_FOUND, otherwise) : Response.ok(entity).build();
+        return entity == null
+                ? error(Response.Status.NOT_FOUND, otherwise)
+                : Response.ok(entity).build();
     }
 
     private static Response error(Response.StatusType status, String message) {
         return Response.status(status).entity(new Message(message)).build();
     }
 
-    public record Published(Lesson lesson, CatalogEntry filed, String notice) {
-    }
+    public record Published(Lesson lesson, CatalogEntry filed, String notice) {}
 
-    public record Message(String message) {
-    }
+    public record Message(String message) {}
 }

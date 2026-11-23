@@ -57,7 +57,8 @@ public class IntakeResource {
             trigger.fire(request);
         } catch (ConstraintViolationException violations) {
             return Response.status(Response.Status.BAD_REQUEST)
-                    .entity(new Message(describe(violations))).build();
+                    .entity(new Message(describe(violations)))
+                    .build();
         } catch (LLMException e) {
             return Response.ok(output.record()).build();
         }
@@ -87,6 +88,5 @@ public class IntakeResource {
                 .collect(Collectors.joining("; "));
     }
 
-    public record Message(String message) {
-    }
+    public record Message(String message) {}
 }

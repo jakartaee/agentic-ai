@@ -13,6 +13,8 @@
 package ee.jakarta.examples.ai.agent.frauddetection;
 
 public class Fraud {
-    public boolean isSerious() { return true; }
+    public boolean isSerious() {
+        return true;
+    }
     // Add fields and methods as needed
 }

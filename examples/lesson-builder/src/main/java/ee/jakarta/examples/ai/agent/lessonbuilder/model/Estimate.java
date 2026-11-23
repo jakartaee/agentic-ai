@@ -18,6 +18,5 @@ package ee.jakarta.examples.ai.agent.lessonbuilder.model;
 public record Estimate(int minutes, String difficulty) {
 
     /** The JSON shape a model reply must have to bind to this record. */
-    public static final String SCHEMA =
-            "Return ONLY valid JSON of the form {\"minutes\":45,\"difficulty\":\"...\"}.";
+    public static final String SCHEMA = "Return ONLY valid JSON of the form {\"minutes\":45,\"difficulty\":\"...\"}.";
 }

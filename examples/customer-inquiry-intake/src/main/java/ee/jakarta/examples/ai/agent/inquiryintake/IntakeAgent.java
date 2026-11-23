@@ -32,14 +32,15 @@ import java.util.logging.Logger;
 /**
  * Processes a raw contact-form submission into a reviewed inquiry record.
  */
-@Agent(name = "IntakeAgent",
-       description = "Processes a customer contact-form submission into a reviewed inquiry record.")
+@Agent(
+        name = "IntakeAgent",
+        description = "Processes a customer contact-form submission into a reviewed inquiry record.")
 public class IntakeAgent {
 
     private static final Logger LOGGER = Logger.getLogger(IntakeAgent.class.getName());
 
-    private static final Set<String> PLACEHOLDER_TOKENS = Set.of(
-            "test", "asdf", "asdfg", "qwerty", "lorem", "ipsum", "foo", "bar", "baz");
+    private static final Set<String> PLACEHOLDER_TOKENS =
+            Set.of("test", "asdf", "asdfg", "qwerty", "lorem", "ipsum", "foo", "bar", "baz");
 
     @Inject
     private LargeLanguageModel model;
@@ -82,7 +83,7 @@ public class IntakeAgent {
                 request.email() == null ? "" : request.email(),
                 request.message());
         return new Identity(
-                preferGiven(request.name(),  extracted.name()),
+                preferGiven(request.name(), extracted.name()),
                 preferGiven(request.email(), extracted.email()),
                 extracted.company() == null ? "" : extracted.company());
     }
@@ -92,9 +93,11 @@ public class IntakeAgent {
         LOGGER.info("[ACTION] classify");
         String raw = model.query(
                 "Classify this customer inquiry into exactly one of: {}. Return only the single word.\n\n{}",
-                List.of(Classification.values()), request.message());
+                List.of(Classification.values()),
+                request.message());
         try {
-            return Classification.valueOf(raw.strip().replaceAll("[^A-Za-z]", "").toUpperCase());
+            return Classification.valueOf(
+                    raw.strip().replaceAll("[^A-Za-z]", "").toUpperCase());
         } catch (IllegalArgumentException notInEnum) {
             return Classification.GENERAL;
         }
@@ -104,11 +107,12 @@ public class IntakeAgent {
     Title draftTitle(IntakeRequest request) {
         LOGGER.info("[ACTION] draftTitle");
         String raw = model.query(
-                "Write a short subject line for this customer inquiry, suitable for a "
-                        + "ticketing system. Keep it under 60 characters, focus on the main "
-                        + "ask, and use title case. Return only the subject line text — no "
-                        + "quotes, no prefix, no trailing punctuation.\n\n{}",
-                request.message()).strip();
+                        "Write a short subject line for this customer inquiry, suitable for a "
+                                + "ticketing system. Keep it under 60 characters, focus on the main "
+                                + "ask, and use title case. Return only the subject line text — no "
+                                + "quotes, no prefix, no trailing punctuation.\n\n{}",
+                        request.message())
+                .strip();
         if (raw.length() > 80) {
             raw = raw.substring(0, 77) + "...";
         }
@@ -120,8 +124,8 @@ public class IntakeAgent {
         boolean anyIdentity = notBlank(identity.name()) || notBlank(identity.email());
         boolean substantive = request.message().strip().split("\\s+").length >= 6;
         boolean proceed = anyIdentity || substantive;
-        LOGGER.info("[DECISION] hasEnoughContent: proceed=" + proceed
-                + " (anyIdentity=" + anyIdentity + ", substantive=" + substantive + ")");
+        LOGGER.info("[DECISION] hasEnoughContent: proceed=" + proceed + " (anyIdentity=" + anyIdentity
+                + ", substantive=" + substantive + ")");
         if (!proceed) {
             output.setStopReason("We could not route this inquiry. Please add your name or email, "
                     + "or elaborate on what you are asking for.");
@@ -133,15 +137,18 @@ public class IntakeAgent {
     PolishedMessage polish(IntakeRequest request, Classification classification) {
         LOGGER.info("[ACTION] polish (" + classification + ")");
         String text = model.query(
-                "Rewrite the following customer inquiry to be clear, concise, and professional. "
-                        + "The inquiry is categorized as {}, so adopt that register. Keep the "
-                        + "sender's voice and intent. Return only the revised message text.\n\n{}",
-                classification, request.message()).strip();
+                        "Rewrite the following customer inquiry to be clear, concise, and professional. "
+                                + "The inquiry is categorized as {}, so adopt that register. Keep the "
+                                + "sender's voice and intent. Return only the revised message text.\n\n{}",
+                        classification,
+                        request.message())
+                .strip();
         return new PolishedMessage(text);
     }
 
     @Outcome
-    void publishPreparedInquiry(Identity identity, Classification classification, Title title, PolishedMessage polished) {
+    void publishPreparedInquiry(
+            Identity identity, Classification classification, Title title, PolishedMessage polished) {
         output.setRecord(new IntakeRecord(identity, classification, title.value(), polished.value(), null));
         LOGGER.info("[OUTCOME] inquiry prepared");
     }
@@ -162,7 +169,8 @@ public class IntakeAgent {
         if (words.length == 0) {
             return false;
         }
-        long placeholders = Arrays.stream(words).filter(PLACEHOLDER_TOKENS::contains).count();
+        long placeholders =
+                Arrays.stream(words).filter(PLACEHOLDER_TOKENS::contains).count();
         return placeholders >= 2 && placeholders * 2 >= words.length;
     }
 

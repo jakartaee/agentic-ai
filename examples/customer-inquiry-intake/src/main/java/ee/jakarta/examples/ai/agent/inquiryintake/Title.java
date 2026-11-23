@@ -16,5 +16,4 @@ package ee.jakarta.examples.ai.agent.inquiryintake;
  * A short subject line drafted from the message, suitable for a ticketing
  * system.
  */
-public record Title(String value) {
-}
+public record Title(String value) {}

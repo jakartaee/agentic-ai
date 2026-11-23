@@ -27,6 +27,5 @@ public final class TckModel {
     /** A rendered prompt equal to this token returns the conversation so far. */
     public static final String HISTORY = "[tck:history]";
 
-    private TckModel() {
-    }
+    private TckModel() {}
 }
