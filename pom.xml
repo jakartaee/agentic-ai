@@ -135,6 +135,26 @@
                         </importOrder>
                         <removeUnusedImports/>
                     </java>
+                    <formats>
+                        <format>
+                            <includes>
+                                <include>**/*.md</include>
+                                <include>**/*.adoc</include>
+                                <include>**/*.asciidoc</include>
+                                <include>**/*.xml</include>
+                                <include>**/*.properties</include>
+                                <include>**/*.sh</include>
+                                <include>**/Jenkinsfile</include>
+                                <include>.github/**/*.yml</include>
+                            </includes>
+                            <excludes>
+                                <exclude>**/target/**</exclude>
+                                <exclude>**/EFTL.adoc</exclude>
+                            </excludes>
+                            <trimTrailingWhitespace/>
+                            <endWithNewline/>
+                        </format>
+                    </formats>
                 </configuration>
                 <executions>
                     <execution>

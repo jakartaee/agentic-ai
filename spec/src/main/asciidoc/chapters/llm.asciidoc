@@ -22,7 +22,7 @@ APIs when needed, following the `EntityManager.unwrap()` pattern from
 Jakarta Persistence.
 
 **Evolution**:: LLM technologies evolve rapidly; the facade insulates
-applications from those changes. The facade could be evolved into a 
+applications from those changes. The facade could be evolved into a
 separate specification in the future.
 
 [[llm-interface]]
