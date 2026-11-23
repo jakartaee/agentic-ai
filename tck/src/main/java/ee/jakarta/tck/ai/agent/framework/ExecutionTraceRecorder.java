@@ -24,6 +24,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 @ApplicationScoped
 public class ExecutionTraceRecorder {
 
+    /** The workflow phase an agent method belongs to. */
     public enum Phase {
         TRIGGER,
         DECISION,
@@ -37,10 +38,12 @@ public class ExecutionTraceRecorder {
 
     private final List<TraceEntry> entries = new CopyOnWriteArrayList<>();
 
+    /** Records that the named method of the given phase ran with the given arguments. */
     public void record(Phase phase, String methodName, Object... args) {
         entries.add(new TraceEntry(phase, methodName, args));
     }
 
+    /** Every recorded entry, in the order they were recorded. */
     public List<TraceEntry> entries() {
         return List.copyOf(entries);
     }
@@ -56,11 +59,13 @@ public class ExecutionTraceRecorder {
      * @throws AssertionError if no entry of that phase was recorded
      */
     public TraceEntry entry(Phase phase) {
-        return entries(phase).stream()
+        return entries.stream()
+                .filter(entry -> entry.phase() == phase)
                 .findFirst()
                 .orElseThrow(() -> new AssertionError("No " + phase + " entry was recorded. The trace is " + phases()));
     }
 
+    /** The phase of every recorded entry, in the order they were recorded. */
     public List<Phase> phases() {
         return entries.stream().map(TraceEntry::phase).toList();
     }
@@ -70,6 +75,7 @@ public class ExecutionTraceRecorder {
         return entries.stream().map(TraceEntry::methodName).toList();
     }
 
+    /** Clears every recorded entry. */
     public void reset() {
         entries.clear();
     }

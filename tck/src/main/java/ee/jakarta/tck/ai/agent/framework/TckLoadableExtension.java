@@ -18,7 +18,7 @@ import org.jboss.arquillian.core.spi.LoadableExtension;
 /**
  * Registers the {@link TckArchiveProcessor} as an Arquillian
  * {@link ApplicationArchiveProcessor} so the TCK framework classes are
- * injected into every deployment archive before it reaches the container.
+ * added to every deployment archive before it reaches the container.
  */
 public class TckLoadableExtension implements LoadableExtension {
 
