@@ -12,8 +12,10 @@
  *****************************************************************************/
 package ee.jakarta.tck.ai.agent;
 
-import ee.jakarta.tck.ai.agent.agents.deploymenterror.DependentScopedAgent;
-import ee.jakarta.tck.ai.agent.agents.deploymenterror.DeploymentErrorEvent;
+import jakarta.ai.agent.Agent;
+import jakarta.ai.agent.Trigger;
+import jakarta.enterprise.context.Dependent;
+import jakarta.enterprise.event.Observes;
 import jakarta.enterprise.inject.spi.DeploymentException;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.ShouldThrowException;
@@ -39,6 +41,17 @@ public class DeploymentErrorAgentScopeTests {
         return ShrinkWrap.create(WebArchive.class, "deployerror-agentscope.war")
                 .addClasses(DependentScopedAgent.class, DeploymentErrorEvent.class)
                 .addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml");
+    }
+
+    public record DeploymentErrorEvent(String payload) {}
+
+    @Agent
+    @Dependent
+    public static class DependentScopedAgent {
+
+        @Trigger
+        public void onEvent(@Observes DeploymentErrorEvent event) {
+        }
     }
 
     /**

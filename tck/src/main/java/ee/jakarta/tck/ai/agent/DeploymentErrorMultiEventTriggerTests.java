@@ -12,9 +12,9 @@
  *****************************************************************************/
 package ee.jakarta.tck.ai.agent;
 
-import ee.jakarta.tck.ai.agent.agents.deploymenterror.DeploymentErrorEvent;
-import ee.jakarta.tck.ai.agent.agents.deploymenterror.MultiEventTriggerAgent;
-import ee.jakarta.tck.ai.agent.agents.deploymenterror.SecondTriggerEvent;
+import jakarta.ai.agent.Agent;
+import jakarta.ai.agent.Trigger;
+import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.spi.DeploymentException;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.ShouldThrowException;
@@ -39,6 +39,23 @@ public class DeploymentErrorMultiEventTriggerTests {
         return ShrinkWrap.create(WebArchive.class, "deployerror-multievent.war")
                 .addClasses(MultiEventTriggerAgent.class, DeploymentErrorEvent.class, SecondTriggerEvent.class)
                 .addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml");
+    }
+
+    public record DeploymentErrorEvent(String payload) {}
+
+    public record SecondTriggerEvent(String payload) {}
+
+    /**
+     * Neither event parameter carries {@code @Observes}, so plain CDI accepts the method and
+     * only the rule that a trigger has exactly one event parameter can reject this agent.
+     */
+    @Agent
+    @ApplicationScoped
+    public static class MultiEventTriggerAgent {
+
+        @Trigger
+        public void onEvent(DeploymentErrorEvent first, SecondTriggerEvent second) {
+        }
     }
 
     /**

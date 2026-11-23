@@ -12,8 +12,11 @@
  *****************************************************************************/
 package ee.jakarta.tck.ai.agent;
 
-import ee.jakarta.tck.ai.agent.agents.deploymenterror.DeploymentErrorEvent;
-import ee.jakarta.tck.ai.agent.agents.deploymenterror.MixedOrderingAgent;
+import jakarta.ai.agent.Action;
+import jakarta.ai.agent.Agent;
+import jakarta.ai.agent.Trigger;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.event.Observes;
 import jakarta.enterprise.inject.spi.DeploymentException;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.ShouldThrowException;
@@ -38,6 +41,26 @@ public class DeploymentErrorMixedOrderingTests {
         return ShrinkWrap.create(WebArchive.class, "deployerror-mixedordering.war")
                 .addClasses(MixedOrderingAgent.class, DeploymentErrorEvent.class)
                 .addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml");
+    }
+
+    public record DeploymentErrorEvent(String payload) {}
+
+    /** One {@code @Action} declares an explicit {@code order} and the other declares none. */
+    @Agent
+    @ApplicationScoped
+    public static class MixedOrderingAgent {
+
+        @Trigger
+        public void onEvent(@Observes DeploymentErrorEvent event) {
+        }
+
+        @Action(order = 1)
+        public void ordered() {
+        }
+
+        @Action
+        public void unordered() {
+        }
     }
 
     /**

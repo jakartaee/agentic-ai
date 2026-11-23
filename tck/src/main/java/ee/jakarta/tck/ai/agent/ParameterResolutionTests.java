@@ -12,31 +12,19 @@
  *****************************************************************************/
 package ee.jakarta.tck.ai.agent;
 
-import ee.jakarta.tck.ai.agent.agents.parameterresolution.ActionOutput;
-import ee.jakarta.tck.ai.agent.agents.parameterresolution.LlmParameterAgent;
-import ee.jakarta.tck.ai.agent.agents.parameterresolution.LlmParameterEvent;
-import ee.jakarta.tck.ai.agent.agents.parameterresolution.DataPropagationAgent;
-import ee.jakarta.tck.ai.agent.agents.parameterresolution.DataPropagationEvent;
-import ee.jakarta.tck.ai.agent.agents.parameterresolution.DecisionDetails;
-import ee.jakarta.tck.ai.agent.agents.parameterresolution.DecisionOutput;
-import ee.jakarta.tck.ai.agent.agents.parameterresolution.ImplicitObservesAgent;
-import ee.jakarta.tck.ai.agent.agents.parameterresolution.ImplicitObservesEvent;
-import ee.jakarta.tck.ai.agent.agents.parameterresolution.ResolutionCdiBean;
-import ee.jakarta.tck.ai.agent.agents.parameterresolution.ResolutionOrderAgent;
-import ee.jakarta.tck.ai.agent.agents.parameterresolution.ResolutionOrderEvent;
-import ee.jakarta.tck.ai.agent.agents.parameterresolution.ResultDetailsAgent;
-import ee.jakarta.tck.ai.agent.agents.parameterresolution.ResultDetailsEvent;
-import ee.jakarta.tck.ai.agent.agents.parameterresolution.SameTypeAgent;
-import ee.jakarta.tck.ai.agent.agents.parameterresolution.SameTypeEvent;
-import ee.jakarta.tck.ai.agent.agents.parameterresolution.SameTypeOutput;
-import ee.jakarta.tck.ai.agent.agents.parameterresolution.TriggerOutput;
-import ee.jakarta.tck.ai.agent.agents.parameterresolution.VoidPhasesAgent;
-import ee.jakarta.tck.ai.agent.agents.parameterresolution.VoidPhasesEvent;
 import ee.jakarta.tck.ai.agent.framework.ExecutionTraceRecorder;
 import ee.jakarta.tck.ai.agent.framework.ExecutionTraceRecorder.Phase;
 import ee.jakarta.tck.ai.agent.framework.ExecutionTraceRecorder.TraceEntry;
+import jakarta.ai.agent.Action;
+import jakarta.ai.agent.Agent;
+import jakarta.ai.agent.Decision;
 import jakarta.ai.agent.LargeLanguageModel;
+import jakarta.ai.agent.Outcome;
+import jakarta.ai.agent.Result;
+import jakarta.ai.agent.Trigger;
+import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.event.Event;
+import jakarta.enterprise.event.Observes;
 import jakarta.inject.Inject;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.junit5.ArquillianExtension;
@@ -96,6 +84,32 @@ public class ParameterResolutionTests {
         return trace.entries().stream().filter(e -> e.phase() == phase).findFirst().orElseThrow();
     }
 
+    // -- the triggering event and the LargeLanguageModel -----------------------
+
+    public record LlmParameterEvent(String payload) {}
+
+    @Agent
+    @ApplicationScoped
+    public static class LlmParameterAgent {
+
+        @Inject ExecutionTraceRecorder trace;
+
+        @Trigger
+        public void onEvent(@Observes LlmParameterEvent event, LargeLanguageModel llm) {
+            trace.record(Phase.TRIGGER, "onEvent", event, llm.query("classify {}", event.payload()));
+        }
+
+        @Action
+        public void act(LlmParameterEvent event, LargeLanguageModel llm) {
+            trace.record(Phase.ACTION, "act", event, llm.query("classify {}", event.payload()));
+        }
+
+        @Outcome
+        public void finish(LlmParameterEvent event) {
+            trace.record(Phase.OUTCOME, "finish", event);
+        }
+    }
+
     /**
      * The {@code @Trigger} receives the triggering event, payload intact.
      *
@@ -106,6 +120,47 @@ public class ParameterResolutionTests {
         trace.reset();
         llmParameterEvents.fire(new LlmParameterEvent("my-payload"));
         assertEquals("my-payload", assertInstanceOf(LlmParameterEvent.class, trace.entries().get(0).args()[0]).payload());
+    }
+
+    /**
+     * The {@code LargeLanguageModel} is resolved as a method parameter of an {@code @Action},
+     * and it is a working facade. Its echoed response is the rendered prompt.
+     *
+     * <p>Specification section {@code parameter-resolution}.
+     */
+    @Test
+    public void llmIsResolvedAsActionParameter() {
+        trace.reset();
+        llmParameterEvents.fire(new LlmParameterEvent("payload"));
+        assertEquals(List.of(Phase.TRIGGER, Phase.ACTION, Phase.OUTCOME), trace.phases());
+        assertEquals("classify \"payload\"", trace.entries().get(1).args()[1]);
+    }
+
+    // -- trigger without @Observes ---------------------------------------------
+
+    public record ImplicitObservesEvent(String payload) {}
+
+    /** Declares its trigger without {@code @Observes}, the optional form the specification's own examples use. */
+    @Agent
+    @ApplicationScoped
+    public static class ImplicitObservesAgent {
+
+        @Inject ExecutionTraceRecorder trace;
+
+        @Trigger
+        public void onEvent(ImplicitObservesEvent event) {
+            trace.record(Phase.TRIGGER, "onEvent", event);
+        }
+
+        @Action
+        public void act(ImplicitObservesEvent event) {
+            trace.record(Phase.ACTION, "act", event);
+        }
+
+        @Outcome
+        public void finish(ImplicitObservesEvent event) {
+            trace.record(Phase.OUTCOME, "finish", event);
+        }
     }
 
     /**
@@ -120,6 +175,41 @@ public class ParameterResolutionTests {
         implicitObservesEvents.fire(new ImplicitObservesEvent("test"));
         assertEquals(List.of(Phase.TRIGGER, Phase.ACTION, Phase.OUTCOME), trace.phases());
         assertEquals("test", assertInstanceOf(ImplicitObservesEvent.class, trace.entries().get(0).args()[0]).payload());
+    }
+
+    // -- resolution order ------------------------------------------------------
+
+    public record ResolutionOrderEvent(String payload) {}
+
+    @ApplicationScoped
+    public static class ResolutionCdiBean {}
+
+    @Agent
+    @ApplicationScoped
+    public static class ResolutionOrderAgent {
+
+        @Inject ExecutionTraceRecorder trace;
+
+        @Trigger
+        public void onEvent(@Observes ResolutionOrderEvent event) {
+            trace.record(Phase.TRIGGER, "onEvent", event);
+        }
+
+        @Decision(order = 1)
+        public boolean decide(ResolutionOrderEvent event, LargeLanguageModel llm) {
+            trace.record(Phase.DECISION, "decide", event, llm);
+            return true;
+        }
+
+        @Action(order = 2)
+        public void process(ResolutionOrderEvent event, LargeLanguageModel llm, ResolutionCdiBean service) {
+            trace.record(Phase.ACTION, "process", event, llm, service);
+        }
+
+        @Outcome
+        public void finish(ResolutionOrderEvent event, ResolutionCdiBean service) {
+            trace.record(Phase.OUTCOME, "finish", event, service);
+        }
     }
 
     /**
@@ -140,20 +230,6 @@ public class ParameterResolutionTests {
     }
 
     /**
-     * The {@code LargeLanguageModel} is resolved as a method parameter of an {@code @Action},
-     * and it is a working facade. Its echoed response is the rendered prompt.
-     *
-     * <p>Specification section {@code parameter-resolution}.
-     */
-    @Test
-    public void llmIsResolvedAsActionParameter() {
-        trace.reset();
-        llmParameterEvents.fire(new LlmParameterEvent("payload"));
-        assertEquals(List.of(Phase.TRIGGER, Phase.ACTION, Phase.OUTCOME), trace.phases());
-        assertEquals("classify \"payload\"", trace.entries().get(1).args()[1]);
-    }
-
-    /**
      * Parameters are resolved in the specified order: the triggering event, then the
      * {@code LargeLanguageModel}, then CDI beans. {@code ResolutionOrderAgent}'s action receives
      * them as its first, second and third parameter.
@@ -169,6 +245,49 @@ public class ParameterResolutionTests {
         assertInstanceOf(ResolutionOrderEvent.class, args[0]);
         assertInstanceOf(LargeLanguageModel.class, args[1]);
         assertInstanceOf(ResolutionCdiBean.class, args[2]);
+    }
+
+    // -- values returned by earlier phases -------------------------------------
+
+    public record DataPropagationEvent(String input) {}
+
+    public record TriggerOutput(String fromTrigger) {}
+
+    public record DecisionOutput(String fromDecision) {}
+
+    public record ActionOutput(String fromAction) {}
+
+    @Agent
+    @ApplicationScoped
+    public static class DataPropagationAgent {
+
+        @Inject ExecutionTraceRecorder trace;
+        @Inject LargeLanguageModel llm;
+
+        @Trigger
+        public TriggerOutput onEvent(@Observes DataPropagationEvent event) {
+            trace.record(Phase.TRIGGER, "onEvent", event);
+            return new TriggerOutput("trigger:" + event.input());
+        }
+
+        @Decision(order = 1)
+        public DecisionOutput decide(DataPropagationEvent event, TriggerOutput trigger) {
+            trace.record(Phase.DECISION, "decide", event, trigger);
+            String response = llm.query(trigger.fromTrigger());
+            return new DecisionOutput("decision:" + response);
+        }
+
+        @Action(order = 2)
+        public ActionOutput act(TriggerOutput trigger, DecisionOutput decision) {
+            trace.record(Phase.ACTION, "act", trigger, decision);
+            return new ActionOutput("action:" + trigger.fromTrigger() + "+" + decision.fromDecision());
+        }
+
+        @Outcome
+        public void finish(DataPropagationEvent event, TriggerOutput trigger,
+                           DecisionOutput decision, ActionOutput action) {
+            trace.record(Phase.OUTCOME, "finish", event, trigger, decision, action);
+        }
     }
 
     /**
@@ -215,6 +334,40 @@ public class ParameterResolutionTests {
         assertInstanceOf(ActionOutput.class, outcomeArgs[3]);
     }
 
+    // -- Result details --------------------------------------------------------
+
+    public record ResultDetailsEvent(String input) {}
+
+    /** Carried as the {@code details} of the {@code Result} that the decision below returns. */
+    public record DecisionDetails(String value) {}
+
+    /**
+     * Its {@code @Decision} returns {@code new Result(true, new DecisionDetails(...))}, and its
+     * {@code @Action} takes the {@link DecisionDetails}, not the {@link Result} wrapper.
+     */
+    @Agent
+    @ApplicationScoped
+    public static class ResultDetailsAgent {
+
+        @Inject ExecutionTraceRecorder trace;
+
+        @Trigger
+        public void onEvent(@Observes ResultDetailsEvent event) {
+            trace.record(Phase.TRIGGER, "onEvent", event);
+        }
+
+        @Decision(order = 1)
+        public Result decide(ResultDetailsEvent event) {
+            trace.record(Phase.DECISION, "decide", event);
+            return new Result(true, new DecisionDetails("details:" + event.input()));
+        }
+
+        @Action(order = 2)
+        public void act(DecisionDetails details) {
+            trace.record(Phase.ACTION, "act", details);
+        }
+    }
+
     /**
      * The non-{@code null} {@code details} of a {@code Result} returned by a {@code @Decision}
      * become workflow state, resolvable by their runtime type in a later phase.
@@ -229,6 +382,47 @@ public class ParameterResolutionTests {
         assertEquals("details:input", assertInstanceOf(DecisionDetails.class, trace.entries().get(2).args()[0]).value());
     }
 
+    // -- same type returned twice ----------------------------------------------
+
+    public record SameTypeEvent(String input) {}
+
+    /** Returned by both the decision and the action below. The marker names the phase that produced it. */
+    public record SameTypeOutput(String marker) {}
+
+    /**
+     * Its {@code @Decision} and {@code @Action} both return a {@link SameTypeOutput}, tagged
+     * {@code "decision"} and {@code "action"}. The {@code @Outcome} takes a single one, which
+     * must be the {@code "action"} instance because it was returned last.
+     */
+    @Agent
+    @ApplicationScoped
+    public static class SameTypeAgent {
+
+        @Inject ExecutionTraceRecorder trace;
+
+        @Trigger
+        public void onEvent(@Observes SameTypeEvent event) {
+            trace.record(Phase.TRIGGER, "onEvent", event);
+        }
+
+        @Decision(order = 1)
+        public SameTypeOutput decide(SameTypeEvent event) {
+            trace.record(Phase.DECISION, "decide", event);
+            return new SameTypeOutput("decision");
+        }
+
+        @Action(order = 2)
+        public SameTypeOutput act(SameTypeEvent event) {
+            trace.record(Phase.ACTION, "act", event);
+            return new SameTypeOutput("action");
+        }
+
+        @Outcome
+        public void finish(SameTypeOutput latest) {
+            trace.record(Phase.OUTCOME, "finish", latest);
+        }
+    }
+
     /**
      * When more than one earlier phase returned a value of the same type, a later phase receives
      * the most recently returned one.
@@ -241,6 +435,38 @@ public class ParameterResolutionTests {
         sameTypeEvents.fire(new SameTypeEvent("input"));
         assertEquals(List.of(Phase.TRIGGER, Phase.DECISION, Phase.ACTION, Phase.OUTCOME), trace.phases());
         assertEquals("action", assertInstanceOf(SameTypeOutput.class, trace.entries().get(3).args()[0]).marker());
+    }
+
+    // -- void phases -----------------------------------------------------------
+
+    public record VoidPhasesEvent(String payload) {}
+
+    @Agent
+    @ApplicationScoped
+    public static class VoidPhasesAgent {
+
+        @Inject ExecutionTraceRecorder trace;
+
+        @Trigger
+        public void onEvent(@Observes VoidPhasesEvent event) {
+            trace.record(Phase.TRIGGER, "onEvent", event);
+        }
+
+        @Decision(order = 1)
+        public boolean decide(VoidPhasesEvent event) {
+            trace.record(Phase.DECISION, "decide", event);
+            return true;
+        }
+
+        @Action(order = 2)
+        public void act(VoidPhasesEvent event) {
+            trace.record(Phase.ACTION, "act", event);
+        }
+
+        @Outcome
+        public void finish(VoidPhasesEvent event) {
+            trace.record(Phase.OUTCOME, "finish", event);
+        }
     }
 
     /**

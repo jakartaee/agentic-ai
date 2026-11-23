@@ -12,7 +12,9 @@
  *****************************************************************************/
 package ee.jakarta.tck.ai.agent;
 
-import ee.jakarta.tck.ai.agent.agents.deploymenterror.NoTriggerAgent;
+import jakarta.ai.agent.Action;
+import jakarta.ai.agent.Agent;
+import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.spi.DeploymentException;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.ShouldThrowException;
@@ -37,6 +39,15 @@ public class DeploymentErrorNoTriggerTests {
         return ShrinkWrap.create(WebArchive.class, "deployerror-notrigger.war")
                 .addClasses(NoTriggerAgent.class)
                 .addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml");
+    }
+
+    @Agent
+    @ApplicationScoped
+    public static class NoTriggerAgent {
+
+        @Action
+        public void act() {
+        }
     }
 
     /**

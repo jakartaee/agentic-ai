@@ -12,8 +12,11 @@
  *****************************************************************************/
 package ee.jakarta.tck.ai.agent;
 
-import ee.jakarta.tck.ai.agent.agents.deploymenterror.DeploymentErrorEvent;
-import ee.jakarta.tck.ai.agent.agents.deploymenterror.TwoOutcomeAgent;
+import jakarta.ai.agent.Agent;
+import jakarta.ai.agent.Outcome;
+import jakarta.ai.agent.Trigger;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.event.Observes;
 import jakarta.enterprise.inject.spi.DeploymentException;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.ShouldThrowException;
@@ -38,6 +41,25 @@ public class DeploymentErrorTwoOutcomeTests {
         return ShrinkWrap.create(WebArchive.class, "deployerror-twooutcome.war")
                 .addClasses(TwoOutcomeAgent.class, DeploymentErrorEvent.class)
                 .addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml");
+    }
+
+    public record DeploymentErrorEvent(String payload) {}
+
+    @Agent
+    @ApplicationScoped
+    public static class TwoOutcomeAgent {
+
+        @Trigger
+        public void onEvent(@Observes DeploymentErrorEvent event) {
+        }
+
+        @Outcome
+        public void firstOutcome() {
+        }
+
+        @Outcome
+        public void secondOutcome() {
+        }
     }
 
     /**

@@ -12,15 +12,15 @@
  *****************************************************************************/
 package ee.jakarta.tck.ai.agent;
 
-import ee.jakarta.tck.ai.agent.agents.eventobservation.AppScopedObserverAgent;
-import ee.jakarta.tck.ai.agent.agents.eventobservation.EventObservationTriggerEvent;
-import ee.jakarta.tck.ai.agent.agents.eventobservation.GeneralObservationEvent;
-import ee.jakarta.tck.ai.agent.agents.eventobservation.WorkflowScopedObserverAgent;
-import ee.jakarta.tck.ai.agent.agents.eventobservation.WorkflowScopedTriggerEvent;
 import ee.jakarta.tck.ai.agent.framework.ExecutionTraceRecorder;
 import ee.jakarta.tck.ai.agent.framework.ExecutionTraceRecorder.Phase;
 import ee.jakarta.tck.ai.agent.framework.ExecutionTraceRecorder.TraceEntry;
+import jakarta.ai.agent.Agent;
+import jakarta.ai.agent.Trigger;
+import jakarta.ai.agent.WorkflowScoped;
+import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.event.Event;
+import jakarta.enterprise.event.Observes;
 import jakarta.inject.Inject;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.junit5.ArquillianExtension;
@@ -67,6 +67,24 @@ public class EventObservationTests {
     private List<String> recordedMethodNames() {
         return trace.entries().stream().map(TraceEntry::methodName).toList();
     }
+
+    // -- @WorkflowScoped -------------------------------------------------------
+
+    public record WorkflowScopedTriggerEvent(String payload) {}
+
+    /** Observes events only through its {@code @Trigger}, the one way a workflow-scoped agent may. */
+    @Agent
+    @WorkflowScoped
+    public static class WorkflowScopedObserverAgent {
+
+        @Inject ExecutionTraceRecorder trace;
+
+        @Trigger
+        public void onTriggerEvent(@Observes WorkflowScopedTriggerEvent event) {
+            trace.record(Phase.TRIGGER, "onTriggerEvent", event);
+        }
+    }
+
     /**
      * A {@code @WorkflowScoped} agent observes an event through its {@code @Trigger} method.
      *
@@ -79,6 +97,31 @@ public class EventObservationTests {
         assertEquals(List.of(Phase.TRIGGER), trace.phases());
         assertEquals(List.of("onTriggerEvent"), recordedMethodNames());
     }
+
+    // -- @ApplicationScoped ----------------------------------------------------
+
+    public record EventObservationTriggerEvent(String payload) {}
+
+    public record GeneralObservationEvent(String payload) {}
+
+    /** Observes events through both a {@code @Trigger} and a general observer method. */
+    @Agent
+    @ApplicationScoped
+    public static class AppScopedObserverAgent {
+
+        @Inject ExecutionTraceRecorder trace;
+
+        @Trigger
+        public void onTriggerEvent(@Observes EventObservationTriggerEvent event) {
+            trace.record(Phase.TRIGGER, "onTriggerEvent", event);
+        }
+
+        // Not a phase, so it is recorded under TRIGGER and told apart by its method name.
+        public void onGeneralEvent(@Observes GeneralObservationEvent event) {
+            trace.record(Phase.TRIGGER, "onGeneralEvent", event);
+        }
+    }
+
     /**
      * An {@code @ApplicationScoped} agent also observes events through a general {@code @Observes}
      * method that is not a {@code @Trigger}.

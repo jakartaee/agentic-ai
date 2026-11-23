@@ -10,8 +10,9 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  *****************************************************************************/
-package ee.jakarta.tck.ai.agent.agents.concurrency;
+package ee.jakarta.tck.ai.agent;
 
+import ee.jakarta.tck.ai.agent.ConcurrencyTests.ConcurrencyCoordinator;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
@@ -31,8 +32,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  *
  * <p>These exercise the TCK's own concurrency harness, not the specification. They
  * confirm the coordinator's barrier and leak-detection logic behaves correctly, so
- * the concurrency tests are trustworthy when a
- * compatible implementation runs them.</p>
+ * the concurrency tests are trustworthy when an implementation runs them.</p>
  */
 public class ConcurrencyCoordinatorTests {
 

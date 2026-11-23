@@ -12,19 +12,19 @@
  *****************************************************************************/
 package ee.jakarta.tck.ai.agent;
 
-import ee.jakarta.tck.ai.agent.agents.scopes.DecisionStopEvent;
-import ee.jakarta.tck.ai.agent.agents.scopes.DecisionStopSpyAgent;
-import ee.jakarta.tck.ai.agent.agents.scopes.LifecycleCallbackRecorder;
-import ee.jakarta.tck.ai.agent.agents.scopes.LifecycleSpyAgent;
-import ee.jakarta.tck.ai.agent.agents.scopes.LifecycleSpyEvent;
-import ee.jakarta.tck.ai.agent.agents.scopes.ScopeDefaultAgent;
-import ee.jakarta.tck.ai.agent.agents.scopes.ScopeDefaultEvent;
-import ee.jakarta.tck.ai.agent.agents.scopes.SingletonCdiAgent;
-import ee.jakarta.tck.ai.agent.agents.scopes.SingletonCdiEvent;
 import ee.jakarta.tck.ai.agent.framework.ExecutionTraceRecorder;
 import ee.jakarta.tck.ai.agent.framework.ExecutionTraceRecorder.Phase;
+import jakarta.ai.agent.Action;
+import jakarta.ai.agent.Agent;
+import jakarta.ai.agent.Decision;
+import jakarta.ai.agent.Outcome;
+import jakarta.ai.agent.Trigger;
 import jakarta.ai.agent.WorkflowScoped;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
+import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.event.Event;
+import jakarta.enterprise.event.Observes;
 import jakarta.enterprise.inject.spi.Bean;
 import jakarta.enterprise.inject.spi.BeanManager;
 import jakarta.inject.Inject;
@@ -38,8 +38,12 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -82,6 +86,70 @@ public class AgentScopesTests {
     @Inject BeanManager               beanManager;
 
     /**
+     * Counts the lifecycle callbacks of the {@code @WorkflowScoped} agents below and records the
+     * id of each instance they construct.
+     */
+    @ApplicationScoped
+    public static class LifecycleCallbackRecorder {
+
+        private final AtomicInteger postConstructCount = new AtomicInteger(0);
+        private final AtomicInteger preDestroyCount    = new AtomicInteger(0);
+        private final List<String>  instanceIds        = Collections.synchronizedList(new ArrayList<>());
+
+        public void recordPostConstruct(String instanceId) {
+            postConstructCount.incrementAndGet();
+            instanceIds.add(instanceId);
+        }
+
+        public void recordPreDestroy() { preDestroyCount.incrementAndGet(); }
+
+        public int          getPostConstructCount() { return postConstructCount.get(); }
+        public int          getPreDestroyCount()    { return preDestroyCount.get(); }
+        public List<String> getInstanceIds()        { return List.copyOf(instanceIds); }
+
+        public void reset() {
+            postConstructCount.set(0);
+            preDestroyCount.set(0);
+            instanceIds.clear();
+        }
+    }
+
+    // -- default scope ---------------------------------------------------------
+
+    public record ScopeDefaultEvent(String payload) {}
+
+    /** Declares no scope, so the {@code @WorkflowScoped} default declared by {@code @Agent} applies. */
+    @Agent
+    public static class ScopeDefaultAgent {
+
+        private String instanceId;
+
+        @Inject ExecutionTraceRecorder    trace;
+        @Inject LifecycleCallbackRecorder lifecycleRecorder;
+
+        @PostConstruct
+        void init() {
+            instanceId = UUID.randomUUID().toString();
+            lifecycleRecorder.recordPostConstruct(instanceId);
+        }
+
+        @Trigger
+        public void onEvent(@Observes ScopeDefaultEvent event) {
+            trace.record(Phase.TRIGGER, "onEvent", event, instanceId);
+        }
+
+        @Action
+        public void process(ScopeDefaultEvent event) {
+            trace.record(Phase.ACTION, "process", event, instanceId);
+        }
+
+        @Outcome
+        public void finish(ScopeDefaultEvent event) {
+            trace.record(Phase.OUTCOME, "finish", event, instanceId);
+        }
+    }
+
+    /**
      * An agent with no explicit scope is discovered as a CDI bean in an archive whose
      * {@code beans.xml} is empty, and is {@code @WorkflowScoped}. One instance serves every phase
      * of a workflow, and each workflow gets a distinct instance.
@@ -113,6 +181,54 @@ public class AgentScopesTests {
                 .toList();
         assertEquals(List.of(ids.get(0), ids.get(0), ids.get(0),
                 ids.get(1), ids.get(1), ids.get(1)), phaseInstanceIds);
+    }
+
+    // -- @WorkflowScoped -------------------------------------------------------
+
+    public record LifecycleSpyEvent(String payload) {}
+
+    @Agent(name = "lifecycleSpy")
+    @WorkflowScoped
+    public static class LifecycleSpyAgent {
+
+        // Static so the failure-path test can set it without injecting this @WorkflowScoped
+        // bean, which has no active context in the test method.
+        private static volatile boolean failInAction = false;
+        public static void setFailInAction(boolean value) { failInAction = value; }
+
+        private String instanceId;
+
+        @Inject ExecutionTraceRecorder    trace;
+        @Inject LifecycleCallbackRecorder lifecycleRecorder;
+
+        @PostConstruct
+        void init() {
+            instanceId = UUID.randomUUID().toString();
+            lifecycleRecorder.recordPostConstruct(instanceId);
+        }
+
+        @PreDestroy
+        void destroy() {
+            lifecycleRecorder.recordPreDestroy();
+        }
+
+        @Trigger
+        public void onEvent(@Observes LifecycleSpyEvent event) {
+            trace.record(Phase.TRIGGER, "onEvent", event, instanceId);
+        }
+
+        @Action
+        public void process(LifecycleSpyEvent event) {
+            trace.record(Phase.ACTION, "process", event, instanceId);
+            if (failInAction) {
+                throw new IllegalStateException("Simulated @Action failure for @PreDestroy-on-failure test");
+            }
+        }
+
+        @Outcome
+        public void finish(LifecycleSpyEvent event) {
+            trace.record(Phase.OUTCOME, "finish", event, instanceId);
+        }
     }
 
     /**
@@ -184,6 +300,51 @@ public class AgentScopesTests {
         assertEquals(1, lifecycleRecorder.getPreDestroyCount());
     }
 
+    public record DecisionStopEvent(String payload) {}
+
+    /** Its {@code @Decision} returns {@code false}, so the workflow ends before the action. */
+    @Agent
+    @WorkflowScoped
+    public static class DecisionStopSpyAgent {
+
+        private String instanceId;
+
+        @Inject ExecutionTraceRecorder    trace;
+        @Inject LifecycleCallbackRecorder lifecycleRecorder;
+
+        @PostConstruct
+        void init() {
+            instanceId = UUID.randomUUID().toString();
+            lifecycleRecorder.recordPostConstruct(instanceId);
+        }
+
+        @PreDestroy
+        void destroy() {
+            lifecycleRecorder.recordPreDestroy();
+        }
+
+        @Trigger
+        public void onEvent(@Observes DecisionStopEvent event) {
+            trace.record(Phase.TRIGGER, "onEvent", event, instanceId);
+        }
+
+        @Decision(order = 1)
+        public boolean decide(DecisionStopEvent event) {
+            trace.record(Phase.DECISION, "decide", event, instanceId);
+            return false;
+        }
+
+        @Action(order = 2)
+        public void process(DecisionStopEvent event) {
+            trace.record(Phase.ACTION, "process", event, instanceId);
+        }
+
+        @Outcome
+        public void finish(DecisionStopEvent event) {
+            trace.record(Phase.OUTCOME, "finish", event, instanceId);
+        }
+    }
+
     /**
      * {@code @PreDestroy} is invoked exactly once when a {@code @Decision} ends the workflow
      * early. The context is destroyed although the {@code @Action} and {@code @Outcome} never
@@ -198,6 +359,42 @@ public class AgentScopesTests {
         decisionStopEvents.fire(new DecisionStopEvent("workflow-1"));
         assertEquals(List.of(Phase.TRIGGER, Phase.DECISION), trace.phases());
         assertEquals(1, lifecycleRecorder.getPreDestroyCount());
+    }
+
+    // -- @ApplicationScoped ----------------------------------------------------
+
+    public record SingletonCdiEvent(String payload) {}
+
+    @Agent
+    @ApplicationScoped
+    public static class SingletonCdiAgent {
+
+        private static final AtomicInteger INSTANCE_COUNTER = new AtomicInteger(0);
+        private int instanceId;
+
+        @Inject ExecutionTraceRecorder trace;
+
+        @PostConstruct
+        void init() {
+            instanceId = INSTANCE_COUNTER.incrementAndGet();
+        }
+
+        public static int getInstanceCount() { return INSTANCE_COUNTER.get(); }
+
+        @Trigger
+        public void onEvent(@Observes SingletonCdiEvent event) {
+            trace.record(Phase.TRIGGER, "onEvent", event, instanceId);
+        }
+
+        @Action
+        public void process(SingletonCdiEvent event) {
+            trace.record(Phase.ACTION, "process", event, instanceId);
+        }
+
+        @Outcome
+        public void finish(SingletonCdiEvent event) {
+            trace.record(Phase.OUTCOME, "finish", event, instanceId);
+        }
     }
 
     /**

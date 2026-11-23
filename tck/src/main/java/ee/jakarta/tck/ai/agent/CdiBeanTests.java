@@ -12,19 +12,21 @@
  *****************************************************************************/
 package ee.jakarta.tck.ai.agent;
 
-import ee.jakarta.tck.ai.agent.agents.cdibeans.AgentInterceptorBinding;
-import ee.jakarta.tck.ai.agent.agents.cdibeans.AgentInterceptorImpl;
-import ee.jakarta.tck.ai.agent.agents.cdibeans.ConstructorInjectedAgent;
-import ee.jakarta.tck.ai.agent.agents.cdibeans.ConstructorInjectedEvent;
-import ee.jakarta.tck.ai.agent.agents.cdibeans.InnerAgentContainer;
-import ee.jakarta.tck.ai.agent.agents.cdibeans.InnerAgentEvent;
-import ee.jakarta.tck.ai.agent.agents.cdibeans.InterceptedAgent;
-import ee.jakarta.tck.ai.agent.agents.cdibeans.InterceptedEvent;
 import ee.jakarta.tck.ai.agent.framework.ExecutionTraceRecorder;
 import ee.jakarta.tck.ai.agent.framework.ExecutionTraceRecorder.Phase;
 import ee.jakarta.tck.ai.agent.framework.ExecutionTraceRecorder.TraceEntry;
+import jakarta.ai.agent.Action;
+import jakarta.ai.agent.Agent;
+import jakarta.ai.agent.Outcome;
+import jakarta.ai.agent.Trigger;
+import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.event.Event;
+import jakarta.enterprise.event.Observes;
 import jakarta.inject.Inject;
+import jakarta.interceptor.AroundInvoke;
+import jakarta.interceptor.Interceptor;
+import jakarta.interceptor.InterceptorBinding;
+import jakarta.interceptor.InvocationContext;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.junit5.ArquillianExtension;
 import org.jboss.shrinkwrap.api.Archive;
@@ -35,6 +37,11 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
 
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Inherited;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -61,16 +68,16 @@ public class CdiBeanTests {
                        https://jakarta.ee/xml/ns/jakartaee/beans_4_0.xsd"
                    version="4.0">
                 <interceptors>
-                    <class>ee.jakarta.tck.ai.agent.agents.cdibeans.AgentInterceptorImpl</class>
+                    <class>%s</class>
                 </interceptors>
             </beans>
-            """;
+            """.formatted(AgentInterceptorImpl.class.getName());
 
     @Deployment
     public static Archive<?> createDeployment() {
         return ShrinkWrap.create(WebArchive.class, "cdibeans.war")
                 .addClasses(
-                        InnerAgentContainer.class,       InnerAgentContainer.InnerAgent.class, InnerAgentEvent.class,
+                        InnerAgent.class,                InnerAgentEvent.class,
                         ConstructorInjectedAgent.class,  ConstructorInjectedEvent.class,
                         InterceptedAgent.class,          InterceptedEvent.class,
                         AgentInterceptorBinding.class,   AgentInterceptorImpl.class
@@ -82,6 +89,22 @@ public class CdiBeanTests {
     @Inject Event<ConstructorInjectedEvent> constructorInjectedEvents;
     @Inject Event<InterceptedEvent>         interceptedEvents;
     @Inject ExecutionTraceRecorder          trace;
+
+    // -- static nested agent ---------------------------------------------------
+
+    public record InnerAgentEvent(String payload) {}
+
+    @Agent
+    @ApplicationScoped
+    public static class InnerAgent {
+
+        @Inject ExecutionTraceRecorder trace;
+
+        @Trigger
+        public void onEvent(@Observes InnerAgentEvent event) {
+            trace.record(Phase.TRIGGER, "onEvent", event);
+        }
+    }
 
     /**
      * A static nested class annotated {@code @Agent} is discovered as a CDI managed bean, and its
@@ -96,10 +119,36 @@ public class CdiBeanTests {
         assertEquals(List.of(Phase.TRIGGER), trace.phases());
     }
 
+    // -- constructor injection -------------------------------------------------
+
+    public record ConstructorInjectedEvent(String payload) {}
+
+    @Agent
+    @ApplicationScoped
+    public static class ConstructorInjectedAgent {
+
+        private final ExecutionTraceRecorder trace;
+
+        /** Required by CDI for normal-scoped bean proxying; the @Inject constructor is used for actual instantiation. */
+        protected ConstructorInjectedAgent() {
+            this.trace = null;
+        }
+
+        @Inject
+        public ConstructorInjectedAgent(ExecutionTraceRecorder trace) {
+            this.trace = trace;
+        }
+
+        @Trigger
+        public void onEvent(@Observes ConstructorInjectedEvent event) {
+            trace.record(Phase.TRIGGER, "onEvent", event);
+        }
+    }
+
     /**
-     * An agent using {@code @Inject} constructor injection, with no no-args constructor, is a
-     * valid CDI managed bean. Its {@code @Trigger} fires, so the container created it through
-     * its constructor.
+     * An agent that receives its dependencies through an {@code @Inject} constructor is a valid
+     * CDI managed bean. Its {@code @Trigger} fires with the injected recorder, so the container
+     * created it through that constructor.
      *
      * <p>Specification section {@code agents-as-cdi-beans}.
      */
@@ -108,6 +157,58 @@ public class CdiBeanTests {
         trace.reset();
         constructorInjectedEvents.fire(new ConstructorInjectedEvent("test"));
         assertEquals(List.of(Phase.TRIGGER), trace.phases());
+    }
+
+    // -- interceptors ----------------------------------------------------------
+
+    @InterceptorBinding
+    @Target({ElementType.TYPE, ElementType.METHOD})
+    @Retention(RetentionPolicy.RUNTIME)
+    @Inherited
+    public @interface AgentInterceptorBinding {}
+
+    // No @Priority. The interceptor is enabled through the <interceptors> element of BEANS_XML.
+    @AgentInterceptorBinding
+    @Interceptor
+    public static class AgentInterceptorImpl {
+
+        @Inject ExecutionTraceRecorder trace;
+
+        @AroundInvoke
+        public Object intercept(InvocationContext ctx) throws Exception {
+            trace.record(Phase.ACTION, "interceptorBefore", ctx.getMethod().getName());
+            Object result = ctx.proceed();
+            trace.record(Phase.ACTION, "interceptorAfter", ctx.getMethod().getName());
+            return result;
+        }
+    }
+
+    public record InterceptedEvent(String payload) {}
+
+    @Agent
+    @ApplicationScoped
+    public static class InterceptedAgent {
+
+        @Inject ExecutionTraceRecorder trace;
+
+        @Trigger
+        public void onEvent(@Observes InterceptedEvent event) {
+            trace.record(Phase.TRIGGER, "onEvent", event);
+        }
+
+        @Action
+        @AgentInterceptorBinding
+        public void process(InterceptedEvent event) {
+            trace.record(Phase.ACTION, "process", event);
+        }
+
+        // Bound to the @Outcome phase too, which shows that interception applies to every
+        // phase the implementation dispatches, not only @Action.
+        @Outcome
+        @AgentInterceptorBinding
+        public void finish(InterceptedEvent event) {
+            trace.record(Phase.OUTCOME, "finish", event);
+        }
     }
 
     /**

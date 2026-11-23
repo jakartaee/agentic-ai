@@ -12,8 +12,12 @@
  *****************************************************************************/
 package ee.jakarta.tck.ai.agent;
 
-import ee.jakarta.tck.ai.agent.agents.deploymenterror.DeploymentErrorEvent;
-import ee.jakarta.tck.ai.agent.agents.deploymenterror.MixedPriorityAgent;
+import jakarta.ai.agent.Action;
+import jakarta.ai.agent.Agent;
+import jakarta.ai.agent.Trigger;
+import jakarta.annotation.Priority;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.event.Observes;
 import jakarta.enterprise.inject.spi.DeploymentException;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.ShouldThrowException;
@@ -28,8 +32,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 /**
  * Mixing a {@code @Priority}-ordered {@code @Action}/{@code @Decision} method with an
  * unordered one must be rejected at deployment time (<em>Consistency Requirement</em>),
- * exactly as
- * mixing {@code order} with unordered methods is.
+ * exactly as mixing {@code order} with unordered methods is.
  */
 @ExtendWith(ArquillianExtension.class)
 public class DeploymentErrorMixedPriorityTests {
@@ -40,6 +43,27 @@ public class DeploymentErrorMixedPriorityTests {
         return ShrinkWrap.create(WebArchive.class, "deployerror-mixedpriority.war")
                 .addClasses(MixedPriorityAgent.class, DeploymentErrorEvent.class)
                 .addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml");
+    }
+
+    public record DeploymentErrorEvent(String payload) {}
+
+    /** One {@code @Action} declares {@code @Priority} and the other declares neither {@code @Priority} nor {@code order}. */
+    @Agent
+    @ApplicationScoped
+    public static class MixedPriorityAgent {
+
+        @Trigger
+        public void onEvent(@Observes DeploymentErrorEvent event) {
+        }
+
+        @Action
+        @Priority(1)
+        public void prioritized() {
+        }
+
+        @Action
+        public void unordered() {
+        }
     }
 
     /**

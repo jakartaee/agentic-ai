@@ -12,14 +12,14 @@
  *****************************************************************************/
 package ee.jakarta.tck.ai.agent;
 
-import ee.jakarta.tck.ai.agent.agents.inheritedmethods.BasePhaseAgent;
-import ee.jakarta.tck.ai.agent.agents.inheritedmethods.InheritEvent;
-import ee.jakarta.tck.ai.agent.agents.inheritedmethods.InheritingAgent;
-import ee.jakarta.tck.ai.agent.agents.inheritedmethods.OverrideEvent;
-import ee.jakarta.tck.ai.agent.agents.inheritedmethods.OverridingAgent;
 import ee.jakarta.tck.ai.agent.framework.ExecutionTraceRecorder;
 import ee.jakarta.tck.ai.agent.framework.ExecutionTraceRecorder.Phase;
+import jakarta.ai.agent.Action;
+import jakarta.ai.agent.Agent;
+import jakarta.ai.agent.Trigger;
+import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.event.Event;
+import jakarta.enterprise.event.Observes;
 import jakarta.inject.Inject;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.junit5.ArquillianExtension;
@@ -61,6 +61,37 @@ public class InheritedMethodsTests {
     @Inject Event<InheritEvent> inheritEvents;
     @Inject Event<OverrideEvent> overrideEvents;
     @Inject ExecutionTraceRecorder trace;
+
+    /**
+     * Superclass, not itself an {@code @Agent}, that declares an {@code @Action}. Whether the
+     * phase runs depends on whether the agent subclass overrides it.
+     */
+    public static class BasePhaseAgent {
+
+        @Inject
+        protected ExecutionTraceRecorder trace;
+
+        @Action
+        public void act() {
+            trace.record(Phase.ACTION, "act");
+        }
+    }
+
+    // -- inherited phase method ------------------------------------------------
+
+    public record InheritEvent(String payload) {}
+
+    /** Inherits {@link BasePhaseAgent#act()} without overriding it. */
+    @Agent
+    @ApplicationScoped
+    public static class InheritingAgent extends BasePhaseAgent {
+
+        @Trigger
+        public void onEvent(@Observes InheritEvent event) {
+            trace.record(Phase.TRIGGER, "onEvent", event);
+        }
+    }
+
     /**
      * A phase method declared on a superclass is inherited and participates in the workflow.
      *
@@ -72,6 +103,30 @@ public class InheritedMethodsTests {
         inheritEvents.fire(new InheritEvent("input"));
         assertEquals(List.of(Phase.TRIGGER, Phase.ACTION), trace.phases());
     }
+
+    // -- unannotated override --------------------------------------------------
+
+    public record OverrideEvent(String payload) {}
+
+    /**
+     * Overrides {@link BasePhaseAgent#act()} without re-applying {@code @Action}. Annotations
+     * are not carried onto an override, so the method is not a phase.
+     */
+    @Agent
+    @ApplicationScoped
+    public static class OverridingAgent extends BasePhaseAgent {
+
+        @Trigger
+        public void onEvent(@Observes OverrideEvent event) {
+            trace.record(Phase.TRIGGER, "onEvent", event);
+        }
+
+        @Override
+        public void act() {
+            // Intentionally unannotated, so it must not run as an @Action phase.
+        }
+    }
+
     /**
      * An override that drops the phase annotation does not participate in the workflow.
      *

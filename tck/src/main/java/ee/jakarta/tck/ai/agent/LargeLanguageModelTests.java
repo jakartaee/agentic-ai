@@ -12,22 +12,26 @@
  *****************************************************************************/
 package ee.jakarta.tck.ai.agent;
 
-import ee.jakarta.tck.ai.agent.agents.llm.LlmFailureEvent;
-import ee.jakarta.tck.ai.agent.agents.llm.LlmFailureHandlingAgent;
-import ee.jakarta.tck.ai.agent.agents.llm.LlmProbeAgent;
-import ee.jakarta.tck.ai.agent.agents.llm.LlmProbeEvent;
-import ee.jakarta.tck.ai.agent.agents.llm.LlmQuerierAgent;
-import ee.jakarta.tck.ai.agent.agents.llm.LlmQuerierEvent;
-import ee.jakarta.tck.ai.agent.agents.llm.NonSerializableParam;
-import ee.jakarta.tck.ai.agent.agents.llm.PersonFixture;
 import ee.jakarta.tck.ai.agent.framework.TckModel;
 import ee.jakarta.tck.ai.agent.framework.ExecutionTraceRecorder;
 import ee.jakarta.tck.ai.agent.framework.ExecutionTraceRecorder.Phase;
 import ee.jakarta.tck.ai.agent.framework.ExecutionTraceRecorder.TraceEntry;
+import jakarta.ai.agent.Action;
+import jakarta.ai.agent.Agent;
 import jakarta.ai.agent.LLMException;
 import jakarta.ai.agent.LargeLanguageModel;
+import jakarta.ai.agent.OnException;
+import jakarta.ai.agent.Outcome;
+import jakarta.ai.agent.Trigger;
+import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.event.Event;
+import jakarta.enterprise.event.Observes;
 import jakarta.inject.Inject;
+import jakarta.json.bind.JsonbException;
+import jakarta.json.bind.annotation.JsonbTypeSerializer;
+import jakarta.json.bind.serializer.JsonbSerializer;
+import jakarta.json.bind.serializer.SerializationContext;
+import jakarta.json.stream.JsonGenerator;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.junit5.ArquillianExtension;
 import org.jboss.shrinkwrap.api.Archive;
@@ -71,13 +75,48 @@ public class LargeLanguageModelTests {
     @Inject ExecutionTraceRecorder trace;
     @Inject LargeLanguageModel     llm;
 
+    /** A structured value that round-trips through Jakarta JSON Binding. */
+    public record PersonFixture(String name, int age) {}
+
+    /**
+     * Carries one call to make against the facade from inside a workflow.
+     *
+     * @param probe the call; its return value, or the exception it throws, is
+     *              recorded as the trigger's trace argument.
+     */
+    public record LlmProbeEvent(Function<LargeLanguageModel, Object> probe) {}
+
+    /**
+     * Applies a probe to the implementation's facade inside a workflow, where the
+     * facade's full contract applies, and records the result or the exception for
+     * the test to assert on.
+     */
+    @Agent
+    @ApplicationScoped
+    public static class LlmProbeAgent {
+
+        @Inject LargeLanguageModel llm;
+        @Inject ExecutionTraceRecorder trace;
+
+        @Trigger
+        public void onProbe(@Observes LlmProbeEvent event) {
+            Object result;
+            try {
+                result = event.probe().apply(llm);
+            } catch (RuntimeException e) {
+                result = e;
+            }
+            trace.record(Phase.TRIGGER, "onProbe", result);
+        }
+    }
+
     private Object probe(Function<LargeLanguageModel, Object> call) {
         trace.reset();
         probes.fire(new LlmProbeEvent(call));
         return trace.entries().get(0).args()[0];
     }
 
-    // -- validation: IllegalArgumentException before any model call ----------
+    // -- validation: IllegalArgumentException before any model call ------------
 
     /**
      * Null prompt on query(String) throws IllegalArgumentException.
@@ -179,6 +218,18 @@ public class LargeLanguageModelTests {
     @Test
     public void noPlaceholderRejectsMultipleParams() {
         assertInstanceOf(IllegalArgumentException.class, probe(llm -> llm.query("Analyze this", "a", "b")));
+    }
+
+    /** A parameter whose JSON Binding serialization always fails. */
+    @JsonbTypeSerializer(NonSerializableParam.Serializer.class)
+    public static class NonSerializableParam {
+
+        public static class Serializer implements JsonbSerializer<NonSerializableParam> {
+            @Override
+            public void serialize(NonSerializableParam obj, JsonGenerator generator, SerializationContext ctx) {
+                throw new JsonbException("intentional serialization failure");
+            }
+        }
     }
 
     /**
@@ -296,7 +347,7 @@ public class LargeLanguageModelTests {
         assertEquals(new PersonFixture("Bob", 25), p);
     }
 
-    // -- failures: LLMException ----------------------------------------------
+    // -- failures: LLMException ------------------------------------------------
 
     /**
      * A model failure surfaces as LLMException.
@@ -361,6 +412,37 @@ public class LargeLanguageModelTests {
         assertInstanceOf(LLMException.class, probe(llm -> llm.query("not json {}", PersonFixture.class, "x")));
     }
 
+    public record LlmFailureEvent(String payload) {}
+
+    @Agent
+    @ApplicationScoped
+    public static class LlmFailureHandlingAgent {
+
+        @Inject LargeLanguageModel llm;
+        @Inject ExecutionTraceRecorder trace;
+
+        @Trigger
+        public void onEvent(@Observes LlmFailureEvent event) {
+            trace.record(Phase.TRIGGER, "onEvent", event);
+        }
+
+        @Action
+        public void act(LlmFailureEvent event) {
+            trace.record(Phase.ACTION, "act", event);
+            llm.query(TckModel.FAIL);
+        }
+
+        @OnException
+        public void onLlmFailure(LLMException ex) {
+            trace.record(Phase.ON_EXCEPTION, "onLlmFailure", ex);
+        }
+
+        @Outcome
+        public void finish() {
+            trace.record(Phase.OUTCOME, "finish");
+        }
+    }
+
     /**
      * An LLMException thrown from a phase is routed to a matching {@code @OnException} method, and
      * the workflow continues to {@code @Outcome} when the handler returns normally.
@@ -389,6 +471,32 @@ public class LargeLanguageModelTests {
     }
 
     // -- conversational state --------------------------------------------------
+
+    public record LlmQuerierEvent(String payload) {}
+
+    /**
+     * Queries the model in its trigger and reads the conversation back in its
+     * action, so a test can see which turns the workflow's conversation holds.
+     */
+    @Agent
+    @ApplicationScoped
+    public static class LlmQuerierAgent {
+
+        @Inject LargeLanguageModel llm;
+        @Inject ExecutionTraceRecorder trace;
+
+        @Trigger
+        public void onEvent(@Observes LlmQuerierEvent event) {
+            trace.record(Phase.TRIGGER, "onEvent", event);
+            llm.query("turn for {}", event.payload());
+        }
+
+        @Action
+        public void execute(LlmQuerierEvent event) {
+            trace.record(Phase.ACTION, "execute", event, llm.query(TckModel.HISTORY));
+        }
+    }
+
     /**
      * Each workflow's conversation holds only its own turns. After two sequential workflows, the
      * history the model reports to the second contains only the second's turn.

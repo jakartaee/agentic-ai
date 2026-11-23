@@ -12,9 +12,10 @@
  *****************************************************************************/
 package ee.jakarta.tck.ai.agent;
 
-import ee.jakarta.tck.ai.agent.agents.deploymenterror.DeploymentErrorEvent;
-import ee.jakarta.tck.ai.agent.agents.deploymenterror.SecondTriggerEvent;
-import ee.jakarta.tck.ai.agent.agents.deploymenterror.TwoTriggerAgent;
+import jakarta.ai.agent.Agent;
+import jakarta.ai.agent.Trigger;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.event.Observes;
 import jakarta.enterprise.inject.spi.DeploymentException;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.ShouldThrowException;
@@ -39,6 +40,23 @@ public class DeploymentErrorTwoTriggerTests {
         return ShrinkWrap.create(WebArchive.class, "deployerror-twotrigger.war")
                 .addClasses(TwoTriggerAgent.class, DeploymentErrorEvent.class, SecondTriggerEvent.class)
                 .addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml");
+    }
+
+    public record DeploymentErrorEvent(String payload) {}
+
+    public record SecondTriggerEvent(String payload) {}
+
+    @Agent
+    @ApplicationScoped
+    public static class TwoTriggerAgent {
+
+        @Trigger
+        public void onFirst(@Observes DeploymentErrorEvent event) {
+        }
+
+        @Trigger
+        public void onSecond(@Observes SecondTriggerEvent event) {
+        }
     }
 
     /**

@@ -12,20 +12,18 @@
  *****************************************************************************/
 package ee.jakarta.tck.ai.agent;
 
-import ee.jakarta.tck.ai.agent.agents.executionorder.AnchoredAgent;
-import ee.jakarta.tck.ai.agent.agents.executionorder.AnchoredEvent;
-import ee.jakarta.tck.ai.agent.agents.executionorder.OrderAttrAgent;
-import ee.jakarta.tck.ai.agent.agents.executionorder.OrderAttrEvent;
-import ee.jakarta.tck.ai.agent.agents.executionorder.PhaseOrderingAgent;
-import ee.jakarta.tck.ai.agent.agents.executionorder.PhaseOrderingEvent;
-import ee.jakarta.tck.ai.agent.agents.executionorder.PriorityAgent;
-import ee.jakarta.tck.ai.agent.agents.executionorder.PriorityEvent;
-import ee.jakarta.tck.ai.agent.agents.executionorder.PriorityOverOrderAgent;
-import ee.jakarta.tck.ai.agent.agents.executionorder.PriorityOverOrderEvent;
 import ee.jakarta.tck.ai.agent.framework.ExecutionTraceRecorder;
 import ee.jakarta.tck.ai.agent.framework.ExecutionTraceRecorder.Phase;
 import ee.jakarta.tck.ai.agent.framework.ExecutionTraceRecorder.TraceEntry;
+import jakarta.ai.agent.Action;
+import jakarta.ai.agent.Agent;
+import jakarta.ai.agent.Decision;
+import jakarta.ai.agent.Outcome;
+import jakarta.ai.agent.Trigger;
+import jakarta.annotation.Priority;
+import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.event.Event;
+import jakarta.enterprise.event.Observes;
 import jakarta.inject.Inject;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.junit5.ArquillianExtension;
@@ -81,6 +79,38 @@ public class ExecutionOrderTests {
         return trace.entries().stream().map(TraceEntry::methodName).toList();
     }
 
+    // -- phase order -----------------------------------------------------------
+
+    public record PhaseOrderingEvent(String payload) {}
+
+    @Agent
+    @ApplicationScoped
+    public static class PhaseOrderingAgent {
+
+        @Inject ExecutionTraceRecorder trace;
+
+        @Trigger
+        public void onEvent(@Observes PhaseOrderingEvent event) {
+            trace.record(Phase.TRIGGER, "onEvent", event);
+        }
+
+        @Decision(order = 1)
+        public boolean decide(PhaseOrderingEvent event) {
+            trace.record(Phase.DECISION, "decide", event);
+            return true;
+        }
+
+        @Action(order = 2)
+        public void act(PhaseOrderingEvent event) {
+            trace.record(Phase.ACTION, "act", event);
+        }
+
+        @Outcome
+        public void finish(PhaseOrderingEvent event) {
+            trace.record(Phase.OUTCOME, "finish", event);
+        }
+    }
+
     /**
      * A workflow with one phase of each kind runs trigger, decision, action, outcome, in that
      * order.
@@ -92,6 +122,36 @@ public class ExecutionOrderTests {
         trace.reset();
         phaseOrderingEvents.fire(new PhaseOrderingEvent("proceed"));
         assertEquals(List.of(Phase.TRIGGER, Phase.DECISION, Phase.ACTION, Phase.OUTCOME), trace.phases());
+    }
+
+    public record AnchoredEvent(String payload) {}
+
+    @Agent
+    @ApplicationScoped
+    public static class AnchoredAgent {
+
+        @Inject ExecutionTraceRecorder trace;
+
+        @Outcome
+        public void finish() {
+            trace.record(Phase.OUTCOME, "finish");
+        }
+
+        @Action(order = 1)
+        public void act(AnchoredEvent event) {
+            trace.record(Phase.ACTION, "act", event);
+        }
+
+        @Decision(order = 2)
+        public boolean decide(AnchoredEvent event) {
+            trace.record(Phase.DECISION, "decide", event);
+            return true;
+        }
+
+        @Trigger
+        public void onEvent(@Observes AnchoredEvent event) {
+            trace.record(Phase.TRIGGER, "onEvent", event);
+        }
     }
 
     /**
@@ -109,6 +169,39 @@ public class ExecutionOrderTests {
         assertEquals(List.of("onEvent", "act", "decide", "finish"), recordedMethodNames());
     }
 
+    // -- order attribute and @Priority -----------------------------------------
+
+    public record OrderAttrEvent(String payload) {}
+
+    /** Every action and decision declares {@code order}, as the consistency rule requires. */
+    @Agent
+    @ApplicationScoped
+    public static class OrderAttrAgent {
+
+        @Inject ExecutionTraceRecorder trace;
+
+        @Trigger
+        public void onEvent(@Observes OrderAttrEvent event) {
+            trace.record(Phase.TRIGGER, "onEvent", event);
+        }
+
+        @Action(order = 3)
+        public void third() {
+            trace.record(Phase.ACTION, "third");
+        }
+
+        @Decision(order = 2)
+        public boolean second() {
+            trace.record(Phase.DECISION, "second");
+            return true;
+        }
+
+        @Action(order = 1)
+        public void first() {
+            trace.record(Phase.ACTION, "first");
+        }
+    }
+
     /**
      * {@code @Action} and {@code @Decision} methods execute by ascending {@code order} attribute,
      * not source declaration order.
@@ -122,6 +215,40 @@ public class ExecutionOrderTests {
         assertEquals(List.of("onEvent", "first", "second", "third"), recordedMethodNames());
     }
 
+    public record PriorityEvent(String payload) {}
+
+    /** Every action and decision declares {@code @Priority}, as the consistency rule requires. */
+    @Agent
+    @ApplicationScoped
+    public static class PriorityAgent {
+
+        @Inject ExecutionTraceRecorder trace;
+
+        @Trigger
+        public void onEvent(@Observes PriorityEvent event) {
+            trace.record(Phase.TRIGGER, "onEvent", event);
+        }
+
+        @Action
+        @Priority(3)
+        public void third() {
+            trace.record(Phase.ACTION, "third");
+        }
+
+        @Decision
+        @Priority(2)
+        public boolean second() {
+            trace.record(Phase.DECISION, "second");
+            return true;
+        }
+
+        @Action
+        @Priority(1)
+        public void first() {
+            trace.record(Phase.ACTION, "first");
+        }
+    }
+
     /**
      * {@code @Action} and {@code @Decision} methods execute by ascending {@code @Priority} value,
      * not source declaration order.
@@ -133,6 +260,35 @@ public class ExecutionOrderTests {
         trace.reset();
         priorityEvents.fire(new PriorityEvent("x"));
         assertEquals(List.of("onEvent", "first", "second", "third"), recordedMethodNames());
+    }
+
+    public record PriorityOverOrderEvent(String payload) {}
+
+    /** Each action's {@code order} and {@code @Priority} disagree, so the trace shows which one wins. */
+    @Agent
+    @ApplicationScoped
+    public static class PriorityOverOrderAgent {
+
+        @Inject ExecutionTraceRecorder trace;
+
+        @Trigger
+        public void onEvent(@Observes PriorityOverOrderEvent event) {
+            trace.record(Phase.TRIGGER, "onEvent", event);
+        }
+
+        // order says this runs first, but @Priority(3) says it runs last.
+        @Action(order = 1)
+        @Priority(3)
+        public void runsThird() {
+            trace.record(Phase.ACTION, "runsThird");
+        }
+
+        // order says this runs last, but @Priority(1) says it runs first.
+        @Action(order = 3)
+        @Priority(1)
+        public void runsFirst() {
+            trace.record(Phase.ACTION, "runsFirst");
+        }
     }
 
     /**

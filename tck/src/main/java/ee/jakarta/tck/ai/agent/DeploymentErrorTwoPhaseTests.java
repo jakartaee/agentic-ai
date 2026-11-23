@@ -12,8 +12,12 @@
  *****************************************************************************/
 package ee.jakarta.tck.ai.agent;
 
-import ee.jakarta.tck.ai.agent.agents.deploymenterror.TwoPhaseMethodAgent;
-import ee.jakarta.tck.ai.agent.agents.deploymenterror.TwoPhaseMethodEvent;
+import jakarta.ai.agent.Action;
+import jakarta.ai.agent.Agent;
+import jakarta.ai.agent.Decision;
+import jakarta.ai.agent.Trigger;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.event.Observes;
 import jakarta.enterprise.inject.spi.DeploymentException;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.ShouldThrowException;
@@ -28,13 +32,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 /**
  * An agent whose method declares two phase annotations must be rejected at
  * deployment time (<em>One Phase per Method</em>).
- *
- * <p>This error is detected by a compatible implementation's CDI extension.
- * The check is the deployment itself.</p>
- *
- * <p>The verification is the deployment itself: {@link ShouldThrowException}
- * declares that building the container for this archive must fail with a
- * {@link DeploymentException}; the test body is therefore empty.</p>
  */
 @ExtendWith(ArquillianExtension.class)
 public class DeploymentErrorTwoPhaseTests {
@@ -45,6 +42,23 @@ public class DeploymentErrorTwoPhaseTests {
         return ShrinkWrap.create(WebArchive.class, "deployerror-twophase.war")
                 .addClasses(TwoPhaseMethodAgent.class, TwoPhaseMethodEvent.class)
                 .addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml");
+    }
+
+    public record TwoPhaseMethodEvent(String payload) {}
+
+    @Agent
+    @ApplicationScoped
+    public static class TwoPhaseMethodAgent {
+
+        @Trigger
+        public void onEvent(@Observes TwoPhaseMethodEvent event) {
+        }
+
+        @Action
+        @Decision
+        public boolean doStuff() {
+            return true;
+        }
     }
 
     /**

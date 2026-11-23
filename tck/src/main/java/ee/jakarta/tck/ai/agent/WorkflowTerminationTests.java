@@ -12,18 +12,17 @@
  *****************************************************************************/
 package ee.jakarta.tck.ai.agent;
 
-import ee.jakarta.tck.ai.agent.agents.termination.BooleanTerminationAgent;
-import ee.jakarta.tck.ai.agent.agents.termination.BooleanTerminationEvent;
-import ee.jakarta.tck.ai.agent.agents.termination.BranchingAgent;
-import ee.jakarta.tck.ai.agent.agents.termination.BranchingEvent;
-import ee.jakarta.tck.ai.agent.agents.termination.ObjectTerminationAgent;
-import ee.jakarta.tck.ai.agent.agents.termination.ObjectTerminationDecision;
-import ee.jakarta.tck.ai.agent.agents.termination.ObjectTerminationEvent;
-import ee.jakarta.tck.ai.agent.agents.termination.ResultTerminationAgent;
-import ee.jakarta.tck.ai.agent.agents.termination.ResultTerminationEvent;
 import ee.jakarta.tck.ai.agent.framework.ExecutionTraceRecorder;
 import ee.jakarta.tck.ai.agent.framework.ExecutionTraceRecorder.Phase;
+import jakarta.ai.agent.Action;
+import jakarta.ai.agent.Agent;
+import jakarta.ai.agent.Decision;
+import jakarta.ai.agent.Outcome;
+import jakarta.ai.agent.Result;
+import jakarta.ai.agent.Trigger;
+import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.event.Event;
+import jakarta.enterprise.event.Observes;
 import jakarta.inject.Inject;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.junit5.ArquillianExtension;
@@ -72,6 +71,38 @@ public class WorkflowTerminationTests {
     @Inject ExecutionTraceRecorder         trace;
     @Inject BranchingAgent                 branchingAgent;
 
+    // -- boolean ---------------------------------------------------------------
+
+    public record BooleanTerminationEvent(String payload) {}
+
+    @Agent
+    @ApplicationScoped
+    public static class BooleanTerminationAgent {
+
+        @Inject ExecutionTraceRecorder trace;
+
+        @Trigger
+        public void onEvent(@Observes BooleanTerminationEvent event) {
+            trace.record(Phase.TRIGGER, "onEvent", event);
+        }
+
+        @Decision(order = 1)
+        public boolean decide(BooleanTerminationEvent event) {
+            trace.record(Phase.DECISION, "decide", event);
+            return false;
+        }
+
+        @Action(order = 2)
+        public void act(BooleanTerminationEvent event) {
+            trace.record(Phase.ACTION, "act", event);
+        }
+
+        @Outcome
+        public void finish() {
+            trace.record(Phase.OUTCOME, "finish");
+        }
+    }
+
     /**
      * {@code false} from a {@code @Decision} halts all downstream phases.
      *
@@ -82,6 +113,41 @@ public class WorkflowTerminationTests {
         trace.reset();
         booleanEvents.fire(new BooleanTerminationEvent("x"));
         assertEquals(List.of(Phase.TRIGGER, Phase.DECISION), trace.phases());
+    }
+
+    // -- Result ----------------------------------------------------------------
+
+    public record ResultTerminationEvent(String payload) {}
+
+    /** Proceeds with {@code null} details when the payload is {@code "proceed"}, and terminates otherwise. */
+    @Agent
+    @ApplicationScoped
+    public static class ResultTerminationAgent {
+
+        @Inject ExecutionTraceRecorder trace;
+
+        @Trigger
+        public void onEvent(@Observes ResultTerminationEvent event) {
+            trace.record(Phase.TRIGGER, "onEvent", event);
+        }
+
+        @Decision(order = 1)
+        public Result decide(ResultTerminationEvent event) {
+            trace.record(Phase.DECISION, "decide", event);
+            return "proceed".equals(event.payload())
+                    ? new Result(true, null)
+                    : new Result(false, "deliberately terminated");
+        }
+
+        @Action(order = 2)
+        public void act(ResultTerminationEvent event) {
+            trace.record(Phase.ACTION, "act", event);
+        }
+
+        @Outcome
+        public void finish() {
+            trace.record(Phase.OUTCOME, "finish");
+        }
     }
 
     /**
@@ -109,6 +175,40 @@ public class WorkflowTerminationTests {
         assertEquals(List.of(Phase.TRIGGER, Phase.DECISION, Phase.ACTION, Phase.OUTCOME), trace.phases());
     }
 
+    // -- domain object ---------------------------------------------------------
+
+    public record ObjectTerminationEvent(String payload) {}
+
+    public record ObjectTerminationDecision(String reason) {}
+
+    @Agent
+    @ApplicationScoped
+    public static class ObjectTerminationAgent {
+
+        @Inject ExecutionTraceRecorder trace;
+
+        @Trigger
+        public void onEvent(@Observes ObjectTerminationEvent event) {
+            trace.record(Phase.TRIGGER, "onEvent", event);
+        }
+
+        @Decision(order = 1)
+        public ObjectTerminationDecision decide(ObjectTerminationEvent event) {
+            trace.record(Phase.DECISION, "decide", event);
+            return null;
+        }
+
+        @Action(order = 2)
+        public void act(ObjectTerminationEvent event) {
+            trace.record(Phase.ACTION, "act", event);
+        }
+
+        @Outcome
+        public void finish() {
+            trace.record(Phase.OUTCOME, "finish");
+        }
+    }
+
     /**
      * A {@code null} domain object from a {@code @Decision} halts all downstream phases.
      *
@@ -119,6 +219,57 @@ public class WorkflowTerminationTests {
         trace.reset();
         objectEvents.fire(new ObjectTerminationEvent("x"));
         assertEquals(List.of(Phase.TRIGGER, Phase.DECISION), trace.phases());
+    }
+
+    // -- later decision --------------------------------------------------------
+
+    public record BranchingEvent(String payload) {}
+
+    /** Two decisions around an action. The test chooses which decision returns {@code false}. */
+    @Agent
+    @ApplicationScoped
+    public static class BranchingAgent {
+
+        public enum TerminationPoint { FIRST_DECISION, SECOND_DECISION }
+
+        @Inject ExecutionTraceRecorder trace;
+        private volatile TerminationPoint terminateAt = TerminationPoint.FIRST_DECISION;
+
+        public void setTerminateAt(TerminationPoint terminateAt) {
+            this.terminateAt = terminateAt;
+        }
+
+        @Trigger
+        public void onEvent(@Observes BranchingEvent event) {
+            trace.record(Phase.TRIGGER, "onEvent", event);
+        }
+
+        @Decision(order = 1)
+        public boolean firstDecide(BranchingEvent event) {
+            trace.record(Phase.DECISION, "firstDecide", event);
+            return terminateAt != TerminationPoint.FIRST_DECISION;
+        }
+
+        @Action(order = 2)
+        public void firstAction(BranchingEvent event) {
+            trace.record(Phase.ACTION, "firstAction", event);
+        }
+
+        @Decision(order = 3)
+        public boolean secondDecide(BranchingEvent event) {
+            trace.record(Phase.DECISION, "secondDecide", event);
+            return terminateAt != TerminationPoint.SECOND_DECISION;
+        }
+
+        @Action(order = 4)
+        public void secondAction(BranchingEvent event) {
+            trace.record(Phase.ACTION, "secondAction", event);
+        }
+
+        @Outcome
+        public void finish() {
+            trace.record(Phase.OUTCOME, "finish");
+        }
     }
 
     /**

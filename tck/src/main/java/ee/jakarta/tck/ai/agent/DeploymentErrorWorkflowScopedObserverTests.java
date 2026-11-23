@@ -12,9 +12,10 @@
  *****************************************************************************/
 package ee.jakarta.tck.ai.agent;
 
-import ee.jakarta.tck.ai.agent.agents.deploymenterror.DeploymentErrorEvent;
-import ee.jakarta.tck.ai.agent.agents.deploymenterror.GeneralObserverEvent;
-import ee.jakarta.tck.ai.agent.agents.deploymenterror.WorkflowScopedGeneralObserverAgent;
+import jakarta.ai.agent.Agent;
+import jakarta.ai.agent.Trigger;
+import jakarta.ai.agent.WorkflowScoped;
+import jakarta.enterprise.event.Observes;
 import jakarta.enterprise.inject.spi.DeploymentException;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.ShouldThrowException;
@@ -40,6 +41,22 @@ public class DeploymentErrorWorkflowScopedObserverTests {
                 .addClasses(WorkflowScopedGeneralObserverAgent.class,
                         DeploymentErrorEvent.class, GeneralObserverEvent.class)
                 .addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml");
+    }
+
+    public record DeploymentErrorEvent(String payload) {}
+
+    public record GeneralObserverEvent(String payload) {}
+
+    @Agent
+    @WorkflowScoped
+    public static class WorkflowScopedGeneralObserverAgent {
+
+        @Trigger
+        public void onEvent(@Observes DeploymentErrorEvent event) {
+        }
+
+        public void onGeneralEvent(@Observes GeneralObserverEvent event) {
+        }
     }
 
     /**

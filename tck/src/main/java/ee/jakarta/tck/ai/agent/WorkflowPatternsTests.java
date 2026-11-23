@@ -12,22 +12,17 @@
  *****************************************************************************/
 package ee.jakarta.tck.ai.agent;
 
-import ee.jakarta.tck.ai.agent.agents.workflowpatterns.IntermixedAgent;
-import ee.jakarta.tck.ai.agent.agents.workflowpatterns.IntermixedEvent;
-import ee.jakarta.tck.ai.agent.agents.workflowpatterns.LinearAgent;
-import ee.jakarta.tck.ai.agent.agents.workflowpatterns.LinearEvent;
-import ee.jakarta.tck.ai.agent.agents.workflowpatterns.MinimalistAgent;
-import ee.jakarta.tck.ai.agent.agents.workflowpatterns.MinimalistEvent;
-import ee.jakarta.tck.ai.agent.agents.workflowpatterns.NoDecisionAgent;
-import ee.jakarta.tck.ai.agent.agents.workflowpatterns.NoDecisionEvent;
-import ee.jakarta.tck.ai.agent.agents.workflowpatterns.NoOutcomeAgent;
-import ee.jakarta.tck.ai.agent.agents.workflowpatterns.NoOutcomeEvent;
-import ee.jakarta.tck.ai.agent.agents.workflowpatterns.OutcomeOnlyAgent;
-import ee.jakarta.tck.ai.agent.agents.workflowpatterns.OutcomeOnlyEvent;
 import ee.jakarta.tck.ai.agent.framework.ExecutionTraceRecorder;
 import ee.jakarta.tck.ai.agent.framework.ExecutionTraceRecorder.Phase;
 import ee.jakarta.tck.ai.agent.framework.ExecutionTraceRecorder.TraceEntry;
+import jakarta.ai.agent.Action;
+import jakarta.ai.agent.Agent;
+import jakarta.ai.agent.Decision;
+import jakarta.ai.agent.Outcome;
+import jakarta.ai.agent.Trigger;
+import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.event.Event;
+import jakarta.enterprise.event.Observes;
 import jakarta.inject.Inject;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.junit5.ArquillianExtension;
@@ -82,6 +77,20 @@ public class WorkflowPatternsTests {
         return trace.entries().stream().map(TraceEntry::methodName).toList();
     }
 
+    public record MinimalistEvent(String payload) {}
+
+    @Agent
+    @ApplicationScoped
+    public static class MinimalistAgent {
+
+        @Inject ExecutionTraceRecorder trace;
+
+        @Trigger
+        public void onEvent(@Observes MinimalistEvent event) {
+            trace.record(Phase.TRIGGER, "onEvent", event);
+        }
+    }
+
     /**
      * An agent with only a {@code @Trigger} is a complete workflow. Firing the event runs the
      * trigger and the workflow completes.
@@ -93,6 +102,32 @@ public class WorkflowPatternsTests {
         trace.reset();
         minimalistEvents.fire(new MinimalistEvent("test"));
         assertEquals(List.of(Phase.TRIGGER), trace.phases());
+    }
+
+    public record NoDecisionEvent(String payload) {}
+
+    @Agent
+    @ApplicationScoped
+    public static class NoDecisionAgent {
+
+        @Inject ExecutionTraceRecorder trace;
+
+        @Trigger
+        public NoDecisionEvent onEvent(@Observes NoDecisionEvent event) {
+            trace.record(Phase.TRIGGER, "onEvent", event);
+            return event;
+        }
+
+        @Action
+        public String act(NoDecisionEvent event) {
+            trace.record(Phase.ACTION, "act", event);
+            return "done";
+        }
+
+        @Outcome
+        public void finish(String result) {
+            trace.record(Phase.OUTCOME, "finish", result);
+        }
     }
 
     /**
@@ -107,6 +142,31 @@ public class WorkflowPatternsTests {
         assertEquals(List.of(Phase.TRIGGER, Phase.ACTION, Phase.OUTCOME), trace.phases());
     }
 
+    public record NoOutcomeEvent(String payload) {}
+
+    @Agent
+    @ApplicationScoped
+    public static class NoOutcomeAgent {
+
+        @Inject ExecutionTraceRecorder trace;
+
+        @Trigger
+        public void onEvent(@Observes NoOutcomeEvent event) {
+            trace.record(Phase.TRIGGER, "onEvent", event);
+        }
+
+        @Decision(order = 1)
+        public boolean decide(NoOutcomeEvent event) {
+            trace.record(Phase.DECISION, "decide", event);
+            return true;
+        }
+
+        @Action(order = 2)
+        public void act(NoOutcomeEvent event) {
+            trace.record(Phase.ACTION, "act", event);
+        }
+    }
+
     /**
      * A workflow without an {@code @Outcome} completes after its last action.
      *
@@ -117,6 +177,40 @@ public class WorkflowPatternsTests {
         trace.reset();
         noOutcomeEvents.fire(new NoOutcomeEvent("test"));
         assertEquals(List.of(Phase.TRIGGER, Phase.DECISION, Phase.ACTION), trace.phases());
+    }
+
+    public record LinearEvent(String payload) {}
+
+    @Agent
+    @ApplicationScoped
+    public static class LinearAgent {
+
+        @Inject ExecutionTraceRecorder trace;
+
+        @Trigger
+        public void onEvent(@Observes LinearEvent event) {
+            trace.record(Phase.TRIGGER, "onEvent", event);
+        }
+
+        @Action(order = 1)
+        public void firstAction(LinearEvent event) {
+            trace.record(Phase.ACTION, "firstAction", event);
+        }
+
+        @Action(order = 2)
+        public void secondAction(LinearEvent event) {
+            trace.record(Phase.ACTION, "secondAction", event);
+        }
+
+        @Action(order = 3)
+        public void thirdAction(LinearEvent event) {
+            trace.record(Phase.ACTION, "thirdAction", event);
+        }
+
+        @Outcome
+        public void finish() {
+            trace.record(Phase.OUTCOME, "finish");
+        }
     }
 
     /**
@@ -133,6 +227,31 @@ public class WorkflowPatternsTests {
         assertEquals(List.of("onEvent", "firstAction", "secondAction", "thirdAction", "finish"), recordedMethodNames());
     }
 
+    public record OutcomeOnlyEvent(String payload) {}
+
+    @Agent
+    @ApplicationScoped
+    public static class OutcomeOnlyAgent {
+
+        @Inject ExecutionTraceRecorder trace;
+
+        @Trigger
+        public void onEvent(@Observes OutcomeOnlyEvent event) {
+            trace.record(Phase.TRIGGER, "onEvent", event);
+        }
+
+        @Decision
+        public boolean decide(OutcomeOnlyEvent event) {
+            trace.record(Phase.DECISION, "decide", event);
+            return true;
+        }
+
+        @Outcome
+        public void finish() {
+            trace.record(Phase.OUTCOME, "finish");
+        }
+    }
+
     /**
      * A {@code @Decision} proceeds directly to the {@code @Outcome} when no {@code @Action} is
      * declared.
@@ -144,6 +263,47 @@ public class WorkflowPatternsTests {
         trace.reset();
         outcomeOnlyEvents.fire(new OutcomeOnlyEvent("test"));
         assertEquals(List.of(Phase.TRIGGER, Phase.DECISION, Phase.OUTCOME), trace.phases());
+    }
+
+    public record IntermixedEvent(String payload) {}
+
+    @Agent
+    @ApplicationScoped
+    public static class IntermixedAgent {
+
+        @Inject ExecutionTraceRecorder trace;
+
+        @Trigger
+        public void onEvent(@Observes IntermixedEvent event) {
+            trace.record(Phase.TRIGGER, "onEvent", event);
+        }
+
+        @Decision(order = 1)
+        public boolean firstDecide(IntermixedEvent event) {
+            trace.record(Phase.DECISION, "firstDecide", event);
+            return true;
+        }
+
+        @Action(order = 2)
+        public void firstAction(IntermixedEvent event) {
+            trace.record(Phase.ACTION, "firstAction", event);
+        }
+
+        @Decision(order = 3)
+        public boolean secondDecide(IntermixedEvent event) {
+            trace.record(Phase.DECISION, "secondDecide", event);
+            return true;
+        }
+
+        @Action(order = 4)
+        public void secondAction(IntermixedEvent event) {
+            trace.record(Phase.ACTION, "secondAction", event);
+        }
+
+        @Outcome
+        public void finish() {
+            trace.record(Phase.OUTCOME, "finish");
+        }
     }
 
     /**
