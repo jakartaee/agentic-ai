@@ -72,13 +72,19 @@ public class ConcurrencyTests {
     @Deployment
     public static Archive<?> createDeployment() {
         return ShrinkWrap.create(WebArchive.class, "concurrency.war")
-                .addClasses(ConcurrentIsolationAgent.class, ConcurrencyEvent.class,
-                            ConcurrencyCoordinator.class, ConcurrencyCoordinator.LlmObservation.class)
+                .addClasses(
+                        ConcurrentIsolationAgent.class,
+                        ConcurrencyEvent.class,
+                        ConcurrencyCoordinator.class,
+                        ConcurrencyCoordinator.LlmObservation.class)
                 .addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml");
     }
 
-    @Inject Event<ConcurrencyEvent> events;
-    @Inject ConcurrencyCoordinator coordinator;
+    @Inject
+    Event<ConcurrencyEvent> events;
+
+    @Inject
+    ConcurrencyCoordinator coordinator;
 
     /**
      * Each concurrently fired event carries a unique {@code marker} used to detect state
@@ -103,8 +109,11 @@ public class ConcurrencyTests {
     @WorkflowScoped
     public static class ConcurrentIsolationAgent {
 
-        @Inject LargeLanguageModel llm;
-        @Inject ConcurrencyCoordinator coordinator;
+        @Inject
+        LargeLanguageModel llm;
+
+        @Inject
+        ConcurrencyCoordinator coordinator;
 
         private String marker;
         private String echoed;

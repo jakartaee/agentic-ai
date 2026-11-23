@@ -62,8 +62,8 @@ public class DocsAgent {
      */
     @Trigger
     void detectPullRequest(PullRequest pullRequest) {
-        LOGGER.info("[TRIGGER] pull request " + pullRequest.getTitle()
-                + ", changed files " + pullRequest.getChangedFiles());
+        LOGGER.info("[TRIGGER] pull request " + pullRequest.getTitle() + ", changed files "
+                + pullRequest.getChangedFiles());
     }
 
     /**
@@ -96,11 +96,10 @@ public class DocsAgent {
             LOGGER.info("[DECISION] documentation required");
 
             return DocumentationAnalysis.documentationNeeded(
-                "Pull request modifies user-facing API",
-                pullRequest.getChangedFiles(),
-                List.of("API Changes", "Usage Guide"),
-                "high"
-            );
+                    "Pull request modifies user-facing API",
+                    pullRequest.getChangedFiles(),
+                    List.of("API Changes", "Usage Guide"),
+                    "high");
         } else {
             // No documentation needed - return null to stop workflow
             LOGGER.info("[DECISION] no documentation required");
@@ -120,12 +119,10 @@ public class DocsAgent {
      * <p>The analysis object provides context about what documentation is needed.</p>
      */
     @Action
-    DocumentationPullRequest produceDocumentationPullRequest(
-            PullRequest pullRequest,
-            DocumentationAnalysis analysis) {
+    DocumentationPullRequest produceDocumentationPullRequest(PullRequest pullRequest, DocumentationAnalysis analysis) {
 
-        LOGGER.info("[ACTION] produceDocumentationPullRequest: " + analysis.getReason()
-                + ", priority " + analysis.getPriority() + ", topics " + analysis.getSuggestedTopics());
+        LOGGER.info("[ACTION] produceDocumentationPullRequest: " + analysis.getReason() + ", priority "
+                + analysis.getPriority() + ", topics " + analysis.getSuggestedTopics());
 
         // Use LLM to generate documentation content
         String prompt = """
@@ -174,8 +171,8 @@ public class DocsAgent {
      */
     @Outcome
     void applyDocumentationChange(DocumentationPullRequest docPR) {
-        LOGGER.info("[OUTCOME] applying documentation PR " + docPR.getId()
-                + ", priority " + docPR.getAnalysis().getPriority());
+        LOGGER.info("[OUTCOME] applying documentation PR " + docPR.getId() + ", priority "
+                + docPR.getAnalysis().getPriority());
 
         // Merge the documentation PR
         // Send notifications

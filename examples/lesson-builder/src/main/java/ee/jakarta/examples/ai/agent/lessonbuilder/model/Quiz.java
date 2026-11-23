@@ -17,7 +17,6 @@ import java.util.List;
 public record Quiz(List<QuizQuestion> questions) {
 
     /** The JSON shape a model reply must have to bind to this record. */
-    public static final String SCHEMA =
-            "Return ONLY valid JSON of the form {\"questions\":[{\"prompt\":\"...\","
+    public static final String SCHEMA = "Return ONLY valid JSON of the form {\"questions\":[{\"prompt\":\"...\","
             + "\"options\":[\"a\",\"b\",\"c\",\"d\"],\"correctIndex\":0,\"explanation\":\"...\"}]}.";
 }

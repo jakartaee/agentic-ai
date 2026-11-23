@@ -22,8 +22,8 @@ import java.lang.annotation.Target;
  * <p>
  * Actions perform operations as part of the agent's workflow execution.
  * Actions can execute independently or based on prior decision outcomes,
- * allowing both simple sequential processing and complex conditional 
- * workflows. Actions typically perform the primary work of the agent, such 
+ * allowing both simple sequential processing and complex conditional
+ * workflows. Actions typically perform the primary work of the agent, such
  * as persisting data, calling external services, or updating system state.
  * <p>
  * Multiple action methods can be defined in a single agent. Actions and
@@ -39,9 +39,9 @@ import java.lang.annotation.Target;
  *   <li><strong>{@link #order()} attribute</strong> — used as the sort key
  *       when {@code @Priority} is absent on the method; lower values
  *       execute first.</li>
- *   <li><strong>Source declaration order</strong> — used when no action 
- *       or decision method in the agent declares either {@code @Priority} 
- *       or an explicit {@code order}. In this case, methods execute in 
+ *   <li><strong>Source declaration order</strong> — used when no action
+ *       or decision method in the agent declares either {@code @Priority}
+ *       or an explicit {@code order}. In this case, methods execute in
  *       the order they are declared in the source code. Note that
  *       Java SE does not guarantee that reflection returns methods in source
  *       declaration order. However, all major JVM implementations do so in
@@ -58,33 +58,33 @@ import java.lang.annotation.Target;
  * Action methods can have the following types of parameters that will be
  * automatically resolved:
  * <ul>
- *   <li>Workflow state domain objects - Any objects from previous 
- *       workflow phases, particularly decision results or trigger event 
+ *   <li>Workflow state domain objects - Any objects from previous
+ *       workflow phases, particularly decision results or trigger event
  *       objects</li>
- *   <li>Decision results - Objects returned from 
- *       {@link Decision @Decision} methods (when using the Object or 
+ *   <li>Decision results - Objects returned from
+ *       {@link Decision @Decision} methods (when using the Object or
  *       {@link Result} return patterns)</li>
- *   <li>{@link LargeLanguageModel} - LLM instance for analysis or 
+ *   <li>{@link LargeLanguageModel} - LLM instance for analysis or
  *       content generation</li>
  *   <li>Any other CDI injectable dependencies available to the agent
- *       - typically in the application scope or managed by the 
+ *       - typically in the application scope or managed by the
  *       container</li>
  * </ul>
  * <p>
  * Parameters can declare Jakarta Validation constraints (e.g., {@code @Valid},
- * {@code @NotNull}, {@code @NotEmpty}). Validation occurs before the action 
- * method is invoked. Validation failures raise 
+ * {@code @NotNull}, {@code @NotEmpty}). Validation occurs before the action
+ * method is invoked. Validation failures raise
  * {@code jakarta.validation.ConstraintViolationException}, which can be
  * handled by {@link OnException @OnException} methods.
  * <p>
  * <b>Return types</b><br>
  * Action methods support two return patterns:
  * <ul>
- *   <li><strong>void</strong> - The action performs work with side 
- *       effects (e.g., sending alerts, updating databases). No data is 
+ *   <li><strong>void</strong> - The action performs work with side
+ *       effects (e.g., sending alerts, updating databases). No data is
  *       passed to subsequent phases.</li>
- *   <li><strong>Domain objects</strong> - The action returns an 
- *       object (non-void) that will be automatically injected into 
+ *   <li><strong>Domain objects</strong> - The action returns an
+ *       object (non-void) that will be automatically injected into
  *       subsequent lifecycle methods. Use this pattern
  *       to pass action results forward in the workflow.</li>
  * </ul>

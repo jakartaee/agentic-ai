@@ -25,5 +25,4 @@ public record CatalogEntry(
         String summary,
         Coverage coverage,
         Estimate estimate,
-        List<String> standards) {
-}
+        List<String> standards) {}

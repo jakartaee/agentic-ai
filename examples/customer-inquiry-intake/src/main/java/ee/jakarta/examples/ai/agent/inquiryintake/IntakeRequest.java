@@ -25,5 +25,4 @@ import jakarta.validation.constraints.Size;
 public record IntakeRequest(
         @Size(max = 100) String name,
         @Email @Size(max = 150) String email,
-        @NotBlank @Size(min = 20, max = 5000) String message) {
-}
+        @NotBlank @Size(min = 20, max = 5000) String message) {}

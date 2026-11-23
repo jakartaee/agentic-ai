@@ -21,6 +21,5 @@ import java.util.List;
 public record TaggedStandards(List<String> codes) {
 
     /** The JSON shape a model reply must have to bind to this record. */
-    public static final String SCHEMA =
-            "Return ONLY valid JSON of the form {\"codes\":[\"...\"]}.";
+    public static final String SCHEMA = "Return ONLY valid JSON of the form {\"codes\":[\"...\"]}.";
 }

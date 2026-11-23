@@ -22,17 +22,17 @@ import java.lang.annotation.Target;
  * <p>
  * Trigger methods define the entry point for agent workflows and are invoked
  * when triggering events occur. Currently, triggers are invoked by CDI events.
- * A trigger method may optionally use the {@code @Observes} annotation to 
- * explicitly handle the triggering event. The triggering event is automatically 
+ * A trigger method may optionally use the {@code @Observes} annotation to
+ * explicitly handle the triggering event. The triggering event is automatically
  * added to the workflow context for access in subsequent phases.
  * <p>
  * <b>Scope Restrictions</b><br>
  * CDI event observation capabilities depend on the agent's scope:
  * <ul>
- *   <li><strong>@WorkflowScoped agents:</strong> Can ONLY use {@code @Trigger} 
- *       methods to handle CDI events. General CDI observers (methods with 
+ *   <li><strong>@WorkflowScoped agents:</strong> Can ONLY use {@code @Trigger}
+ *       methods to handle CDI events. General CDI observers (methods with
  *       {@code @Observes} but without {@code @Trigger}) are not supported.</li>
- *   <li><strong>@ApplicationScoped agents:</strong> Can use both 
+ *   <li><strong>@ApplicationScoped agents:</strong> Can use both
  *       {@code @Trigger} methods AND general CDI observer methods.</li>
  * </ul>
  * <p>
@@ -41,7 +41,7 @@ import java.lang.annotation.Target;
  * manual/programmatic workflow invocation, or REST POST requests.
  * <p>
  * Currently, there MUST be only one {@code @Trigger} method per agent class.
- * This constraint will be relaxed in future versions to support multiple 
+ * This constraint will be relaxed in future versions to support multiple
  * entry points.
  * <p>
  * <b>Parameters</b><br>
@@ -55,25 +55,25 @@ import java.lang.annotation.Target;
  * <p>
  * Parameters can declare Jakarta Validation constraints (e.g., {@code @Valid},
  * {@code @NotNull}, {@code @Email}, {@code @Size}). Validation occurs before
- * the trigger method is invoked. Validation failures raise 
+ * the trigger method is invoked. Validation failures raise
  * {@code jakarta.validation.ConstraintViolationException}, which can be
  * handled by {@link OnException @OnException} methods.
  * <p>
  * <b>Return types</b><br>
  * Trigger methods support two return patterns:
  * <ul>
- *   <li><strong>void</strong> - The trigger handles initialization with 
+ *   <li><strong>void</strong> - The trigger handles initialization with
  *       side effects only. No data is passed to subsequent phases.</li>
  *   <li><strong>Domain objects</strong> - The trigger returns an
  *       object (non-void) that will be automatically injected into
- *       subsequent workflow methods. Use this pattern to pass trigger 
+ *       subsequent workflow methods. Use this pattern to pass trigger
  *       analysis or transformation forward in the workflow.</li>
  * </ul>
  * <p>
  * <b>Semantics</b>
  * <ul>
  *   <li>Invoked when a CDI event matching the trigger parameter is fired</li>
- *   <li>First phase of workflow execution - creates a new workflow 
+ *   <li>First phase of workflow execution - creates a new workflow
  *       context</li>
  * </ul>
  * <p>
@@ -115,5 +115,4 @@ import java.lang.annotation.Target;
  */
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface Trigger {
-}
+public @interface Trigger {}

@@ -15,5 +15,4 @@ package ee.jakarta.examples.ai.agent.lessonbuilder.model;
 /**
  * Fired when the teacher publishes a lesson; triggers {@code CatalogAgent}.
  */
-public record LessonPublished(Lesson lesson) {
-}
+public record LessonPublished(Lesson lesson) {}

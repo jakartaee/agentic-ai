@@ -17,7 +17,12 @@ mvn --projects tck --also-make verify
 
 # Clean build of TCK and upstream
 mvn --projects tck --also-make clean install
+
+# Format all Java sources (run before committing)
+mvn spotless:apply
 ```
+
+Java formatting is automated with Spotless (root pom) using palantir-java-format, imports ordered as other packages, then `java`/`javax`, then statics, and unused imports removed. `spotless:check` runs in `verify`, so CI fails on unformatted code. Do not hand-align code into columns; the formatter owns layout. It does not reorder members, so keep fields in the order static, `@Inject`, other instance fields.
 
 The TCK has the same shape as the Data and Concurrency TCKs. This repository only builds the jar and runs none of its tests — not even the signature test, which deploys to the implementation like every other test; every test is executed by the implementation (Payara) from its own repository, all of them, `Skipped: 0`. The only thing Surefire runs here is the harness unit test in `src/test/java`. There is no Weld, no stand-in `LargeLanguageModel`, no run mode, no tag, no profile, no marker, no execution condition and no `tck.implementation` property — all of that existed before an implementation did and was removed as scaffolding. Nothing in the module may exist that an implementation is not required to pass; do not add tests that pass only without an implementation, tests that reflect over fixtures instead of exercising the implementation, or TCK-owned doubles for things the implementation provides. If a spec-dev wants to run the deployed tests, that happens through the implementation's runner, like every other spec.
 

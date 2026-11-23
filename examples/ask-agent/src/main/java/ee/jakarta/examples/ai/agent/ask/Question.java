@@ -17,5 +17,4 @@ import jakarta.validation.constraints.NotBlank;
 /**
  * CDI event that triggers the {@link QuestionAgent} workflow.
  */
-public record Question(@NotBlank String text) {
-}
+public record Question(@NotBlank String text) {}

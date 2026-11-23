@@ -26,18 +26,25 @@ public class DocumentationPullRequest extends PullRequest {
 
     @SuppressWarnings("serial")
     private List<String> documentedTopics;
+
     private DocumentationAnalysis analysis;
 
     public DocumentationPullRequest() {
         super();
     }
 
-    public DocumentationPullRequest(String id, String title, String description, String author,
-                                     List<String> changedFiles, String diff,
-                                     String targetBranch, String sourceBranch,
-                                     String linkedCodePullRequestId,
-                                     List<String> documentedTopics,
-                                     DocumentationAnalysis analysis) {
+    public DocumentationPullRequest(
+            String id,
+            String title,
+            String description,
+            String author,
+            List<String> changedFiles,
+            String diff,
+            String targetBranch,
+            String sourceBranch,
+            String linkedCodePullRequestId,
+            List<String> documentedTopics,
+            DocumentationAnalysis analysis) {
         super(id, title, description, author, changedFiles, diff, targetBranch, sourceBranch);
         this.linkedCodePullRequestId = linkedCodePullRequestId;
         this.documentedTopics = documentedTopics;
@@ -70,12 +77,11 @@ public class DocumentationPullRequest extends PullRequest {
 
     @Override
     public String toString() {
-        return "DocumentationPullRequest{" +
-                "id='" + getId() + '\'' +
-                ", title='" + getTitle() + '\'' +
-                ", linkedCodePullRequestId='" + linkedCodePullRequestId + '\'' +
-                ", documentedTopics=" + documentedTopics +
-                ", analysis=" + analysis +
-                '}';
+        return "DocumentationPullRequest{" + "id='"
+                + getId() + '\'' + ", title='"
+                + getTitle() + '\'' + ", linkedCodePullRequestId='"
+                + linkedCodePullRequestId + '\'' + ", documentedTopics="
+                + documentedTopics + ", analysis="
+                + analysis + '}';
     }
 }

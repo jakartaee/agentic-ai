@@ -55,7 +55,8 @@ public class ConcurrencyCoordinatorTests {
         });
 
         assertEquals(WORKFLOWS, coordinator.observationCount());
-        assertTrue(coordinator.mismatches().isEmpty(),
+        assertTrue(
+                coordinator.mismatches().isEmpty(),
                 "Isolated workflows must not report any leak: " + coordinator.mismatches());
     }
 
@@ -78,8 +79,7 @@ public class ConcurrencyCoordinatorTests {
         });
 
         assertEquals(WORKFLOWS, coordinator.observationCount());
-        assertFalse(coordinator.mismatches().isEmpty(),
-                "A shared instance must produce at least one detected leak");
+        assertFalse(coordinator.mismatches().isEmpty(), "A shared instance must produce at least one detected leak");
     }
 
     private void runConcurrently(int count, MarkerTask task) throws Exception {

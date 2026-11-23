@@ -29,15 +29,22 @@ public class PullRequest implements Serializable {
 
     @SuppressWarnings("serial")
     private List<String> changedFiles;
+
     private String diff;
     private String targetBranch;
     private String sourceBranch;
 
-    public PullRequest() {
-    }
+    public PullRequest() {}
 
-    public PullRequest(String id, String title, String description, String author,
-                       List<String> changedFiles, String diff, String targetBranch, String sourceBranch) {
+    public PullRequest(
+            String id,
+            String title,
+            String description,
+            String author,
+            List<String> changedFiles,
+            String diff,
+            String targetBranch,
+            String sourceBranch) {
         this.id = id;
         this.title = title;
         this.description = description;
@@ -114,13 +121,12 @@ public class PullRequest implements Serializable {
 
     @Override
     public String toString() {
-        return "PullRequest{" +
-                "id='" + id + '\'' +
-                ", title='" + title + '\'' +
-                ", author='" + author + '\'' +
-                ", changedFiles=" + changedFiles +
-                ", targetBranch='" + targetBranch + '\'' +
-                ", sourceBranch='" + sourceBranch + '\'' +
-                '}';
+        return "PullRequest{" + "id='"
+                + id + '\'' + ", title='"
+                + title + '\'' + ", author='"
+                + author + '\'' + ", changedFiles="
+                + changedFiles + ", targetBranch='"
+                + targetBranch + '\'' + ", sourceBranch='"
+                + sourceBranch + '\'' + '}';
     }
 }

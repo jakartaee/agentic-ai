@@ -19,13 +19,15 @@ import java.util.Objects;
  * category, drafted subject line, and the polished message. Shown to the
  * customer on the review screen before they confirm.
  */
-public record IntakeRecord(Identity identity, Classification classification, String title, String message,
-                           String notice) {
+public record IntakeRecord(
+        Identity identity, Classification classification, String title, String message, String notice) {
 
     public static IntakeRecord asTyped(IntakeRequest request) {
         return new IntakeRecord(
-                new Identity(Objects.requireNonNullElse(request.name(), ""),
-                             Objects.requireNonNullElse(request.email(), ""), ""),
+                new Identity(
+                        Objects.requireNonNullElse(request.name(), ""),
+                        Objects.requireNonNullElse(request.email(), ""),
+                        ""),
                 Classification.GENERAL,
                 "",
                 request.message(),

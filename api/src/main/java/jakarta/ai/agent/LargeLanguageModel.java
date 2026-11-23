@@ -53,13 +53,13 @@ package jakarta.ai.agent;
  * Implementations will delegate to external LLM APIs or services.
  * <p>
  * In the initial release, implementations are free to support whichever LLM
- * libraries and APIs they choose. Configuration mechanisms (if any) are 
- * implementation-specific. Future releases will provide standardized provider 
- * selection and some common LLM configuration, allowing developers to switch 
+ * libraries and APIs they choose. Configuration mechanisms (if any) are
+ * implementation-specific. Future releases will provide standardized provider
+ * selection and some common LLM configuration, allowing developers to switch
  * between different LLM implementations, and rely on very common configurable
- * LLM features in a standardized way. Common examples may include temperature 
- * or maximum output tokens. This is very similar to how Jakarta 
- * Persistence works with multiple providers and a common set of configuration 
+ * LLM features in a standardized way. Common examples may include temperature
+ * or maximum output tokens. This is very similar to how Jakarta
+ * Persistence works with multiple providers and a common set of configuration
  * properties.
  *
  * @see LLMException
@@ -71,13 +71,13 @@ public interface LargeLanguageModel {
     /**
      * Sends a prompt to the model and returns a String response.
      * <p>
-     * This is the simplest form of LLM interaction, suitable for plain text 
+     * This is the simplest form of LLM interaction, suitable for plain text
      * prompts and responses.
      *
      * @param prompt The input prompt or question.
      * @return The model's response as a String.
      * @throws IllegalArgumentException if the prompt is null or invalid.
-     * @throws LLMException if the LLM service encounters an error 
+     * @throws LLMException if the LLM service encounters an error
      *                      during processing.
      */
     String query(String prompt);
@@ -124,7 +124,7 @@ public interface LargeLanguageModel {
      *                                  may accept at most one supplied
      *                                  parameter, or if a parameter cannot be
      *                                  serialized to JSON.
-     * @throws LLMException if the LLM service encounters an error during 
+     * @throws LLMException if the LLM service encounters an error during
      *                      processing.
      */
     String query(String prompt, Object... parameters);
@@ -165,14 +165,14 @@ public interface LargeLanguageModel {
     /**
      * Unwraps the underlying LLM implementation.
      * <p>
-     * This allows access to vendor-specific APIs or advanced features not 
-     * exposed by the facade. Similar to Jakarta Persistence's 
+     * This allows access to vendor-specific APIs or advanced features not
+     * exposed by the facade. Similar to Jakarta Persistence's
      * {@code EntityManager.unwrap()} pattern.
      *
      * @param implClass The class of the underlying implementation to unwrap to.
      * @param <T> The type of the underlying implementation.
      * @return The underlying implementation instance.
-     * @throws IllegalArgumentException if the implementation cannot be 
+     * @throws IllegalArgumentException if the implementation cannot be
      *                                  unwrapped to the requested type.
      */
     <T> T unwrap(Class<T> implClass);

@@ -56,20 +56,35 @@ public class WorkflowTerminationTests {
     public static Archive<?> createDeployment() {
         return ShrinkWrap.create(WebArchive.class, "workflowtermination.war")
                 .addClasses(
-                        BooleanTerminationAgent.class, BooleanTerminationEvent.class,
-                        ResultTerminationAgent.class,  ResultTerminationEvent.class,
-                        ObjectTerminationAgent.class,  ObjectTerminationEvent.class, ObjectTerminationDecision.class,
-                        BranchingAgent.class,          BranchingEvent.class
-                )
+                        BooleanTerminationAgent.class,
+                        BooleanTerminationEvent.class,
+                        ResultTerminationAgent.class,
+                        ResultTerminationEvent.class,
+                        ObjectTerminationAgent.class,
+                        ObjectTerminationEvent.class,
+                        ObjectTerminationDecision.class,
+                        BranchingAgent.class,
+                        BranchingEvent.class)
                 .addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml");
     }
 
-    @Inject Event<BooleanTerminationEvent> booleanEvents;
-    @Inject Event<ResultTerminationEvent>  resultEvents;
-    @Inject Event<ObjectTerminationEvent>  objectEvents;
-    @Inject Event<BranchingEvent>          branchingEvents;
-    @Inject ExecutionTraceRecorder         trace;
-    @Inject BranchingAgent                 branchingAgent;
+    @Inject
+    Event<BooleanTerminationEvent> booleanEvents;
+
+    @Inject
+    Event<ResultTerminationEvent> resultEvents;
+
+    @Inject
+    Event<ObjectTerminationEvent> objectEvents;
+
+    @Inject
+    Event<BranchingEvent> branchingEvents;
+
+    @Inject
+    ExecutionTraceRecorder trace;
+
+    @Inject
+    BranchingAgent branchingAgent;
 
     // -- boolean ---------------------------------------------------------------
 
@@ -79,7 +94,8 @@ public class WorkflowTerminationTests {
     @ApplicationScoped
     public static class BooleanTerminationAgent {
 
-        @Inject ExecutionTraceRecorder trace;
+        @Inject
+        ExecutionTraceRecorder trace;
 
         @Trigger
         public void onEvent(@Observes BooleanTerminationEvent event) {
@@ -112,6 +128,7 @@ public class WorkflowTerminationTests {
     public void booleanFalseTerminatesWorkflow() {
         trace.reset();
         booleanEvents.fire(new BooleanTerminationEvent("x"));
+
         assertEquals(List.of(Phase.TRIGGER, Phase.DECISION), trace.phases());
     }
 
@@ -124,7 +141,8 @@ public class WorkflowTerminationTests {
     @ApplicationScoped
     public static class ResultTerminationAgent {
 
-        @Inject ExecutionTraceRecorder trace;
+        @Inject
+        ExecutionTraceRecorder trace;
 
         @Trigger
         public void onEvent(@Observes ResultTerminationEvent event) {
@@ -159,6 +177,7 @@ public class WorkflowTerminationTests {
     public void resultFalseTerminatesWorkflow() {
         trace.reset();
         resultEvents.fire(new ResultTerminationEvent("x"));
+
         assertEquals(List.of(Phase.TRIGGER, Phase.DECISION), trace.phases());
     }
 
@@ -172,6 +191,7 @@ public class WorkflowTerminationTests {
     public void resultTrueWithNullDetailsProceeds() {
         trace.reset();
         resultEvents.fire(new ResultTerminationEvent("proceed"));
+
         assertEquals(List.of(Phase.TRIGGER, Phase.DECISION, Phase.ACTION, Phase.OUTCOME), trace.phases());
     }
 
@@ -185,7 +205,8 @@ public class WorkflowTerminationTests {
     @ApplicationScoped
     public static class ObjectTerminationAgent {
 
-        @Inject ExecutionTraceRecorder trace;
+        @Inject
+        ExecutionTraceRecorder trace;
 
         @Trigger
         public void onEvent(@Observes ObjectTerminationEvent event) {
@@ -218,6 +239,7 @@ public class WorkflowTerminationTests {
     public void objectNullTerminatesWorkflow() {
         trace.reset();
         objectEvents.fire(new ObjectTerminationEvent("x"));
+
         assertEquals(List.of(Phase.TRIGGER, Phase.DECISION), trace.phases());
     }
 
@@ -230,9 +252,14 @@ public class WorkflowTerminationTests {
     @ApplicationScoped
     public static class BranchingAgent {
 
-        public enum TerminationPoint { FIRST_DECISION, SECOND_DECISION }
+        public enum TerminationPoint {
+            FIRST_DECISION,
+            SECOND_DECISION
+        }
 
-        @Inject ExecutionTraceRecorder trace;
+        @Inject
+        ExecutionTraceRecorder trace;
+
         private volatile TerminationPoint terminateAt = TerminationPoint.FIRST_DECISION;
 
         public void setTerminateAt(TerminationPoint terminateAt) {
@@ -284,6 +311,7 @@ public class WorkflowTerminationTests {
         trace.reset();
         branchingAgent.setTerminateAt(BranchingAgent.TerminationPoint.SECOND_DECISION);
         branchingEvents.fire(new BranchingEvent("test"));
+
         assertEquals(List.of(Phase.TRIGGER, Phase.DECISION, Phase.ACTION, Phase.DECISION), trace.phases());
     }
 }

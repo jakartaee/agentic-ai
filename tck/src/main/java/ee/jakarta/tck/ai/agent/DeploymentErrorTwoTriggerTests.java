@@ -51,12 +51,10 @@ public class DeploymentErrorTwoTriggerTests {
     public static class TwoTriggerAgent {
 
         @Trigger
-        public void onFirst(@Observes DeploymentErrorEvent event) {
-        }
+        public void onFirst(@Observes DeploymentErrorEvent event) {}
 
         @Trigger
-        public void onSecond(@Observes SecondTriggerEvent event) {
-        }
+        public void onSecond(@Observes SecondTriggerEvent event) {}
     }
 
     /**

@@ -23,7 +23,7 @@ import java.lang.annotation.Target;
  * Outcome methods are optional workflow phases that denote completion
  * and produce final results, side effects, or state management. The outcome
  * phase executes after other workflow phases have completed successfully,
- * providing an opportunity to finalize workflow results, audit operations, 
+ * providing an opportunity to finalize workflow results, audit operations,
  * trigger downstream processes, or clean up resources.
  * <p>
  * Workflows can omit the outcome phase if finalization is not needed.
@@ -50,8 +50,8 @@ import java.lang.annotation.Target;
  * which can be handled by {@link OnException @OnException} methods.
  * <p>
  * <b>Return type</b><br>
- * Outcome methods currently must return {@code void}. The outcome phase is 
- * designed for finalization and side effects rather than producing data for 
+ * Outcome methods currently must return {@code void}. The outcome phase is
+ * designed for finalization and side effects rather than producing data for
  * further processing. In the future, return types may be supported to allow
  * outcome methods to pass on results to downstream systems or workflows.
  *
@@ -116,5 +116,4 @@ import java.lang.annotation.Target;
  */
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface Outcome {
-}
+public @interface Outcome {}

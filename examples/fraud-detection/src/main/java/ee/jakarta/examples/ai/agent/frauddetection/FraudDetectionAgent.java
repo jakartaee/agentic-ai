@@ -19,7 +19,6 @@ import jakarta.ai.agent.LargeLanguageModel;
 import jakarta.ai.agent.Outcome;
 import jakarta.ai.agent.Result;
 import jakarta.ai.agent.Trigger;
-
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 import jakarta.validation.Valid;
@@ -32,6 +31,7 @@ import jakarta.validation.Valid;
 public class FraudDetectionAgent {
     @Inject
     private LargeLanguageModel model;
+
     @Inject
     @SuppressWarnings("unused")
     private EntityManager entityManager;
@@ -43,8 +43,7 @@ public class FraudDetectionAgent {
 
     @Decision
     Result checkFraud(BankTransaction transaction) {
-        String output = model.query(
-            "Is this a fraudulent transaction? If so, how serious is it?", transaction);
+        String output = model.query("Is this a fraudulent transaction? If so, how serious is it?", transaction);
         boolean fraud = isFraud(output);
         Fraud details = fraud ? getFraudDetails(output) : null;
         return new Result(fraud, details);

@@ -59,29 +59,58 @@ public class ParameterResolutionTests {
     public static Archive<?> createDeployment() {
         return ShrinkWrap.create(WebArchive.class, "parameterresolution.war")
                 .addClasses(
-                        LlmParameterAgent.class,  LlmParameterEvent.class,
-                        ImplicitObservesAgent.class,  ImplicitObservesEvent.class,
-                        ResolutionOrderAgent.class,   ResolutionOrderEvent.class, ResolutionCdiBean.class,
-                        DataPropagationAgent.class,   DataPropagationEvent.class,
-                        TriggerOutput.class,          DecisionOutput.class,       ActionOutput.class,
-                        ResultDetailsAgent.class,     ResultDetailsEvent.class,   DecisionDetails.class,
-                        SameTypeAgent.class,          SameTypeEvent.class,        SameTypeOutput.class,
-                        VoidPhasesAgent.class,        VoidPhasesEvent.class
-                )
+                        LlmParameterAgent.class,
+                        LlmParameterEvent.class,
+                        ImplicitObservesAgent.class,
+                        ImplicitObservesEvent.class,
+                        ResolutionOrderAgent.class,
+                        ResolutionOrderEvent.class,
+                        ResolutionCdiBean.class,
+                        DataPropagationAgent.class,
+                        DataPropagationEvent.class,
+                        TriggerOutput.class,
+                        DecisionOutput.class,
+                        ActionOutput.class,
+                        ResultDetailsAgent.class,
+                        ResultDetailsEvent.class,
+                        DecisionDetails.class,
+                        SameTypeAgent.class,
+                        SameTypeEvent.class,
+                        SameTypeOutput.class,
+                        VoidPhasesAgent.class,
+                        VoidPhasesEvent.class)
                 .addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml");
     }
 
-    @Inject Event<LlmParameterEvent>  llmParameterEvents;
-    @Inject Event<ImplicitObservesEvent>  implicitObservesEvents;
-    @Inject Event<ResolutionOrderEvent>   resolutionOrderEvents;
-    @Inject Event<DataPropagationEvent>   dataPropagationEvents;
-    @Inject Event<ResultDetailsEvent>     resultDetailsEvents;
-    @Inject Event<SameTypeEvent>          sameTypeEvents;
-    @Inject Event<VoidPhasesEvent>        voidPhasesEvents;
-    @Inject ExecutionTraceRecorder        trace;
+    @Inject
+    Event<LlmParameterEvent> llmParameterEvents;
+
+    @Inject
+    Event<ImplicitObservesEvent> implicitObservesEvents;
+
+    @Inject
+    Event<ResolutionOrderEvent> resolutionOrderEvents;
+
+    @Inject
+    Event<DataPropagationEvent> dataPropagationEvents;
+
+    @Inject
+    Event<ResultDetailsEvent> resultDetailsEvents;
+
+    @Inject
+    Event<SameTypeEvent> sameTypeEvents;
+
+    @Inject
+    Event<VoidPhasesEvent> voidPhasesEvents;
+
+    @Inject
+    ExecutionTraceRecorder trace;
 
     private TraceEntry entryOf(Phase phase) {
-        return trace.entries().stream().filter(e -> e.phase() == phase).findFirst().orElseThrow();
+        return trace.entries().stream()
+                .filter(e -> e.phase() == phase)
+                .findFirst()
+                .orElseThrow();
     }
 
     // -- the triggering event and the LargeLanguageModel -----------------------
@@ -92,7 +121,8 @@ public class ParameterResolutionTests {
     @ApplicationScoped
     public static class LlmParameterAgent {
 
-        @Inject ExecutionTraceRecorder trace;
+        @Inject
+        ExecutionTraceRecorder trace;
 
         @Trigger
         public void onEvent(@Observes LlmParameterEvent event, LargeLanguageModel llm) {
@@ -119,7 +149,11 @@ public class ParameterResolutionTests {
     public void eventPayloadIsPreservedInTrigger() {
         trace.reset();
         llmParameterEvents.fire(new LlmParameterEvent("my-payload"));
-        assertEquals("my-payload", assertInstanceOf(LlmParameterEvent.class, trace.entries().get(0).args()[0]).payload());
+
+        assertEquals(
+                "my-payload",
+                assertInstanceOf(LlmParameterEvent.class, trace.entries().get(0).args()[0])
+                        .payload());
     }
 
     /**
@@ -132,6 +166,7 @@ public class ParameterResolutionTests {
     public void llmIsResolvedAsActionParameter() {
         trace.reset();
         llmParameterEvents.fire(new LlmParameterEvent("payload"));
+
         assertEquals(List.of(Phase.TRIGGER, Phase.ACTION, Phase.OUTCOME), trace.phases());
         assertEquals("classify \"payload\"", trace.entries().get(1).args()[1]);
     }
@@ -145,7 +180,8 @@ public class ParameterResolutionTests {
     @ApplicationScoped
     public static class ImplicitObservesAgent {
 
-        @Inject ExecutionTraceRecorder trace;
+        @Inject
+        ExecutionTraceRecorder trace;
 
         @Trigger
         public void onEvent(ImplicitObservesEvent event) {
@@ -173,8 +209,14 @@ public class ParameterResolutionTests {
     public void triggerWithoutObservesRunsWorkflow() {
         trace.reset();
         implicitObservesEvents.fire(new ImplicitObservesEvent("test"));
+
         assertEquals(List.of(Phase.TRIGGER, Phase.ACTION, Phase.OUTCOME), trace.phases());
-        assertEquals("test", assertInstanceOf(ImplicitObservesEvent.class, trace.entries().get(0).args()[0]).payload());
+        assertEquals(
+                "test",
+                assertInstanceOf(
+                                ImplicitObservesEvent.class,
+                                trace.entries().get(0).args()[0])
+                        .payload());
     }
 
     // -- resolution order ------------------------------------------------------
@@ -188,7 +230,8 @@ public class ParameterResolutionTests {
     @ApplicationScoped
     public static class ResolutionOrderAgent {
 
-        @Inject ExecutionTraceRecorder trace;
+        @Inject
+        ExecutionTraceRecorder trace;
 
         @Trigger
         public void onEvent(@Observes ResolutionOrderEvent event) {
@@ -222,11 +265,14 @@ public class ParameterResolutionTests {
     public void triggeringEventIsAvailableInAllDownstreamPhases() {
         trace.reset();
         resolutionOrderEvents.fire(new ResolutionOrderEvent("event-payload"));
+
         assertEquals(List.of(Phase.TRIGGER, Phase.DECISION, Phase.ACTION, Phase.OUTCOME), trace.phases());
         trace.entries().stream()
                 .filter(e -> e.phase() != Phase.TRIGGER)
-                .forEach(e -> assertEquals("event-payload",
-                        assertInstanceOf(ResolutionOrderEvent.class, e.args()[0]).payload()));
+                .forEach(e -> assertEquals(
+                        "event-payload",
+                        assertInstanceOf(ResolutionOrderEvent.class, e.args()[0])
+                                .payload()));
     }
 
     /**
@@ -240,6 +286,7 @@ public class ParameterResolutionTests {
     public void parameterResolutionFollowsDefinedOrder() {
         trace.reset();
         resolutionOrderEvents.fire(new ResolutionOrderEvent("test"));
+
         assertEquals(List.of(Phase.TRIGGER, Phase.DECISION, Phase.ACTION, Phase.OUTCOME), trace.phases());
         Object[] args = entryOf(Phase.ACTION).args();
         assertInstanceOf(ResolutionOrderEvent.class, args[0]);
@@ -261,8 +308,11 @@ public class ParameterResolutionTests {
     @ApplicationScoped
     public static class DataPropagationAgent {
 
-        @Inject ExecutionTraceRecorder trace;
-        @Inject LargeLanguageModel llm;
+        @Inject
+        ExecutionTraceRecorder trace;
+
+        @Inject
+        LargeLanguageModel llm;
 
         @Trigger
         public TriggerOutput onEvent(@Observes DataPropagationEvent event) {
@@ -284,8 +334,8 @@ public class ParameterResolutionTests {
         }
 
         @Outcome
-        public void finish(DataPropagationEvent event, TriggerOutput trigger,
-                           DecisionOutput decision, ActionOutput action) {
+        public void finish(
+                DataPropagationEvent event, TriggerOutput trigger, DecisionOutput decision, ActionOutput action) {
             trace.record(Phase.OUTCOME, "finish", event, trigger, decision, action);
         }
     }
@@ -300,7 +350,11 @@ public class ParameterResolutionTests {
     public void triggerOutputIsInjectableInDecision() {
         trace.reset();
         dataPropagationEvents.fire(new DataPropagationEvent("input"));
-        assertEquals("trigger:input", assertInstanceOf(TriggerOutput.class, trace.entries().get(1).args()[1]).fromTrigger());
+
+        assertEquals(
+                "trigger:input",
+                assertInstanceOf(TriggerOutput.class, trace.entries().get(1).args()[1])
+                        .fromTrigger());
     }
 
     /**
@@ -313,7 +367,9 @@ public class ParameterResolutionTests {
     public void decisionOutputIsInjectableInAction() {
         trace.reset();
         dataPropagationEvents.fire(new DataPropagationEvent("input"));
-        DecisionOutput decision = assertInstanceOf(DecisionOutput.class, trace.entries().get(2).args()[1]);
+
+        DecisionOutput decision =
+                assertInstanceOf(DecisionOutput.class, trace.entries().get(2).args()[1]);
         assertEquals("decision:trigger:input", decision.fromDecision());
     }
 
@@ -326,6 +382,7 @@ public class ParameterResolutionTests {
     public void allPhaseOutputsAreInjectableInOutcome() {
         trace.reset();
         dataPropagationEvents.fire(new DataPropagationEvent("input"));
+
         assertEquals(List.of(Phase.TRIGGER, Phase.DECISION, Phase.ACTION, Phase.OUTCOME), trace.phases());
         Object[] outcomeArgs = trace.entries().get(3).args();
         assertInstanceOf(DataPropagationEvent.class, outcomeArgs[0]);
@@ -349,7 +406,8 @@ public class ParameterResolutionTests {
     @ApplicationScoped
     public static class ResultDetailsAgent {
 
-        @Inject ExecutionTraceRecorder trace;
+        @Inject
+        ExecutionTraceRecorder trace;
 
         @Trigger
         public void onEvent(@Observes ResultDetailsEvent event) {
@@ -378,8 +436,12 @@ public class ParameterResolutionTests {
     public void resultDetailsAreInjectableByRuntimeType() {
         trace.reset();
         resultDetailsEvents.fire(new ResultDetailsEvent("input"));
+
         assertEquals(List.of(Phase.TRIGGER, Phase.DECISION, Phase.ACTION), trace.phases());
-        assertEquals("details:input", assertInstanceOf(DecisionDetails.class, trace.entries().get(2).args()[0]).value());
+        assertEquals(
+                "details:input",
+                assertInstanceOf(DecisionDetails.class, trace.entries().get(2).args()[0])
+                        .value());
     }
 
     // -- same type returned twice ----------------------------------------------
@@ -398,7 +460,8 @@ public class ParameterResolutionTests {
     @ApplicationScoped
     public static class SameTypeAgent {
 
-        @Inject ExecutionTraceRecorder trace;
+        @Inject
+        ExecutionTraceRecorder trace;
 
         @Trigger
         public void onEvent(@Observes SameTypeEvent event) {
@@ -433,8 +496,12 @@ public class ParameterResolutionTests {
     public void mostRecentlyReturnedObjectWins() {
         trace.reset();
         sameTypeEvents.fire(new SameTypeEvent("input"));
+
         assertEquals(List.of(Phase.TRIGGER, Phase.DECISION, Phase.ACTION, Phase.OUTCOME), trace.phases());
-        assertEquals("action", assertInstanceOf(SameTypeOutput.class, trace.entries().get(3).args()[0]).marker());
+        assertEquals(
+                "action",
+                assertInstanceOf(SameTypeOutput.class, trace.entries().get(3).args()[0])
+                        .marker());
     }
 
     // -- void phases -----------------------------------------------------------
@@ -445,7 +512,8 @@ public class ParameterResolutionTests {
     @ApplicationScoped
     public static class VoidPhasesAgent {
 
-        @Inject ExecutionTraceRecorder trace;
+        @Inject
+        ExecutionTraceRecorder trace;
 
         @Trigger
         public void onEvent(@Observes VoidPhasesEvent event) {
@@ -479,6 +547,7 @@ public class ParameterResolutionTests {
     public void voidTriggerAddsNothingToWorkflowState() {
         trace.reset();
         voidPhasesEvents.fire(new VoidPhasesEvent("test"));
+
         assertEquals(List.of(Phase.TRIGGER, Phase.DECISION, Phase.ACTION, Phase.OUTCOME), trace.phases());
         Object[] decisionArgs = trace.entries().get(1).args();
         assertEquals(1, decisionArgs.length);
@@ -494,6 +563,7 @@ public class ParameterResolutionTests {
     public void voidActionLeavesWorkflowStateIntact() {
         trace.reset();
         voidPhasesEvents.fire(new VoidPhasesEvent("test"));
+
         assertEquals(List.of(Phase.TRIGGER, Phase.DECISION, Phase.ACTION, Phase.OUTCOME), trace.phases());
         assertInstanceOf(VoidPhasesEvent.class, entryOf(Phase.OUTCOME).args()[0]);
     }

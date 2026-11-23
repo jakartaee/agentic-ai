@@ -16,5 +16,8 @@ package ee.jakarta.examples.ai.agent.inquiryintake;
  * Which team should pick the inquiry up.
  */
 public enum Classification {
-    GENERAL, SALES, SUPPORT, PARTNERSHIP
+    GENERAL,
+    SALES,
+    SUPPORT,
+    PARTNERSHIP
 }

@@ -54,15 +54,22 @@ public class EventObservationTests {
     public static Archive<?> createDeployment() {
         return ShrinkWrap.create(WebArchive.class, "eventobservation.war")
                 .addClasses(
-                        AppScopedObserverAgent.class, EventObservationTriggerEvent.class,
-                        GeneralObservationEvent.class, WorkflowScopedObserverAgent.class,
+                        AppScopedObserverAgent.class,
+                        EventObservationTriggerEvent.class,
+                        GeneralObservationEvent.class,
+                        WorkflowScopedObserverAgent.class,
                         WorkflowScopedTriggerEvent.class)
                 .addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml");
     }
 
-    @Inject Event<GeneralObservationEvent> generalEvents;
-    @Inject Event<WorkflowScopedTriggerEvent> workflowScopedEvents;
-    @Inject ExecutionTraceRecorder trace;
+    @Inject
+    Event<GeneralObservationEvent> generalEvents;
+
+    @Inject
+    Event<WorkflowScopedTriggerEvent> workflowScopedEvents;
+
+    @Inject
+    ExecutionTraceRecorder trace;
 
     private List<String> recordedMethodNames() {
         return trace.entries().stream().map(TraceEntry::methodName).toList();
@@ -77,7 +84,8 @@ public class EventObservationTests {
     @WorkflowScoped
     public static class WorkflowScopedObserverAgent {
 
-        @Inject ExecutionTraceRecorder trace;
+        @Inject
+        ExecutionTraceRecorder trace;
 
         @Trigger
         public void onTriggerEvent(@Observes WorkflowScopedTriggerEvent event) {
@@ -94,6 +102,7 @@ public class EventObservationTests {
     public void workflowScopedAgentObservesViaTrigger() {
         trace.reset();
         workflowScopedEvents.fire(new WorkflowScopedTriggerEvent("input"));
+
         assertEquals(List.of(Phase.TRIGGER), trace.phases());
         assertEquals(List.of("onTriggerEvent"), recordedMethodNames());
     }
@@ -109,7 +118,8 @@ public class EventObservationTests {
     @ApplicationScoped
     public static class AppScopedObserverAgent {
 
-        @Inject ExecutionTraceRecorder trace;
+        @Inject
+        ExecutionTraceRecorder trace;
 
         @Trigger
         public void onTriggerEvent(@Observes EventObservationTriggerEvent event) {
@@ -132,6 +142,7 @@ public class EventObservationTests {
     public void applicationScopedAgentObservesViaGeneralObserver() {
         trace.reset();
         generalEvents.fire(new GeneralObservationEvent("input"));
+
         assertEquals(List.of("onGeneralEvent"), recordedMethodNames());
     }
 }

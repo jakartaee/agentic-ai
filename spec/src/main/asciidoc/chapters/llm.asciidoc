@@ -215,17 +215,17 @@ and the behavior when a handler returns normally vs. re-throws.
 ----
 @Decision
 public boolean robustEvaluation(Task task) {
-  try {
-    String response = llm.query("Evaluate this task", task);
-    return parseResponse(response);
+    try {
+        String response = llm.query("Evaluate this task", task);
+        return parseResponse(response);
 
-  } catch (LLMException e) {
-    logger.warn("LLM service error, using fallback", e);
-    return task.getPriority() == Priority.HIGH;
-  } catch (IllegalArgumentException e) {
-    logger.error("Invalid parameter to LLM", e);
-    return false;
-  }
+    } catch (LLMException e) {
+        logger.warn("LLM service error, using fallback", e);
+        return task.getPriority() == Priority.HIGH;
+    } catch (IllegalArgumentException e) {
+        logger.error("Invalid parameter to LLM", e);
+        return false;
+    }
 }
 ----
 
@@ -233,10 +233,10 @@ public boolean robustEvaluation(Task task) {
 ----
 @OnException
 public void handleLLMError(LLMException e, Task task) {
-  logger.error("LLM failed for task: " + task.getId(), e);
-  task.setStatus(TaskStatus.NEEDS_MANUAL_REVIEW);
-  entityManager.merge(task);
-  // Workflow continues after this method returns
+    logger.error("LLM failed for task: " + task.getId(), e);
+    task.setStatus(TaskStatus.NEEDS_MANUAL_REVIEW);
+    entityManager.merge(task);
+    // Workflow continues after this method returns
 }
 ----
 

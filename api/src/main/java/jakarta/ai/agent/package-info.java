@@ -15,9 +15,9 @@
  * Jakarta Agentic AI - API for building autonomous agents.
  *
  * <p>This package provides the fundamental APIs for developing agents that
- * can perceive, reason, decide, and act autonomously within a Jakarta EE 
- * environment. Agents are CDI-managed beans that encapsulate goal-driven 
- * behavior using a structured workflow model with well-defined lifecycle 
+ * can perceive, reason, decide, and act autonomously within a Jakarta EE
+ * environment. Agents are CDI-managed beans that encapsulate goal-driven
+ * behavior using a structured workflow model with well-defined lifecycle
  * phases.
  *
  * <h2>Core Components</h2>
@@ -57,26 +57,26 @@
  *
  * <h3>Workflow Phases</h3>
  * <ol>
- *   <li><strong>Trigger Phase (required)</strong> - Exactly one 
+ *   <li><strong>Trigger Phase (required)</strong> - Exactly one
  *       {@link jakarta.ai.agent.Trigger @Trigger} method is invoked when
  *       a CDI event matching its parameters is fired. This initiates the
  *       workflow.
  *       Triggers support two return patterns:
  *       <ul>
  *         <li>void - Performs initialization with side effects only</li>
- *         <li>Domain Object - Returns an object available for injection in 
+ *         <li>Domain Object - Returns an object available for injection in
  *             subsequent phases</li>
  *       </ul>
  *   </li>
  *   <li><strong>Decision Phases (optional)</strong> - Zero or more
  *       {@link jakarta.ai.agent.Decision @Decision} methods
- *       analyze the workflow state and determine whether to proceed. 
+ *       analyze the workflow state and determine whether to proceed.
  *       They support three return patterns:
  *       <ul>
  *         <li>Boolean - {@code true} to proceed, {@code false} to terminate</li>
- *         <li>{@link jakarta.ai.agent.Result} - Success flag with optional 
+ *         <li>{@link jakarta.ai.agent.Result} - Success flag with optional
  *             details</li>
- *         <li>Object - Non-null to proceed (object available for injection), 
+ *         <li>Object - Non-null to proceed (object available for injection),
  *             null to terminate</li>
  *       </ul>
  *   </li>
@@ -87,17 +87,17 @@
  *       Actions support two return patterns:
  *       <ul>
  *         <li>void - Performs side effects only (e.g., alerts, database updates)</li>
- *         <li>Domain Object - Returns an object available for injection 
+ *         <li>Domain Object - Returns an object available for injection
  *             in subsequent workflow methods</li>
  *       </ul>
  *   </li>
- *   <li><strong>Outcome Phase (optional)</strong> - Zero or one 
- *       {@link jakarta.ai.agent.Outcome @Outcome} method handles finalization, 
+ *   <li><strong>Outcome Phase (optional)</strong> - Zero or one
+ *       {@link jakarta.ai.agent.Outcome @Outcome} method handles finalization,
  *       state persistence, and downstream notifications. Must return void.</li>
  *   <li><strong>Exception Handling (optional)</strong> - Zero or more
  *       {@link jakarta.ai.agent.OnException @OnException}
  *       methods handle exceptions throughout the workflow lifecycle. Handler
- *       returns normally to continue workflow (after recovery), or re-throws 
+ *       returns normally to continue workflow (after recovery), or re-throws
  *       exception to stop workflow.</li>
  * </ol>
  *
@@ -159,7 +159,7 @@
  *
  * <ul>
  *   <li>Dependency injection of other CDI beans</li>
- *   <li>Custom {@link jakarta.ai.agent.WorkflowScoped @WorkflowScoped} 
+ *   <li>Custom {@link jakarta.ai.agent.WorkflowScoped @WorkflowScoped}
  *       scope for workflow-level lifecycle</li>
  *   <li>CDI event observation</li>
  *   <li>Interceptor support for cross-cutting concerns</li>
@@ -186,7 +186,7 @@
  *       timeouts, invalid responses) or response deserialization failures</li>
  * </ul>
  *
- * <p>These exceptions can be handled with try-catch blocks or 
+ * <p>These exceptions can be handled with try-catch blocks or
  * {@link jakarta.ai.agent.OnException @OnException}
  * methods for workflow-level error handling.
  *

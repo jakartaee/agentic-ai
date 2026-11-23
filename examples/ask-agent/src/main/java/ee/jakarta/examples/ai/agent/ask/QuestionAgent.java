@@ -53,8 +53,7 @@ public class QuestionAgent {
     @Action
     Answer generate(Question question) {
         LOGGER.info("[ACTION] querying LLM for: " + question.text());
-        return new Answer(model.query("Answer concisely in one short paragraph: {}",
-                question.text()));
+        return new Answer(model.query("Answer concisely in one short paragraph: {}", question.text()));
     }
 
     @Outcome

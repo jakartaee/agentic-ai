@@ -12,5 +12,4 @@
  *****************************************************************************/
 package ee.jakarta.examples.ai.agent.ask;
 
-public record Answer(String text) {
-}
+public record Answer(String text) {}

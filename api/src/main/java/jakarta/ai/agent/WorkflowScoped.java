@@ -70,7 +70,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
  *
  * @since 1.0
  */
-@Target({ TYPE, METHOD, FIELD })
+@Target({TYPE, METHOD, FIELD})
 @Retention(RUNTIME)
 @Documented
 @NormalScope
@@ -80,7 +80,7 @@ public @interface WorkflowScoped {
     /**
      * Supports inline instantiation of the WorkflowScoped annotation.
      */
-    public final static class Literal extends AnnotationLiteral<WorkflowScoped> {
+    public static final class Literal extends AnnotationLiteral<WorkflowScoped> {
         /** The {@code WorkflowScoped} literal. */
         public static final Literal INSTANCE = new Literal();
 
@@ -89,7 +89,6 @@ public @interface WorkflowScoped {
         /**
          * Creates the singleton literal instance.
          */
-        private Literal() {
-        }
+        private Literal() {}
     }
 }

@@ -51,8 +51,7 @@ public class DeploymentErrorTwoPhaseTests {
     public static class TwoPhaseMethodAgent {
 
         @Trigger
-        public void onEvent(@Observes TwoPhaseMethodEvent event) {
-        }
+        public void onEvent(@Observes TwoPhaseMethodEvent event) {}
 
         @Action
         @Decision

@@ -12,10 +12,10 @@
  *****************************************************************************/
 package ee.jakarta.tck.ai.agent;
 
-import ee.jakarta.tck.ai.agent.framework.TckModel;
 import ee.jakarta.tck.ai.agent.framework.ExecutionTraceRecorder;
 import ee.jakarta.tck.ai.agent.framework.ExecutionTraceRecorder.Phase;
 import ee.jakarta.tck.ai.agent.framework.ExecutionTraceRecorder.TraceEntry;
+import ee.jakarta.tck.ai.agent.framework.TckModel;
 import jakarta.ai.agent.Action;
 import jakarta.ai.agent.Agent;
 import jakarta.ai.agent.LLMException;
@@ -62,18 +62,33 @@ public class LargeLanguageModelTests {
     @Deployment
     public static Archive<?> createDeployment() {
         return ShrinkWrap.create(WebArchive.class, "largelanguagemodel.war")
-                .addClasses(LlmProbeAgent.class, LlmProbeEvent.class,
-                            LlmQuerierAgent.class, LlmQuerierEvent.class,
-                            LlmFailureHandlingAgent.class, LlmFailureEvent.class,
-                            PersonFixture.class, NonSerializableParam.class, NonSerializableParam.Serializer.class)
+                .addClasses(
+                        LlmProbeAgent.class,
+                        LlmProbeEvent.class,
+                        LlmQuerierAgent.class,
+                        LlmQuerierEvent.class,
+                        LlmFailureHandlingAgent.class,
+                        LlmFailureEvent.class,
+                        PersonFixture.class,
+                        NonSerializableParam.class,
+                        NonSerializableParam.Serializer.class)
                 .addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml");
     }
 
-    @Inject Event<LlmProbeEvent>   probes;
-    @Inject Event<LlmQuerierEvent> queries;
-    @Inject Event<LlmFailureEvent> failures;
-    @Inject ExecutionTraceRecorder trace;
-    @Inject LargeLanguageModel     llm;
+    @Inject
+    Event<LlmProbeEvent> probes;
+
+    @Inject
+    Event<LlmQuerierEvent> queries;
+
+    @Inject
+    Event<LlmFailureEvent> failures;
+
+    @Inject
+    ExecutionTraceRecorder trace;
+
+    @Inject
+    LargeLanguageModel llm;
 
     /** A structured value that round-trips through Jakarta JSON Binding. */
     public record PersonFixture(String name, int age) {}
@@ -95,8 +110,11 @@ public class LargeLanguageModelTests {
     @ApplicationScoped
     public static class LlmProbeAgent {
 
-        @Inject LargeLanguageModel llm;
-        @Inject ExecutionTraceRecorder trace;
+        @Inject
+        LargeLanguageModel llm;
+
+        @Inject
+        ExecutionTraceRecorder trace;
 
         @Trigger
         public void onProbe(@Observes LlmProbeEvent event) {
@@ -206,8 +224,8 @@ public class LargeLanguageModelTests {
      */
     @Test
     public void arityMismatchOnTypedVarargsOverloadThrows() {
-        assertInstanceOf(IllegalArgumentException.class,
-                probe(llm -> llm.query("one {} here", PersonFixture.class, "a", "b")));
+        assertInstanceOf(
+                IllegalArgumentException.class, probe(llm -> llm.query("one {} here", PersonFixture.class, "a", "b")));
     }
 
     /**
@@ -239,8 +257,8 @@ public class LargeLanguageModelTests {
      */
     @Test
     public void parameterSerializationFailureThrowsIllegalArgumentException() {
-        assertInstanceOf(IllegalArgumentException.class,
-                probe(llm -> llm.query("process {}", new NonSerializableParam())));
+        assertInstanceOf(
+                IllegalArgumentException.class, probe(llm -> llm.query("process {}", new NonSerializableParam())));
     }
 
     /**
@@ -251,7 +269,8 @@ public class LargeLanguageModelTests {
      */
     @Test
     public void parameterSerializationFailureOnTypedOverloadThrowsIllegalArgumentException() {
-        assertInstanceOf(IllegalArgumentException.class,
+        assertInstanceOf(
+                IllegalArgumentException.class,
                 probe(llm -> llm.query("process {}", PersonFixture.class, new NonSerializableParam())));
     }
 
@@ -295,8 +314,8 @@ public class LargeLanguageModelTests {
      */
     @Test
     public void lookAlikeTokensAreNotPlaceholders() {
-        assertEquals("{name} and { } stay literal",
-                probe(llm -> llm.query("{name} and { } stay literal", new Object[0])));
+        assertEquals(
+                "{name} and { } stay literal", probe(llm -> llm.query("{name} and { } stay literal", new Object[0])));
     }
 
     /**
@@ -316,8 +335,8 @@ public class LargeLanguageModelTests {
      */
     @Test
     public void complexObjectSerializedViaJsonBinding() {
-        String rendered = assertInstanceOf(String.class,
-                probe(llm -> llm.query("Profile: {}", new PersonFixture("Alice", 30))));
+        String rendered =
+                assertInstanceOf(String.class, probe(llm -> llm.query("Profile: {}", new PersonFixture("Alice", 30))));
         assertTrue(rendered.startsWith("Profile: "), rendered);
         assertTrue(rendered.contains("\"name\":\"Alice\""), rendered);
         assertTrue(rendered.contains("\"age\":30"), rendered);
@@ -330,8 +349,8 @@ public class LargeLanguageModelTests {
      */
     @Test
     public void typedResponseDeserializedViaJsonBinding() {
-        PersonFixture p = assertInstanceOf(PersonFixture.class,
-                probe(llm -> llm.query("{\"name\":\"Bob\",\"age\":25}", PersonFixture.class)));
+        PersonFixture p = assertInstanceOf(
+                PersonFixture.class, probe(llm -> llm.query("{\"name\":\"Bob\",\"age\":25}", PersonFixture.class)));
         assertEquals(new PersonFixture("Bob", 25), p);
     }
 
@@ -342,7 +361,8 @@ public class LargeLanguageModelTests {
      */
     @Test
     public void typedVarargsResponseDeserializedViaJsonBinding() {
-        PersonFixture p = assertInstanceOf(PersonFixture.class,
+        PersonFixture p = assertInstanceOf(
+                PersonFixture.class,
                 probe(llm -> llm.query("{\"name\":{},\"age\":{}}", PersonFixture.class, "Bob", 25)));
         assertEquals(new PersonFixture("Bob", 25), p);
     }
@@ -418,8 +438,11 @@ public class LargeLanguageModelTests {
     @ApplicationScoped
     public static class LlmFailureHandlingAgent {
 
-        @Inject LargeLanguageModel llm;
-        @Inject ExecutionTraceRecorder trace;
+        @Inject
+        LargeLanguageModel llm;
+
+        @Inject
+        ExecutionTraceRecorder trace;
 
         @Trigger
         public void onEvent(@Observes LlmFailureEvent event) {
@@ -453,6 +476,7 @@ public class LargeLanguageModelTests {
     public void llmExceptionIsHandledByOnException() {
         trace.reset();
         failures.fire(new LlmFailureEvent("x"));
+
         assertEquals(List.of(Phase.TRIGGER, Phase.ACTION, Phase.ON_EXCEPTION, Phase.OUTCOME), trace.phases());
         assertInstanceOf(LLMException.class, trace.entries().get(2).args()[0]);
     }
@@ -482,8 +506,11 @@ public class LargeLanguageModelTests {
     @ApplicationScoped
     public static class LlmQuerierAgent {
 
-        @Inject LargeLanguageModel llm;
-        @Inject ExecutionTraceRecorder trace;
+        @Inject
+        LargeLanguageModel llm;
+
+        @Inject
+        ExecutionTraceRecorder trace;
 
         @Trigger
         public void onEvent(@Observes LlmQuerierEvent event) {
@@ -510,7 +537,8 @@ public class LargeLanguageModelTests {
         queries.fire(new LlmQuerierEvent("workflow-2"));
 
         assertEquals(List.of(Phase.TRIGGER, Phase.ACTION, Phase.TRIGGER, Phase.ACTION), trace.phases());
-        List<TraceEntry> actions = trace.entries().stream().filter(e -> e.phase() == Phase.ACTION).toList();
+        List<TraceEntry> actions =
+                trace.entries().stream().filter(e -> e.phase() == Phase.ACTION).toList();
         assertEquals("turn for \"workflow-1\"", actions.get(0).args()[1]);
         assertEquals("turn for \"workflow-2\"", actions.get(1).args()[1]);
     }

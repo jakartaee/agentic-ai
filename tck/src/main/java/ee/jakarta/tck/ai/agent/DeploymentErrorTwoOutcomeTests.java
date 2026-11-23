@@ -50,16 +50,13 @@ public class DeploymentErrorTwoOutcomeTests {
     public static class TwoOutcomeAgent {
 
         @Trigger
-        public void onEvent(@Observes DeploymentErrorEvent event) {
-        }
+        public void onEvent(@Observes DeploymentErrorEvent event) {}
 
         @Outcome
-        public void firstOutcome() {
-        }
+        public void firstOutcome() {}
 
         @Outcome
-        public void secondOutcome() {
-        }
+        public void secondOutcome() {}
     }
 
     /**

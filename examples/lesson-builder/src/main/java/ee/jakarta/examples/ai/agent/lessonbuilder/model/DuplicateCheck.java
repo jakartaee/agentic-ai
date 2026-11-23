@@ -19,8 +19,7 @@ package ee.jakarta.examples.ai.agent.lessonbuilder.model;
 public record DuplicateCheck(boolean unique, String matchedTitle, String reason) {
 
     /** The JSON shape a model reply must have to bind to this record. */
-    public static final String SCHEMA =
-            "Return ONLY valid JSON of the form {\"unique\":true|false,"
+    public static final String SCHEMA = "Return ONLY valid JSON of the form {\"unique\":true|false,"
             + "\"matchedTitle\":\"title of the overlapping entry, or empty\","
             + "\"reason\":\"one sentence\"}.";
 }

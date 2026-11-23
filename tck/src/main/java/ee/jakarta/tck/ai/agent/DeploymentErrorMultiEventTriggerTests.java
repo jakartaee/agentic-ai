@@ -54,8 +54,7 @@ public class DeploymentErrorMultiEventTriggerTests {
     public static class MultiEventTriggerAgent {
 
         @Trigger
-        public void onEvent(DeploymentErrorEvent first, SecondTriggerEvent second) {
-        }
+        public void onEvent(DeploymentErrorEvent first, SecondTriggerEvent second) {}
     }
 
     /**

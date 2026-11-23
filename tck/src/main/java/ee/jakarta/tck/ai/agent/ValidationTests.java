@@ -66,24 +66,44 @@ public class ValidationTests {
     public static Archive<?> createDeployment() {
         return ShrinkWrap.create(WebArchive.class, "validation.war")
                 .addClasses(
-                        ValidatedAgent.class, ValidationEvent.class, InputData.class,
-                        UnhandledValidatedAgent.class, UnhandledValidationEvent.class,
-                        TriggerValidatedAgent.class, TriggerValidationEvent.class,
-                        DecisionValidatedAgent.class, DecisionValidationEvent.class,
-                        HandlerValidatedAgent.class, HandlerValidationEvent.class, HandlerInput.class,
+                        ValidatedAgent.class,
+                        ValidationEvent.class,
+                        InputData.class,
+                        UnhandledValidatedAgent.class,
+                        UnhandledValidationEvent.class,
+                        TriggerValidatedAgent.class,
+                        TriggerValidationEvent.class,
+                        DecisionValidatedAgent.class,
+                        DecisionValidationEvent.class,
+                        HandlerValidatedAgent.class,
+                        HandlerValidationEvent.class,
+                        HandlerInput.class,
                         AgentDomainException.class,
-                        OutcomeValidatedAgent.class, OutcomeValidationEvent.class
-                )
+                        OutcomeValidatedAgent.class,
+                        OutcomeValidationEvent.class)
                 .addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml");
     }
 
-    @Inject Event<ValidationEvent>          events;
-    @Inject Event<UnhandledValidationEvent> unhandledEvents;
-    @Inject Event<TriggerValidationEvent>   triggerEvents;
-    @Inject Event<DecisionValidationEvent>  decisionEvents;
-    @Inject Event<HandlerValidationEvent>   handlerEvents;
-    @Inject Event<OutcomeValidationEvent>   outcomeEvents;
-    @Inject ExecutionTraceRecorder          trace;
+    @Inject
+    Event<ValidationEvent> events;
+
+    @Inject
+    Event<UnhandledValidationEvent> unhandledEvents;
+
+    @Inject
+    Event<TriggerValidationEvent> triggerEvents;
+
+    @Inject
+    Event<DecisionValidationEvent> decisionEvents;
+
+    @Inject
+    Event<HandlerValidationEvent> handlerEvents;
+
+    @Inject
+    Event<OutcomeValidationEvent> outcomeEvents;
+
+    @Inject
+    ExecutionTraceRecorder trace;
 
     /**
      * Produced by one phase and received by a later phase that declares it {@code @Valid}. A
@@ -109,7 +129,8 @@ public class ValidationTests {
     @ApplicationScoped
     public static class ValidatedAgent {
 
-        @Inject ExecutionTraceRecorder trace;
+        @Inject
+        ExecutionTraceRecorder trace;
 
         @Trigger
         public InputData onEvent(@Observes ValidationEvent event) {
@@ -138,10 +159,12 @@ public class ValidationTests {
     public void validInputProceedsThroughAction() {
         trace.reset();
         events.fire(new ValidationEvent("ok"));
+
         assertEquals(List.of(Phase.TRIGGER, Phase.ACTION), trace.phases());
     }
 
     // -- invalid input skips the phase body ------------------------------------
+
     /**
      * Invalid input fails validation before injection, so the {@code @Action} body never runs.
      *
@@ -151,10 +174,12 @@ public class ValidationTests {
     public void invalidInputDoesNotRunActionBody() {
         trace.reset();
         events.fire(new ValidationEvent(null));
+
         assertFalse(trace.phases().contains(Phase.ACTION));
     }
 
     // -- invalid input routed to @OnException ----------------------------------
+
     /**
      * A ConstraintViolationException from failed validation is routed to a matching {@code
      * @OnException} method.
@@ -186,7 +211,8 @@ public class ValidationTests {
     @ApplicationScoped
     public static class UnhandledValidatedAgent {
 
-        @Inject ExecutionTraceRecorder trace;
+        @Inject
+        ExecutionTraceRecorder trace;
 
         @Trigger
         public InputData onEvent(@Observes UnhandledValidationEvent event) {
@@ -209,8 +235,9 @@ public class ValidationTests {
     @Test
     public void invalidInputPropagatesWithoutHandler() {
         trace.reset();
-        Throwable thrown = assertThrows(Throwable.class,
-                () -> unhandledEvents.fire(new UnhandledValidationEvent(null)));
+        Throwable thrown =
+                assertThrows(Throwable.class, () -> unhandledEvents.fire(new UnhandledValidationEvent(null)));
+
         Throwable violation = thrown;
         while (violation != null && !(violation instanceof ConstraintViolationException)) {
             violation = violation.getCause();
@@ -228,7 +255,8 @@ public class ValidationTests {
     @ApplicationScoped
     public static class TriggerValidatedAgent {
 
-        @Inject ExecutionTraceRecorder trace;
+        @Inject
+        ExecutionTraceRecorder trace;
 
         @Trigger
         public void onEvent(@Observes @Valid TriggerValidationEvent event) {
@@ -273,7 +301,8 @@ public class ValidationTests {
     @ApplicationScoped
     public static class DecisionValidatedAgent {
 
-        @Inject ExecutionTraceRecorder trace;
+        @Inject
+        ExecutionTraceRecorder trace;
 
         @Trigger
         public InputData onEvent(@Observes DecisionValidationEvent event) {
@@ -345,7 +374,8 @@ public class ValidationTests {
     @ApplicationScoped
     public static class OutcomeValidatedAgent {
 
-        @Inject ExecutionTraceRecorder trace;
+        @Inject
+        ExecutionTraceRecorder trace;
 
         @Trigger
         public void onEvent(@Observes OutcomeValidationEvent event) {
@@ -424,7 +454,8 @@ public class ValidationTests {
     @ApplicationScoped
     public static class HandlerValidatedAgent {
 
-        @Inject ExecutionTraceRecorder trace;
+        @Inject
+        ExecutionTraceRecorder trace;
 
         @Trigger
         public HandlerInput onEvent(@Observes HandlerValidationEvent event) {
@@ -453,8 +484,7 @@ public class ValidationTests {
     @Test
     public void invalidHandlerParameterPropagatesWithoutRunningHandler() {
         trace.reset();
-        Throwable thrown = assertThrows(Throwable.class,
-                () -> handlerEvents.fire(new HandlerValidationEvent(" ")));
+        Throwable thrown = assertThrows(Throwable.class, () -> handlerEvents.fire(new HandlerValidationEvent(" ")));
 
         Throwable first = thrown;
         while (first != null
@@ -462,7 +492,9 @@ public class ValidationTests {
                 && !(first instanceof AgentDomainException)) {
             first = first.getCause();
         }
-        assertInstanceOf(ConstraintViolationException.class, first,
+        assertInstanceOf(
+                ConstraintViolationException.class,
+                first,
                 "The validation exception, not the handled one, must propagate");
         assertEquals(List.of(Phase.TRIGGER, Phase.ACTION), trace.phases());
     }

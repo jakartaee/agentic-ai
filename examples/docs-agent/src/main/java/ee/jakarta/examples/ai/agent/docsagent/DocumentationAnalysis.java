@@ -34,13 +34,15 @@ public class DocumentationAnalysis implements Serializable {
 
     @SuppressWarnings("serial")
     private final List<String> suggestedTopics;
+
     private final String priority; // "high", "medium", "low"
 
-    public DocumentationAnalysis(boolean requiresDocumentation,
-                                  String reason,
-                                  List<String> affectedFiles,
-                                  List<String> suggestedTopics,
-                                  String priority) {
+    public DocumentationAnalysis(
+            boolean requiresDocumentation,
+            String reason,
+            List<String> affectedFiles,
+            List<String> suggestedTopics,
+            String priority) {
         this.requiresDocumentation = requiresDocumentation;
         this.reason = reason;
         this.affectedFiles = affectedFiles;
@@ -51,10 +53,8 @@ public class DocumentationAnalysis implements Serializable {
     /**
      * Factory method to create an analysis indicating documentation is needed.
      */
-    public static DocumentationAnalysis documentationNeeded(String reason,
-                                                             List<String> affectedFiles,
-                                                             List<String> suggestedTopics,
-                                                             String priority) {
+    public static DocumentationAnalysis documentationNeeded(
+            String reason, List<String> affectedFiles, List<String> suggestedTopics, String priority) {
         return new DocumentationAnalysis(true, reason, affectedFiles, suggestedTopics, priority);
     }
 
@@ -80,12 +80,11 @@ public class DocumentationAnalysis implements Serializable {
 
     @Override
     public String toString() {
-        return "DocumentationAnalysis{" +
-                "requiresDocumentation=" + requiresDocumentation +
-                ", reason='" + reason + '\'' +
-                ", affectedFiles=" + affectedFiles +
-                ", suggestedTopics=" + suggestedTopics +
-                ", priority='" + priority + '\'' +
-                '}';
+        return "DocumentationAnalysis{" + "requiresDocumentation="
+                + requiresDocumentation + ", reason='"
+                + reason + '\'' + ", affectedFiles="
+                + affectedFiles + ", suggestedTopics="
+                + suggestedTopics + ", priority='"
+                + priority + '\'' + '}';
     }
 }

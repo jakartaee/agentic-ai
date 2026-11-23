@@ -20,15 +20,15 @@ import java.lang.annotation.Target;
 /**
  * Marks a method as an exception handler within an agent workflow.
  * <p>
- * Exception handler methods provide agent-specific error recovery when 
- * exceptions occur during any workflow phase (trigger, decision, action, 
- * or outcome). The handler is invoked with the thrown exception, allowing 
- * the agent to perform recovery actions, logging, cleanup, or alternative 
+ * Exception handler methods provide agent-specific error recovery when
+ * exceptions occur during any workflow phase (trigger, decision, action,
+ * or outcome). The handler is invoked with the thrown exception, allowing
+ * the agent to perform recovery actions, logging, cleanup, or alternative
  * workflows.
  * <p>
  * <b>Workflow Control:</b>
  * <ul>
- *   <li><strong>To continue workflow:</strong> Handler completes 
+ *   <li><strong>To continue workflow:</strong> Handler completes
  *       successfully (returns normally)</li>
  *   <li><strong>To stop workflow:</strong> Handler re-throws the exception
  *       or throws a new exception</li>
@@ -38,16 +38,16 @@ import java.lang.annotation.Target;
  * Exception handler methods can have the following types of parameters that
  * will be automatically resolved:
  * <ul>
- *   <li>Exception parameter (required) - The thrown exception or its 
- *       supertype. The most specific matching handler is invoked based on 
+ *   <li>Exception parameter (required) - The thrown exception or its
+ *       supertype. The most specific matching handler is invoked based on
  *       exception type.</li>
- *   <li>Workflow state domain objects - Any objects from previous workflow 
- *       phases, particularly the trigger event or decision/action 
+ *   <li>Workflow state domain objects - Any objects from previous workflow
+ *       phases, particularly the trigger event or decision/action
  *       results</li>
- *   <li>{@link LargeLanguageModel} - LLM instance for analysis or 
+ *   <li>{@link LargeLanguageModel} - LLM instance for analysis or
  *       diagnostics</li>
  *   <li>Any other CDI injectable dependencies available to the agent
- *       - typically in the application scope or managed by the 
+ *       - typically in the application scope or managed by the
  *       container</li>
  * </ul>
  * <p>
@@ -57,22 +57,22 @@ import java.lang.annotation.Target;
  * to the container.
  * <p>
  * <b>Return type</b><br>
- * Exception handler methods MUST return {@code void}. Handlers are 
- * designed for error recovery, logging, and cleanup rather than producing 
+ * Exception handler methods MUST return {@code void}. Handlers are
+ * designed for error recovery, logging, and cleanup rather than producing
  * workflow data.
  *
  * <p><b>Semantics</b>
  * <ul>
  *   <li>Invoked when exceptions occur in any workflow phase</li>
- *   <li>Most specific exception type match is selected (follows Java 
+ *   <li>Most specific exception type match is selected (follows Java
  *       exception hierarchy)</li>
- *   <li><strong>Workflow continues</strong> if handler returns normally 
+ *   <li><strong>Workflow continues</strong> if handler returns normally
  *       (successful recovery)</li>
- *   <li><strong>Workflow stops</strong> if handler throws an exception 
+ *   <li><strong>Workflow stops</strong> if handler throws an exception
  *       (re-throw or new exception)</li>
- *   <li>If no matching handler exists, exception propagates to 
+ *   <li>If no matching handler exists, exception propagates to
  *       container</li>
- *   <li>Handler exceptions propagate to container (no recursive 
+ *   <li>Handler exceptions propagate to container (no recursive
  *       handling)</li>
  * </ul>
  *
@@ -147,5 +147,4 @@ import java.lang.annotation.Target;
  */
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface OnException {
-}
+public @interface OnException {}

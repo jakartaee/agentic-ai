@@ -51,16 +51,13 @@ public class DeploymentErrorMixedOrderingTests {
     public static class MixedOrderingAgent {
 
         @Trigger
-        public void onEvent(@Observes DeploymentErrorEvent event) {
-        }
+        public void onEvent(@Observes DeploymentErrorEvent event) {}
 
         @Action(order = 1)
-        public void ordered() {
-        }
+        public void ordered() {}
 
         @Action
-        public void unordered() {
-        }
+        public void unordered() {}
     }
 
     /**
