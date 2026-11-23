@@ -39,6 +39,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -77,9 +78,6 @@ public class AgentScopesTests {
     }
 
     @Inject
-    Event<ScopeDefaultEvent> scopeDefaultEvents;
-
-    @Inject
     Event<LifecycleSpyEvent> lifecycleSpyEvents;
 
     @Inject
@@ -103,66 +101,23 @@ public class AgentScopesTests {
     @Agent
     public static class ScopeDefaultAgent {
 
-        @Inject
-        ExecutionTraceRecorder trace;
-
-        @Inject
-        LifecycleRecorder lifecycle;
-
-        private String instanceId;
-
-        @PostConstruct
-        void init() {
-            instanceId = lifecycle.postConstruct(ScopeDefaultAgent.class);
-        }
-
         @Trigger
-        public void onEvent(@Observes ScopeDefaultEvent event) {
-            trace.record(Phase.TRIGGER, "onEvent", event, instanceId);
-        }
-
-        @Action
-        public void process(ScopeDefaultEvent event) {
-            trace.record(Phase.ACTION, "process", event, instanceId);
-        }
-
-        @Outcome
-        public void finish(ScopeDefaultEvent event) {
-            trace.record(Phase.OUTCOME, "finish", event, instanceId);
-        }
+        public void onEvent(@Observes ScopeDefaultEvent event) {}
     }
 
     /**
      * An agent with no explicit scope is discovered as a CDI bean in an archive whose
-     * {@code beans.xml} is empty, and is {@code @WorkflowScoped}. One instance serves every phase
-     * of a workflow, and each workflow gets a distinct instance.
+     * {@code beans.xml} is empty, and is {@code @WorkflowScoped}.
      *
      * <p>Specification section {@code agent-semantics}.
      */
     @Test
-    public void defaultScopeIsWorkflowScopedWithOneInstancePerWorkflow() {
+    public void defaultScopeIsWorkflowScoped() {
         Set<Bean<?>> beans = beanManager.getBeans(ScopeDefaultAgent.class);
         assertEquals(1, beans.size());
         Bean<?> bean = beanManager.resolve(beans);
         assertNotNull(bean);
         assertEquals(WorkflowScoped.class, bean.getScope());
-
-        lifecycle.reset(ScopeDefaultAgent.class);
-        trace.reset();
-        scopeDefaultEvents.fire(new ScopeDefaultEvent("workflow-1"));
-        scopeDefaultEvents.fire(new ScopeDefaultEvent("workflow-2"));
-
-        assertEquals(
-                List.of(Phase.TRIGGER, Phase.ACTION, Phase.OUTCOME, Phase.TRIGGER, Phase.ACTION, Phase.OUTCOME),
-                trace.phases());
-
-        List<String> ids = lifecycle.constructed(ScopeDefaultAgent.class);
-        assertEquals(2, ids.size());
-        assertNotEquals(ids.get(1), ids.get(0));
-
-        List<String> phaseInstanceIds =
-                trace.entries().stream().map(entry -> (String) entry.args()[1]).toList();
-        assertEquals(List.of(ids.get(0), ids.get(0), ids.get(0), ids.get(1), ids.get(1), ids.get(1)), phaseInstanceIds);
     }
 
     public record LifecycleSpyEvent(String payload) {}
@@ -217,8 +172,9 @@ public class AgentScopesTests {
     }
 
     /**
-     * An explicitly {@code @WorkflowScoped} agent gets a distinct instance per workflow. Two
-     * sequential events yield two different instance ids.
+     * A {@code @WorkflowScoped} agent gets a distinct instance per workflow, and that one instance
+     * serves every phase of its workflow. Two sequential workflows each construct one instance,
+     * and every phase records the id of its own workflow's instance.
      *
      * <p>Specification section {@code workflowscoped}.
      */
@@ -229,9 +185,15 @@ public class AgentScopesTests {
         lifecycleSpyEvents.fire(new LifecycleSpyEvent("workflow-1"));
         lifecycleSpyEvents.fire(new LifecycleSpyEvent("workflow-2"));
 
+        assertEquals(
+                List.of(Phase.TRIGGER, Phase.ACTION, Phase.OUTCOME, Phase.TRIGGER, Phase.ACTION, Phase.OUTCOME),
+                trace.phases());
         List<String> ids = lifecycle.constructed(LifecycleSpyAgent.class);
         assertEquals(2, ids.size());
         assertNotEquals(ids.get(1), ids.get(0));
+        List<String> phaseInstanceIds =
+                trace.entries().stream().map(entry -> (String) entry.args()[1]).toList();
+        assertEquals(List.of(ids.get(0), ids.get(0), ids.get(0), ids.get(1), ids.get(1), ids.get(1)), phaseInstanceIds);
     }
 
     /**
@@ -393,55 +355,25 @@ public class AgentScopesTests {
     }
 
     /**
-     * {@code @PostConstruct} is invoked exactly once for an {@code @ApplicationScoped} agent
-     * however many workflow events are fired.
+     * An {@code @ApplicationScoped} agent has one instance, shared by every workflow and every
+     * phase. Its {@code @PostConstruct} runs exactly once however many workflows are fired, and
+     * every phase of two sequential workflows records that instance's id.
      *
      * <p>Specification section {@code applicationscoped}.
      */
     @Test
-    public void applicationScopedAgentPostConstructCalledOnce() {
+    public void applicationScopedAgentHasOneInstanceForAllWorkflows() {
         trace.reset();
         singletonEvents.fire(new SingletonCdiEvent("first"));
         singletonEvents.fire(new SingletonCdiEvent("second"));
 
-        assertEquals(1, lifecycle.constructed(SingletonCdiAgent.class).size());
-    }
-
-    /**
-     * An {@code @ApplicationScoped} agent reuses the same instance across sequential workflows.
-     * Both {@code @Trigger} invocations record the same instance id.
-     *
-     * <p>Specification section {@code applicationscoped}.
-     */
-    @Test
-    public void applicationScopedAgentSharesInstanceAcrossWorkflows() {
-        trace.reset();
-        singletonEvents.fire(new SingletonCdiEvent("first"));
-        String id1 = (String) trace.entry(Phase.TRIGGER).args()[1];
-
-        trace.reset();
-        singletonEvents.fire(new SingletonCdiEvent("second"));
-        String id2 = (String) trace.entry(Phase.TRIGGER).args()[1];
-
-        assertEquals(id1, id2);
-    }
-
-    /**
-     * An {@code @ApplicationScoped} agent uses the same instance across all phases of a
-     * workflow. Trigger, action and outcome record the same instance id.
-     *
-     * <p>Specification section {@code applicationscoped}.
-     */
-    @Test
-    public void applicationScopedAgentUsesSameInstanceAcrossAllPhases() {
-        trace.reset();
-        singletonEvents.fire(new SingletonCdiEvent("test"));
-
-        assertEquals(List.of(Phase.TRIGGER, Phase.ACTION, Phase.OUTCOME), trace.phases());
-        String triggerId = (String) trace.entry(Phase.TRIGGER).args()[1];
-        String actionId = (String) trace.entry(Phase.ACTION).args()[1];
-        String outcomeId = (String) trace.entry(Phase.OUTCOME).args()[1];
-        assertEquals(triggerId, actionId);
-        assertEquals(triggerId, outcomeId);
+        assertEquals(
+                List.of(Phase.TRIGGER, Phase.ACTION, Phase.OUTCOME, Phase.TRIGGER, Phase.ACTION, Phase.OUTCOME),
+                trace.phases());
+        List<String> ids = lifecycle.constructed(SingletonCdiAgent.class);
+        assertEquals(1, ids.size());
+        List<String> phaseInstanceIds =
+                trace.entries().stream().map(entry -> (String) entry.args()[1]).toList();
+        assertEquals(Collections.nCopies(6, ids.get(0)), phaseInstanceIds);
     }
 }
