@@ -205,7 +205,6 @@ public class AgentScopesTests {
     @Test
     public void workflowScopedAgentPostConstructCalledOnce() {
         lifecycle.reset(LifecycleSpyAgent.class);
-        trace.reset();
         lifecycleSpyEvents.fire(new LifecycleSpyEvent("workflow-1"));
 
         assertEquals(1, lifecycle.constructed(LifecycleSpyAgent.class).size());
