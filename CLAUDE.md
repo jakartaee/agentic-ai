@@ -28,7 +28,7 @@ Defines the `jakarta.ai.agent` package. Most types are annotations or interfaces
 
 | Type | Purpose |
 |---|---|
-| `@Agent` | Declares an agent class. Default scope is `@WorkflowScoped` when no scope annotation is present. |
+| `@Agent` | Declares an agent class. A CDI stereotype declaring `@WorkflowScoped` as the default scope, so agents are discovered in annotated mode and need no `bean-discovery-mode="all"`. |
 | `@Trigger` | Workflow entry method invoked by CDI events. Can receive the triggering event (with optional `@Observes`). |
 | `@Decision` | Method that decides whether and how the workflow should proceed. Returns `boolean`, `Result`, or a domain object. |
 | `@Action` | Step within the workflow. |
