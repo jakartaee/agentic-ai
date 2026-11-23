@@ -45,7 +45,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Verifies Jakarta Validation integration in the agent workflow
@@ -191,7 +190,6 @@ public class ValidationTests {
         trace.reset();
         events.fire(new ValidationEvent(null));
 
-        assertTrue(trace.phases().contains(Phase.ON_EXCEPTION));
         assertInstanceOf(
                 ConstraintViolationException.class,
                 trace.entry(Phase.ON_EXCEPTION).args()[0]);

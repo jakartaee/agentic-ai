@@ -131,7 +131,7 @@ public class LargeLanguageModelTests {
     private Object probe(Function<LargeLanguageModel, Object> call) {
         trace.reset();
         probes.fire(new LlmProbeEvent(call));
-        return trace.entries().get(0).args()[0];
+        return trace.entry(Phase.TRIGGER).args()[0];
     }
 
     // -- validation: IllegalArgumentException before any model call ------------
@@ -478,7 +478,7 @@ public class LargeLanguageModelTests {
         failures.fire(new LlmFailureEvent("x"));
 
         assertEquals(List.of(Phase.TRIGGER, Phase.ACTION, Phase.ON_EXCEPTION, Phase.OUTCOME), trace.phases());
-        assertInstanceOf(LLMException.class, trace.entries().get(2).args()[0]);
+        assertInstanceOf(LLMException.class, trace.entry(Phase.ON_EXCEPTION).args()[0]);
     }
 
     // -- use outside a workflow ------------------------------------------------

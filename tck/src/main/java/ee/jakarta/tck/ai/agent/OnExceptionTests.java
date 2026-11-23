@@ -529,7 +529,7 @@ public class OnExceptionTests {
         statefulHandlerEvents.fire(new StatefulHandlerEvent("x"));
 
         assertEquals(List.of(Phase.TRIGGER, Phase.ACTION, Phase.ON_EXCEPTION, Phase.OUTCOME), trace.phases());
-        TraceEntry handler = trace.entries().get(2);
+        TraceEntry handler = trace.entry(Phase.ON_EXCEPTION);
         assertInstanceOf(AgentDomainException.class, handler.args()[0]);
         assertEquals(
                 "x",

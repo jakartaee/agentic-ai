@@ -144,7 +144,9 @@ public class ParameterResolutionTests {
 
         assertEquals(
                 "my-payload",
-                assertInstanceOf(LlmParameterEvent.class, trace.entries().get(0).args()[0])
+                assertInstanceOf(
+                                LlmParameterEvent.class,
+                                trace.entry(Phase.TRIGGER).args()[0])
                         .payload());
     }
 
@@ -160,7 +162,7 @@ public class ParameterResolutionTests {
         llmParameterEvents.fire(new LlmParameterEvent("payload"));
 
         assertEquals(List.of(Phase.TRIGGER, Phase.ACTION, Phase.OUTCOME), trace.phases());
-        assertEquals("classify \"payload\"", trace.entries().get(1).args()[1]);
+        assertEquals("classify \"payload\"", trace.entry(Phase.ACTION).args()[1]);
     }
 
     // -- trigger without @Observes ---------------------------------------------
@@ -207,7 +209,7 @@ public class ParameterResolutionTests {
                 "test",
                 assertInstanceOf(
                                 ImplicitObservesEvent.class,
-                                trace.entries().get(0).args()[0])
+                                trace.entry(Phase.TRIGGER).args()[0])
                         .payload());
     }
 
@@ -345,7 +347,8 @@ public class ParameterResolutionTests {
 
         assertEquals(
                 "trigger:input",
-                assertInstanceOf(TriggerOutput.class, trace.entries().get(1).args()[1])
+                assertInstanceOf(
+                                TriggerOutput.class, trace.entry(Phase.DECISION).args()[1])
                         .fromTrigger());
     }
 
@@ -361,7 +364,7 @@ public class ParameterResolutionTests {
         dataPropagationEvents.fire(new DataPropagationEvent("input"));
 
         DecisionOutput decision =
-                assertInstanceOf(DecisionOutput.class, trace.entries().get(2).args()[1]);
+                assertInstanceOf(DecisionOutput.class, trace.entry(Phase.ACTION).args()[1]);
         assertEquals("decision:trigger:input", decision.fromDecision());
     }
 
@@ -376,7 +379,7 @@ public class ParameterResolutionTests {
         dataPropagationEvents.fire(new DataPropagationEvent("input"));
 
         assertEquals(List.of(Phase.TRIGGER, Phase.DECISION, Phase.ACTION, Phase.OUTCOME), trace.phases());
-        Object[] outcomeArgs = trace.entries().get(3).args();
+        Object[] outcomeArgs = trace.entry(Phase.OUTCOME).args();
         assertInstanceOf(DataPropagationEvent.class, outcomeArgs[0]);
         assertInstanceOf(TriggerOutput.class, outcomeArgs[1]);
         assertInstanceOf(DecisionOutput.class, outcomeArgs[2]);
@@ -432,7 +435,8 @@ public class ParameterResolutionTests {
         assertEquals(List.of(Phase.TRIGGER, Phase.DECISION, Phase.ACTION), trace.phases());
         assertEquals(
                 "details:input",
-                assertInstanceOf(DecisionDetails.class, trace.entries().get(2).args()[0])
+                assertInstanceOf(
+                                DecisionDetails.class, trace.entry(Phase.ACTION).args()[0])
                         .value());
     }
 
@@ -492,7 +496,8 @@ public class ParameterResolutionTests {
         assertEquals(List.of(Phase.TRIGGER, Phase.DECISION, Phase.ACTION, Phase.OUTCOME), trace.phases());
         assertEquals(
                 "action",
-                assertInstanceOf(SameTypeOutput.class, trace.entries().get(3).args()[0])
+                assertInstanceOf(
+                                SameTypeOutput.class, trace.entry(Phase.OUTCOME).args()[0])
                         .marker());
     }
 
@@ -541,7 +546,7 @@ public class ParameterResolutionTests {
         voidPhasesEvents.fire(new VoidPhasesEvent("test"));
 
         assertEquals(List.of(Phase.TRIGGER, Phase.DECISION, Phase.ACTION, Phase.OUTCOME), trace.phases());
-        Object[] decisionArgs = trace.entries().get(1).args();
+        Object[] decisionArgs = trace.entry(Phase.DECISION).args();
         assertEquals(1, decisionArgs.length);
         assertInstanceOf(VoidPhasesEvent.class, decisionArgs[0]);
     }

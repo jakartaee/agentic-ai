@@ -423,11 +423,11 @@ public class AgentScopesTests {
     public void applicationScopedAgentSharesInstanceAcrossWorkflows() {
         trace.reset();
         singletonEvents.fire(new SingletonCdiEvent("first"));
-        String id1 = (String) trace.entries().get(0).args()[1];
+        String id1 = (String) trace.entry(Phase.TRIGGER).args()[1];
 
         trace.reset();
         singletonEvents.fire(new SingletonCdiEvent("second"));
-        String id2 = (String) trace.entries().get(0).args()[1];
+        String id2 = (String) trace.entry(Phase.TRIGGER).args()[1];
 
         assertEquals(id1, id2);
     }
@@ -444,9 +444,9 @@ public class AgentScopesTests {
         singletonEvents.fire(new SingletonCdiEvent("test"));
 
         assertEquals(List.of(Phase.TRIGGER, Phase.ACTION, Phase.OUTCOME), trace.phases());
-        String triggerId = (String) trace.entries().get(0).args()[1];
-        String actionId = (String) trace.entries().get(1).args()[1];
-        String outcomeId = (String) trace.entries().get(2).args()[1];
+        String triggerId = (String) trace.entry(Phase.TRIGGER).args()[1];
+        String actionId = (String) trace.entry(Phase.ACTION).args()[1];
+        String outcomeId = (String) trace.entry(Phase.OUTCOME).args()[1];
         assertEquals(triggerId, actionId);
         assertEquals(triggerId, outcomeId);
     }
