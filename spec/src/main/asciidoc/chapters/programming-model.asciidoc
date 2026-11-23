@@ -129,15 +129,21 @@ Jakarta EE component.
 @Agent
 public class DataIntegratedAgent {
 
-    @Inject private EntityManager entityManager;            // Jakarta Persistence
-    @Inject private CustomerRepository customerRepo;        // Jakarta Data
-    @Inject private Template mongoTemplate;                 // Jakarta NoSQL
-    @Inject private ManagedExecutorService executor;        // Jakarta Concurrency
+    @Inject
+    private EntityManager entityManager; // Jakarta Persistence
+
+    @Inject
+    private CustomerRepository customerRepo; // Jakarta Data
+
+    @Inject
+    private Template mongoTemplate; // Jakarta NoSQL
+
+    @Inject
+    private ManagedExecutorService executor; // Jakarta Concurrency
 
     @Action
-    @Transactional                                          // Jakarta Transactions
-    public void processCustomerData(
-            @Valid @NotNull CustomerId id) {                // Jakarta Validation
+    @Transactional // Jakarta Transactions
+    public void processCustomerData(@Valid @NotNull CustomerId id) { // Jakarta Validation
         Customer customer = entityManager.find(Customer.class, id);
         List<Order> orders = customerRepo.findOrdersByCustomerId(id);
         mongoTemplate.insert(new AnalyticsEvent(customer, orders));

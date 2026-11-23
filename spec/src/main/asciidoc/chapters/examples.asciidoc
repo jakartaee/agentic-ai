@@ -309,8 +309,8 @@ public class OnboardingAgent {
     }
 
     @OnException
-    public void onInvalidInvitation(ConstraintViolationException e,
-                                    UserInvitation invitation) {
+    public void onInvalidInvitation(
+            ConstraintViolationException e, UserInvitation invitation) {
         for (var v : e.getConstraintViolations()) {
             logger.warn("Invalid: " + v.getPropertyPath() + " - " + v.getMessage());
         }
@@ -320,8 +320,8 @@ public class OnboardingAgent {
 
     // Compensating recovery when the mail service cannot deliver.
     @OnException
-    public void onDeliveryFailure(EmailDeliveryException e,
-                                  UserInvitation invitation) {
+    public void onDeliveryFailure(
+            EmailDeliveryException e, UserInvitation invitation) {
         logger.error("Unable to deliver welcome email", e);
         invitation.setStatus(InvitationStatus.DELIVERY_FAILED);
         throw e;

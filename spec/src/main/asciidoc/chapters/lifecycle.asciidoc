@@ -536,7 +536,7 @@ required. The following patterns illustrate some common shapes.
 public class SimpleNotificationAgent {
 
     @Trigger
-    public void onAlert(SystemAlert alert) { }
+    public void onAlert(SystemAlert alert) {}
 
     @Action
     public void sendNotification(SystemAlert alert) {
@@ -554,11 +554,11 @@ public class SimpleNotificationAgent {
 public class DataProcessingAgent {
 
     @Trigger
-    public void onDataReceived(DataBatch data) { }
+    public void onDataReceived(DataBatch data) {}
 
-    @Action public void validateData(DataBatch data)   { validator.check(data); }
-    @Action public void transformData(DataBatch data)  { transformer.process(data); }
-    @Outcome public void persistData(DataBatch data)    { database.save(data); }
+    @Action public void validateData(DataBatch data) { validator.check(data); }
+    @Action public void transformData(DataBatch data) { transformer.process(data); }
+    @Outcome public void persistData(DataBatch data) { database.save(data); }
 }
 ----
 
@@ -571,7 +571,7 @@ public class DataProcessingAgent {
 public class OrderAgent {
 
     @Trigger
-    public void onOrder(Order order) { }
+    public void onOrder(Order order) {}
 
     @Decision
     public boolean isLegitimate(Order order, LargeLanguageModel llm) {
