@@ -341,5 +341,5 @@ These examples demonstrate:
 6. **CDI Integration**: Dependency injection, transactions
 7. **Context Management**: Maintaining state across workflow phases
 8. **Parameter Validation**: Jakarta Validation constraints with failure recovery
-9. **Real-world Use Cases**: Fraud detection, documentation generation, 
+9. **Real-world Use Cases**: Fraud detection, documentation generation,
    customer support

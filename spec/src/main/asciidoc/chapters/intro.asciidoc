@@ -21,7 +21,7 @@ technologies such as Large Language Models.
 * Designed for Jakarta EE runtimes, but potentially usable in Quarkus,
   Micronaut, and Spring Boot.
 
-The current version of Jakarta Agentic AI targets Java SE 17 or higher and 
+The current version of Jakarta Agentic AI targets Java SE 17 or higher and
 Jakarta EE Platform 10 or higher. See the xref:bibliography[Bibliography] for referenced
 specifications.
 
@@ -64,7 +64,7 @@ injection, interceptors, scoping, etc.
 Language Models without standardizing the LLM APIs themselves. Vendors plug
 in different LLM backends while applications enjoy a consistent basic interface.
 
-**Workflow orchestration**:: Enable declarative and programmatic workflows where 
+**Workflow orchestration**:: Enable declarative and programmatic workflows where
 the runtime manages execution flow between agent lifecycle phases.
 
 **Vendor neutrality**:: Allow implementations across Jakarta EE compatible

@@ -1,7 +1,7 @@
 [[agent-lifecycle]]
 == Annotations and Lifecycle
 
-This chapter is the normative reference for the annotations included in 
+This chapter is the normative reference for the annotations included in
 the specification, including the lifecycle annotations. Each lifecycle
 annotation marks a method as participating in a specific phase of the
 agent workflow. The chapter also defines parameter resolution, validation,
@@ -87,7 +87,7 @@ In the initial release, triggers are invoked by CDI events. A trigger
 method may use `@Observes` on the event parameter to explicitly declare the
 observed type. However, explicitly using `@Observes` is not required. There
 must be exactly one event parameter. The triggering event becomes part of the
-workflow state and is available for 
+workflow state and is available for
 xref:parameter-resolution[parameter resolution] in later phases.
 
 In future releases, additional trigger sources are anticipated, such as
@@ -100,7 +100,7 @@ xref:cdi-events[Event Observation Rules] in the CDI Integration chapter.
 [[trigger-parameters]]
 ==== Parameters
 
-Trigger methods follow the standard 
+Trigger methods follow the standard
 xref:parameter-resolution[parameter resolution] rules. The required triggering
 event is the most common parameter.
 
@@ -142,9 +142,9 @@ public class AnalyzingAgent {
 [[parameter-resolution]]
 === Parameter Resolution
 
-All workflow methods (annotated with `@Trigger`, `@Decision`, `@Action`, 
+All workflow methods (annotated with `@Trigger`, `@Decision`, `@Action`,
 `@Outcome`, and `@OnException`) receive their parameters through automatic
-resolution based on type and the current workflow state. Each annotation uses 
+resolution based on type and the current workflow state. Each annotation uses
 this single set of rules.
 
 [[resolution-order]]
@@ -213,7 +213,7 @@ public record Result(boolean success, Object details) {}
 ----
 +
 - `success == true` proceeds; `success == false` terminates.
-- `details` (if non-`null`) becomes part of workflow state and is 
+- `details` (if non-`null`) becomes part of workflow state and is
 available for injection by its runtime type into later steps.
 
 **Domain object**::
@@ -333,7 +333,7 @@ public class TransactionalAgent {
 === Execution Order
 
 The execution order of `@Action` and `@Decision` methods can be intermixed
-as needed. The runtime determines their order using the following rules, 
+as needed. The runtime determines their order using the following rules,
 in decreasing precedence:
 
 . **`@Priority` on the method** — `jakarta.annotation.Priority` value is the
@@ -344,7 +344,7 @@ in decreasing precedence:
   method in the agent declares `@Priority` or an explicit `order`.
 
 NOTE: Java SE does not guarantee that reflection returns methods
-in source declaration order. However, all major implementations do so in 
+in source declaration order. However, all major implementations do so in
 practice. Portable applications requiring strict ordering must use
  `@Priority` or `order`.
 
