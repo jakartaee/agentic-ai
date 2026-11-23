@@ -537,8 +537,7 @@ public class LargeLanguageModelTests {
         queries.fire(new LlmQuerierEvent("workflow-2"));
 
         assertEquals(List.of(Phase.TRIGGER, Phase.ACTION, Phase.TRIGGER, Phase.ACTION), trace.phases());
-        List<TraceEntry> actions =
-                trace.entries().stream().filter(e -> e.phase() == Phase.ACTION).toList();
+        List<TraceEntry> actions = trace.entries(Phase.ACTION);
         assertEquals("turn for \"workflow-1\"", actions.get(0).args()[1]);
         assertEquals("turn for \"workflow-2\"", actions.get(1).args()[1]);
     }

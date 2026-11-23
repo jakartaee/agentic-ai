@@ -14,7 +14,6 @@ package ee.jakarta.tck.ai.agent;
 
 import ee.jakarta.tck.ai.agent.framework.ExecutionTraceRecorder;
 import ee.jakarta.tck.ai.agent.framework.ExecutionTraceRecorder.Phase;
-import ee.jakarta.tck.ai.agent.framework.ExecutionTraceRecorder.TraceEntry;
 import jakarta.ai.agent.Action;
 import jakarta.ai.agent.Agent;
 import jakarta.ai.agent.Outcome;
@@ -237,8 +236,7 @@ public class CdiBeanTests {
         trace.reset();
         interceptedEvents.fire(new InterceptedEvent("test"));
 
-        List<String> names =
-                trace.entries().stream().map(TraceEntry::methodName).toList();
+        List<String> names = trace.methodNames();
         assertEquals(
                 List.of(
                         "onEvent",

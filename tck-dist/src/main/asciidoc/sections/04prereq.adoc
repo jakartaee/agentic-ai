@@ -21,6 +21,7 @@ The TCK jar registers an Arquillian `ApplicationArchiveProcessor` through `META-
 It adds to every test archive two CDI beans the tests inject, both in `ee.jakarta.tck.ai.agent.framework`.
 `ExecutionTraceRecorder` records the order in which workflow phases run and the values they receive.
 `LifecycleRecorder` records which agent instances are constructed and destroyed.
+It also adds `Causes`, a helper the tests use to find an expected exception anywhere in a cause chain, since an implementation may wrap an agent's exception in its own.
 
 The TCK deploys no `LargeLanguageModel`.
 The bean the tests receive is the implementation's own facade, and the TCK verifies it: placeholder substitution, JSON Binding conversion, exception mapping and conversational state are all asserted against the implementation.

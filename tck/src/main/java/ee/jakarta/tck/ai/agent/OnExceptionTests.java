@@ -12,6 +12,7 @@
  *****************************************************************************/
 package ee.jakarta.tck.ai.agent;
 
+import ee.jakarta.tck.ai.agent.framework.Causes;
 import ee.jakarta.tck.ai.agent.framework.ExecutionTraceRecorder;
 import ee.jakarta.tck.ai.agent.framework.ExecutionTraceRecorder.Phase;
 import ee.jakarta.tck.ai.agent.framework.ExecutionTraceRecorder.TraceEntry;
@@ -43,7 +44,6 @@ import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.fail;
 
 /**
  * Exception handling with {@code @OnException} (specification sections <em>@OnException</em>
@@ -119,19 +119,10 @@ public class OnExceptionTests {
 
     // The container may rethrow the agent's exception as is or wrapped; the spec only says it propagates.
     private static AgentDomainException agentExceptionIn(Throwable thrown) {
-        for (Throwable t = thrown; t != null; t = t.getCause()) {
-            if (t instanceof AgentDomainException domain) {
-                return domain;
-            }
-        }
-        return fail("No AgentDomainException in the cause chain of " + thrown);
-    }
-
-    private TraceEntry handlerEntry() {
-        return trace.entries().stream()
-                .filter(e -> e.phase() == Phase.ON_EXCEPTION)
-                .findFirst()
-                .orElseThrow();
+        return assertInstanceOf(
+                AgentDomainException.class,
+                Causes.first(thrown, AgentDomainException.class),
+                "No AgentDomainException in the cause chain of " + thrown);
     }
 
     // -- handler returns, rethrows or throws -----------------------------------
@@ -235,7 +226,7 @@ public class OnExceptionTests {
         Throwable thrown = assertThrows(Throwable.class, () -> propagationEvents.fire(new PropagationEvent("x")));
 
         AgentDomainException cause = agentExceptionIn(thrown);
-        assertSame(cause, handlerEntry().args()[0]);
+        assertSame(cause, trace.entry(Phase.ON_EXCEPTION).args()[0]);
     }
 
     public record RecursiveGuardEvent(String payload) {}
@@ -334,7 +325,7 @@ public class OnExceptionTests {
         trace.reset();
         hierarchyEvents.fire(new HierarchyEvent("x"));
 
-        assertEquals("onSpecific", handlerEntry().methodName());
+        assertEquals("onSpecific", trace.entry(Phase.ON_EXCEPTION).methodName());
     }
 
     // -- failing phases --------------------------------------------------------

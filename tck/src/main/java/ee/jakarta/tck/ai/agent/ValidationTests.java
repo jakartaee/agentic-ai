@@ -12,9 +12,9 @@
  *****************************************************************************/
 package ee.jakarta.tck.ai.agent;
 
+import ee.jakarta.tck.ai.agent.framework.Causes;
 import ee.jakarta.tck.ai.agent.framework.ExecutionTraceRecorder;
 import ee.jakarta.tck.ai.agent.framework.ExecutionTraceRecorder.Phase;
-import ee.jakarta.tck.ai.agent.framework.ExecutionTraceRecorder.TraceEntry;
 import jakarta.ai.agent.Action;
 import jakarta.ai.agent.Agent;
 import jakarta.ai.agent.Decision;
@@ -192,11 +192,9 @@ public class ValidationTests {
         events.fire(new ValidationEvent(null));
 
         assertTrue(trace.phases().contains(Phase.ON_EXCEPTION));
-        TraceEntry handlerEntry = trace.entries().stream()
-                .filter(e -> e.phase() == Phase.ON_EXCEPTION)
-                .findFirst()
-                .orElseThrow();
-        assertInstanceOf(ConstraintViolationException.class, handlerEntry.args()[0]);
+        assertInstanceOf(
+                ConstraintViolationException.class,
+                trace.entry(Phase.ON_EXCEPTION).args()[0]);
     }
 
     // -- invalid input with no handler -----------------------------------------
@@ -238,11 +236,7 @@ public class ValidationTests {
         Throwable thrown =
                 assertThrows(Throwable.class, () -> unhandledEvents.fire(new UnhandledValidationEvent(null)));
 
-        Throwable violation = thrown;
-        while (violation != null && !(violation instanceof ConstraintViolationException)) {
-            violation = violation.getCause();
-        }
-        assertInstanceOf(ConstraintViolationException.class, violation);
+        assertInstanceOf(ConstraintViolationException.class, Causes.first(thrown, ConstraintViolationException.class));
         assertFalse(trace.phases().contains(Phase.ACTION));
     }
 
@@ -288,11 +282,9 @@ public class ValidationTests {
 
         assertFalse(trace.phases().contains(Phase.TRIGGER));
         assertFalse(trace.phases().contains(Phase.ACTION));
-        TraceEntry handlerEntry = trace.entries().stream()
-                .filter(e -> e.phase() == Phase.ON_EXCEPTION)
-                .findFirst()
-                .orElseThrow();
-        assertInstanceOf(ConstraintViolationException.class, handlerEntry.args()[0]);
+        assertInstanceOf(
+                ConstraintViolationException.class,
+                trace.entry(Phase.ON_EXCEPTION).args()[0]);
     }
 
     public record DecisionValidationEvent(String payload) {}
@@ -340,11 +332,9 @@ public class ValidationTests {
 
         assertFalse(trace.phases().contains(Phase.DECISION));
         assertFalse(trace.phases().contains(Phase.ACTION));
-        TraceEntry handlerEntry = trace.entries().stream()
-                .filter(e -> e.phase() == Phase.ON_EXCEPTION)
-                .findFirst()
-                .orElseThrow();
-        assertInstanceOf(ConstraintViolationException.class, handlerEntry.args()[0]);
+        assertInstanceOf(
+                ConstraintViolationException.class,
+                trace.entry(Phase.ON_EXCEPTION).args()[0]);
     }
 
     /**
@@ -412,11 +402,9 @@ public class ValidationTests {
         outcomeEvents.fire(new OutcomeValidationEvent(null));
 
         assertFalse(trace.phases().contains(Phase.OUTCOME));
-        TraceEntry handlerEntry = trace.entries().stream()
-                .filter(e -> e.phase() == Phase.ON_EXCEPTION)
-                .findFirst()
-                .orElseThrow();
-        assertInstanceOf(ConstraintViolationException.class, handlerEntry.args()[0]);
+        assertInstanceOf(
+                ConstraintViolationException.class,
+                trace.entry(Phase.ON_EXCEPTION).args()[0]);
 
         trace.reset();
         outcomeEvents.fire(new OutcomeValidationEvent("ok"));
@@ -486,15 +474,9 @@ public class ValidationTests {
         trace.reset();
         Throwable thrown = assertThrows(Throwable.class, () -> handlerEvents.fire(new HandlerValidationEvent(" ")));
 
-        Throwable first = thrown;
-        while (first != null
-                && !(first instanceof ConstraintViolationException)
-                && !(first instanceof AgentDomainException)) {
-            first = first.getCause();
-        }
         assertInstanceOf(
                 ConstraintViolationException.class,
-                first,
+                Causes.first(thrown, ConstraintViolationException.class, AgentDomainException.class),
                 "The validation exception, not the handled one, must propagate");
         assertEquals(List.of(Phase.TRIGGER, Phase.ACTION), trace.phases());
     }

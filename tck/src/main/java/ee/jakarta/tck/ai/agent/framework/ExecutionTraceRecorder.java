@@ -45,8 +45,29 @@ public class ExecutionTraceRecorder {
         return List.copyOf(entries);
     }
 
+    /** The recorded entries of the given phase, in the order they were recorded. */
+    public List<TraceEntry> entries(Phase phase) {
+        return entries.stream().filter(entry -> entry.phase() == phase).toList();
+    }
+
+    /**
+     * The first recorded entry of the given phase.
+     *
+     * @throws AssertionError if no entry of that phase was recorded
+     */
+    public TraceEntry entry(Phase phase) {
+        return entries(phase).stream()
+                .findFirst()
+                .orElseThrow(() -> new AssertionError("No " + phase + " entry was recorded. The trace is " + phases()));
+    }
+
     public List<Phase> phases() {
         return entries.stream().map(TraceEntry::phase).toList();
+    }
+
+    /** The names of the methods that ran, in the order they were recorded. */
+    public List<String> methodNames() {
+        return entries.stream().map(TraceEntry::methodName).toList();
     }
 
     public void reset() {

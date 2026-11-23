@@ -14,7 +14,6 @@ package ee.jakarta.tck.ai.agent;
 
 import ee.jakarta.tck.ai.agent.framework.ExecutionTraceRecorder;
 import ee.jakarta.tck.ai.agent.framework.ExecutionTraceRecorder.Phase;
-import ee.jakarta.tck.ai.agent.framework.ExecutionTraceRecorder.TraceEntry;
 import jakarta.ai.agent.Action;
 import jakarta.ai.agent.Agent;
 import jakarta.ai.agent.Decision;
@@ -89,10 +88,6 @@ public class ExecutionOrderTests {
 
     @Inject
     ExecutionTraceRecorder trace;
-
-    private List<String> recordedMethodNames() {
-        return trace.entries().stream().map(TraceEntry::methodName).toList();
-    }
 
     // -- phase order -----------------------------------------------------------
 
@@ -185,7 +180,7 @@ public class ExecutionOrderTests {
         anchoredEvents.fire(new AnchoredEvent("test"));
 
         assertEquals(List.of(Phase.TRIGGER, Phase.ACTION, Phase.DECISION, Phase.OUTCOME), trace.phases());
-        assertEquals(List.of("onEvent", "act", "decide", "finish"), recordedMethodNames());
+        assertEquals(List.of("onEvent", "act", "decide", "finish"), trace.methodNames());
     }
 
     // -- order attribute and @Priority -----------------------------------------
@@ -233,7 +228,7 @@ public class ExecutionOrderTests {
         trace.reset();
         orderAttrEvents.fire(new OrderAttrEvent("x"));
 
-        assertEquals(List.of("onEvent", "first", "second", "third"), recordedMethodNames());
+        assertEquals(List.of("onEvent", "first", "second", "third"), trace.methodNames());
     }
 
     public record PriorityEvent(String payload) {}
@@ -282,7 +277,7 @@ public class ExecutionOrderTests {
         trace.reset();
         priorityEvents.fire(new PriorityEvent("x"));
 
-        assertEquals(List.of("onEvent", "first", "second", "third"), recordedMethodNames());
+        assertEquals(List.of("onEvent", "first", "second", "third"), trace.methodNames());
     }
 
     public record PriorityOverOrderEvent(String payload) {}
@@ -326,6 +321,6 @@ public class ExecutionOrderTests {
         trace.reset();
         priorityOverOrderEvents.fire(new PriorityOverOrderEvent("x"));
 
-        assertEquals(List.of("onEvent", "runsFirst", "runsThird"), recordedMethodNames());
+        assertEquals(List.of("onEvent", "runsFirst", "runsThird"), trace.methodNames());
     }
 }

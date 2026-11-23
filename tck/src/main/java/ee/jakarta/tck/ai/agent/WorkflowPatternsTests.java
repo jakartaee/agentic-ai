@@ -14,7 +14,6 @@ package ee.jakarta.tck.ai.agent;
 
 import ee.jakarta.tck.ai.agent.framework.ExecutionTraceRecorder;
 import ee.jakarta.tck.ai.agent.framework.ExecutionTraceRecorder.Phase;
-import ee.jakarta.tck.ai.agent.framework.ExecutionTraceRecorder.TraceEntry;
 import jakarta.ai.agent.Action;
 import jakarta.ai.agent.Agent;
 import jakarta.ai.agent.Decision;
@@ -90,10 +89,6 @@ public class WorkflowPatternsTests {
 
     @Inject
     ExecutionTraceRecorder trace;
-
-    private List<String> recordedMethodNames() {
-        return trace.entries().stream().map(TraceEntry::methodName).toList();
-    }
 
     public record MinimalistEvent(String payload) {}
 
@@ -250,7 +245,7 @@ public class WorkflowPatternsTests {
         linearEvents.fire(new LinearEvent("test"));
 
         assertEquals(List.of(Phase.TRIGGER, Phase.ACTION, Phase.ACTION, Phase.ACTION, Phase.OUTCOME), trace.phases());
-        assertEquals(List.of("onEvent", "firstAction", "secondAction", "thirdAction", "finish"), recordedMethodNames());
+        assertEquals(List.of("onEvent", "firstAction", "secondAction", "thirdAction", "finish"), trace.methodNames());
     }
 
     public record OutcomeOnlyEvent(String payload) {}
@@ -351,6 +346,6 @@ public class WorkflowPatternsTests {
                 trace.phases());
         assertEquals(
                 List.of("onEvent", "firstDecide", "firstAction", "secondDecide", "secondAction", "finish"),
-                recordedMethodNames());
+                trace.methodNames());
     }
 }

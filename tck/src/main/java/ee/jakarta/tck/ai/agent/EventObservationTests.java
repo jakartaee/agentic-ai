@@ -14,7 +14,6 @@ package ee.jakarta.tck.ai.agent;
 
 import ee.jakarta.tck.ai.agent.framework.ExecutionTraceRecorder;
 import ee.jakarta.tck.ai.agent.framework.ExecutionTraceRecorder.Phase;
-import ee.jakarta.tck.ai.agent.framework.ExecutionTraceRecorder.TraceEntry;
 import jakarta.ai.agent.Agent;
 import jakarta.ai.agent.Trigger;
 import jakarta.ai.agent.WorkflowScoped;
@@ -71,10 +70,6 @@ public class EventObservationTests {
     @Inject
     ExecutionTraceRecorder trace;
 
-    private List<String> recordedMethodNames() {
-        return trace.entries().stream().map(TraceEntry::methodName).toList();
-    }
-
     // -- @WorkflowScoped -------------------------------------------------------
 
     public record WorkflowScopedTriggerEvent(String payload) {}
@@ -104,7 +99,7 @@ public class EventObservationTests {
         workflowScopedEvents.fire(new WorkflowScopedTriggerEvent("input"));
 
         assertEquals(List.of(Phase.TRIGGER), trace.phases());
-        assertEquals(List.of("onTriggerEvent"), recordedMethodNames());
+        assertEquals(List.of("onTriggerEvent"), trace.methodNames());
     }
 
     // -- @ApplicationScoped ----------------------------------------------------
@@ -143,6 +138,6 @@ public class EventObservationTests {
         trace.reset();
         generalEvents.fire(new GeneralObservationEvent("input"));
 
-        assertEquals(List.of("onGeneralEvent"), recordedMethodNames());
+        assertEquals(List.of("onGeneralEvent"), trace.methodNames());
     }
 }

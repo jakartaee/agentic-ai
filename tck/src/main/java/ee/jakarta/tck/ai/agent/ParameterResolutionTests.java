@@ -14,7 +14,6 @@ package ee.jakarta.tck.ai.agent;
 
 import ee.jakarta.tck.ai.agent.framework.ExecutionTraceRecorder;
 import ee.jakarta.tck.ai.agent.framework.ExecutionTraceRecorder.Phase;
-import ee.jakarta.tck.ai.agent.framework.ExecutionTraceRecorder.TraceEntry;
 import jakarta.ai.agent.Action;
 import jakarta.ai.agent.Agent;
 import jakarta.ai.agent.Decision;
@@ -105,13 +104,6 @@ public class ParameterResolutionTests {
 
     @Inject
     ExecutionTraceRecorder trace;
-
-    private TraceEntry entryOf(Phase phase) {
-        return trace.entries().stream()
-                .filter(e -> e.phase() == phase)
-                .findFirst()
-                .orElseThrow();
-    }
 
     // -- the triggering event and the LargeLanguageModel -----------------------
 
@@ -288,7 +280,7 @@ public class ParameterResolutionTests {
         resolutionOrderEvents.fire(new ResolutionOrderEvent("test"));
 
         assertEquals(List.of(Phase.TRIGGER, Phase.DECISION, Phase.ACTION, Phase.OUTCOME), trace.phases());
-        Object[] args = entryOf(Phase.ACTION).args();
+        Object[] args = trace.entry(Phase.ACTION).args();
         assertInstanceOf(ResolutionOrderEvent.class, args[0]);
         assertInstanceOf(LargeLanguageModel.class, args[1]);
         assertInstanceOf(ResolutionCdiBean.class, args[2]);
@@ -565,6 +557,6 @@ public class ParameterResolutionTests {
         voidPhasesEvents.fire(new VoidPhasesEvent("test"));
 
         assertEquals(List.of(Phase.TRIGGER, Phase.DECISION, Phase.ACTION, Phase.OUTCOME), trace.phases());
-        assertInstanceOf(VoidPhasesEvent.class, entryOf(Phase.OUTCOME).args()[0]);
+        assertInstanceOf(VoidPhasesEvent.class, trace.entry(Phase.OUTCOME).args()[0]);
     }
 }

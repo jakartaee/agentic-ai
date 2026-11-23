@@ -18,7 +18,7 @@ import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 
 /**
- * Arquillian archive processor that adds the TCK's recorders to every
+ * Arquillian archive processor that adds the TCK's recorders and test helpers to every
  * {@link WebArchive} before it is deployed to the container.
  */
 public class TckArchiveProcessor implements ApplicationArchiveProcessor {
@@ -28,6 +28,6 @@ public class TckArchiveProcessor implements ApplicationArchiveProcessor {
         if (!(applicationArchive instanceof WebArchive webArchive)) {
             return;
         }
-        webArchive.addClasses(ExecutionTraceRecorder.class, LifecycleRecorder.class);
+        webArchive.addClasses(ExecutionTraceRecorder.class, LifecycleRecorder.class, Causes.class);
     }
 }
