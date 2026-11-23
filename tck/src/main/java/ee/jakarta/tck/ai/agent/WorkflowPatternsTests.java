@@ -56,8 +56,8 @@ public class WorkflowPatternsTests {
                 .addClasses(
                         MinimalistAgent.class,
                         MinimalistEvent.class,
-                        NoDecisionAgent.class,
-                        NoDecisionEvent.class,
+                        TriggerActionAgent.class,
+                        TriggerActionEvent.class,
                         NoOutcomeAgent.class,
                         NoOutcomeEvent.class,
                         LinearAgent.class,
@@ -73,7 +73,7 @@ public class WorkflowPatternsTests {
     Event<MinimalistEvent> minimalistEvents;
 
     @Inject
-    Event<NoDecisionEvent> noDecisionEvents;
+    Event<TriggerActionEvent> triggerActionEvents;
 
     @Inject
     Event<NoOutcomeEvent> noOutcomeEvents;
@@ -119,44 +119,39 @@ public class WorkflowPatternsTests {
         assertEquals(List.of(Phase.TRIGGER), trace.phases());
     }
 
-    public record NoDecisionEvent(String payload) {}
+    public record TriggerActionEvent(String payload) {}
 
+    /** The Trigger + Action pattern, with no decision and no outcome. */
     @Agent
     @ApplicationScoped
-    public static class NoDecisionAgent {
+    public static class TriggerActionAgent {
 
         @Inject
         ExecutionTraceRecorder trace;
 
         @Trigger
-        public NoDecisionEvent onEvent(@Observes NoDecisionEvent event) {
+        public void onEvent(@Observes TriggerActionEvent event) {
             trace.record(Phase.TRIGGER, "onEvent", event);
-            return event;
         }
 
         @Action
-        public String act(NoDecisionEvent event) {
+        public void act(TriggerActionEvent event) {
             trace.record(Phase.ACTION, "act", event);
-            return "done";
-        }
-
-        @Outcome
-        public void finish(String result) {
-            trace.record(Phase.OUTCOME, "finish", result);
         }
     }
 
     /**
-     * A workflow without a {@code @Decision} runs trigger, action, outcome.
+     * An agent with only a {@code @Trigger} and an {@code @Action} is a complete workflow. The
+     * action runs after the trigger, and the workflow completes without an outcome.
      *
-     * <p>Specification section {@code workflow-patterns}.
+     * <p>Specification section {@code pattern-trigger-action}.
      */
     @Test
-    public void workflowWithoutDecisionRunsActions() {
+    public void triggerAndActionWorkflowCompletes() {
         trace.reset();
-        noDecisionEvents.fire(new NoDecisionEvent("test"));
+        triggerActionEvents.fire(new TriggerActionEvent("test"));
 
-        assertEquals(List.of(Phase.TRIGGER, Phase.ACTION, Phase.OUTCOME), trace.phases());
+        assertEquals(List.of(Phase.TRIGGER, Phase.ACTION), trace.phases());
     }
 
     public record NoOutcomeEvent(String payload) {}
@@ -237,7 +232,7 @@ public class WorkflowPatternsTests {
      * Several explicitly ordered {@code @Action} phases execute sequentially without any
      * {@code @Decision}.
      *
-     * <p>Specification section {@code workflow-patterns}.
+     * <p>Specification section {@code pattern-sequential-phases}.
      */
     @Test
     public void sequentialActionsExecuteInOrder() {
@@ -334,7 +329,7 @@ public class WorkflowPatternsTests {
      * Alternating {@code @Decision} and {@code @Action} phases all execute, in their explicit
      * order, through to the {@code @Outcome}.
      *
-     * <p>Specification section {@code workflow-patterns}.
+     * <p>Specification section {@code pattern-intermixed}.
      */
     @Test
     public void intermixedDecisionsAndActionsExecuteInOrder() {

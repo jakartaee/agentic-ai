@@ -83,9 +83,6 @@ public class WorkflowTerminationTests {
     @Inject
     ExecutionTraceRecorder trace;
 
-    @Inject
-    BranchingAgent branchingAgent;
-
     public record BooleanTerminationEvent(String payload) {}
 
     @Agent
@@ -181,7 +178,7 @@ public class WorkflowTerminationTests {
      * A {@code Result} whose {@code success} is true proceeds through all downstream phases even
      * when its {@code details} are {@code null}.
      *
-     * <p>Specification section {@code workflow-termination}.
+     * <p>Specification section {@code decision-return-type}.
      */
     @Test
     public void resultTrueWithNullDetailsProceeds() {
@@ -239,24 +236,13 @@ public class WorkflowTerminationTests {
 
     public record BranchingEvent(String payload) {}
 
-    /** Two decisions around an action. The test chooses which decision returns {@code false}. */
+    /** Two decisions around an action. The first proceeds and the second returns {@code false}. */
     @Agent
     @ApplicationScoped
     public static class BranchingAgent {
 
-        public enum TerminationPoint {
-            FIRST_DECISION,
-            SECOND_DECISION
-        }
-
         @Inject
         ExecutionTraceRecorder trace;
-
-        private volatile TerminationPoint terminateAt = TerminationPoint.FIRST_DECISION;
-
-        public void setTerminateAt(TerminationPoint terminateAt) {
-            this.terminateAt = terminateAt;
-        }
 
         @Trigger
         public void onEvent(@Observes BranchingEvent event) {
@@ -266,7 +252,7 @@ public class WorkflowTerminationTests {
         @Decision(order = 1)
         public boolean firstDecide(BranchingEvent event) {
             trace.record(Phase.DECISION, "firstDecide", event);
-            return terminateAt != TerminationPoint.FIRST_DECISION;
+            return true;
         }
 
         @Action(order = 2)
@@ -277,7 +263,7 @@ public class WorkflowTerminationTests {
         @Decision(order = 3)
         public boolean secondDecide(BranchingEvent event) {
             trace.record(Phase.DECISION, "secondDecide", event);
-            return terminateAt != TerminationPoint.SECOND_DECISION;
+            return false;
         }
 
         @Action(order = 4)
@@ -301,7 +287,6 @@ public class WorkflowTerminationTests {
     @Test
     public void falseFromLaterDecisionHaltsRemainingPhases() {
         trace.reset();
-        branchingAgent.setTerminateAt(BranchingAgent.TerminationPoint.SECOND_DECISION);
         branchingEvents.fire(new BranchingEvent("test"));
 
         assertEquals(List.of(Phase.TRIGGER, Phase.DECISION, Phase.ACTION, Phase.DECISION), trace.phases());

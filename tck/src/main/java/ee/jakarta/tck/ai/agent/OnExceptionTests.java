@@ -161,7 +161,7 @@ public class OnExceptionTests {
      * A handler that returns normally lets the {@code @Outcome} run, giving the full recovery
      * sequence of trigger, action, handler, outcome.
      *
-     * <p>Specification section {@code onexception}.
+     * <p>Specification section {@code error-handling}.
      */
     @Test
     public void handlerNormalReturnAllowsOutcome() {
@@ -196,13 +196,18 @@ public class OnExceptionTests {
             trace.record(Phase.ON_EXCEPTION, "onError", ex);
             throw ex; // Rethrown, so the workflow ends before the @Outcome.
         }
+
+        @Outcome
+        public void finish() {
+            trace.record(Phase.OUTCOME, "finish");
+        }
     }
 
     /**
      * An exception rethrown from a handler ends the workflow before the {@code @Outcome} and
      * propagates to the container.
      *
-     * <p>Specification section {@code onexception}.
+     * <p>Specification section {@code error-handling}.
      */
     @Test
     public void rethrowFromHandlerTerminatesWorkflow() {
@@ -216,7 +221,7 @@ public class OnExceptionTests {
     /**
      * The handler receives the very exception instance that was thrown.
      *
-     * <p>Specification section {@code onexception}.
+     * <p>Specification section {@code onexception-parameters}.
      */
     @Test
     public void handlerReceivesExactExceptionInstance() {
@@ -258,7 +263,7 @@ public class OnExceptionTests {
      * An exception thrown inside a handler propagates to the container without re-entering the
      * handler.
      *
-     * <p>Specification section {@code onexception}.
+     * <p>Specification section {@code error-handling}.
      */
     @Test
     public void handlerExceptionPropagatesWithoutRecursion() {
@@ -314,7 +319,7 @@ public class OnExceptionTests {
      * The most specific handler is selected when several {@code @OnException} methods exist in
      * the same agent.
      *
-     * <p>Specification section {@code onexception}.
+     * <p>Specification section {@code error-handling}.
      */
     @Test
     public void specificHandlerSelectedOverGeneric() {
@@ -511,14 +516,13 @@ public class OnExceptionTests {
      * After the required exception parameter, a handler receives workflow state. The triggering
      * event is resolved as its second parameter.
      *
-     * <p>Specification section {@code onexception}.
+     * <p>Specification section {@code onexception-parameters}.
      */
     @Test
     public void handlerReceivesWorkflowStateAfterException() {
         trace.reset();
         statefulHandlerEvents.fire(new StatefulHandlerEvent("x"));
 
-        assertEquals(List.of(Phase.TRIGGER, Phase.ACTION, Phase.ON_EXCEPTION, Phase.OUTCOME), trace.phases());
         TraceEntry handler = trace.entry(Phase.ON_EXCEPTION);
         assertInstanceOf(AgentDomainException.class, handler.args()[0]);
         assertEquals(

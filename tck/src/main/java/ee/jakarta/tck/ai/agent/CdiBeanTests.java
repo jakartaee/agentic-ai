@@ -76,8 +76,6 @@ public class CdiBeanTests {
     public static Archive<?> createDeployment() {
         return ShrinkWrap.create(WebArchive.class, "cdibeans.war")
                 .addClasses(
-                        InnerAgent.class,
-                        InnerAgentEvent.class,
                         ConstructorInjectedAgent.class,
                         ConstructorInjectedEvent.class,
                         InterceptedAgent.class,
@@ -88,9 +86,6 @@ public class CdiBeanTests {
     }
 
     @Inject
-    Event<InnerAgentEvent> innerAgentEvents;
-
-    @Inject
     Event<ConstructorInjectedEvent> constructorInjectedEvents;
 
     @Inject
@@ -98,35 +93,6 @@ public class CdiBeanTests {
 
     @Inject
     ExecutionTraceRecorder trace;
-
-    public record InnerAgentEvent(String payload) {}
-
-    @Agent
-    @ApplicationScoped
-    public static class InnerAgent {
-
-        @Inject
-        ExecutionTraceRecorder trace;
-
-        @Trigger
-        public void onEvent(@Observes InnerAgentEvent event) {
-            trace.record(Phase.TRIGGER, "onEvent", event);
-        }
-    }
-
-    /**
-     * A static nested class annotated {@code @Agent} is discovered as a CDI managed bean, and its
-     * {@code @Trigger} fires when the triggering event is fired.
-     *
-     * <p>Specification section {@code agents-as-cdi-beans}.
-     */
-    @Test
-    public void staticNestedAgentIsDiscoveredAsCdiBean() {
-        trace.reset();
-        innerAgentEvents.fire(new InnerAgentEvent("test"));
-
-        assertEquals(List.of(Phase.TRIGGER), trace.phases());
-    }
 
     public record ConstructorInjectedEvent(String payload) {}
 

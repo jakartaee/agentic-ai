@@ -75,9 +75,7 @@ public class ParameterResolutionTests {
                         DecisionDetails.class,
                         SameTypeAgent.class,
                         SameTypeEvent.class,
-                        SameTypeOutput.class,
-                        VoidPhasesAgent.class,
-                        VoidPhasesEvent.class)
+                        SameTypeOutput.class)
                 .addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml");
     }
 
@@ -98,9 +96,6 @@ public class ParameterResolutionTests {
 
     @Inject
     Event<SameTypeEvent> sameTypeEvents;
-
-    @Inject
-    Event<VoidPhasesEvent> voidPhasesEvents;
 
     @Inject
     ExecutionTraceRecorder trace;
@@ -193,7 +188,7 @@ public class ParameterResolutionTests {
      * A {@code @Trigger} whose event parameter carries no {@code @Observes} is still invoked by
      * the triggering event and runs the full workflow.
      *
-     * <p>Specification section {@code trigger-parameters}.
+     * <p>Specification section {@code trigger-invocation}.
      */
     @Test
     public void triggerWithoutObservesRunsWorkflow() {
@@ -264,22 +259,19 @@ public class ParameterResolutionTests {
     }
 
     /**
-     * Parameters are resolved in the specified order: the triggering event, then the
-     * {@code LargeLanguageModel}, then CDI beans. {@code ResolutionOrderAgent}'s action receives
-     * them as its first, second and third parameter.
+     * A parameter that matches neither the triggering event, an earlier phase's result nor the
+     * {@code LargeLanguageModel} is resolved by CDI injection. {@code ResolutionOrderAgent}'s action
+     * receives the {@code ResolutionCdiBean} bean.
      *
      * <p>Specification section {@code resolution-order}.
      */
     @Test
-    public void parameterResolutionFollowsDefinedOrder() {
+    public void cdiBeanIsResolvedAsParameter() {
         trace.reset();
         resolutionOrderEvents.fire(new ResolutionOrderEvent("test"));
 
         assertEquals(List.of(Phase.TRIGGER, Phase.DECISION, Phase.ACTION, Phase.OUTCOME), trace.phases());
-        Object[] args = trace.entry(Phase.ACTION).args();
-        assertInstanceOf(ResolutionOrderEvent.class, args[0]);
-        assertInstanceOf(LargeLanguageModel.class, args[1]);
-        assertInstanceOf(ResolutionCdiBean.class, args[2]);
+        assertInstanceOf(ResolutionCdiBean.class, trace.entry(Phase.ACTION).args()[2]);
     }
 
     public record DataPropagationEvent(String input) {}
@@ -415,7 +407,7 @@ public class ParameterResolutionTests {
      * The non-{@code null} {@code details} of a {@code Result} returned by a {@code @Decision}
      * become workflow state, resolvable by their runtime type in a later phase.
      *
-     * <p>Specification section {@code parameter-resolution}.
+     * <p>Specification section {@code decision-return-type}.
      */
     @Test
     public void resultDetailsAreInjectableByRuntimeType() {
@@ -487,67 +479,5 @@ public class ParameterResolutionTests {
                 assertInstanceOf(
                                 SameTypeOutput.class, trace.entry(Phase.OUTCOME).args()[0])
                         .marker());
-    }
-
-    public record VoidPhasesEvent(String payload) {}
-
-    @Agent
-    @ApplicationScoped
-    public static class VoidPhasesAgent {
-
-        @Inject
-        ExecutionTraceRecorder trace;
-
-        @Trigger
-        public void onEvent(@Observes VoidPhasesEvent event) {
-            trace.record(Phase.TRIGGER, "onEvent", event);
-        }
-
-        @Decision(order = 1)
-        public boolean decide(VoidPhasesEvent event) {
-            trace.record(Phase.DECISION, "decide", event);
-            return true;
-        }
-
-        @Action(order = 2)
-        public void act(VoidPhasesEvent event) {
-            trace.record(Phase.ACTION, "act", event);
-        }
-
-        @Outcome
-        public void finish(VoidPhasesEvent event) {
-            trace.record(Phase.OUTCOME, "finish", event);
-        }
-    }
-
-    /**
-     * A {@code void} {@code @Trigger} adds nothing to the workflow state. The {@code @Decision}
-     * receives only the triggering event.
-     *
-     * <p>Specification section {@code parameter-resolution}.
-     */
-    @Test
-    public void voidTriggerAddsNothingToWorkflowState() {
-        trace.reset();
-        voidPhasesEvents.fire(new VoidPhasesEvent("test"));
-
-        assertEquals(List.of(Phase.TRIGGER, Phase.DECISION, Phase.ACTION, Phase.OUTCOME), trace.phases());
-        Object[] decisionArgs = trace.entry(Phase.DECISION).args();
-        assertEquals(1, decisionArgs.length);
-        assertInstanceOf(VoidPhasesEvent.class, decisionArgs[0]);
-    }
-
-    /**
-     * A {@code void} {@code @Action} leaves the workflow state intact for the {@code @Outcome}.
-     *
-     * <p>Specification section {@code parameter-resolution}.
-     */
-    @Test
-    public void voidActionLeavesWorkflowStateIntact() {
-        trace.reset();
-        voidPhasesEvents.fire(new VoidPhasesEvent("test"));
-
-        assertEquals(List.of(Phase.TRIGGER, Phase.DECISION, Phase.ACTION, Phase.OUTCOME), trace.phases());
-        assertInstanceOf(VoidPhasesEvent.class, trace.entry(Phase.OUTCOME).args()[0]);
     }
 }

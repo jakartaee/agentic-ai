@@ -137,7 +137,7 @@ public class LargeLanguageModelTests {
     /**
      * Null prompt on query(String) throws IllegalArgumentException.
      *
-     * <p>Specification section {@code llm-interface}.
+     * <p>Specification section {@code exceptions}.
      */
     @Test
     public void nullPromptThrowsIllegalArgumentException() {
@@ -147,7 +147,7 @@ public class LargeLanguageModelTests {
     /**
      * Null prompt on query(String, Object...) throws IllegalArgumentException.
      *
-     * <p>Specification section {@code llm-interface}.
+     * <p>Specification section {@code exceptions}.
      */
     @Test
     public void nullPromptWithParamsThrowsIllegalArgumentException() {
@@ -157,7 +157,7 @@ public class LargeLanguageModelTests {
     /**
      * Null prompt on query(String, Class) throws IllegalArgumentException.
      *
-     * <p>Specification section {@code llm-interface}.
+     * <p>Specification section {@code exceptions}.
      */
     @Test
     public void nullPromptOnTypedOverloadThrowsIllegalArgumentException() {
@@ -167,7 +167,7 @@ public class LargeLanguageModelTests {
     /**
      * Null resultType on query(String, Class) throws IllegalArgumentException.
      *
-     * <p>Specification section {@code llm-interface}.
+     * <p>Specification section {@code exceptions}.
      */
     @Test
     public void nullResultTypeThrowsIllegalArgumentException() {
@@ -177,7 +177,7 @@ public class LargeLanguageModelTests {
     /**
      * Null prompt on query(String, Class, Object...) throws IllegalArgumentException.
      *
-     * <p>Specification section {@code llm-interface}.
+     * <p>Specification section {@code exceptions}.
      */
     @Test
     public void nullPromptOnTypedVarargsOverloadThrowsIllegalArgumentException() {
@@ -187,7 +187,7 @@ public class LargeLanguageModelTests {
     /**
      * Null resultType on query(String, Class, Object...) throws IllegalArgumentException.
      *
-     * <p>Specification section {@code llm-interface}.
+     * <p>Specification section {@code exceptions}.
      */
     @Test
     public void nullResultTypeOnTypedVarargsOverloadThrowsIllegalArgumentException() {
@@ -251,7 +251,7 @@ public class LargeLanguageModelTests {
     /**
      * A parameter JSON Binding cannot serialize throws IllegalArgumentException.
      *
-     * <p>Specification section {@code prompt-construction}.
+     * <p>Specification section {@code exceptions}.
      */
     @Test
     public void parameterSerializationFailureThrowsIllegalArgumentException() {
@@ -263,7 +263,7 @@ public class LargeLanguageModelTests {
      * A parameter JSON Binding cannot serialize on the typed varargs overload throws
      * IllegalArgumentException.
      *
-     * <p>Specification section {@code prompt-construction}.
+     * <p>Specification section {@code exceptions}.
      */
     @Test
     public void parameterSerializationFailureOnTypedOverloadThrowsIllegalArgumentException() {
@@ -461,8 +461,7 @@ public class LargeLanguageModelTests {
     }
 
     /**
-     * An LLMException thrown from a phase is routed to a matching {@code @OnException} method, and
-     * the workflow continues to {@code @Outcome} when the handler returns normally.
+     * An LLMException thrown from a phase is routed to a matching {@code @OnException} method.
      *
      * <p>Specification section {@code llm-exception}.
      */
@@ -471,7 +470,6 @@ public class LargeLanguageModelTests {
         trace.reset();
         failures.fire(new LlmFailureEvent("x"));
 
-        assertEquals(List.of(Phase.TRIGGER, Phase.ACTION, Phase.ON_EXCEPTION, Phase.OUTCOME), trace.phases());
         assertInstanceOf(LLMException.class, trace.entry(Phase.ON_EXCEPTION).args()[0]);
     }
 

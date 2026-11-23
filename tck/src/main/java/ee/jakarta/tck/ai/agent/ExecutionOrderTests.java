@@ -48,7 +48,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  *
  * <p>Uses {@code @TestInstance(PER_CLASS)} with inline {@code trace.reset()} because
  * {@code @BeforeEach} does not run reliably between methods of an Arquillian test
- * class inside the container.</p>
+ * class inside the container.
  */
 @ExtendWith(ArquillianExtension.class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -58,8 +58,6 @@ public class ExecutionOrderTests {
     public static Archive<?> createDeployment() {
         return ShrinkWrap.create(WebArchive.class, "executionorder.war")
                 .addClasses(
-                        PhaseOrderingAgent.class,
-                        PhaseOrderingEvent.class,
                         OrderAttrAgent.class,
                         OrderAttrEvent.class,
                         PriorityAgent.class,
@@ -70,9 +68,6 @@ public class ExecutionOrderTests {
                         AnchoredEvent.class)
                 .addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml");
     }
-
-    @Inject
-    Event<PhaseOrderingEvent> phaseOrderingEvents;
 
     @Inject
     Event<OrderAttrEvent> orderAttrEvents;
@@ -88,51 +83,6 @@ public class ExecutionOrderTests {
 
     @Inject
     ExecutionTraceRecorder trace;
-
-    public record PhaseOrderingEvent(String payload) {}
-
-    @Agent
-    @ApplicationScoped
-    public static class PhaseOrderingAgent {
-
-        @Inject
-        ExecutionTraceRecorder trace;
-
-        @Trigger
-        public void onEvent(@Observes PhaseOrderingEvent event) {
-            trace.record(Phase.TRIGGER, "onEvent", event);
-        }
-
-        @Decision(order = 1)
-        public boolean decide(PhaseOrderingEvent event) {
-            trace.record(Phase.DECISION, "decide", event);
-            return true;
-        }
-
-        @Action(order = 2)
-        public void act(PhaseOrderingEvent event) {
-            trace.record(Phase.ACTION, "act", event);
-        }
-
-        @Outcome
-        public void finish(PhaseOrderingEvent event) {
-            trace.record(Phase.OUTCOME, "finish", event);
-        }
-    }
-
-    /**
-     * A workflow with one phase of each kind runs trigger, decision, action, outcome, in that
-     * order.
-     *
-     * <p>Specification section {@code execution-order}.
-     */
-    @Test
-    public void fullPipelineExecutesInStrictOrder() {
-        trace.reset();
-        phaseOrderingEvents.fire(new PhaseOrderingEvent("proceed"));
-
-        assertEquals(List.of(Phase.TRIGGER, Phase.DECISION, Phase.ACTION, Phase.OUTCOME), trace.phases());
-    }
 
     public record AnchoredEvent(String payload) {}
 

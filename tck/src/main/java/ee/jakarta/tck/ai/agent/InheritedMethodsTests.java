@@ -34,7 +34,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 
 /**
  * TCK coverage for phase-method inheritance. A phase method declared on a
@@ -126,9 +125,11 @@ public class InheritedMethodsTests {
             trace.record(Phase.TRIGGER, "onEvent", event);
         }
 
+        // Intentionally unannotated, so it must not run as an @Action phase. It records, so the
+        // trace shows it if it does.
         @Override
         public void act() {
-            // Intentionally unannotated, so it must not run as an @Action phase.
+            trace.record(Phase.ACTION, "overridingAct");
         }
     }
 
@@ -143,6 +144,5 @@ public class InheritedMethodsTests {
         overrideEvents.fire(new OverrideEvent("input"));
 
         assertEquals(List.of(Phase.TRIGGER), trace.phases());
-        assertFalse(trace.phases().contains(Phase.ACTION));
     }
 }

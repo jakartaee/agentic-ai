@@ -60,7 +60,7 @@ public class DeploymentErrorMultiEventTriggerTests {
     /**
      * A {@code @Trigger} method declaring more than one event parameter is a deployment error.
      *
-     * <p>Specification section {@code trigger-parameters}.
+     * <p>Specification section {@code trigger-invocation}.
      */
     @Test
     public void multipleEventParametersAreRejected() {
