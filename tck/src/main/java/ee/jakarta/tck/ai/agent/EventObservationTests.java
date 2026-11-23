@@ -14,7 +14,9 @@ package ee.jakarta.tck.ai.agent;
 
 import ee.jakarta.tck.ai.agent.framework.ExecutionTraceRecorder;
 import ee.jakarta.tck.ai.agent.framework.ExecutionTraceRecorder.Phase;
+import jakarta.ai.agent.Action;
 import jakarta.ai.agent.Agent;
+import jakarta.ai.agent.Outcome;
 import jakarta.ai.agent.Trigger;
 import jakarta.ai.agent.WorkflowScoped;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -34,16 +36,18 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 
 /**
  * TCK coverage for scope-dependent event observation. An {@code @ApplicationScoped}
  * agent may observe events through both a {@code @Trigger} method and a general
  * {@code @Observes} observer, whereas a {@code @WorkflowScoped} agent observes only
- * through its {@code @Trigger} method.
+ * through its {@code @Trigger} method. A trigger observes its event whether or not it
+ * declares {@code @Observes}.
  *
  * <p>Uses {@code @TestInstance(PER_CLASS)} with inline {@code trace.reset()} because
  * {@code @BeforeEach} does not run reliably between methods of an Arquillian test
- * class inside the container.</p>
+ * class inside the container.
  */
 @ExtendWith(ArquillianExtension.class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -57,7 +61,9 @@ public class EventObservationTests {
                         EventObservationTriggerEvent.class,
                         GeneralObservationEvent.class,
                         WorkflowScopedObserverAgent.class,
-                        WorkflowScopedTriggerEvent.class)
+                        WorkflowScopedTriggerEvent.class,
+                        ImplicitObservesAgent.class,
+                        ImplicitObservesEvent.class)
                 .addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml");
     }
 
@@ -66,6 +72,9 @@ public class EventObservationTests {
 
     @Inject
     Event<WorkflowScopedTriggerEvent> workflowScopedEvents;
+
+    @Inject
+    Event<ImplicitObservesEvent> implicitObservesEvents;
 
     @Inject
     ExecutionTraceRecorder trace;
@@ -135,5 +144,51 @@ public class EventObservationTests {
         generalEvents.fire(new GeneralObservationEvent("input"));
 
         assertEquals(List.of("onGeneralEvent"), trace.methodNames());
+    }
+
+    public record ImplicitObservesEvent(String payload) {}
+
+    /** Declares its trigger without {@code @Observes}, the optional form the specification's own examples use. */
+    @Agent
+    @ApplicationScoped
+    public static class ImplicitObservesAgent {
+
+        @Inject
+        ExecutionTraceRecorder trace;
+
+        @Trigger
+        public void onEvent(ImplicitObservesEvent event) {
+            trace.record(Phase.TRIGGER, "onEvent", event);
+        }
+
+        @Action
+        public void act(ImplicitObservesEvent event) {
+            trace.record(Phase.ACTION, "act", event);
+        }
+
+        @Outcome
+        public void finish(ImplicitObservesEvent event) {
+            trace.record(Phase.OUTCOME, "finish", event);
+        }
+    }
+
+    /**
+     * A {@code @Trigger} whose event parameter carries no {@code @Observes} is still invoked by
+     * the triggering event and runs the full workflow.
+     *
+     * <p>Specification section {@code cdi-events}.
+     */
+    @Test
+    public void triggerWithoutObservesRunsWorkflow() {
+        trace.reset();
+        implicitObservesEvents.fire(new ImplicitObservesEvent("test"));
+
+        assertEquals(List.of(Phase.TRIGGER, Phase.ACTION, Phase.OUTCOME), trace.phases());
+        assertEquals(
+                "test",
+                assertInstanceOf(
+                                ImplicitObservesEvent.class,
+                                trace.entry(Phase.TRIGGER).args()[0])
+                        .payload());
     }
 }

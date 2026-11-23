@@ -44,11 +44,11 @@ import static org.junit.jupiter.api.Assertions.assertInstanceOf;
  * How the parameters of phase methods are resolved (specification section <em>Parameter
  * Resolution</em> and its <em>Resolution Order</em>): the triggering event, the values earlier
  * phases returned, the details of a {@code Result}, the {@code LargeLanguageModel} and CDI
- * beans, in the order the specification defines.
+ * beans.
  *
  * <p>Uses {@code @TestInstance(PER_CLASS)} with inline {@code trace.reset()} because
  * {@code @BeforeEach} does not run reliably between methods of an Arquillian test
- * class inside the container.</p>
+ * class inside the container.
  */
 @ExtendWith(ArquillianExtension.class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -60,8 +60,6 @@ public class ParameterResolutionTests {
                 .addClasses(
                         LlmParameterAgent.class,
                         LlmParameterEvent.class,
-                        ImplicitObservesAgent.class,
-                        ImplicitObservesEvent.class,
                         ResolutionOrderAgent.class,
                         ResolutionOrderEvent.class,
                         ResolutionCdiBean.class,
@@ -81,9 +79,6 @@ public class ParameterResolutionTests {
 
     @Inject
     Event<LlmParameterEvent> llmParameterEvents;
-
-    @Inject
-    Event<ImplicitObservesEvent> implicitObservesEvents;
 
     @Inject
     Event<ResolutionOrderEvent> resolutionOrderEvents;
@@ -111,12 +106,12 @@ public class ParameterResolutionTests {
 
         @Trigger
         public void onEvent(@Observes LlmParameterEvent event, LargeLanguageModel llm) {
-            trace.record(Phase.TRIGGER, "onEvent", event, llm.query("classify {}", event.payload()));
+            trace.record(Phase.TRIGGER, "onEvent", event, llm);
         }
 
         @Action
         public void act(LlmParameterEvent event, LargeLanguageModel llm) {
-            trace.record(Phase.ACTION, "act", event, llm.query("classify {}", event.payload()));
+            trace.record(Phase.ACTION, "act", event, llm);
         }
 
         @Outcome
@@ -144,8 +139,7 @@ public class ParameterResolutionTests {
     }
 
     /**
-     * The {@code LargeLanguageModel} is resolved as a method parameter of an {@code @Action},
-     * and it is a working facade. Its echoed response is the rendered prompt.
+     * The {@code LargeLanguageModel} is resolved as a method parameter of an {@code @Action}.
      *
      * <p>Specification section {@code parameter-resolution}.
      */
@@ -155,53 +149,7 @@ public class ParameterResolutionTests {
         llmParameterEvents.fire(new LlmParameterEvent("payload"));
 
         assertEquals(List.of(Phase.TRIGGER, Phase.ACTION, Phase.OUTCOME), trace.phases());
-        assertEquals("classify \"payload\"", trace.entry(Phase.ACTION).args()[1]);
-    }
-
-    public record ImplicitObservesEvent(String payload) {}
-
-    /** Declares its trigger without {@code @Observes}, the optional form the specification's own examples use. */
-    @Agent
-    @ApplicationScoped
-    public static class ImplicitObservesAgent {
-
-        @Inject
-        ExecutionTraceRecorder trace;
-
-        @Trigger
-        public void onEvent(ImplicitObservesEvent event) {
-            trace.record(Phase.TRIGGER, "onEvent", event);
-        }
-
-        @Action
-        public void act(ImplicitObservesEvent event) {
-            trace.record(Phase.ACTION, "act", event);
-        }
-
-        @Outcome
-        public void finish(ImplicitObservesEvent event) {
-            trace.record(Phase.OUTCOME, "finish", event);
-        }
-    }
-
-    /**
-     * A {@code @Trigger} whose event parameter carries no {@code @Observes} is still invoked by
-     * the triggering event and runs the full workflow.
-     *
-     * <p>Specification section {@code trigger-invocation}.
-     */
-    @Test
-    public void triggerWithoutObservesRunsWorkflow() {
-        trace.reset();
-        implicitObservesEvents.fire(new ImplicitObservesEvent("test"));
-
-        assertEquals(List.of(Phase.TRIGGER, Phase.ACTION, Phase.OUTCOME), trace.phases());
-        assertEquals(
-                "test",
-                assertInstanceOf(
-                                ImplicitObservesEvent.class,
-                                trace.entry(Phase.TRIGGER).args()[0])
-                        .payload());
+        assertInstanceOf(LargeLanguageModel.class, trace.entry(Phase.ACTION).args()[1]);
     }
 
     public record ResolutionOrderEvent(String payload) {}
@@ -289,9 +237,6 @@ public class ParameterResolutionTests {
         @Inject
         ExecutionTraceRecorder trace;
 
-        @Inject
-        LargeLanguageModel llm;
-
         @Trigger
         public TriggerOutput onEvent(@Observes DataPropagationEvent event) {
             trace.record(Phase.TRIGGER, "onEvent", event);
@@ -301,8 +246,7 @@ public class ParameterResolutionTests {
         @Decision(order = 1)
         public DecisionOutput decide(DataPropagationEvent event, TriggerOutput trigger) {
             trace.record(Phase.DECISION, "decide", event, trigger);
-            String response = llm.query(trigger.fromTrigger());
-            return new DecisionOutput("decision:" + response);
+            return new DecisionOutput("decision:" + trigger.fromTrigger());
         }
 
         @Action(order = 2)

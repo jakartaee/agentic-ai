@@ -120,7 +120,7 @@ public class ExecutionOrderTests {
      * decisions and actions run in their explicit order. {@code AnchoredAgent} declares its
      * outcome first, its trigger last, and orders its action before its decision.
      *
-     * <p>Specification section {@code execution-order}.
+     * <p>Specification sections {@code workflow-execution} and {@code execution-order}.
      */
     @Test
     public void phasesExecuteInExplicitOrderRegardlessOfDeclaration() {
