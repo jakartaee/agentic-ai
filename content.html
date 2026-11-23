@@ -128,9 +128,12 @@
 public class FraudDetectionAgent {
 
     // Injects default LLM in the implementation, but can be configured to inject specific ones.
-    @Inject private LargeLanguageModel model;
+    @Inject
+    private LargeLanguageModel model;
+
     // Regular CDI features just work.
-    @Inject private EntityManager entityManager;
+    @Inject
+    private EntityManager entityManager;
 
     // Initiates the agent workflow. For this initial release, the workflow can only be triggered by
     // CDI events.
@@ -162,14 +165,14 @@ public class FraudDetectionAgent {
          * Queries can be parameterized similar to Jakarta Persistence.
          */
         String output = model.query(
-            "Is this a fraudulent transaction? If so, how serious is it?", transaction);
+                "Is this a fraudulent transaction? If so, how serious is it?", transaction);
 
         boolean fraud = isFraud(output); // Does some simple custom text parsing.
         Fraud details = null;
 
         if (fraud) {
-            details = getFraudDetails(output); // Does some simple custom text parsing,
-                                               // possibly involving database queries.
+            // Does some simple custom text parsing, possibly involving database queries.
+            details = getFraudDetails(output);
         }
 
         return new Result(fraud, details);

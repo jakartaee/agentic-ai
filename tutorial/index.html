@@ -243,10 +243,10 @@ no provider:</p>
 public class QuestionAgent {
 
     @Inject
-    private LargeLanguageModel model;   // jakarta.ai.agent — no vendor code here
+    private LargeLanguageModel model; // jakarta.ai.agent — no vendor code here
 
     @Trigger
-    void onQuestion(Question question) {   // CDI event that starts the workflow
+    void onQuestion(Question question) { // CDI event that starts the workflow
         if (question.text() == null || question.text().isBlank()) {
             throw new IllegalArgumentException(&quot;Question text is required.&quot;);
         }
@@ -288,27 +288,25 @@ public class QuestionAgent {
     @Inject
     private LargeLanguageModel model;
 
-    @Trigger
-    void onQuestion(@Observes Question question) {   // starts the workflow
+    @Trigger // starts the workflow
+    void onQuestion(@Observes Question question) {
         if (question.text() == null || question.text().isBlank()) {
             throw new IllegalArgumentException(&quot;Question text is required.&quot;);
         }
     }
 
-    @Decision
-    boolean notYetAnswered(Question question,   // may end the workflow
-                           AnswerStore answers) {
+    @Decision // may end the workflow
+    boolean notYetAnswered(Question question, AnswerStore answers) {
         return answers.get(question.text()) == null;
     }
 
-    @Action
-    Answer generate(Question question) {   // does the work
+    @Action // does the work
+    Answer generate(Question question) {
         return new Answer(model.query(&quot;Answer concisely: {}&quot;, question.text()));
     }
 
-    @Outcome
-    void store(Question question, Answer answer,   // ends the workflow
-               AnswerStore answers) {
+    @Outcome // ends the workflow
+    void store(Question question, Answer answer, AnswerStore answers) {
         answers.put(question.text(), answer.text());
     }
 }</code></pre>
@@ -496,19 +494,23 @@ target="_blank" rel="noopener">examples/ask-agent</a></p>
 event and the agent answers the question with the configured LLM, unless it has answered
 that question before. It fits in one class, shown here in full apart from the
 logging:</p>
-<pre><code class="language-java">@Agent(name = &quot;QuestionAgent&quot;,
-       description = &quot;Answers a question using the configured LLM backend.&quot;)
+<pre><code class="language-java">@Agent(
+        name = &quot;QuestionAgent&quot;,
+        description = &quot;Answers a question using the configured LLM backend.&quot;)
 public class QuestionAgent {
 
-    @Inject private LargeLanguageModel model;
-    @Inject private AnswerStore answers;
+    @Inject
+    private LargeLanguageModel model;
+
+    @Inject
+    private AnswerStore answers;
 
     @Trigger
     void onQuestion(@Valid Question question) { /* ... */ }
 
     @Decision
     boolean notYetAnswered(Question question) {
-        return answers.get(question.text()) == null;   // a repeat stops the workflow
+        return answers.get(question.text()) == null; // a repeat stops the workflow
     }
 
     @Action
@@ -593,8 +595,8 @@ public class IntakeAgent {
     @Action PolishedMessage polish(IntakeRequest r, Classification c) { /* ... */ }
 
     // assemble the reviewed record from the four phase results
-    @Outcome void publishPreparedInquiry(Identity i, Classification c,
-                                         Title t, PolishedMessage p) { /* ... */ }
+    @Outcome void publishPreparedInquiry(
+            Identity i, Classification c, Title t, PolishedMessage p) { /* ... */ }
 
     // handle LLM failure
     @OnException void onLlmFailure(LLMException e, IntakeRequest r) { /* ... */ }
@@ -711,8 +713,8 @@ public class CatalogAgent {
     @Action(order = 6) Summary describe() { /* ... */ }
 
     // assemble the catalog entry and file it
-    @Outcome void file(Lesson l, Coverage c, TaggedStandards t,
-                       Estimate e, Summary s) { /* ... */ }
+    @Outcome void file(
+            Lesson l, Coverage c, TaggedStandards t, Estimate e, Summary s) { /* ... */ }
 }
 </code></pre>
 <h3>What it teaches</h3>
