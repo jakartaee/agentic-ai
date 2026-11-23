@@ -21,5 +21,5 @@ The TCK jar registers an Arquillian `ApplicationArchiveProcessor` through `META-
 It adds to every test archive one CDI bean the tests inject, `ee.jakarta.tck.ai.agent.framework.ExecutionTraceRecorder`, which records the order in which workflow phases run and the values they receive.
 
 The TCK deploys no `LargeLanguageModel`.
-The bean the agents under test receive is the implementation's own facade, and the TCK verifies it: placeholder substitution, JSON Binding conversion, exception mapping and conversational state are all asserted against the implementation.
+The bean the tests receive is the implementation's own facade, and the TCK verifies it: placeholder substitution, JSON Binding conversion, exception mapping and conversational state are all asserted against the implementation.
 For those tests to be deterministic, the model behind the facade must behave as <<Additional Certification Requirements>> specifies during the TCK run.
