@@ -14,6 +14,7 @@ package ee.jakarta.tck.ai.agent;
 
 import ee.jakarta.tck.ai.agent.framework.ExecutionTraceRecorder;
 import ee.jakarta.tck.ai.agent.framework.ExecutionTraceRecorder.Phase;
+import ee.jakarta.tck.ai.agent.framework.LifecycleRecorder;
 import jakarta.ai.agent.Action;
 import jakarta.ai.agent.Agent;
 import jakarta.ai.agent.Decision;
@@ -38,12 +39,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
-import java.util.UUID;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -68,7 +65,6 @@ public class AgentScopesTests {
     public static Archive<?> createDeployment() {
         return ShrinkWrap.create(WebArchive.class, "agentscopes.war")
                 .addClasses(
-                        LifecycleCallbackRecorder.class,
                         ScopeDefaultAgent.class,
                         ScopeDefaultEvent.class,
                         LifecycleSpyAgent.class,
@@ -96,49 +92,10 @@ public class AgentScopesTests {
     ExecutionTraceRecorder trace;
 
     @Inject
-    LifecycleCallbackRecorder lifecycleRecorder;
+    LifecycleRecorder lifecycle;
 
     @Inject
     BeanManager beanManager;
-
-    /**
-     * Counts the lifecycle callbacks of the {@code @WorkflowScoped} agents below and records the
-     * id of each instance they construct.
-     */
-    @ApplicationScoped
-    public static class LifecycleCallbackRecorder {
-
-        private final AtomicInteger postConstructCount = new AtomicInteger(0);
-        private final AtomicInteger preDestroyCount = new AtomicInteger(0);
-        private final List<String> instanceIds = Collections.synchronizedList(new ArrayList<>());
-
-        public void recordPostConstruct(String instanceId) {
-            postConstructCount.incrementAndGet();
-            instanceIds.add(instanceId);
-        }
-
-        public void recordPreDestroy() {
-            preDestroyCount.incrementAndGet();
-        }
-
-        public int getPostConstructCount() {
-            return postConstructCount.get();
-        }
-
-        public int getPreDestroyCount() {
-            return preDestroyCount.get();
-        }
-
-        public List<String> getInstanceIds() {
-            return List.copyOf(instanceIds);
-        }
-
-        public void reset() {
-            postConstructCount.set(0);
-            preDestroyCount.set(0);
-            instanceIds.clear();
-        }
-    }
 
     // -- default scope ---------------------------------------------------------
 
@@ -152,14 +109,13 @@ public class AgentScopesTests {
         ExecutionTraceRecorder trace;
 
         @Inject
-        LifecycleCallbackRecorder lifecycleRecorder;
+        LifecycleRecorder lifecycle;
 
         private String instanceId;
 
         @PostConstruct
         void init() {
-            instanceId = UUID.randomUUID().toString();
-            lifecycleRecorder.recordPostConstruct(instanceId);
+            instanceId = lifecycle.postConstruct(ScopeDefaultAgent.class);
         }
 
         @Trigger
@@ -193,7 +149,7 @@ public class AgentScopesTests {
         assertNotNull(bean);
         assertEquals(WorkflowScoped.class, bean.getScope());
 
-        lifecycleRecorder.reset();
+        lifecycle.reset(ScopeDefaultAgent.class);
         trace.reset();
         scopeDefaultEvents.fire(new ScopeDefaultEvent("workflow-1"));
         scopeDefaultEvents.fire(new ScopeDefaultEvent("workflow-2"));
@@ -202,7 +158,7 @@ public class AgentScopesTests {
                 List.of(Phase.TRIGGER, Phase.ACTION, Phase.OUTCOME, Phase.TRIGGER, Phase.ACTION, Phase.OUTCOME),
                 trace.phases());
 
-        List<String> ids = lifecycleRecorder.getInstanceIds();
+        List<String> ids = lifecycle.constructed(ScopeDefaultAgent.class);
         assertEquals(2, ids.size());
         assertNotEquals(ids.get(1), ids.get(0));
 
@@ -227,7 +183,7 @@ public class AgentScopesTests {
         ExecutionTraceRecorder trace;
 
         @Inject
-        LifecycleCallbackRecorder lifecycleRecorder;
+        LifecycleRecorder lifecycle;
 
         private String instanceId;
 
@@ -237,13 +193,12 @@ public class AgentScopesTests {
 
         @PostConstruct
         void init() {
-            instanceId = UUID.randomUUID().toString();
-            lifecycleRecorder.recordPostConstruct(instanceId);
+            instanceId = lifecycle.postConstruct(LifecycleSpyAgent.class);
         }
 
         @PreDestroy
         void destroy() {
-            lifecycleRecorder.recordPreDestroy();
+            lifecycle.preDestroy(LifecycleSpyAgent.class, instanceId);
         }
 
         @Trigger
@@ -273,12 +228,12 @@ public class AgentScopesTests {
      */
     @Test
     public void workflowScopedAgentHasOneInstancePerWorkflow() {
-        lifecycleRecorder.reset();
+        lifecycle.reset(LifecycleSpyAgent.class);
         trace.reset();
         lifecycleSpyEvents.fire(new LifecycleSpyEvent("workflow-1"));
         lifecycleSpyEvents.fire(new LifecycleSpyEvent("workflow-2"));
 
-        List<String> ids = lifecycleRecorder.getInstanceIds();
+        List<String> ids = lifecycle.constructed(LifecycleSpyAgent.class);
         assertEquals(2, ids.size());
         assertNotEquals(ids.get(1), ids.get(0));
     }
@@ -291,39 +246,40 @@ public class AgentScopesTests {
      */
     @Test
     public void workflowScopedAgentPostConstructCalledOnce() {
-        lifecycleRecorder.reset();
+        lifecycle.reset(LifecycleSpyAgent.class);
         trace.reset();
         lifecycleSpyEvents.fire(new LifecycleSpyEvent("workflow-1"));
 
-        assertEquals(1, lifecycleRecorder.getPostConstructCount());
+        assertEquals(1, lifecycle.constructed(LifecycleSpyAgent.class).size());
     }
 
     /**
-     * {@code @PreDestroy} is invoked exactly once when the workflow completes through its
-     * {@code @Outcome} and the {@code @WorkflowScoped} context is destroyed.
+     * {@code @PreDestroy} is invoked exactly once, on the workflow's instance, when the workflow
+     * completes through its {@code @Outcome} and the {@code @WorkflowScoped} context is destroyed.
      *
      * <p>Specification section {@code lifecycle-callbacks}.
      */
     @Test
     public void workflowScopedAgentPreDestroyCalledAfterWorkflow() {
-        lifecycleRecorder.reset();
+        lifecycle.reset(LifecycleSpyAgent.class);
         trace.reset();
         lifecycleSpyEvents.fire(new LifecycleSpyEvent("workflow-1"));
 
         assertEquals(Phase.OUTCOME, trace.phases().get(trace.phases().size() - 1));
-        assertEquals(1, lifecycleRecorder.getPreDestroyCount());
+        assertEquals(1, lifecycle.destroyed(LifecycleSpyAgent.class).size());
+        assertEquals(lifecycle.constructed(LifecycleSpyAgent.class), lifecycle.destroyed(LifecycleSpyAgent.class));
     }
 
     /**
-     * {@code @PreDestroy} is invoked exactly once when the workflow fails. The {@code @Action}
-     * throws, the workflow never reaches its {@code @Outcome}, and the {@code @WorkflowScoped}
-     * context is still torn down.
+     * {@code @PreDestroy} is invoked exactly once, on the workflow's instance, when the workflow
+     * fails. The {@code @Action} throws, the workflow never reaches its {@code @Outcome}, and the
+     * {@code @WorkflowScoped} context is still torn down.
      *
      * <p>Specification section {@code lifecycle-callbacks}.
      */
     @Test
     public void workflowScopedAgentPreDestroyCalledAfterFailure() {
-        lifecycleRecorder.reset();
+        lifecycle.reset(LifecycleSpyAgent.class);
         trace.reset();
         LifecycleSpyAgent.setFailInAction(true);
         try {
@@ -335,7 +291,8 @@ public class AgentScopesTests {
         }
 
         assertFalse(trace.phases().contains(Phase.OUTCOME));
-        assertEquals(1, lifecycleRecorder.getPreDestroyCount());
+        assertEquals(1, lifecycle.destroyed(LifecycleSpyAgent.class).size());
+        assertEquals(lifecycle.constructed(LifecycleSpyAgent.class), lifecycle.destroyed(LifecycleSpyAgent.class));
     }
 
     public record DecisionStopEvent(String payload) {}
@@ -349,19 +306,18 @@ public class AgentScopesTests {
         ExecutionTraceRecorder trace;
 
         @Inject
-        LifecycleCallbackRecorder lifecycleRecorder;
+        LifecycleRecorder lifecycle;
 
         private String instanceId;
 
         @PostConstruct
         void init() {
-            instanceId = UUID.randomUUID().toString();
-            lifecycleRecorder.recordPostConstruct(instanceId);
+            instanceId = lifecycle.postConstruct(DecisionStopSpyAgent.class);
         }
 
         @PreDestroy
         void destroy() {
-            lifecycleRecorder.recordPreDestroy();
+            lifecycle.preDestroy(DecisionStopSpyAgent.class, instanceId);
         }
 
         @Trigger
@@ -387,20 +343,22 @@ public class AgentScopesTests {
     }
 
     /**
-     * {@code @PreDestroy} is invoked exactly once when a {@code @Decision} ends the workflow
-     * early. The context is destroyed although the {@code @Action} and {@code @Outcome} never
-     * run.
+     * {@code @PreDestroy} is invoked exactly once, on the workflow's instance, when a
+     * {@code @Decision} ends the workflow early. The context is destroyed although the
+     * {@code @Action} and {@code @Outcome} never run.
      *
      * <p>Specification section {@code lifecycle-callbacks}.
      */
     @Test
     public void workflowScopedAgentPreDestroyCalledAfterDecisionStop() {
-        lifecycleRecorder.reset();
+        lifecycle.reset(DecisionStopSpyAgent.class);
         trace.reset();
         decisionStopEvents.fire(new DecisionStopEvent("workflow-1"));
 
         assertEquals(List.of(Phase.TRIGGER, Phase.DECISION), trace.phases());
-        assertEquals(1, lifecycleRecorder.getPreDestroyCount());
+        assertEquals(1, lifecycle.destroyed(DecisionStopSpyAgent.class).size());
+        assertEquals(
+                lifecycle.constructed(DecisionStopSpyAgent.class), lifecycle.destroyed(DecisionStopSpyAgent.class));
     }
 
     // -- @ApplicationScoped ----------------------------------------------------
@@ -411,20 +369,17 @@ public class AgentScopesTests {
     @ApplicationScoped
     public static class SingletonCdiAgent {
 
-        private static final AtomicInteger INSTANCE_COUNTER = new AtomicInteger(0);
-
         @Inject
         ExecutionTraceRecorder trace;
 
-        private int instanceId;
+        @Inject
+        LifecycleRecorder lifecycle;
 
-        public static int getInstanceCount() {
-            return INSTANCE_COUNTER.get();
-        }
+        private String instanceId;
 
         @PostConstruct
         void init() {
-            instanceId = INSTANCE_COUNTER.incrementAndGet();
+            instanceId = lifecycle.postConstruct(SingletonCdiAgent.class);
         }
 
         @Trigger
@@ -455,7 +410,7 @@ public class AgentScopesTests {
         singletonEvents.fire(new SingletonCdiEvent("first"));
         singletonEvents.fire(new SingletonCdiEvent("second"));
 
-        assertEquals(1, SingletonCdiAgent.getInstanceCount());
+        assertEquals(1, lifecycle.constructed(SingletonCdiAgent.class).size());
     }
 
     /**
@@ -468,11 +423,11 @@ public class AgentScopesTests {
     public void applicationScopedAgentSharesInstanceAcrossWorkflows() {
         trace.reset();
         singletonEvents.fire(new SingletonCdiEvent("first"));
-        int id1 = (int) trace.entries().get(0).args()[1];
+        String id1 = (String) trace.entries().get(0).args()[1];
 
         trace.reset();
         singletonEvents.fire(new SingletonCdiEvent("second"));
-        int id2 = (int) trace.entries().get(0).args()[1];
+        String id2 = (String) trace.entries().get(0).args()[1];
 
         assertEquals(id1, id2);
     }
@@ -489,9 +444,9 @@ public class AgentScopesTests {
         singletonEvents.fire(new SingletonCdiEvent("test"));
 
         assertEquals(List.of(Phase.TRIGGER, Phase.ACTION, Phase.OUTCOME), trace.phases());
-        int triggerId = (int) trace.entries().get(0).args()[1];
-        int actionId = (int) trace.entries().get(1).args()[1];
-        int outcomeId = (int) trace.entries().get(2).args()[1];
+        String triggerId = (String) trace.entries().get(0).args()[1];
+        String actionId = (String) trace.entries().get(1).args()[1];
+        String outcomeId = (String) trace.entries().get(2).args()[1];
         assertEquals(triggerId, actionId);
         assertEquals(triggerId, outcomeId);
     }
