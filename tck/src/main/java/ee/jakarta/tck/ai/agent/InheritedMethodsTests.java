@@ -85,8 +85,6 @@ public class InheritedMethodsTests {
         }
     }
 
-    // -- inherited phase method ------------------------------------------------
-
     public record InheritEvent(String payload) {}
 
     /** Inherits {@link BasePhaseAgent#act()} without overriding it. */
@@ -112,8 +110,6 @@ public class InheritedMethodsTests {
 
         assertEquals(List.of(Phase.TRIGGER, Phase.ACTION), trace.phases());
     }
-
-    // -- unannotated override --------------------------------------------------
 
     public record OverrideEvent(String payload) {}
 

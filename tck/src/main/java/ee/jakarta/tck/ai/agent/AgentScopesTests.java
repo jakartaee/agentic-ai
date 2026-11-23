@@ -97,8 +97,6 @@ public class AgentScopesTests {
     @Inject
     BeanManager beanManager;
 
-    // -- default scope ---------------------------------------------------------
-
     public record ScopeDefaultEvent(String payload) {}
 
     /** Declares no scope, so the {@code @WorkflowScoped} default declared by {@code @Agent} applies. */
@@ -166,8 +164,6 @@ public class AgentScopesTests {
                 trace.entries().stream().map(entry -> (String) entry.args()[1]).toList();
         assertEquals(List.of(ids.get(0), ids.get(0), ids.get(0), ids.get(1), ids.get(1), ids.get(1)), phaseInstanceIds);
     }
-
-    // -- @WorkflowScoped -------------------------------------------------------
 
     public record LifecycleSpyEvent(String payload) {}
 
@@ -360,8 +356,6 @@ public class AgentScopesTests {
         assertEquals(
                 lifecycle.constructed(DecisionStopSpyAgent.class), lifecycle.destroyed(DecisionStopSpyAgent.class));
     }
-
-    // -- @ApplicationScoped ----------------------------------------------------
 
     public record SingletonCdiEvent(String payload) {}
 

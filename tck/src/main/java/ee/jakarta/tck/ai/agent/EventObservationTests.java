@@ -70,8 +70,6 @@ public class EventObservationTests {
     @Inject
     ExecutionTraceRecorder trace;
 
-    // -- @WorkflowScoped -------------------------------------------------------
-
     public record WorkflowScopedTriggerEvent(String payload) {}
 
     /** Observes events only through its {@code @Trigger}, the one way a workflow-scoped agent may. */
@@ -101,8 +99,6 @@ public class EventObservationTests {
         assertEquals(List.of(Phase.TRIGGER), trace.phases());
         assertEquals(List.of("onTriggerEvent"), trace.methodNames());
     }
-
-    // -- @ApplicationScoped ----------------------------------------------------
 
     public record EventObservationTriggerEvent(String payload) {}
 

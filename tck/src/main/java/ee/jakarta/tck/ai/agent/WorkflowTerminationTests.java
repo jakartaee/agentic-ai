@@ -86,8 +86,6 @@ public class WorkflowTerminationTests {
     @Inject
     BranchingAgent branchingAgent;
 
-    // -- boolean ---------------------------------------------------------------
-
     public record BooleanTerminationEvent(String payload) {}
 
     @Agent
@@ -131,8 +129,6 @@ public class WorkflowTerminationTests {
 
         assertEquals(List.of(Phase.TRIGGER, Phase.DECISION), trace.phases());
     }
-
-    // -- Result ----------------------------------------------------------------
 
     public record ResultTerminationEvent(String payload) {}
 
@@ -195,8 +191,6 @@ public class WorkflowTerminationTests {
         assertEquals(List.of(Phase.TRIGGER, Phase.DECISION, Phase.ACTION, Phase.OUTCOME), trace.phases());
     }
 
-    // -- domain object ---------------------------------------------------------
-
     public record ObjectTerminationEvent(String payload) {}
 
     public record ObjectTerminationDecision(String reason) {}
@@ -242,8 +236,6 @@ public class WorkflowTerminationTests {
 
         assertEquals(List.of(Phase.TRIGGER, Phase.DECISION), trace.phases());
     }
-
-    // -- later decision --------------------------------------------------------
 
     public record BranchingEvent(String payload) {}
 

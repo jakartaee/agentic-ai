@@ -99,8 +99,6 @@ public class CdiBeanTests {
     @Inject
     ExecutionTraceRecorder trace;
 
-    // -- static nested agent ---------------------------------------------------
-
     public record InnerAgentEvent(String payload) {}
 
     @Agent
@@ -129,8 +127,6 @@ public class CdiBeanTests {
 
         assertEquals(List.of(Phase.TRIGGER), trace.phases());
     }
-
-    // -- constructor injection -------------------------------------------------
 
     public record ConstructorInjectedEvent(String payload) {}
 
@@ -170,8 +166,6 @@ public class CdiBeanTests {
 
         assertEquals(List.of(Phase.TRIGGER), trace.phases());
     }
-
-    // -- interceptors ----------------------------------------------------------
 
     @InterceptorBinding
     @Target({ElementType.TYPE, ElementType.METHOD})

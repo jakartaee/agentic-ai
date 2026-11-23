@@ -105,8 +105,6 @@ public class ParameterResolutionTests {
     @Inject
     ExecutionTraceRecorder trace;
 
-    // -- the triggering event and the LargeLanguageModel -----------------------
-
     public record LlmParameterEvent(String payload) {}
 
     @Agent
@@ -165,8 +163,6 @@ public class ParameterResolutionTests {
         assertEquals("classify \"payload\"", trace.entry(Phase.ACTION).args()[1]);
     }
 
-    // -- trigger without @Observes ---------------------------------------------
-
     public record ImplicitObservesEvent(String payload) {}
 
     /** Declares its trigger without {@code @Observes}, the optional form the specification's own examples use. */
@@ -212,8 +208,6 @@ public class ParameterResolutionTests {
                                 trace.entry(Phase.TRIGGER).args()[0])
                         .payload());
     }
-
-    // -- resolution order ------------------------------------------------------
 
     public record ResolutionOrderEvent(String payload) {}
 
@@ -287,8 +281,6 @@ public class ParameterResolutionTests {
         assertInstanceOf(LargeLanguageModel.class, args[1]);
         assertInstanceOf(ResolutionCdiBean.class, args[2]);
     }
-
-    // -- values returned by earlier phases -------------------------------------
 
     public record DataPropagationEvent(String input) {}
 
@@ -386,8 +378,6 @@ public class ParameterResolutionTests {
         assertInstanceOf(ActionOutput.class, outcomeArgs[3]);
     }
 
-    // -- Result details --------------------------------------------------------
-
     public record ResultDetailsEvent(String input) {}
 
     /** Carried as the {@code details} of the {@code Result} that the decision below returns. */
@@ -439,8 +429,6 @@ public class ParameterResolutionTests {
                                 DecisionDetails.class, trace.entry(Phase.ACTION).args()[0])
                         .value());
     }
-
-    // -- same type returned twice ----------------------------------------------
 
     public record SameTypeEvent(String input) {}
 
@@ -500,8 +488,6 @@ public class ParameterResolutionTests {
                                 SameTypeOutput.class, trace.entry(Phase.OUTCOME).args()[0])
                         .marker());
     }
-
-    // -- void phases -----------------------------------------------------------
 
     public record VoidPhasesEvent(String payload) {}
 

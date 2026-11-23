@@ -110,8 +110,6 @@ public class ValidationTests {
      */
     public record InputData(@NotNull String value) {}
 
-    // -- valid input proceeds --------------------------------------------------
-
     /**
      * A non-{@code null} payload produces valid {@link InputData}, a {@code null} payload input
      * that fails validation.
@@ -162,8 +160,6 @@ public class ValidationTests {
         assertEquals(List.of(Phase.TRIGGER, Phase.ACTION), trace.phases());
     }
 
-    // -- invalid input skips the phase body ------------------------------------
-
     /**
      * Invalid input fails validation before injection, so the {@code @Action} body never runs.
      *
@@ -176,8 +172,6 @@ public class ValidationTests {
 
         assertFalse(trace.phases().contains(Phase.ACTION));
     }
-
-    // -- invalid input routed to @OnException ----------------------------------
 
     /**
      * A ConstraintViolationException from failed validation is routed to a matching {@code
@@ -194,8 +188,6 @@ public class ValidationTests {
                 ConstraintViolationException.class,
                 trace.entry(Phase.ON_EXCEPTION).args()[0]);
     }
-
-    // -- invalid input with no handler -----------------------------------------
 
     public record UnhandledValidationEvent(String payload) {}
 
@@ -237,8 +229,6 @@ public class ValidationTests {
         assertInstanceOf(ConstraintViolationException.class, Causes.first(thrown, ConstraintViolationException.class));
         assertFalse(trace.phases().contains(Phase.ACTION));
     }
-
-    // -- constraints on other phases -------------------------------------------
 
     /** Carries a constraint of its own, so validation applies to the {@code @Trigger} parameter itself. */
     public record TriggerValidationEvent(@NotNull String payload) {}
@@ -408,8 +398,6 @@ public class ValidationTests {
         outcomeEvents.fire(new OutcomeValidationEvent("ok"));
         assertEquals(List.of(Phase.TRIGGER, Phase.ACTION, Phase.OUTCOME), trace.phases());
     }
-
-    // -- constraints on @OnException parameters --------------------------------
 
     public static class AgentDomainException extends RuntimeException {
 

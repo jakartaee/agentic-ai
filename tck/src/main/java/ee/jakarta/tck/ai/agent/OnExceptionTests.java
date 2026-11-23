@@ -125,8 +125,6 @@ public class OnExceptionTests {
                 "No AgentDomainException in the cause chain of " + thrown);
     }
 
-    // -- handler returns, rethrows or throws -----------------------------------
-
     public record RecoveryEvent(String payload) {}
 
     @Agent
@@ -272,8 +270,6 @@ public class OnExceptionTests {
                 1, trace.phases().stream().filter(p -> p == Phase.ON_EXCEPTION).count());
     }
 
-    // -- handler selection -----------------------------------------------------
-
     public static class SpecificDomainException extends AgentDomainException {
 
         private static final long serialVersionUID = 1L;
@@ -327,8 +323,6 @@ public class OnExceptionTests {
 
         assertEquals("onSpecific", trace.entry(Phase.ON_EXCEPTION).methodName());
     }
-
-    // -- failing phases --------------------------------------------------------
 
     public record PhaseFailureEvent(String payload) {}
 
@@ -441,8 +435,6 @@ public class OnExceptionTests {
         assertTrue(trace.phases().containsAll(List.of(Phase.TRIGGER, Phase.OUTCOME, Phase.ON_EXCEPTION)));
     }
 
-    // -- no handler ------------------------------------------------------------
-
     public record NoHandlerEvent(String payload) {}
 
     @Agent
@@ -483,8 +475,6 @@ public class OnExceptionTests {
         agentExceptionIn(thrown);
         assertFalse(trace.phases().contains(Phase.OUTCOME));
     }
-
-    // -- handler parameters ----------------------------------------------------
 
     public record StatefulHandlerEvent(String payload) {}
 

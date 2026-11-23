@@ -134,8 +134,6 @@ public class LargeLanguageModelTests {
         return trace.entry(Phase.TRIGGER).args()[0];
     }
 
-    // -- validation: IllegalArgumentException before any model call ------------
-
     /**
      * Null prompt on query(String) throws IllegalArgumentException.
      *
@@ -294,8 +292,6 @@ public class LargeLanguageModelTests {
         assertNotNull(probe(llm -> llm.unwrap(Object.class)));
     }
 
-    // -- rendering: the echoed response is the rendered prompt -----------------
-
     /**
      * {} placeholders are substituted in declaration order with the JSON Binding form of each
      * parameter; the echo model returns the rendered prompt.
@@ -366,8 +362,6 @@ public class LargeLanguageModelTests {
                 probe(llm -> llm.query("{\"name\":{},\"age\":{}}", PersonFixture.class, "Bob", 25)));
         assertEquals(new PersonFixture("Bob", 25), p);
     }
-
-    // -- failures: LLMException ------------------------------------------------
 
     /**
      * A model failure surfaces as LLMException.
@@ -481,8 +475,6 @@ public class LargeLanguageModelTests {
         assertInstanceOf(LLMException.class, trace.entry(Phase.ON_EXCEPTION).args()[0]);
     }
 
-    // -- use outside a workflow ------------------------------------------------
-
     /**
      * The facade can be used outside a workflow context. A call made directly from the test,
      * with no workflow running, returns the rendered prompt.
@@ -493,8 +485,6 @@ public class LargeLanguageModelTests {
     public void facadeIsUsableOutsideWorkflowContext() {
         assertEquals("Hello \"Alice\"", llm.query("Hello {}", "Alice"));
     }
-
-    // -- conversational state --------------------------------------------------
 
     public record LlmQuerierEvent(String payload) {}
 

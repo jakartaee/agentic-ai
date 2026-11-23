@@ -89,8 +89,6 @@ public class ExecutionOrderTests {
     @Inject
     ExecutionTraceRecorder trace;
 
-    // -- phase order -----------------------------------------------------------
-
     public record PhaseOrderingEvent(String payload) {}
 
     @Agent
@@ -182,8 +180,6 @@ public class ExecutionOrderTests {
         assertEquals(List.of(Phase.TRIGGER, Phase.ACTION, Phase.DECISION, Phase.OUTCOME), trace.phases());
         assertEquals(List.of("onEvent", "act", "decide", "finish"), trace.methodNames());
     }
-
-    // -- order attribute and @Priority -----------------------------------------
 
     public record OrderAttrEvent(String payload) {}
 
