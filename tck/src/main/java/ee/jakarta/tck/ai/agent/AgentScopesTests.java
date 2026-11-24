@@ -26,8 +26,6 @@ import jakarta.annotation.PreDestroy;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.event.Event;
 import jakarta.enterprise.event.Observes;
-import jakarta.enterprise.inject.spi.Bean;
-import jakarta.enterprise.inject.spi.BeanManager;
 import jakarta.inject.Inject;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.junit5.ArquillianExtension;
@@ -41,18 +39,19 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
- * Agent scopes and lifecycle callbacks (specification sections <em>Agent Scopes</em> and
- * <em>Lifecycle Callbacks</em>). {@code @WorkflowScoped} is the default and gives each workflow
- * its own instance, destroyed when the workflow ends however it ends; {@code @ApplicationScoped}
- * shares one instance across workflows and phases.
+ * Agent scopes (specification section <em>Agent Scopes</em>). {@code @WorkflowScoped} gives each
+ * workflow its own instance, destroyed when the workflow ends however it ends;
+ * {@code @ApplicationScoped} shares one instance across workflows and phases. That
+ * {@code @WorkflowScoped} is the default is not tested here, since the signature test pins the
+ * stereotype on {@code @Agent} and CDI applies it. The tests observe construction and
+ * destruction through {@code @PostConstruct} and {@code @PreDestroy}, which CDI itself
+ * guarantees, so they do not test those callbacks as such.
  *
  * <p>Uses {@code @TestInstance(PER_CLASS)} with inline {@code trace.reset()} because
  * {@code @BeforeEach} does not run reliably between methods of an Arquillian test class inside
@@ -66,8 +65,6 @@ public class AgentScopesTests {
     public static Archive<?> createDeployment() {
         return ShrinkWrap.create(WebArchive.class, "agentscopes.war")
                 .addClasses(
-                        ScopeDefaultAgent.class,
-                        ScopeDefaultEvent.class,
                         LifecycleSpyAgent.class,
                         LifecycleSpyEvent.class,
                         DecisionStopSpyAgent.class,
@@ -91,34 +88,6 @@ public class AgentScopesTests {
 
     @Inject
     LifecycleRecorder lifecycle;
-
-    @Inject
-    BeanManager beanManager;
-
-    public record ScopeDefaultEvent(String payload) {}
-
-    /** Declares no scope, so the {@code @WorkflowScoped} default declared by {@code @Agent} applies. */
-    @Agent
-    public static class ScopeDefaultAgent {
-
-        @Trigger
-        public void onEvent(@Observes ScopeDefaultEvent event) {}
-    }
-
-    /**
-     * An agent with no explicit scope is discovered as a CDI bean in an archive whose
-     * {@code beans.xml} is empty, and is {@code @WorkflowScoped}.
-     *
-     * <p>Specification section {@code agent-semantics}.
-     */
-    @Test
-    public void defaultScopeIsWorkflowScoped() {
-        Set<Bean<?>> beans = beanManager.getBeans(ScopeDefaultAgent.class);
-        assertEquals(1, beans.size());
-        Bean<?> bean = beanManager.resolve(beans);
-        assertNotNull(bean);
-        assertEquals(WorkflowScoped.class, bean.getScope());
-    }
 
     public record LifecycleSpyEvent(String payload) {}
 
@@ -197,27 +166,14 @@ public class AgentScopesTests {
     }
 
     /**
-     * {@code @PostConstruct} is invoked exactly once per {@code @WorkflowScoped} workflow
-     * execution.
+     * A {@code @WorkflowScoped} agent's instance is destroyed, exactly once, after its workflow
+     * completes through the {@code @Outcome}. The test observes the destruction through
+     * {@code @PreDestroy}.
      *
-     * <p>Specification section {@code lifecycle-callbacks}.
+     * <p>Specification section {@code workflowscoped}.
      */
     @Test
-    public void workflowScopedAgentPostConstructCalledOnce() {
-        lifecycle.reset(LifecycleSpyAgent.class);
-        lifecycleSpyEvents.fire(new LifecycleSpyEvent("workflow-1"));
-
-        assertEquals(1, lifecycle.constructed(LifecycleSpyAgent.class).size());
-    }
-
-    /**
-     * {@code @PreDestroy} is invoked exactly once, on the workflow's instance, when the workflow
-     * completes through its {@code @Outcome} and the {@code @WorkflowScoped} context is destroyed.
-     *
-     * <p>Specification section {@code lifecycle-callbacks}.
-     */
-    @Test
-    public void workflowScopedAgentPreDestroyCalledAfterWorkflow() {
+    public void workflowScopedAgentIsDestroyedWhenWorkflowCompletes() {
         lifecycle.reset(LifecycleSpyAgent.class);
         trace.reset();
         lifecycleSpyEvents.fire(new LifecycleSpyEvent("workflow-1"));
@@ -228,14 +184,14 @@ public class AgentScopesTests {
     }
 
     /**
-     * {@code @PreDestroy} is invoked exactly once, on the workflow's instance, when the workflow
-     * fails. The {@code @Action} throws, the workflow never reaches its {@code @Outcome}, and the
-     * {@code @WorkflowScoped} context is still torn down.
+     * A {@code @WorkflowScoped} agent's instance is destroyed, exactly once, after its workflow
+     * fails. The {@code @Action} throws and the workflow never reaches its {@code @Outcome}, but
+     * the instance is still destroyed.
      *
-     * <p>Specification section {@code lifecycle-callbacks}.
+     * <p>Specification section {@code workflowscoped}.
      */
     @Test
-    public void workflowScopedAgentPreDestroyCalledAfterFailure() {
+    public void workflowScopedAgentIsDestroyedWhenWorkflowFails() {
         lifecycle.reset(LifecycleSpyAgent.class);
         trace.reset();
         LifecycleSpyAgent.setFailInAction(true);
@@ -300,14 +256,14 @@ public class AgentScopesTests {
     }
 
     /**
-     * {@code @PreDestroy} is invoked exactly once, on the workflow's instance, when a
-     * {@code @Decision} ends the workflow early. The context is destroyed although the
-     * {@code @Action} and {@code @Outcome} never run.
+     * A {@code @WorkflowScoped} agent's instance is destroyed, exactly once, after a
+     * {@code @Decision} ends its workflow early, although the {@code @Action} and {@code @Outcome}
+     * never run.
      *
-     * <p>Specification section {@code lifecycle-callbacks}.
+     * <p>Specification section {@code workflowscoped}.
      */
     @Test
-    public void workflowScopedAgentPreDestroyCalledAfterDecisionStop() {
+    public void workflowScopedAgentIsDestroyedWhenDecisionStopsWorkflow() {
         lifecycle.reset(DecisionStopSpyAgent.class);
         trace.reset();
         decisionStopEvents.fire(new DecisionStopEvent("workflow-1"));

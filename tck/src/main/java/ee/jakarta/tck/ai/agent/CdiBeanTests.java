@@ -46,13 +46,14 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
- * Agents as CDI beans (specification section <em>Agents as CDI Beans</em> and
- * <em>Interceptors</em>). An agent is discovered and managed like any other bean, may use
- * constructor injection or be a static nested class, and CDI interceptors apply to its phases.
+ * Agents as CDI beans (specification section <em>Interceptors</em>). CDI interceptors apply to an
+ * agent's phases, which holds only if the implementation invokes them through the bean rather than
+ * on the raw instance. What CDI guarantees for any managed bean, such as injection and discovery,
+ * is left to the CDI TCK.
  *
  * <p>Uses {@code @TestInstance(PER_CLASS)} with inline {@code trace.reset()} because
  * {@code @BeforeEach} does not run reliably between methods of an Arquillian test
- * class inside the container.</p>
+ * class inside the container.
  */
 @ExtendWith(ArquillianExtension.class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -76,8 +77,6 @@ public class CdiBeanTests {
     public static Archive<?> createDeployment() {
         return ShrinkWrap.create(WebArchive.class, "cdibeans.war")
                 .addClasses(
-                        ConstructorInjectedAgent.class,
-                        ConstructorInjectedEvent.class,
                         InterceptedAgent.class,
                         InterceptedEvent.class,
                         AgentInterceptorBinding.class,
@@ -86,52 +85,10 @@ public class CdiBeanTests {
     }
 
     @Inject
-    Event<ConstructorInjectedEvent> constructorInjectedEvents;
-
-    @Inject
     Event<InterceptedEvent> interceptedEvents;
 
     @Inject
     ExecutionTraceRecorder trace;
-
-    public record ConstructorInjectedEvent(String payload) {}
-
-    @Agent
-    @ApplicationScoped
-    public static class ConstructorInjectedAgent {
-
-        private final ExecutionTraceRecorder trace;
-
-        /** Required by CDI for normal-scoped bean proxying; the @Inject constructor is used for actual instantiation. */
-        protected ConstructorInjectedAgent() {
-            this.trace = null;
-        }
-
-        @Inject
-        public ConstructorInjectedAgent(ExecutionTraceRecorder trace) {
-            this.trace = trace;
-        }
-
-        @Trigger
-        public void onEvent(@Observes ConstructorInjectedEvent event) {
-            trace.record(Phase.TRIGGER, "onEvent", event);
-        }
-    }
-
-    /**
-     * An agent that receives its dependencies through an {@code @Inject} constructor is a valid
-     * CDI managed bean. Its {@code @Trigger} fires with the injected recorder, so the container
-     * created it through that constructor.
-     *
-     * <p>Specification section {@code agents-as-cdi-beans}.
-     */
-    @Test
-    public void constructorInjectedAgentIsDiscoveredAndManaged() {
-        trace.reset();
-        constructorInjectedEvents.fire(new ConstructorInjectedEvent("test"));
-
-        assertEquals(List.of(Phase.TRIGGER), trace.phases());
-    }
 
     @InterceptorBinding
     @Target({ElementType.TYPE, ElementType.METHOD})
